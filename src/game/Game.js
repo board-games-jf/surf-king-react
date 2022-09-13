@@ -22,6 +22,10 @@ const movePiece = (G, ctx, moves, cell) => {
     const currentPlayerPosition = G.players[currentPlayer].cellPosition
     const nextPosition = cell.position;
 
+    if (G.players[currentPlayer].energy === 0) {
+        return false;
+    }
+
     if (G.cells[nextPosition].player) {
         return false;
     }

@@ -43,7 +43,7 @@ const createDeck = () => {
 }
 
 const createPlayer = (position, cards) => {
-    return { position, cards, played: false, cellPosition: -1 }
+    return { position, cards, played: false, cellPosition: -1, energy: 4 }
 }
 
 const setup = () => {
@@ -98,6 +98,7 @@ const movePiece = (G, ctx, from, to) => {
     G.cells[from].player = undefined
     G.players[ctx.currentPlayer].played = true
     G.players[ctx.currentPlayer].cellPosition = to
+    G.players[ctx.currentPlayer].energy--
 }
 
 const resetPlayerPlayed = (G) => {
@@ -121,7 +122,7 @@ const everyonePlay = (G) => {
 const endIf = (G) => {
     // A player wins if he arrives at one of the cells: 50, 51, 52, or 53.
     for (let i = 50; i <= 53; ++i) {
-        const cell = G.cells[i]
+        const cell = G.cells[i-1]
         if (cell) {
             const player = cell.player
             if (player) {
