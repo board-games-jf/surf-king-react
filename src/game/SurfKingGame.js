@@ -1,5 +1,5 @@
 import { TurnOrder } from 'boardgame.io/core'
-import { CardAmulet, CardEnergy, CardEnergyX2, CardEnergyX3, CardShark } from "./Card.js";
+import { CardAmulet, CardEnergy, CardEnergyX2, CardEnergyX3 } from "./Card.js";
 import { SharkObstacle } from "./Obstacle.js";
 
 // TODO: Move to other file
@@ -43,7 +43,7 @@ const createDeck = () => {
 }
 
 const createPlayer = (position, cards) => {
-    return { position, cards, played: false, cellPosition: -1, energy: 4 }
+    return { position, cards, played: false, shouldReceiveCard: false, cellPosition: -1, energy: 4, fellOffTheBoard: false }
 }
 
 const setup = () => {
@@ -61,14 +61,14 @@ const setup = () => {
     }
 
     let order = [Position_P1, Position_P2]
-    order = order.sort(() => Math.random() - 0.5)
+    // order = order.sort(() => Math.random() - 0.5) // TODO: Another mode?
 
     const cells = new Array(GRID_SIZE)
 
     // TODO: set player positions according to number of players.
     for (let i = 0; i < 2; ++i) {
-        players[order[i]].cellPosition = i + 1
-        cells[i + 1] = { position: i + 1, obstacle: undefined, player: players[order[i]] }
+        players[order[i]].cellPosition = i
+        cells[i] = { position: i, obstacle: undefined, player: players[order[i]] }
     }
 
     cells[28] = { position: 28, obstacle: SharkObstacle, player: undefined }
@@ -92,22 +92,49 @@ const placeObstacule = (G, ctx, position, obstacle) => {
     G.players[ctx.currentPlayer].played = true
 }
 
+const attack = (G, ctx, targetPosition) => {
+    // TODO: Implement
+
+    // TODO: Validate moviment or trigger action
+    G.players[ctx.currentPlayer].shouldReceiveCard = true
+    G.players[ctx.currentPlayer].played = true
+}
+
 const movePiece = (G, ctx, from, to) => {
     // TODO: Validate moviment or trigger action
     G.cells[to].player = G.cells[from].player
     G.cells[from].player = undefined
     G.players[ctx.currentPlayer].cellPosition = to
     G.players[ctx.currentPlayer].energy--
+    G.players[ctx.currentPlayer].shouldReceiveCard = true
     G.players[ctx.currentPlayer].played = true
 }
 
 const useCard = (G, ctx, cardPos) => {
     // TODO: Validate moviment or trigger action
-    G.players[ctx.currentPlayer].cards.splice(cardPos, 1)
+    const currentPlayer = G.players[ctx.currentPlayer]
+    if (!!currentPlayer) {
+        return
+    }
 
-    if (!G.players[ctx.currentPlayer].played && ctx.numMoves === 1) {
+    const card = currentPlayer.cards[cardPos]
+    currentPlayer.cards.splice(cardPos, 1)
+
+    // TODO: Implement card action
+    console.log("useCard:", currentPlayer, card);
+
+    G.players[ctx.currentPlayer].shouldReceiveCard = true
+
+    if (!currentPlayer.played && ctx.numMoves === 1) {
         skip(G, ctx);
     }
+}
+
+const getCard = (G, ctx) => {
+    const card = G.deck.pop()
+    G.players[ctx.currentPlayer].cards.push(card)
+    G.players[ctx.currentPlayer].shouldReceiveCard = false
+    G.players[ctx.currentPlayer].played = true
 }
 
 const skip = (G, ctx) => {
@@ -119,19 +146,17 @@ const resetPlayerPlayed = (G) => {
     Object['values'](G.players).forEach((p) => (p.played = false))
 }
 
-const phasePlaceFirstObstaculeOnEnd = (G) => {
+const onEndPhase = (G) => {
     resetPlayerPlayed(G)
     ++G.turn
 }
 
-const phaseFirstMoveOnEnd = (G) => {
-    resetPlayerPlayed(G)
-    ++G.turn
+const getNextPhaseAfterUseCard = (G, ctx) => {
+    return G.players[ctx.currentPlayer].fellOffTheBoard ? 'to_get_on_the_board' : 'to_drop_in'
 }
 
-const phaseUseCardOnEnd = (G) => {
-    resetPlayerPlayed(G)
-    ++G.turn
+const getNextPhaseAfterManeuver = (G, ctx) => {
+    return G.players[ctx.currentPlayer].shouldReceiveCard ? 'receive_card' : 'use_card'
 }
 
 const everyonePlay = (G) => {
@@ -141,7 +166,7 @@ const everyonePlay = (G) => {
 const endIf = (G) => {
     // A player wins if he arrives at one of the cells: 50, 51, 52, or 53.
     for (let i = 50; i <= 53; ++i) {
-        const cell = G.cells[i-1]
+        const cell = G.cells[i - 1]
         if (cell) {
             const player = cell.player
             if (player) {
@@ -162,20 +187,44 @@ export const SurfKingGame = {
         firt_move_piece: {
             moves: { movePiece },
             turn: { maxMoves: 1 },
-            onEnd: phaseFirstMoveOnEnd,
+            onEnd: onEndPhase,
             endIf: everyonePlay,
-            next: 'use_card',
+            next: 'receive_card',
             start: true,
         },
         use_card: {
             moves: { useCard, skip },
             turn: { maxMoves: 2 },
-            onEnd: phaseUseCardOnEnd,
+            onEnd: onEndPhase,
             endIf: everyonePlay,
-            next: 'check',
+            next: getNextPhaseAfterUseCard,
         },
-        check: {
-            moves: {},
+        to_get_on_the_board: {
+            moves: { skip },
+            turn: { maxMoves: 1 },
+            onEnd: onEndPhase,
+            endIf: everyonePlay,
+            next: 'to_drop_in',
+        },
+        to_drop_in: {
+            moves: { attack, skip },
+            turn: { maxMoves: 1 },
+            onEnd: onEndPhase,
+            endIf: everyonePlay,
+            next: 'maneuver',
+        },
+        maneuver: {
+            moves: { movePiece, skip },
+            turn: { maxMoves: 1 },
+            onEnd: onEndPhase,
+            endIf: everyonePlay,
+            next: getNextPhaseAfterManeuver,
+        },
+        receive_card: {
+            moves: { getCard },
+            turn: { maxMoves: 1 },
+            onEnd: onEndPhase,
+            endIf: everyonePlay,
             next: 'use_card',
         },
     },
