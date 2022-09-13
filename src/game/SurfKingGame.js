@@ -1,17 +1,15 @@
 import { TurnOrder } from 'boardgame.io/core'
-import { CardAmulet, CardEnergy, CardEnergyX2, CardEnergyX3 } from "./Card.js";
-import { SharkObstacle } from "./Obstacle.js";
+import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Card";
+import { SharkObstacle } from "./Obstacle";
 
-// TODO: Move to other file
-const Position_P1 = 0;
-const Position_P2 = 1;
-const Position_P3 = 2;
-const Position_P4 = 3;
-const Position_P5 = 4;
-const Position_P6 = 5;
-const Position_P7 = 6;
+/********************************************************************************/
+// Setup
+/********************************************************************************/
 
-export const GRID_SIZE = 53; // TODO: Move to other file
+const GRID_SIZE = 53;
+
+// TODO: Get number of players from session
+export const NUMBER_OF_PLAYERS = 2;
 
 const createDeck = () => {
     const deck = [];
@@ -23,13 +21,25 @@ const createDeck = () => {
     }
 
     // Obstacles
-    // TOOD: Fill up
+    addCards(CardCyclone, 4)
+    addCards(CardIsland, 4)
+    addCards(CardStone, 4)
+    addCards(CardStorm, 4)
 
     // Actions
+    addCards(CardBigWave, 4)
+    addCards(CardBottledWater, 4)
+    addCards(CardCoconut, 4)
+    addCards(CardChange, 2)
     addCards(CardEnergy, 8)
     addCards(CardEnergyX2, 4)
     addCards(CardEnergyX3, 2)
-    // TOOD: Fill up
+    addCards(CardHangLoose, 1)
+    addCards(CardJumping, 2)
+    addCards(CardLifeGuardFloat, 4)
+    addCards(CardSwimmingFin, 4)
+    addCards(CardSunburn, 4)
+    addCards(CardTsunami, 4)
 
     // Acessories
     addCards(CardAmulet, 1)
@@ -47,26 +57,22 @@ const createPlayer = (position, cards) => {
 }
 
 const setup = () => {
+    const cells = new Array(GRID_SIZE);
+
     // TODO: Create the deck base on game mode
     const deck = createDeck();
 
-    // TODO: each player will receive 2 random cards
-    const initialCardsP1 = [deck.pop(), deck.pop()];
-    const initialCardsP2 = [deck.pop(), deck.pop()];
-
-    // TODO: Get number of players from session
-    const players = {
-        '0': createPlayer(Position_P1, initialCardsP1),
-        '1': createPlayer(Position_P2, initialCardsP2),
+    const players = {}
+    for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
+        const initialCards = [deck.pop(), deck.pop()];
+        players[i] = createPlayer(i, initialCards);
     }
 
-    let order = [Position_P1, Position_P2]
-    // order = order.sort(() => Math.random() - 0.5) // TODO: Another mode?
-
-    const cells = new Array(GRID_SIZE)
+    let order = Object.keys(players);
+    // order = order.sort(() => Math.random() - 0.5) // TODO: Other mode?
 
     // TODO: set player positions according to number of players.
-    for (let i = 0; i < 2; ++i) {
+    for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
         players[order[i]].cellPosition = i
         cells[i] = { position: i, obstacle: undefined, player: players[order[i]] }
     }
@@ -86,30 +92,9 @@ const setup = () => {
     return { cells, players, events, turn: 0, order, deck }
 }
 
-const placeObstacule = (G, ctx, position, obstacle) => {
-    // TODO: Validate
-    G.cells[position].obstacle = obstacle
-    G.players[ctx.currentPlayer].played = true
-}
-
-const attack = (G, ctx, targetPosition) => {
-    // TODO: Implement
-
-    // TODO: Validate moviment or trigger action
-    G.players[ctx.currentPlayer].shouldReceiveCard = true
-    G.players[ctx.currentPlayer].played = true
-}
-
-const movePiece = (G, ctx, from, to) => {
-    // TODO: Validate moviment or trigger action
-    G.cells[to].player = G.cells[from].player
-    G.cells[from].player = undefined
-    G.players[ctx.currentPlayer].cellPosition = to
-    G.players[ctx.currentPlayer].energy--
-    G.players[ctx.currentPlayer].shouldReceiveCard = true
-    G.players[ctx.currentPlayer].played = true
-}
-
+/********************************************************************************/
+// Moves
+/********************************************************************************/
 const useCard = (G, ctx, cardPos) => {
     // TODO: Validate moviment or trigger action
     const currentPlayer = G.players[ctx.currentPlayer]
@@ -130,17 +115,47 @@ const useCard = (G, ctx, cardPos) => {
     }
 }
 
+const attack = (G, ctx, targetPosition) => {
+    // TODO: Implement
+
+    // TODO: Validate moviment or trigger action
+    G.players[ctx.currentPlayer].shouldReceiveCard = true
+    G.players[ctx.currentPlayer].played = true
+}
+
+const movePiece = (G, ctx, from, to) => {
+    // TODO: Validate moviment or trigger action
+    G.cells[to].player = G.cells[from].player
+    G.cells[from].player = undefined
+    G.players[ctx.currentPlayer].cellPosition = to
+    G.players[ctx.currentPlayer].energy--
+    G.players[ctx.currentPlayer].shouldReceiveCard = true
+    G.players[ctx.currentPlayer].played = true
+}
+
 const getCard = (G, ctx) => {
-    const card = G.deck.pop()
-    G.players[ctx.currentPlayer].cards.push(card)
+    if (G.players[ctx.currentPlayer].shouldReceiveCard) {
+        const card = G.deck.pop()
+        G.players[ctx.currentPlayer].cards.push(card)
+    }
     G.players[ctx.currentPlayer].shouldReceiveCard = false
     G.players[ctx.currentPlayer].played = true
 }
+
+// const placeObstacule = (G, ctx, position, obstacle) => {
+//     // TODO: Validate
+//     G.cells[position].obstacle = obstacle
+//     G.players[ctx.currentPlayer].played = true
+// }
 
 const skip = (G, ctx) => {
     G.players[ctx.currentPlayer].played = true
     ctx.events.endTurn();
 }
+
+/********************************************************************************/
+// Moves
+/********************************************************************************/
 
 const resetPlayerPlayed = (G) => {
     Object['values'](G.players).forEach((p) => (p.played = false))
@@ -153,10 +168,6 @@ const onEndPhase = (G) => {
 
 const getNextPhaseAfterUseCard = (G, ctx) => {
     return G.players[ctx.currentPlayer].fellOffTheBoard ? 'to_get_on_the_board' : 'to_drop_in'
-}
-
-const getNextPhaseAfterManeuver = (G, ctx) => {
-    return G.players[ctx.currentPlayer].shouldReceiveCard ? 'receive_card' : 'use_card'
 }
 
 const everyonePlay = (G) => {
@@ -175,6 +186,10 @@ const endIf = (G) => {
         }
     }
 }
+
+/********************************************************************************/
+// Board
+/********************************************************************************/
 
 export const SurfKingGame = {
     name: 'SurfKing',
@@ -218,7 +233,7 @@ export const SurfKingGame = {
             turn: { maxMoves: 1 },
             onEnd: onEndPhase,
             endIf: everyonePlay,
-            next: getNextPhaseAfterManeuver,
+            next: 'receive_card',
         },
         receive_card: {
             moves: { getCard },
@@ -230,7 +245,7 @@ export const SurfKingGame = {
     },
 
     minPlayers: 2,
-    maxPlayers: 4,
+    maxPlayers: 7,
 
     disableUndo: true,
 
@@ -271,7 +286,7 @@ export const SurfKingGame = {
 //     },
 
 //     minPlayers: 2,
-//     maxPlayers: 4,
+//     maxPlayers: 7,
 
 //     endIf: endIf,
 // }
