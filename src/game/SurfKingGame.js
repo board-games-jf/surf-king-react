@@ -96,9 +96,23 @@ const movePiece = (G, ctx, from, to) => {
     // TODO: Validate moviment or trigger action
     G.cells[to].player = G.cells[from].player
     G.cells[from].player = undefined
-    G.players[ctx.currentPlayer].played = true
     G.players[ctx.currentPlayer].cellPosition = to
     G.players[ctx.currentPlayer].energy--
+    G.players[ctx.currentPlayer].played = true
+}
+
+const useCard = (G, ctx, cardPos) => {
+    // TODO: Validate moviment or trigger action
+    G.players[ctx.currentPlayer].cards.splice(cardPos, 1)
+
+    if (!G.players[ctx.currentPlayer].played && ctx.numMoves === 1) {
+        skip(G, ctx);
+    }
+}
+
+const skip = (G, ctx) => {
+    G.players[ctx.currentPlayer].played = true
+    ctx.events.endTurn();
 }
 
 const resetPlayerPlayed = (G) => {
@@ -111,6 +125,11 @@ const phasePlaceFirstObstaculeOnEnd = (G) => {
 }
 
 const phaseFirstMoveOnEnd = (G) => {
+    resetPlayerPlayed(G)
+    ++G.turn
+}
+
+const phaseUseCardOnEnd = (G) => {
     resetPlayerPlayed(G)
     ++G.turn
 }
@@ -142,24 +161,29 @@ export const SurfKingGame = {
     phases: {
         firt_move_piece: {
             moves: { movePiece },
-            turn: { moveLimit: 1 },
+            turn: { maxMoves: 1 },
             onEnd: phaseFirstMoveOnEnd,
             endIf: everyonePlay,
-            next: 'play',
+            next: 'use_card',
             start: true,
         },
-        play: {
-            moves: {},
+        use_card: {
+            moves: { useCard, skip },
+            turn: { maxMoves: 2 },
+            onEnd: phaseUseCardOnEnd,
+            endIf: everyonePlay,
             next: 'check',
         },
         check: {
             moves: {},
-            next: 'play',
+            next: 'use_card',
         },
     },
 
     minPlayers: 2,
     maxPlayers: 4,
+
+    disableUndo: true,
 
     endIf: endIf,
 }

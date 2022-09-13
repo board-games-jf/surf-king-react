@@ -3,7 +3,7 @@ import { SharkObstacle } from "../../game/Obstacle";
 import { HexGrid } from '../HexGrid'
 import SharkObstacleImage from '../../assets/shark400.png';
 import { seaColor } from "../../constants/Colors";
-import{ GameAction } from "../../game/Game";
+import{ HexClickAction } from "../../game/Game";
 
 const Board = ({ G, ctx, moves }) => {
     useEffect(() => {
@@ -59,7 +59,7 @@ const Board = ({ G, ctx, moves }) => {
     }
 
     const onHexClickedHandle = (cell) => {
-        GameAction(G, ctx, moves, 1, cell);
+        HexClickAction(G, ctx, moves, 1, cell);
     }
 
     return (

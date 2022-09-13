@@ -1,4 +1,4 @@
-const mode1_Action = (G, ctx, moves, cell) => {
+const hexClickAction_mode1 = (G, ctx, moves, cell) => {
     // TODO: Check if the player who is playing can make the move.
     if (G.turn === 0) {
         movePiece(G, ctx, moves, cell);
@@ -6,7 +6,7 @@ const mode1_Action = (G, ctx, moves, cell) => {
     }
 }
 
-const mode2_Action = (G, ctx, cell) => {
+const hexClickAction_mode2 = (G, ctx, cell) => {
     // TODO: Check if the player who is playing can make the move.
     // if (G.turn === 0) {
     //     moves.placeObstacule(cell.position, SharkObstacle)
@@ -41,9 +41,9 @@ const movePiece = (G, ctx, moves, cell) => {
 }
 
 const actions = {
-    1: mode1_Action,
-    2: mode2_Action
+    1: hexClickAction_mode1,
+    2: hexClickAction_mode2
 };
-export const GameAction = (G, ctx, moves, mode, cell) => {
+export const HexClickAction = (G, ctx, moves, mode, cell) => {
     return actions[mode](G, ctx, moves, cell)
 }
