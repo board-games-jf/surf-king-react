@@ -5,7 +5,7 @@ export const defaultGridWidth = 800;
 export const hexWidth = 94;
 
 export const Wrapper = styled.div`
-  min-height: 100vh;
+  // min-height: 100vh;
   padding: 40px;
   // background-color: #606f7d;
 

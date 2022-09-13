@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
-import { SharkObstacle } from "../../game/Obstacle";
 import { HexGrid } from '../HexGrid'
-import SharkObstacleImage from '../../assets/shark400.png';
 import { seaColor } from "../../constants/Colors";
-import{ HexClickAction } from "../../game/Game";
+import { CardClickAction, HexClickAction } from "../../game/Game";
+
+// TODO: Move to other place
+import SharkObstacleImage from '../../assets/shark400.png';
 
 const Board = ({ G, ctx, moves }) => {
     useEffect(() => {
@@ -62,8 +63,41 @@ const Board = ({ G, ctx, moves }) => {
         HexClickAction(G, ctx, moves, 1, cell);
     }
 
+    const onGoForItHandle = () => {
+        switch (ctx.phase) {
+            case 'to_get_on_the_board':
+                moves.toGetOnTheBoard(G, ctx);
+                break;
+            case 'receive_card':
+                moves.getCard(G, ctx);
+                break;
+            default:
+                break;
+        }
+    }
+
+    const onSkipHandle = () => moves.skip(G, ctx);
+
+    const renderCardByName = (card, cardPos) => {
+        const name = card.Name.replace(/\s+/g, '').toLowerCase();
+        const src = require(`../../assets/cards/${name}.png`);
+        return (<img key={`${name}_${cardPos}`} alt="" src={src} width="100" onClick={() => CardClickAction(G, ctx, moves, 1, cardPos)} />)
+    }
+
     return (
-        <HexGrid cellProps={cellProps} renderCell={renderCell} onHexClick={onHexClickedHandle} />
+        <div>
+            <HexGrid cellProps={cellProps} renderCell={renderCell} onHexClick={onHexClickedHandle} />
+            <div>
+                <h2>{`${ctx.phase}: player ${ctx.currentPlayer}`}</h2>
+                <div style={{ marginBottom: 20 }}>
+                    <button style={{ width: 100, height: 30 }} onClick={onGoForItHandle}>go for it</button>
+                    <button style={{ width: 100, height: 30 }} onClick={onSkipHandle}>skip</button>
+                </div>
+                <div>
+                    {G.players[ctx.currentPlayer].cards.map((card, index) => (renderCardByName(card, index)))}
+                </div>
+            </div>
+        </div>
     )
 }
 

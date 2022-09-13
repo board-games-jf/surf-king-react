@@ -98,10 +98,6 @@ const setup = () => {
 const useCard = (G, ctx, cardPos) => {
     // TODO: Validate moviment or trigger action
     const currentPlayer = G.players[ctx.currentPlayer]
-    if (!!currentPlayer) {
-        return
-    }
-
     const card = currentPlayer.cards[cardPos]
     currentPlayer.cards.splice(cardPos, 1)
 

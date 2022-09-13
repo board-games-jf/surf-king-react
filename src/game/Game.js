@@ -44,5 +44,9 @@ const actions = {
     2: hexClickAction_mode2
 };
 export const HexClickAction = (G, ctx, moves, mode, cell) => {
-    return actions[mode](G, ctx, moves, cell)
+    return actions[mode](G, ctx, moves, cell);
+}
+
+export const CardClickAction = (G, ctx, moves, mode, cardPos) => {
+    return moves.useCard(G, ctx, cardPos);
 }

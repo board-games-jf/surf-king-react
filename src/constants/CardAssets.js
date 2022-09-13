@@ -1,0 +1,1 @@
+import SharkObstacleImage from '../../assets/shark400.png';
