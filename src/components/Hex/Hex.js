@@ -3,9 +3,9 @@ import Hexagon from "react-hexagon";
 import { seaColor } from "../../constants/Colors";
 import { strokeWidth } from "../../constants/Hex";
 
-const Hex = ({ children, style, coord, position, ...rest }) => (
+const Hex = ({ children, style, ...rest }) => (
     <Hexagon
-        style={{ fill: seaColor, stroke: seaColor, strokeWidth, ...style }}
+        style={{ stroke: seaColor, strokeWidth, ...style }}
         {...rest}
     >
         {children}

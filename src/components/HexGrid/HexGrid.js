@@ -3,6 +3,7 @@ import { strokeWidth } from "../../constants/Hex";
 import Hex from "../Hex/Hex";
 import { Wrapper, Row, defaultGridWidth, hexWidth } from "./HexGrid.style";
 
+// TODO: Move to a helper file
 // const positionToHexCoords = () => {
 //   const coords = [];
 //   const n = [0, 2, 4, 6, 1, 3, 5];
@@ -16,6 +17,7 @@ import { Wrapper, Row, defaultGridWidth, hexWidth } from "./HexGrid.style";
 //   return coords
 // }
 
+// TODO: Move to a helper file
 const hexCoordToPosition = (coord) => {
   const n = [0, 2, 4, 6, 1, 3, 5];
   const i = n.indexOf(parseInt(coord.split(",")[0]));
@@ -50,22 +52,13 @@ const HexGrid = (props) => {
       {rows.map((row, rowIndex) => (
         <Row key={rowIndex}>
           {row.map((_, colIndex) => (
-            <Hex
-              key={colIndex}
-              coord={`${rowIndex},${colIndex}`}
-              position={hexCoordToPosition(`${rowIndex},${colIndex}`)}
-              onClick={() => props.onHexagonClick({ position: hexCoordToPosition(`${rowIndex},${colIndex}`) })}
-            >
-              <text
-                x="50%"
-                y="50%"
-                fontSize={80}
-                style={{ fill: "white" }}
-                textAnchor="middle"
+              <Hex
+                key={colIndex}
+                onClick={() => props.onHexClick({ position: hexCoordToPosition(`${rowIndex},${colIndex}`) })}
+                {...props.cellProps((hexCoordToPosition(`${rowIndex},${colIndex}`)))}
               >
-                {`${hexCoordToPosition(`${rowIndex},${colIndex}`)}=${rowIndex},${colIndex}`}
-              </text>
-            </Hex>
+                {props.renderCell(hexCoordToPosition(`${rowIndex},${colIndex}`))}
+              </Hex>
           ))}
         </Row>
       ))}

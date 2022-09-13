@@ -1,29 +1,63 @@
 import { TurnOrder } from 'boardgame.io/core'
-import { SharkCard } from "./Card.js";
+import { CardAmulet, CardEnergy, CardEnergyX2, CardEnergyX3, CardShark } from "./Card.js";
 import { SharkObstacle } from "./Obstacle.js";
 
 // TODO: Move to other file
-const Position_P1 = '0';
-const Position_P2 = '1';
-const Position_P3 = '2';
-const Position_P4 = '3';
-const Position_P5 = '4';
-const Position_P6 = '5';
-const Position_P7 = '6';
+const Position_P1 = 0;
+const Position_P2 = 1;
+const Position_P3 = 2;
+const Position_P4 = 3;
+const Position_P5 = 4;
+const Position_P6 = 5;
+const Position_P7 = 6;
 
 export const GRID_SIZE = 53; // TODO: Move to other file
 
-const createPlayer = (position) => {
-    const cards = [];
-    // TODO: will receive 2 random cards
-    cards.push(...Array(2).fill(SharkCard))
+const createDeck = () => {
+    const deck = [];
+
+    const addCards = (card, quantity) => {
+        for (let i = 0; i < quantity; i++) {
+            deck.push(card);
+        }
+    }
+
+    // Obstacles
+    // TOOD: Fill up
+
+    // Actions
+    addCards(CardEnergy, 8)
+    addCards(CardEnergyX2, 4)
+    addCards(CardEnergyX3, 2)
+    // TOOD: Fill up
+
+    // Acessories
+    addCards(CardAmulet, 1)
+
+    const shuffled = deck
+        .map(value => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value)
+
+    return shuffled;
+}
+
+const createPlayer = (position, cards) => {
     return { position, cards, played: false, cellPosition: -1 }
 }
 
 const setup = () => {
+    // TODO: Create the deck base on game mode
+    const deck = createDeck();
+
+    // TODO: each player will receive 2 random cards
+    const initialCardsP1 = [deck.pop(), deck.pop()];
+    const initialCardsP2 = [deck.pop(), deck.pop()];
+
+    // TODO: Get number of players from session
     const players = {
-        '0': createPlayer(Position_P1),
-        '1': createPlayer(Position_P2),
+        '0': createPlayer(Position_P1, initialCardsP1),
+        '1': createPlayer(Position_P2, initialCardsP2),
     }
 
     let order = [Position_P1, Position_P2]
@@ -49,7 +83,7 @@ const setup = () => {
 
     const events = []
 
-    return { cells, players, events, turn: 0, order }
+    return { cells, players, events, turn: 0, order, deck }
 }
 
 const placeObstacule = (G, ctx, position, obstacle) => {
@@ -87,15 +121,15 @@ const everyonePlay = (G) => {
 const endIf = (G) => {
     // A player wins if he arrives at one of the cells: 50, 51, 52, or 53.
     for (let i = 50; i <= 53; ++i) {
-      const cell = G.cells[i]
-      if (cell) {
-        const player = cell.player
-        if (player) {
-          return { winner: player }
+        const cell = G.cells[i]
+        if (cell) {
+            const player = cell.player
+            if (player) {
+                return { winner: player }
+            }
         }
-      }
     }
-  }
+}
 
 export const SurfKingGame = {
     name: 'SurfKing',
@@ -105,20 +139,13 @@ export const SurfKingGame = {
     turn: { order: TurnOrder.CUSTOM_FROM('order') },
 
     phases: {
-        place_first_obstacule: {
-            moves: { placeObstacule },
-            turn: { moveLimit: 1 },
-            onEnd: phasePlaceFirstObstaculeOnEnd,
-            endIf: everyonePlay,
-            next: 'firt_move_piece',
-            start: true,
-        },
         firt_move_piece: {
             moves: { movePiece },
             turn: { moveLimit: 1 },
             onEnd: phaseFirstMoveOnEnd,
             endIf: everyonePlay,
             next: 'play',
+            start: true,
         },
         play: {
             moves: {},
@@ -135,3 +162,42 @@ export const SurfKingGame = {
 
     endIf: endIf,
 }
+
+// export const SurfKingGameMode2 = {
+//     name: 'SurfKing',
+
+//     setup: setup,
+
+//     turn: { order: TurnOrder.CUSTOM_FROM('order') },
+
+//     phases: {
+//         place_first_obstacule: {
+//             moves: { placeObstacule },
+//             turn: { moveLimit: 1 },
+//             onEnd: phasePlaceFirstObstaculeOnEnd,
+//             endIf: everyonePlay,
+//             next: 'firt_move_piece',
+//             start: true,
+//         },
+//         firt_move_piece: {
+//             moves: { movePiece },
+//             turn: { moveLimit: 1 },
+//             onEnd: phaseFirstMoveOnEnd,
+//             endIf: everyonePlay,
+//             next: 'play',
+//         },
+//         play: {
+//             moves: {},
+//             next: 'check',
+//         },
+//         check: {
+//             moves: {},
+//             next: 'play',
+//         },
+//     },
+
+//     minPlayers: 2,
+//     maxPlayers: 4,
+
+//     endIf: endIf,
+// }
