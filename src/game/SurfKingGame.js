@@ -115,6 +115,11 @@ const useCard = (G, ctx, cardPos) => {
     }
 }
 
+const toGetOnTheBoard = (G, ctx, playerPos) => {
+    // TODO: Implement
+    skip(G, ctx)
+}
+
 const attack = (G, ctx, targetPosition) => {
     // TODO: Implement
 
@@ -166,10 +171,6 @@ const onEndPhase = (G) => {
     ++G.turn
 }
 
-const getNextPhaseAfterUseCard = (G, ctx) => {
-    return G.players[ctx.currentPlayer].fellOffTheBoard ? 'to_get_on_the_board' : 'to_drop_in'
-}
-
 const everyonePlay = (G) => {
     return Object['values'](G.players).every((p) => p.played === true)
 }
@@ -212,10 +213,10 @@ export const SurfKingGame = {
             turn: { maxMoves: 2 },
             onEnd: onEndPhase,
             endIf: everyonePlay,
-            next: getNextPhaseAfterUseCard,
+            next: 'to_get_on_the_board',
         },
         to_get_on_the_board: {
-            moves: { skip },
+            moves: { toGetOnTheBoard, skip },
             turn: { maxMoves: 1 },
             onEnd: onEndPhase,
             endIf: everyonePlay,
