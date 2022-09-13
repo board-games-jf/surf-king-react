@@ -1,10 +1,10 @@
 import './App.css';
-import { HexGrid } from "./components/HexGrid";
+import BoardPage from './pages/board';
 
 function App() {
   return (
     <div className="App">
-      <HexGrid />
+      <BoardPage />
     </div>
   );
 }

@@ -18,7 +18,7 @@ import { Wrapper, Row, defaultGridWidth, hexWidth } from "./HexGrid.style";
 
 const hexCoordToPosition = (coord) => {
   const n = [0, 2, 4, 6, 1, 3, 5];
-  const i = n.indexOf(parseInt(coord.split(",")[0])) + 1;
+  const i = n.indexOf(parseInt(coord.split(",")[0]));
   const j = parseInt(coord.split(",")[1])
   return i + (j * 7)
 }
@@ -54,7 +54,7 @@ const HexGrid = (props) => {
               key={colIndex}
               coord={`${rowIndex},${colIndex}`}
               position={hexCoordToPosition(`${rowIndex},${colIndex}`)}
-              onClick={() => alert(`pos=${hexCoordToPosition(`${rowIndex},${colIndex}`)}\ncoord=${rowIndex},${colIndex}`)}
+              onClick={() => props.onHexagonClick({ position: hexCoordToPosition(`${rowIndex},${colIndex}`) })}
             >
               <text
                 x="50%"
