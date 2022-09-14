@@ -11,6 +11,7 @@ const Board = ({ G, ctx, moves }) => {
     const [placingObstacle, setPlacingObstacle] = useState(null);
     const [removingObstacle, setRemovingObstacle] = useState(null);
     const [selectPlayerTarget, setSelectPlayerTarget] = useState(null);
+    const [selectTsunami, setSelectTsunami] = useState(null);
 
     useEffect(() => {
         console.log("Board::useEffect G", G);
@@ -76,6 +77,11 @@ const Board = ({ G, ctx, moves }) => {
         } else if (selectPlayerTarget != null) {
             UseCardAction(G, ctx, moves, gameMode, selectPlayerTarget.card, selectPlayerTarget.cardPos, [cell.position]);
             setSelectPlayerTarget(null);
+        } else if (selectTsunami != null) {
+            if ([7, 14, 21, 28, 35, 42].includes(cell.position)) {
+                UseCardAction(G, ctx, moves, gameMode, selectTsunami.card, selectTsunami.cardPos, [cell.position]);
+                setSelectTsunami(null);
+            }
         } else {
             HexClickAction(G, ctx, moves, gameMode, cell);
         }
@@ -125,6 +131,7 @@ const Board = ({ G, ctx, moves }) => {
                 setRemovingObstacle({ card, cardPos });
                 break;
             case CardTsunami.Name:
+                setSelectTsunami({ card, cardPos });
                 break;
             default:
                 break;
@@ -150,7 +157,7 @@ const Board = ({ G, ctx, moves }) => {
             <HexGrid cellProps={cellProps} renderCell={renderCell} onHexClick={onHexClickedHandle} />
             <div>
                 <h3>{`[${G.turn + 1}] - ${ctx.phase}: player ${parseInt(ctx.currentPlayer) + 1}'s turn`}</h3>
-                {!placingObstacle && !removingObstacle && !selectPlayerTarget ? (<>
+                {!placingObstacle && !removingObstacle && !selectPlayerTarget && !selectTsunami ? (<>
                     <div style={{ marginBottom: 20 }}>
                         <button style={{ width: 100, height: 30 }} onClick={onGoForItHandle}>go for it</button>
                         <button style={{ width: 100, height: 30 }} onClick={onSkipHandle}>skip</button>

@@ -95,6 +95,52 @@ const changePlayer = (G, ctx, cellPosition, card) => {
     G.players[targetPlayerPosition].cellPosition = currentPlayerCellPosition;
 }
 
+const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
+    // TODO: Create unit test.
+
+    // TODO: Check when "To" is negative.
+
+    if (G.cells[to].player) {
+        return moveToNextHexUnoccupied(G, ctx, playerPos, from, to - 7);
+    }
+
+    if (G.cells[to].obstacle?.Name === CardCyclone.Name) {
+        const dice = Math.floor(Math.random() * 6);
+        const newPos = [7, 4, -3, -7, -4, 3];
+        let occupied = true;
+        while (occupied) {
+            // TODO: Check when "To" is negative.
+            // while (to - newPos[dice] < 0) {
+            //     dice = Math.floor(Math.random() * 6);
+            // }
+            to += newPos[dice];
+            occupied = (G.cells[to].player && G.cells[to].player.position !== G.players[playerPos].position) ||
+                (G.cells[to].obstacle?.Name === CardStone.Name);
+        }
+        return moveToNextHexUnoccupied(G, ctx, playerPos, from, to);
+    }
+
+    G.players[playerPos].cellPosition = to;
+    G.cells[to].player = G.players[playerPos];
+    G.cells[from].player = undefined;
+}
+
+const tsunami = (G, ctx, position, obstacle) => {
+    if (G.cells[position].player) {
+        moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position - 7);
+    }
+    for (let i = 0; i < 3; ++i) {
+        position += 4;
+        if (G.cells[position].player) {
+            moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position - 7);
+        }
+        position -= 3;
+        if (G.cells[position].player) {
+            moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position - 7);
+        }
+    }
+}
+
 const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
     // TODO: Create unit test.
 
@@ -211,16 +257,16 @@ const executeCardAction = (G, ctx, card, args) => {
             break
         case CardJumping.Name:
             removeObstacle(G, ctx, args[0], card);
-            break
+            break;
         case CardLifeGuardFloat.Name:
             if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
-            break
+            break;
         case CardSwimmingFin.Name:
             if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY);
-            break
+            break;
         case CardTsunami.Name:
-            // TODO: Implement
-            break
+            tsunami(G, ctx, args[0], card);
+            break;
         // Acessories
         case CardAmulet.Name:
             // TODO: Implement
