@@ -164,7 +164,6 @@ const resetPlayerPlayed = (G) => {
 
 const onEndPhase = (G) => {
     resetPlayerPlayed(G)
-    ++G.turn
 }
 
 const everyonePlay = (G) => {
@@ -193,12 +192,14 @@ export const SurfKingGame = {
 
     setup: setup,
 
-    turn: { order: TurnOrder.CUSTOM_FROM('order') },
+    turn: { 
+        order: TurnOrder.CUSTOM_FROM('order'),
+        maxMoves: 1,
+    },
 
     phases: {
         firt_move_piece: {
             moves: { movePiece },
-            turn: { maxMoves: 1 },
             onEnd: onEndPhase,
             endIf: everyonePlay,
             next: 'receive_card',
@@ -207,34 +208,31 @@ export const SurfKingGame = {
         use_card: {
             moves: { useCard, skip },
             turn: { maxMoves: 2 },
+            onBegin: (G, ctx) => { ++G.turn },
             onEnd: onEndPhase,
             endIf: everyonePlay,
             next: 'to_get_on_the_board',
         },
         to_get_on_the_board: {
             moves: { toGetOnTheBoard, skip },
-            turn: { maxMoves: 1 },
             onEnd: onEndPhase,
             endIf: everyonePlay,
             next: 'to_drop_in',
         },
         to_drop_in: {
             moves: { attack, skip },
-            turn: { maxMoves: 1 },
             onEnd: onEndPhase,
             endIf: everyonePlay,
             next: 'maneuver',
         },
         maneuver: {
             moves: { movePiece, skip },
-            turn: { maxMoves: 1 },
             onEnd: onEndPhase,
             endIf: everyonePlay,
             next: 'receive_card',
         },
         receive_card: {
             moves: { getCard },
-            turn: { maxMoves: 1 },
             onEnd: onEndPhase,
             endIf: everyonePlay,
             next: 'use_card',

@@ -88,13 +88,19 @@ const Board = ({ G, ctx, moves }) => {
         <div>
             <HexGrid cellProps={cellProps} renderCell={renderCell} onHexClick={onHexClickedHandle} />
             <div>
-                <h2>{`${ctx.phase}: player ${ctx.currentPlayer}`}</h2>
+                <h3>{`[${G.turn + 1}] - ${ctx.phase}: player ${parseInt(ctx.currentPlayer) + 1}'s turn`}</h3>
                 <div style={{ marginBottom: 20 }}>
                     <button style={{ width: 100, height: 30 }} onClick={onGoForItHandle}>go for it</button>
                     <button style={{ width: 100, height: 30 }} onClick={onSkipHandle}>skip</button>
                 </div>
                 <div>
-                    {G.players[ctx.currentPlayer].cards.map((card, index) => (renderCardByName(card, index)))}
+                    {Object.values(G.players).map(p => (
+                        <div>
+                            <h4>player {p.position + 1} cards</h4>
+                            {G.players[p.position].cards.map((card, index) => (renderCardByName(card, index)))}
+                        </div>
+                    ))}
+                    {/* {G.players[ctx.currentPlayer].cards.map((card, index) => (renderCardByName(card, index)))} */}
                 </div>
             </div>
         </div>
