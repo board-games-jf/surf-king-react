@@ -84,6 +84,17 @@ const decreasePlayerEnergy = (G, ctx, position, card) => {
     }
 }
 
+const changePlayer = (G, ctx, cellPosition, card) => {
+    const currentPlayerCellPosition = G.players[ctx.currentPlayer].cellPosition;
+    const targetPlayerPosition = G.cells[cellPosition].player.position;
+
+    G.cells[currentPlayerCellPosition].player = G.players[targetPlayerPosition];
+    G.cells[cellPosition].player = G.players[ctx.currentPlayer];
+
+    G.players[ctx.currentPlayer].cellPosition = cellPosition;
+    G.players[targetPlayerPosition].cellPosition = currentPlayerCellPosition;
+}
+
 const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
     // TODO: Create unit test.
 
@@ -175,17 +186,16 @@ const executeCardAction = (G, ctx, card, args) => {
         // Actions
         case CardBigWave.Name:
         case CardSunburn.Name:
-            decreasePlayerEnergy(G, ctx, args[0], card)
+            decreasePlayerEnergy(G, ctx, args[0], card);
             break
         case CardBottledWater.Name:
-            // TODO: Implement
             currentPlayer.activeCard = card;
             break
         case CardCoconut.Name:
             currentPlayer.energy = MAX_ENERGY;
             break
         case CardChange.Name:
-            // TODO: Implement
+            changePlayer(G, ctx, args[0], card);
             break
         case CardEnergy.Name:
             ++currentPlayer.energy;
@@ -200,7 +210,7 @@ const executeCardAction = (G, ctx, card, args) => {
             // TODO: Implement
             break
         case CardJumping.Name:
-            removeObstacle(G, ctx, args[0], card)
+            removeObstacle(G, ctx, args[0], card);
             break
         case CardLifeGuardFloat.Name:
             if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);

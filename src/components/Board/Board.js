@@ -107,6 +107,7 @@ const Board = ({ G, ctx, moves }) => {
                 break;
             case CardBigWave.Name:
             case CardSunburn.Name:
+            case CardChange.Name:
                 setSelectPlayerTarget({ card, cardPos });
                 break;
             case CardBottledWater.Name:
@@ -119,8 +120,6 @@ const Board = ({ G, ctx, moves }) => {
             case CardSwimmingFin.Name:
             case CardAmulet.Name:
                 UseCardAction(G, ctx, moves, mode, card, cardPos, args);
-                break;
-            case CardChange.Name:
                 break;
             case CardJumping.Name:
                 setRemovingObstacle({ card, cardPos });
