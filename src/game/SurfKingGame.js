@@ -1,15 +1,15 @@
 import { TurnOrder } from 'boardgame.io/core'
 import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
 
-/********************************************************************************/
-// Setup
-/********************************************************************************/
-
 const MAX_ENERGY = 4;
 const GRID_SIZE = 53;
 
 // TODO: Get number of players from session
 export const NUMBER_OF_PLAYERS = 2;
+
+/********************************************************************************/
+// Auxiliary functions
+/********************************************************************************/
 
 const createDeck = () => {
     const deck = [];
@@ -61,6 +61,44 @@ const placeObstacle = (G, ctx, position, obstacle) => {
         G.cells[position] = { position, obstacle, player: undefined }
     }
 }
+
+const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
+    // TODO: Create unit test.
+
+    switch (G.cells[to].obstacle?.Name) {
+        case CardCyclone.Name:
+            const dice = Math.floor(Math.random() * 6);
+            const newPos = [7, 4, -3, -7, -4, 3];
+            let occupied = true;
+            while (occupied) {
+                // TODO: Check when "To" is negative.
+                // while (to - newPos[dice] < 0) {
+                //     dice = Math.floor(Math.random() * 6);
+                // }
+                to += newPos[dice];
+                occupied = (G.cells[to].player && G.cells[to].player.position !== G.players[ctx.currentPlayer].position) ||
+                    (G.cells[to].obstacle?.Name === CardStone.Name);
+            }
+            return checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
+        case CardIsland.Name:
+            energyToLose -= 2;
+            break;
+        case CardStorm.Name:
+            ++energyToLose;
+            break;
+        case CardShark.Name:
+            energyToLose += 2;
+            break;
+        default:
+            break;
+    }
+
+    return { newTo: to, newEnergyToLose: energyToLose }
+}
+
+/********************************************************************************/
+// Setup
+/********************************************************************************/
 
 const setup = () => {
     const cells = new Array(GRID_SIZE);
@@ -200,16 +238,24 @@ const attack = (G, ctx, targetPosition) => {
 
 const movePiece = (G, ctx, from, to) => {
     // TODO: Validate moviment or trigger action
-    G.cells[to].player = G.cells[from].player
-    G.cells[from].player = undefined
-
     const currentPlayer = G.players[ctx.currentPlayer];
     let energyToLose = 1;
     if (currentPlayer.activeCard && currentPlayer.activeCard.Name === CardBottledWater.Name) {
         energyToLose = 0;
         currentPlayer.activeCard = null;
     }
-    currentPlayer.energy = Math.max(currentPlayer.energy - energyToLose, 0);
+
+    const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
+    to = newTo;
+    energyToLose = newEnergyToLose;
+
+    if (to !== from) {
+        G.cells[to].player = G.cells[from].player;
+        G.cells[from].player = undefined;
+    }
+
+    currentPlayer.energy = Math.min(Math.max(currentPlayer.energy - energyToLose, 0), MAX_ENERGY);
+
     currentPlayer.cellPosition = to
     currentPlayer.shouldReceiveCard = true
     currentPlayer.played = true
@@ -226,7 +272,7 @@ const getCard = (G, ctx) => {
 
 const skip = (G, ctx) => {
     if (ctx.phase === 'maneuver') {
-        ++G.players[ctx.currentPlayer].energy;
+        G.players[ctx.currentPlayer].energy = Math.min(G.players[ctx.currentPlayer].energy + 1, MAX_ENERGY);
     }
 
     G.players[ctx.currentPlayer].played = true
