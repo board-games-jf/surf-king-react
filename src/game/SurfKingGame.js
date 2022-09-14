@@ -5,6 +5,7 @@ import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, Car
 // Setup
 /********************************************************************************/
 
+const MAX_ENERGY = 4;
 const GRID_SIZE = 53;
 
 // TODO: Get number of players from session
@@ -127,7 +128,7 @@ const executeCardAction = (G, ctx, card, args) => {
             // TODO: Implement
             break
         case CardCoconut.Name:
-            currentPlayer.energy = 4;
+            currentPlayer.energy = MAX_ENERGY;
             break
         case CardChange.Name:
             // TODO: Implement
@@ -136,10 +137,10 @@ const executeCardAction = (G, ctx, card, args) => {
             ++currentPlayer.energy;
             break;
         case CardEnergyX2.Name:
-            currentPlayer.energy += 2;
+            currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
             break;
         case CardEnergyX3.Name:
-            currentPlayer.energy += 3;
+            currentPlayer.energy = Math.min(currentPlayer.energy + 3, MAX_ENERGY);
             break;
         case CardHangLoose.Name:
             // TODO: Implement
@@ -216,6 +217,10 @@ const getCard = (G, ctx) => {
 }
 
 const skip = (G, ctx) => {
+    if (ctx.phase === 'maneuver') {
+        ++G.players[ctx.currentPlayer].energy;
+    }
+
     G.players[ctx.currentPlayer].played = true
     ctx.events.endTurn();
 }

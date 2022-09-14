@@ -4,6 +4,8 @@ import { seaColor } from "../../constants/Colors";
 import { UseCardAction, HexClickAction } from "../../game/Game";
 import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "../../game/Cards";
 
+import EnergyImage from '../../assets/energy.png'
+
 const Board = ({ G, ctx, moves }) => {
     const gameMode = 1;
     const [placingObstacle, setPlacingObstacle] = useState(null);
@@ -122,6 +124,14 @@ const Board = ({ G, ctx, moves }) => {
         }
     }
 
+    const renderPlayerEnergy = (quantity, playerPosition) => {
+        var energies = [];
+        for (let i = 0; i < quantity; ++i) {
+            energies.push(<img key={`energy_${playerPosition}_${i}`} alt="" src={EnergyImage} width={24} />);
+        }
+        return <div>{energies}</div>;
+    }
+
     const renderCardByName = (card, index) => {
         const name = card.Name.replace(/\s+/g, '').toLowerCase();
         const src = require(`../../assets/cards/${name}.png`);
@@ -140,8 +150,9 @@ const Board = ({ G, ctx, moves }) => {
                     </div>
                     <div>
                         {Object.values(G.players).map((p, index) => (
-                            <div key={index}>
-                                <h4>player {p.position + 1} cards</h4>
+                            <div key={index} style={{ marginBottom: 8 }}>
+                                <text>player {p.position + 1} cards</text>
+                                {renderPlayerEnergy(G.players[p.position].energy, p.position)}
                                 {G.players[p.position].cards.map(renderCardByName)}
                             </div>
                         ))}
