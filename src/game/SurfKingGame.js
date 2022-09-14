@@ -53,7 +53,7 @@ const createDeck = () => {
 }
 
 const createPlayer = (position, cards) => {
-    return { position, cards, played: false, shouldReceiveCard: false, cellPosition: -1, energy: 4, fellOffTheBoard: false }
+    return { position, cards, played: false, shouldReceiveCard: false, cellPosition: -1, energy: 4, fellOffTheBoard: false, activeCard: null }
 }
 
 const placeObstacle = (G, ctx, position, obstacle) => {
@@ -126,6 +126,7 @@ const executeCardAction = (G, ctx, card, args) => {
             break
         case CardBottledWater.Name:
             // TODO: Implement
+            currentPlayer.activeCard = card;
             break
         case CardCoconut.Name:
             currentPlayer.energy = MAX_ENERGY;
@@ -201,10 +202,17 @@ const movePiece = (G, ctx, from, to) => {
     // TODO: Validate moviment or trigger action
     G.cells[to].player = G.cells[from].player
     G.cells[from].player = undefined
-    G.players[ctx.currentPlayer].cellPosition = to
-    G.players[ctx.currentPlayer].energy--
-    G.players[ctx.currentPlayer].shouldReceiveCard = true
-    G.players[ctx.currentPlayer].played = true
+
+    const currentPlayer = G.players[ctx.currentPlayer];
+    let energyToLose = 1;
+    if (currentPlayer.activeCard && currentPlayer.activeCard.Name === CardBottledWater.Name) {
+        energyToLose = 0;
+        currentPlayer.activeCard = null;
+    }
+    currentPlayer.energy = Math.max(currentPlayer.energy - energyToLose, 0);
+    currentPlayer.cellPosition = to
+    currentPlayer.shouldReceiveCard = true
+    currentPlayer.played = true
 }
 
 const getCard = (G, ctx) => {
