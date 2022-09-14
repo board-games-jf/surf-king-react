@@ -58,7 +58,13 @@ const createPlayer = (position, cards) => {
 
 const placeObstacle = (G, ctx, position, obstacle) => {
     if (!G.cells[position].player && !G.cells[position].obstacle) {
-        G.cells[position] = { position, obstacle, player: undefined }
+        G.cells[position].obstacle = obstacle;
+    }
+}
+
+const removeObstacle = (G, ctx, position, obstacle) => {
+    if (G.cells[position].obstacle) {
+        G.cells[position].obstacle = undefined;
     }
 }
 
@@ -194,7 +200,7 @@ const executeCardAction = (G, ctx, card, args) => {
             // TODO: Implement
             break
         case CardJumping.Name:
-            // TODO: Implement
+            removeObstacle(G, ctx, args[0], card)
             break
         case CardLifeGuardFloat.Name:
             if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
@@ -207,6 +213,7 @@ const executeCardAction = (G, ctx, card, args) => {
             break
         // Acessories
         case CardAmulet.Name:
+            // TODO: Implement
             break;
         default:
             break;

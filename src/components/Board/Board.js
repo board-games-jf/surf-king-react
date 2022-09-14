@@ -9,6 +9,7 @@ import EnergyImage from '../../assets/energy.png'
 const Board = ({ G, ctx, moves }) => {
     const gameMode = 1;
     const [placingObstacle, setPlacingObstacle] = useState(null);
+    const [removingObstacle, setRemovingObstacle] = useState(null);
     const [selectPlayerTarget, setSelectPlayerTarget] = useState(null);
 
     useEffect(() => {
@@ -69,6 +70,9 @@ const Board = ({ G, ctx, moves }) => {
         if (placingObstacle != null) {
             UseCardAction(G, ctx, moves, gameMode, placingObstacle.card, placingObstacle.cardPos, [cell.position]);
             setPlacingObstacle(null);
+        } else if (removingObstacle != null) {
+            UseCardAction(G, ctx, moves, gameMode, removingObstacle.card, removingObstacle.cardPos, [cell.position]);
+            setRemovingObstacle(null);
         } else if (selectPlayerTarget != null) {
             UseCardAction(G, ctx, moves, gameMode, selectPlayerTarget.card, selectPlayerTarget.cardPos, [cell.position]);
             setSelectPlayerTarget(null);
@@ -119,6 +123,7 @@ const Board = ({ G, ctx, moves }) => {
             case CardChange.Name:
                 break;
             case CardJumping.Name:
+                setRemovingObstacle({ card, cardPos });
                 break;
             case CardTsunami.Name:
                 break;
@@ -146,7 +151,7 @@ const Board = ({ G, ctx, moves }) => {
             <HexGrid cellProps={cellProps} renderCell={renderCell} onHexClick={onHexClickedHandle} />
             <div>
                 <h3>{`[${G.turn + 1}] - ${ctx.phase}: player ${parseInt(ctx.currentPlayer) + 1}'s turn`}</h3>
-                {!placingObstacle && !selectPlayerTarget ? (<>
+                {!placingObstacle && !removingObstacle && !selectPlayerTarget ? (<>
                     <div style={{ marginBottom: 20 }}>
                         <button style={{ width: 100, height: 30 }} onClick={onGoForItHandle}>go for it</button>
                         <button style={{ width: 100, height: 30 }} onClick={onSkipHandle}>skip</button>
