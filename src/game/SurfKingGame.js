@@ -1,6 +1,5 @@
 import { TurnOrder } from 'boardgame.io/core'
-import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Card";
-import { SharkObstacle } from "./Obstacle";
+import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
 
 /********************************************************************************/
 // Setup
@@ -56,6 +55,12 @@ const createPlayer = (position, cards) => {
     return { position, cards, played: false, shouldReceiveCard: false, cellPosition: -1, energy: 4, fellOffTheBoard: false }
 }
 
+const placeObstacle = (G, ctx, position, obstacle) => {
+    if (!G.cells[position].player && !G.cells[position].obstacle) {
+        G.cells[position] = { position, obstacle, player: undefined }
+    }
+}
+
 const setup = () => {
     const cells = new Array(GRID_SIZE);
 
@@ -77,10 +82,10 @@ const setup = () => {
         cells[i] = { position: i, obstacle: undefined, player: players[order[i]] }
     }
 
-    cells[28] = { position: 28, obstacle: SharkObstacle, player: undefined }
-    cells[29] = { position: 29, obstacle: SharkObstacle, player: undefined }
-    cells[30] = { position: 30, obstacle: SharkObstacle, player: undefined }
-    cells[31] = { position: 31, obstacle: SharkObstacle, player: undefined }
+    cells[28] = { position: 28, obstacle: CardShark, player: undefined }
+    cells[29] = { position: 29, obstacle: CardShark, player: undefined }
+    cells[30] = { position: 30, obstacle: CardShark, player: undefined }
+    cells[31] = { position: 31, obstacle: CardShark, player: undefined }
     for (let i = 0; i < GRID_SIZE; ++i) {
         if (!cells[i]) {
             cells[i] = { position: i, obstacle: undefined, player: undefined }
@@ -95,16 +100,83 @@ const setup = () => {
 /********************************************************************************/
 // Moves
 /********************************************************************************/
-const useCard = (G, ctx, cardPos) => {
+const executeCardAction = (G, ctx, card, args) => {
+    const currentPlayer = G.players[ctx.currentPlayer];
+    switch (card.Name) {
+        // Obstacles
+        case CardCyclone.Name:
+            placeObstacle(G, ctx, args[0], card)
+            break
+        case CardIsland.Name:
+            placeObstacle(G, ctx, args[0], card)
+            break
+        case CardStone.Name:
+            placeObstacle(G, ctx, args[0], card)
+            break
+        case CardStorm.Name:
+            placeObstacle(G, ctx, args[0], card)
+            break
+        case CardShark.Name:
+            placeObstacle(G, ctx, args[0], card)
+            break
+        // Actions
+        case CardBigWave.Name:
+            // TODO: Implement
+            break
+        case CardBottledWater.Name:
+            // TODO: Implement
+            break
+        case CardCoconut.Name:
+            currentPlayer.energy = 4;
+            break
+        case CardChange.Name:
+            // TODO: Implement
+            break
+        case CardEnergy.Name:
+            ++currentPlayer.energy;
+            break;
+        case CardEnergyX2.Name:
+            currentPlayer.energy += 2;
+            break;
+        case CardEnergyX3.Name:
+            currentPlayer.energy += 3;
+            break;
+        case CardHangLoose.Name:
+            // TODO: Implement
+            break
+        case CardJumping.Name:
+            // TODO: Implement
+            break
+        case CardLifeGuardFloat.Name:
+            // TODO: Implement
+            break
+        case CardSwimmingFin.Name:
+            // TODO: Implement
+            break
+        case CardSunburn.Name:
+            // TODO: Implement
+            break
+        case CardTsunami.Name:
+            // TODO: Implement
+            break
+        // Acessories
+        case CardAmulet.Name:
+            break;
+        default:
+            break;
+    }
+}
+
+const useCard = (G, ctx, cardPos, args) => {
     // TODO: Validate moviment or trigger action
     const currentPlayer = G.players[ctx.currentPlayer]
     const card = currentPlayer.cards[cardPos]
     currentPlayer.cards.splice(cardPos, 1)
 
-    // TODO: Implement card action
-    console.log("useCard:", { cardPos, currentPlayer, card });
+    console.log("useCard:", { cardPos, args, cardName: card.Name });
+    executeCardAction(G, ctx, card, args);
 
-    G.players[ctx.currentPlayer].shouldReceiveCard = true
+    currentPlayer.shouldReceiveCard = true
 
     if (!currentPlayer.played && ctx.numMoves === 1) {
         skip(G, ctx);
@@ -142,12 +214,6 @@ const getCard = (G, ctx) => {
     G.players[ctx.currentPlayer].shouldReceiveCard = false
     G.players[ctx.currentPlayer].played = true
 }
-
-// const placeObstacule = (G, ctx, position, obstacle) => {
-//     // TODO: Validate
-//     G.cells[position].obstacle = obstacle
-//     G.players[ctx.currentPlayer].played = true
-// }
 
 const skip = (G, ctx) => {
     G.players[ctx.currentPlayer].played = true
@@ -192,7 +258,11 @@ export const SurfKingGame = {
 
     setup: setup,
 
-    turn: { 
+    // moves: {
+    //     A: (G, ctx, ...args) => {},
+    // },
+
+    turn: {
         order: TurnOrder.CUSTOM_FROM('order'),
         maxMoves: 1,
     },

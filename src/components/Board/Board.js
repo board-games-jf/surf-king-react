@@ -1,12 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { HexGrid } from '../HexGrid'
 import { seaColor } from "../../constants/Colors";
-import { CardClickAction, HexClickAction } from "../../game/Game";
-
-// TODO: Move to other place
-import SharkObstacleImage from '../../assets/shark400.png';
+import { UseCardAction, HexClickAction } from "../../game/Game";
+import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "../../game/Cards";
 
 const Board = ({ G, ctx, moves }) => {
+    const gameMode = 1;
+    const [placingObstacle, setPlacingObstacle] = useState(null);
+
     useEffect(() => {
         console.log("Board::useEffect G", G);
     }, [G])
@@ -19,7 +20,9 @@ const Board = ({ G, ctx, moves }) => {
         }
 
         if (cell.obstacle) {
-            return { backgroundImage: SharkObstacleImage }
+            const name = cell.obstacle.Name.replace(/\s+/g, '').toLowerCase();
+            const img = require(`../../assets/obstacles/${name}.png`);
+            return { backgroundImage: img }
         }
 
         return { style: { fill: seaColor } }
@@ -60,7 +63,13 @@ const Board = ({ G, ctx, moves }) => {
     }
 
     const onHexClickedHandle = (cell) => {
-        HexClickAction(G, ctx, moves, 1, cell);
+        console.log("onHexClickedHandle", placingObstacle);
+        if (placingObstacle != null) {
+            UseCardAction(G, ctx, moves, gameMode, placingObstacle.cardPos, [cell.position]);
+            setPlacingObstacle(null);
+        } else {
+            HexClickAction(G, ctx, moves, gameMode, cell);
+        }
     }
 
     const onGoForItHandle = () => {
@@ -78,10 +87,45 @@ const Board = ({ G, ctx, moves }) => {
 
     const onSkipHandle = () => moves.skip(G, ctx);
 
-    const renderCardByName = (card, cardPos) => {
+    const onCardClickHandle = (G, ctx, moves, mode, card, cardPos, args) => {
+        switch (card.Name) {
+            case CardCyclone.Name:
+            case CardIsland.Name:
+            case CardStone.Name:
+            case CardStorm.Name:
+            case CardShark.Name:
+                setPlacingObstacle({ card, cardPos })
+                break
+            case CardBigWave.Name:
+                break
+            case CardBottledWater.Name:
+            case CardCoconut.Name:
+            case CardEnergy.Name:
+            case CardEnergyX2.Name:
+            case CardEnergyX3.Name:
+            case CardHangLoose.Name:
+            case CardLifeGuardFloat.Name:
+            case CardSwimmingFin.Name:
+            case CardAmulet.Name:
+                UseCardAction(G, ctx, moves, mode, cardPos, args)
+                break
+            case CardChange.Name:
+                break
+            case CardJumping.Name:
+                break
+            case CardSunburn.Name:
+                break
+            case CardTsunami.Name:
+                break
+            default:
+                break;
+        }
+    }
+
+    const renderCardByName = (card, index) => {
         const name = card.Name.replace(/\s+/g, '').toLowerCase();
         const src = require(`../../assets/cards/${name}.png`);
-        return (<img key={`${name}_${cardPos}`} alt="" src={src} width="100" onClick={() => CardClickAction(G, ctx, moves, 1, cardPos)} />)
+        return (<img key={`${name}_${index}`} alt="" src={src} width="100" onClick={() => onCardClickHandle(G, ctx, moves, gameMode, card, index)} />)
     }
 
     return (
@@ -89,19 +133,23 @@ const Board = ({ G, ctx, moves }) => {
             <HexGrid cellProps={cellProps} renderCell={renderCell} onHexClick={onHexClickedHandle} />
             <div>
                 <h3>{`[${G.turn + 1}] - ${ctx.phase}: player ${parseInt(ctx.currentPlayer) + 1}'s turn`}</h3>
-                <div style={{ marginBottom: 20 }}>
-                    <button style={{ width: 100, height: 30 }} onClick={onGoForItHandle}>go for it</button>
-                    <button style={{ width: 100, height: 30 }} onClick={onSkipHandle}>skip</button>
-                </div>
-                <div>
-                    {Object.values(G.players).map(p => (
-                        <div>
-                            <h4>player {p.position + 1} cards</h4>
-                            {G.players[p.position].cards.map((card, index) => (renderCardByName(card, index)))}
-                        </div>
-                    ))}
-                    {/* {G.players[ctx.currentPlayer].cards.map((card, index) => (renderCardByName(card, index)))} */}
-                </div>
+                {!placingObstacle ? (<>
+                    <div style={{ marginBottom: 20 }}>
+                        <button style={{ width: 100, height: 30 }} onClick={onGoForItHandle}>go for it</button>
+                        <button style={{ width: 100, height: 30 }} onClick={onSkipHandle}>skip</button>
+                    </div>
+                    <div>
+                        {Object.values(G.players).map((p, index) => (
+                            <div key={index}>
+                                <h4>player {p.position + 1} cards</h4>
+                                {G.players[p.position].cards.map(renderCardByName)}
+                            </div>
+                        ))}
+                    </div>
+                </>) : (<>
+                    <div>Click in one hex to choose a place...</div>
+                </>)
+                }
             </div>
         </div>
     )
