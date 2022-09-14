@@ -102,7 +102,7 @@ const useCard = (G, ctx, cardPos) => {
     currentPlayer.cards.splice(cardPos, 1)
 
     // TODO: Implement card action
-    console.log("useCard:", currentPlayer, card);
+    console.log("useCard:", { cardPos, currentPlayer, card });
 
     G.players[ctx.currentPlayer].shouldReceiveCard = true
 
