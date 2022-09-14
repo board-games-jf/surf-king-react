@@ -9,6 +9,7 @@ import EnergyImage from '../../assets/energy.png'
 const Board = ({ G, ctx, moves }) => {
     const gameMode = 1;
     const [placingObstacle, setPlacingObstacle] = useState(null);
+    const [selectPlayerTarget, setSelectPlayerTarget] = useState(null);
 
     useEffect(() => {
         console.log("Board::useEffect G", G);
@@ -65,10 +66,12 @@ const Board = ({ G, ctx, moves }) => {
     }
 
     const onHexClickedHandle = (cell) => {
-        console.log("onHexClickedHandle", placingObstacle);
         if (placingObstacle != null) {
             UseCardAction(G, ctx, moves, gameMode, placingObstacle.cardPos, [cell.position]);
             setPlacingObstacle(null);
+        } else if (selectPlayerTarget != null) {
+            UseCardAction(G, ctx, moves, gameMode, selectPlayerTarget.cardPos, [cell.position]);
+            setSelectPlayerTarget(null);
         } else {
             HexClickAction(G, ctx, moves, gameMode, cell);
         }
@@ -96,10 +99,12 @@ const Board = ({ G, ctx, moves }) => {
             case CardStone.Name:
             case CardStorm.Name:
             case CardShark.Name:
-                setPlacingObstacle({ card, cardPos })
-                break
+                setPlacingObstacle({ card, cardPos });
+                break;
             case CardBigWave.Name:
-                break
+            case CardSunburn.Name:
+                setSelectPlayerTarget({ card, cardPos });
+                break;
             case CardBottledWater.Name:
             case CardCoconut.Name:
             case CardEnergy.Name:
@@ -109,16 +114,14 @@ const Board = ({ G, ctx, moves }) => {
             case CardLifeGuardFloat.Name:
             case CardSwimmingFin.Name:
             case CardAmulet.Name:
-                UseCardAction(G, ctx, moves, mode, cardPos, args)
-                break
+                UseCardAction(G, ctx, moves, mode, cardPos, args);
+                break;
             case CardChange.Name:
-                break
+                break;
             case CardJumping.Name:
-                break
-            case CardSunburn.Name:
-                break
+                break;
             case CardTsunami.Name:
-                break
+                break;
             default:
                 break;
         }
@@ -143,7 +146,7 @@ const Board = ({ G, ctx, moves }) => {
             <HexGrid cellProps={cellProps} renderCell={renderCell} onHexClick={onHexClickedHandle} />
             <div>
                 <h3>{`[${G.turn + 1}] - ${ctx.phase}: player ${parseInt(ctx.currentPlayer) + 1}'s turn`}</h3>
-                {!placingObstacle ? (<>
+                {!placingObstacle && !selectPlayerTarget ? (<>
                     <div style={{ marginBottom: 20 }}>
                         <button style={{ width: 100, height: 30 }} onClick={onGoForItHandle}>go for it</button>
                         <button style={{ width: 100, height: 30 }} onClick={onSkipHandle}>skip</button>
@@ -158,7 +161,7 @@ const Board = ({ G, ctx, moves }) => {
                         ))}
                     </div>
                 </>) : (<>
-                    <div>Click in one hex to choose a place...</div>
+                    <div>Click in one hex to choose one...</div>
                 </>)
                 }
             </div>

@@ -62,6 +62,22 @@ const placeObstacle = (G, ctx, position, obstacle) => {
     }
 }
 
+const decreasePlayerEnergy = (G, ctx, position, card) => {
+    const targetPlayer = G.cells[position].player;
+    if (targetPlayer) {
+        switch (card.Name) {
+            case CardBigWave.Name:
+                G.players[targetPlayer.position].energy = Math.max(G.players[targetPlayer.position].energy - 2, 0);
+                break;
+            case CardSunburn.Name:
+                G.players[targetPlayer.position].energy = Math.max(G.players[targetPlayer.position].energy - 1, 0);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
     // TODO: Create unit test.
 
@@ -144,23 +160,16 @@ const executeCardAction = (G, ctx, card, args) => {
     switch (card.Name) {
         // Obstacles
         case CardCyclone.Name:
-            placeObstacle(G, ctx, args[0], card)
-            break
         case CardIsland.Name:
-            placeObstacle(G, ctx, args[0], card)
-            break
         case CardStone.Name:
-            placeObstacle(G, ctx, args[0], card)
-            break
         case CardStorm.Name:
-            placeObstacle(G, ctx, args[0], card)
-            break
         case CardShark.Name:
             placeObstacle(G, ctx, args[0], card)
             break
         // Actions
         case CardBigWave.Name:
-            // TODO: Implement
+        case CardSunburn.Name:
+            decreasePlayerEnergy(G, ctx, args[0], card)
             break
         case CardBottledWater.Name:
             // TODO: Implement
@@ -191,9 +200,6 @@ const executeCardAction = (G, ctx, card, args) => {
             // TODO: Implement
             break
         case CardSwimmingFin.Name:
-            // TODO: Implement
-            break
-        case CardSunburn.Name:
             // TODO: Implement
             break
         case CardTsunami.Name:
