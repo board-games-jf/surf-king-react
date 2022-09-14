@@ -197,10 +197,10 @@ const executeCardAction = (G, ctx, card, args) => {
             // TODO: Implement
             break
         case CardLifeGuardFloat.Name:
-            // TODO: Implement
+            if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
             break
         case CardSwimmingFin.Name:
-            // TODO: Implement
+            if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY);
             break
         case CardTsunami.Name:
             // TODO: Implement

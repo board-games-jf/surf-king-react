@@ -1,4 +1,4 @@
-import { CardStone } from "./Cards";
+import { CardLifeGuardFloat, CardStone, CardSwimmingFin } from "./Cards";
 
 const hexClickAction_mode1 = (G, ctx, moves, cell) => {
     // TODO: Check if the player who is playing can make the move.
@@ -19,7 +19,7 @@ const hexClickAction_mode2 = (G, ctx, cell) => {
 }
 
 const movePiece = (G, ctx, moves, cell) => {
-    const currentPlayer = +ctx.currentPlayer
+    const currentPlayer = ctx.currentPlayer
     const currentPlayerPosition = G.players[currentPlayer].cellPosition
     const nextPosition = cell.position;
 
@@ -53,7 +53,20 @@ export const HexClickAction = (G, ctx, moves, mode, cell) => {
     return actions[mode](G, ctx, moves, cell);
 }
 
-export const UseCardAction = (G, ctx, moves, mode, cardPos, args) => {
+export const UseCardAction = (G, ctx, moves, mode, card, cardPos, args) => {
     // TODO: Validate
-    return moves.useCard(cardPos, args);
+    switch (card.Name) {
+        case CardLifeGuardFloat.Name:
+        case CardSwimmingFin.Name:
+            if (G.players[ctx.currentPlayer].energy > 0) {
+                return false;
+            }
+            break;
+        default:
+            break;
+    }
+
+    moves.useCard(cardPos, args);
+
+    return true;
 }

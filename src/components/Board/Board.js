@@ -67,10 +67,10 @@ const Board = ({ G, ctx, moves }) => {
 
     const onHexClickedHandle = (cell) => {
         if (placingObstacle != null) {
-            UseCardAction(G, ctx, moves, gameMode, placingObstacle.cardPos, [cell.position]);
+            UseCardAction(G, ctx, moves, gameMode, placingObstacle.card, placingObstacle.cardPos, [cell.position]);
             setPlacingObstacle(null);
         } else if (selectPlayerTarget != null) {
-            UseCardAction(G, ctx, moves, gameMode, selectPlayerTarget.cardPos, [cell.position]);
+            UseCardAction(G, ctx, moves, gameMode, selectPlayerTarget.card, selectPlayerTarget.cardPos, [cell.position]);
             setSelectPlayerTarget(null);
         } else {
             HexClickAction(G, ctx, moves, gameMode, cell);
@@ -114,7 +114,7 @@ const Board = ({ G, ctx, moves }) => {
             case CardLifeGuardFloat.Name:
             case CardSwimmingFin.Name:
             case CardAmulet.Name:
-                UseCardAction(G, ctx, moves, mode, cardPos, args);
+                UseCardAction(G, ctx, moves, mode, card, cardPos, args);
                 break;
             case CardChange.Name:
                 break;
