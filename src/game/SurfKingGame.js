@@ -91,6 +91,7 @@ const createDeck = () => {
     addCards(CardIsland, 4)
     addCards(CardStone, 4)
     addCards(CardStorm, 4)
+    // addCards(CardShark, 4) // NOTE: Already on board.
 
     // Actions
     addCards(CardBigWave, 4)
@@ -164,7 +165,6 @@ const executeCardAction = (G, ctx, cardPos, args) => {
     let hasBeenUsed = true;
     let mustBeDiscarded = true;
     switch (card.Name) {
-        // Obstacles
         case CardCyclone.Name:
         case CardIsland.Name:
         case CardStone.Name:
@@ -172,7 +172,6 @@ const executeCardAction = (G, ctx, cardPos, args) => {
         case CardShark.Name:
             hasBeenUsed = placeObstacle(G, ctx, args[0], card)
             break;
-        // Actions
         case CardBigWave.Name:
         case CardSunburn.Name:
             hasBeenUsed = decreasePlayerEnergy(G, ctx, args[0], card);
@@ -200,20 +199,17 @@ const executeCardAction = (G, ctx, cardPos, args) => {
         case CardChange.Name:
             hasBeenUsed = changePlayer(G, ctx, args[0], card);
             break;
-        case CardHangLoose.Name:
-            // TODO: Implement
-            break
         case CardJumping.Name:
             hasBeenUsed = removeObstacle(G, ctx, args[0], card);
             break;
         case CardTsunami.Name:
             tsunami(G, ctx, args[0], card);
             break;
-        // Acessories
         case CardAmulet.Name:
+        case CardHangLoose.Name:
             currentPlayer.activeCard.push({ ...card, TurnRemaning: 1 });
             mustBeDiscarded = false;
-            break
+            break;
         default:
             break;
     }
@@ -261,6 +257,8 @@ const isCloseTo = (a, b) => {
 }
 
 const isFallOfTheBoard = (G, player) => player.toFellOffTheBoard > -1 && player.toFellOffTheBoard <= G.turn;
+
+const isPlayerUsingHangLoose = (player) => player.activeCard.find(card => card.Name === CardHangLoose.Name);
 
 const isPlayerWearingAmulet = (player) => player.activeCard.find(card => card.Name === CardAmulet.Name);
 
@@ -389,6 +387,7 @@ const attack = (G, ctx, targetCellPosition) => {
     if (currentPlayer.energy === 0 ||
         targetPlayer.energy === 0 ||
         isPlayerWearingAmulet(targetPlayer) ||
+        isPlayerUsingHangLoose(targetPlayer) ||
         !isCloseTo(currentPlayer.cellPosition, targetCellPosition)) {
         return INVALID_MOVE;
     }
