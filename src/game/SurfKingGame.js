@@ -129,9 +129,10 @@ const decreasePlayerEnergy = (G, ctx, position, card) => {
             return false
         }
 
-        targetPlayer.energy = Math.max(targetPlayer.energy - 1, 0);
+        applyEnergyToLose(G, targetPlayer, 1);
+
         if (targetPlayer.energy === 0) {
-            targetPlayer.toFellOffTheBoard = G.turn;
+            transferRandomCardFromPlayerToOtherOne(targetPlayer, G.players[ctx.currentPlayer]);
         }
     }
 
@@ -370,6 +371,13 @@ const useCard = (G, ctx, cardPos, args) => {
     }
 }
 
+const transferRandomCardFromPlayerToOtherOne = (fromPlayer, toPlayer) => {
+    const cardPos = Math.floor(Math.random() * fromPlayer.cards.length);
+    const card = { ...fromPlayer.cards[cardPos] };
+    fromPlayer.cards.splice(cardPos, 1);
+    toPlayer.cards.push(card);
+}
+
 const attack = (G, ctx, targetCellPosition) => {
     if (!G.cells[targetCellPosition].player) {
         return INVALID_MOVE;
@@ -413,10 +421,7 @@ const attack = (G, ctx, targetCellPosition) => {
         targetPlayer.toFellOffTheBoard = G.turn;
 
         if (targetPlayer.cards.length > 0) {
-            const cardPos = Math.floor(Math.random() * targetPlayer.cards.length);
-            const card = { ...targetPlayer.cards[cardPos] };
-            targetPlayer.cards.splice(cardPos, 1);
-            currentPlayer.cards.push(card);
+            transferRandomCardFromPlayerToOtherOne(targetPlayer, currentPlayer);
 
             if (!changePlayer(G, ctx, targetPlayer.cellPosition, null)) {
                 return INVALID_MOVE;
