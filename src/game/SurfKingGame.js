@@ -280,13 +280,13 @@ const movePlayer = (G, ctx, player, from, to, energyToLose) => {
     return true;
 }
 
-const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
+const moveToNextHexUnoccupiedByTsunami = (G, ctx, playerPos, from, to) => {
     // TODO: Create unit test.
 
     // TODO: Check when "To" is negative.
 
     if (G.cells[to].player) {
-        return moveToNextHexUnoccupied(G, ctx, playerPos, from, to + MOVE_BACKWARD);
+        return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to + MOVE_BACKWARD);
     }
 
     if (G.cells[to].obstacle?.Name === CardCyclone.Name) {
@@ -302,7 +302,7 @@ const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
             occupied = (G.cells[to].player && G.cells[to].player.position !== G.players[playerPos].position) ||
                 (G.cells[to].obstacle?.Name === CardStone.Name);
         }
-        return moveToNextHexUnoccupied(G, ctx, playerPos, from, to);
+        return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to);
     }
 
     const targetPlayer = G.players[playerPos];
@@ -333,18 +333,18 @@ const rollDice = () => Math.floor(Math.random() * 6)
 
 const tsunami = (G, ctx, position, obstacle) => {
     if (G.cells[position].player) {
-        moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
+        moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
     }
 
     for (let i = 0; i < 3; ++i) {
         position += MOVE_FORWARD_RIGHT;
         if (G.cells[position].player) {
-            moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
+            moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
         }
 
         position += MOVE_BACKWARD_LEFT;
         if (G.cells[position].player) {
-            moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
+            moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
         }
     }
 }
@@ -380,6 +380,7 @@ const attack = (G, ctx, targetCellPosition) => {
 
     if (currentPlayer.energy === 0 ||
         targetPlayer.energy === 0 ||
+        isPlayerWearingAmulet(targetPlayer) ||
         !isCloseTo(currentPlayer.cellPosition, targetCellPosition)) {
         return INVALID_MOVE;
     }
