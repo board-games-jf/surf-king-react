@@ -11,15 +11,28 @@ export const NUMBER_OF_PLAYERS = 2;
 /********************************************************************************/
 // Auxiliary functions
 /********************************************************************************/
+const applyEnergyToLose = (G, player, energyToLose) => {
+    player.energy = Math.min(Math.max(player.energy - energyToLose, 0), MAX_ENERGY);
+    if (player.energy === 0) {
+        player.toFellOffTheBoard = G.turn;
+    }
+};
 
 const changePlayer = (G, ctx, targetCellPosition, card) => {
     const currentPlayer = G.players[ctx.currentPlayer];
     const currentPlayerCellPosition = currentPlayer.cellPosition;
     const targetPlayer = G.players[G.cells[targetCellPosition].player.position];
 
-    if (!card && isPlayerWearingAmulet(targetPlayer)) {
+    if (card && isPlayerWearingAmulet(targetPlayer)) {
         return false;
     }
+
+    let energyToLose = 0;
+    const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, targetCellPosition, energyToLose);
+    targetCellPosition = newTo;
+    energyToLose = newEnergyToLose;
+
+    applyEnergyToLose(G, currentPlayer, energyToLose);
 
     currentPlayer.cellPosition = targetCellPosition;
     targetPlayer.cellPosition = currentPlayerCellPosition;
@@ -246,7 +259,7 @@ const isCloseTo = (a, b) => {
         Math.abs(a - b) === MOVE_FORWARD_LEFT // Forward left or Backward left
 }
 
-const isFallOfTheBoard = (G, currentPlayer) => currentPlayer.toFellOffTheBoard > -1 && currentPlayer.toFellOffTheBoard <= G.turn;
+const isFallOfTheBoard = (G, player) => player.toFellOffTheBoard > -1 && player.toFellOffTheBoard <= G.turn;
 
 const isPlayerWearingAmulet = (player) => player.activeCard.find(card => card.Name === CardAmulet.Name);
 
@@ -261,6 +274,8 @@ const movePlayer = (G, ctx, player, from, to, energyToLose) => {
     }
 
     player.cellPosition = to;
+
+    applyEnergyToLose(G, player, energyToLose);
 
     return true;
 }
@@ -385,6 +400,13 @@ const attack = (G, ctx, targetCellPosition) => {
         }
     }
 
+    currentPlayer.energy = Math.max(currentPlayer.energy - atkLosses, 0);
+    if (currentPlayer.energy === 0) {
+        currentPlayer.toFellOffTheBoard = G.turn;
+
+        targetPlayer.cards.push(getDeckCard(G));
+    }
+
     targetPlayer.energy = Math.max(targetPlayer.energy - defLosses, 0);
     if (targetPlayer.energy === 0) {
         targetPlayer.toFellOffTheBoard = G.turn;
@@ -395,16 +417,12 @@ const attack = (G, ctx, targetCellPosition) => {
             targetPlayer.cards.splice(cardPos, 1);
             currentPlayer.cards.push(card);
 
-            changePlayer(G, ctx, targetPlayer.cellPosition, null);
+            if (!changePlayer(G, ctx, targetPlayer.cellPosition, null)) {
+                return INVALID_MOVE;
+            }
         }
     }
 
-    currentPlayer.energy = Math.max(currentPlayer.energy - atkLosses, 0);
-    if (currentPlayer.energy === 0) {
-        currentPlayer.toFellOffTheBoard = G.turn;
-
-        targetPlayer.cards.push(getDeckCard(G));
-    }
     currentPlayer.shouldReceiveCard = true;
 }
 
@@ -413,10 +431,17 @@ const movePiece = (G, ctx, from, to) => {
 
     if (currentPlayer.energy === 0 ||
         isFallOfTheBoard(G, currentPlayer) ||
-        G.cells[to].currentPlayer ||
+        (G.cells[to].player && !isFallOfTheBoard(G, G.players[G.cells[to].player.position])) ||
         G.cells[to].obstacle?.Name === CardStone.Name ||
         !isCloseTo(to, from)) {
         return INVALID_MOVE;
+    }
+
+    if (G.cells[to].player && isFallOfTheBoard(G, G.players[G.cells[to].player.position])) {
+        if (!changePlayer(G, ctx, to, null)) {
+            return INVALID_MOVE;
+        }
+        return;
     }
 
     let energyToLose = 1;
@@ -430,11 +455,6 @@ const movePiece = (G, ctx, from, to) => {
 
     if (!movePlayer(G, ctx, currentPlayer, from, to, energyToLose)) {
         return INVALID_MOVE;
-    }
-
-    currentPlayer.energy = Math.min(Math.max(currentPlayer.energy - energyToLose, 0), MAX_ENERGY);
-    if (currentPlayer.energy === 0) {
-        currentPlayer.toFellOffTheBoard = G.turn;
     }
 
     currentPlayer.shouldReceiveCard = true;
