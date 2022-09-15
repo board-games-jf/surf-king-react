@@ -156,7 +156,7 @@ const executeCardAction = (G, ctx, cardPos, args) => {
         case CardStone.Name:
         case CardStorm.Name:
         case CardShark.Name:
-            placeObstacle(G, ctx, args[0], card)
+            hasBeenUsed = placeObstacle(G, ctx, args[0], card)
             break;
         // Actions
         case CardBigWave.Name:
@@ -190,7 +190,7 @@ const executeCardAction = (G, ctx, cardPos, args) => {
             // TODO: Implement
             break
         case CardJumping.Name:
-            removeObstacle(G, ctx, args[0], card);
+            hasBeenUsed = removeObstacle(G, ctx, args[0], card);
             break;
         case CardTsunami.Name:
             tsunami(G, ctx, args[0], card);
@@ -301,13 +301,17 @@ const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
 const placeObstacle = (G, ctx, position, obstacle) => {
     if (!G.cells[position].player && !G.cells[position].obstacle) {
         G.cells[position].obstacle = obstacle;
+        return true;
     }
+    return false;
 }
 
 const removeObstacle = (G, ctx, position, obstacle) => {
     if (G.cells[position].obstacle) {
         G.cells[position].obstacle = undefined;
+        return true;
     }
+    return false;
 }
 
 const rollDice = () => Math.floor(Math.random() * 6)
@@ -512,7 +516,7 @@ const setup = () => {
 
     const players = {}
     for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
-        const initialCards = [deck.pop(), deck.pop(), CardCyclone, CardTsunami];
+        const initialCards = [deck.pop(), deck.pop()];
         players[i] = createPlayer(i, initialCards);
     }
 
