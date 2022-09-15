@@ -250,6 +250,21 @@ const isFallOfTheBoard = (G, currentPlayer) => currentPlayer.toFellOffTheBoard >
 
 const isPlayerWearingAmulet = (player) => player.activeCard.find(card => card.Name === CardAmulet.Name);
 
+const movePlayer = (G, ctx, player, from, to, energyToLose) => {
+    const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
+    to = newTo;
+    energyToLose = newEnergyToLose;
+
+    if (to !== from) {
+        G.cells[to].player = G.cells[from].player;
+        G.cells[from].player = undefined;
+    }
+
+    player.cellPosition = to;
+
+    return true;
+}
+
 const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
     // TODO: Create unit test.
 
@@ -280,11 +295,7 @@ const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
         return false;
     }
 
-    targetPlayer.cellPosition = to;
-    G.cells[to].player = G.players[playerPos];
-    G.cells[from].player = undefined;
-
-    return true;
+    return movePlayer(G, ctx, targetPlayer, from, to, 0);
 }
 
 const placeObstacle = (G, ctx, position, obstacle) => {
@@ -398,7 +409,7 @@ const movePiece = (G, ctx, from, to) => {
 
     if (currentPlayer.energy === 0 ||
         isFallOfTheBoard(G, currentPlayer) ||
-        G.cells[to].player ||
+        G.cells[to].currentPlayer ||
         G.cells[to].obstacle?.Name === CardStone.Name ||
         !isCloseTo(to, from)) {
         return INVALID_MOVE;
@@ -413,13 +424,8 @@ const movePiece = (G, ctx, from, to) => {
         });
     }
 
-    const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
-    to = newTo;
-    energyToLose = newEnergyToLose;
-
-    if (to !== from) {
-        G.cells[to].player = G.cells[from].player;
-        G.cells[from].player = undefined;
+    if (!movePlayer(G, ctx, currentPlayer, from, to, energyToLose)) {
+        return INVALID_MOVE;
     }
 
     currentPlayer.energy = Math.min(Math.max(currentPlayer.energy - energyToLose, 0), MAX_ENERGY);
@@ -427,7 +433,6 @@ const movePiece = (G, ctx, from, to) => {
         currentPlayer.toFellOffTheBoard = G.turn;
     }
 
-    currentPlayer.cellPosition = to;
     currentPlayer.shouldReceiveCard = true;
     currentPlayer.played = true;
 }
@@ -507,7 +512,7 @@ const setup = () => {
 
     const players = {}
     for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
-        const initialCards = [deck.pop(), deck.pop()];
+        const initialCards = [deck.pop(), deck.pop(), CardCyclone, CardTsunami];
         players[i] = createPlayer(i, initialCards);
     }
 
