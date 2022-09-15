@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { strokeWidth } from "../../constants/Hex";
-import Hex from "../Hex/Hex";
+import { strokeWidth, Hex } from "../Hex";
 import { Wrapper, Row, defaultGridWidth, hexWidth } from "./HexGrid.style";
 
 // TODO: Move to a helper file
@@ -52,13 +51,13 @@ const HexGrid = (props) => {
       {rows.map((row, rowIndex) => (
         <Row key={rowIndex}>
           {row.map((_, colIndex) => (
-              <Hex
-                key={colIndex}
-                onClick={() => props.onHexClick({ position: hexCoordToPosition(`${rowIndex},${colIndex}`) })}
-                {...props.cellProps((hexCoordToPosition(`${rowIndex},${colIndex}`)))}
-              >
-                {props.renderCell(hexCoordToPosition(`${rowIndex},${colIndex}`))}
-              </Hex>
+            <Hex
+              key={colIndex}
+              onClick={() => props.onHexClick({ position: hexCoordToPosition(`${rowIndex},${colIndex}`) })}
+              {...props.cellProps((hexCoordToPosition(`${rowIndex},${colIndex}`)))}
+            >
+              {props.renderCell(hexCoordToPosition(`${rowIndex},${colIndex}`))}
+            </Hex>
           ))}
         </Row>
       ))}

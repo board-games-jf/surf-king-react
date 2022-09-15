@@ -1,3 +1,4 @@
+import { MOVE_FORWARD, MOVE_FORWARD_LEFT, MOVE_FORWARD_RIGHT } from "./Board";
 import { CardLifeGuardFloat, CardStone, CardSwimmingFin } from "./Cards";
 
 const hexClickAction_mode1 = (G, ctx, moves, cell) => {
@@ -35,9 +36,9 @@ const movePiece = (G, ctx, moves, cell) => {
         return false;
     }
 
-    if (Math.abs(nextPosition - currentPlayerPosition) === 7 || // Forward or Backward
-        Math.abs(nextPosition - currentPlayerPosition) === 4 || // Forward right or Backward right
-        Math.abs(nextPosition - currentPlayerPosition) === 3) { // Forward left or Backward left
+    if (Math.abs(nextPosition - currentPlayerPosition) === MOVE_FORWARD || // Forward or Backward
+        Math.abs(nextPosition - currentPlayerPosition) === MOVE_FORWARD_RIGHT || // Forward right or Backward right
+        Math.abs(nextPosition - currentPlayerPosition) === MOVE_FORWARD_LEFT) { // Forward left or Backward left
         moves.movePiece(currentPlayerPosition, nextPosition);
         return true
     }

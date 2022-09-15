@@ -1,4 +1,5 @@
 import { TurnOrder } from 'boardgame.io/core'
+import { MOVE_BACKWARD, MOVE_BACKWARD_LEFT, MOVE_BACKWARD_RIGHT, MOVE_FORWARD, MOVE_FORWARD_LEFT, MOVE_FORWARD_RIGHT } from './Board';
 import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
 
 const MAX_ENERGY = 4;
@@ -101,12 +102,12 @@ const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
     // TODO: Check when "To" is negative.
 
     if (G.cells[to].player) {
-        return moveToNextHexUnoccupied(G, ctx, playerPos, from, to - 7);
+        return moveToNextHexUnoccupied(G, ctx, playerPos, from, to + MOVE_BACKWARD);
     }
 
     if (G.cells[to].obstacle?.Name === CardCyclone.Name) {
         const dice = Math.floor(Math.random() * 6);
-        const newPos = [7, 4, -3, -7, -4, 3];
+        const newPos = [MOVE_FORWARD, MOVE_FORWARD_RIGHT, MOVE_BACKWARD_LEFT, MOVE_BACKWARD, MOVE_BACKWARD_RIGHT, MOVE_FORWARD_LEFT];
         let occupied = true;
         while (occupied) {
             // TODO: Check when "To" is negative.
@@ -127,16 +128,16 @@ const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
 
 const tsunami = (G, ctx, position, obstacle) => {
     if (G.cells[position].player) {
-        moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position - 7);
+        moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
     }
     for (let i = 0; i < 3; ++i) {
-        position += 4;
+        position += MOVE_FORWARD_RIGHT;
         if (G.cells[position].player) {
-            moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position - 7);
+            moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
         }
-        position -= 3;
+        position += MOVE_BACKWARD_LEFT;
         if (G.cells[position].player) {
-            moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position - 7);
+            moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
         }
     }
 }
@@ -147,7 +148,7 @@ const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
     switch (G.cells[to].obstacle?.Name) {
         case CardCyclone.Name:
             const dice = Math.floor(Math.random() * 6);
-            const newPos = [7, 4, -3, -7, -4, 3];
+            const newPos = [MOVE_FORWARD, MOVE_FORWARD_RIGHT, MOVE_BACKWARD_LEFT, MOVE_BACKWARD, MOVE_BACKWARD_RIGHT, MOVE_FORWARD_LEFT];
             let occupied = true;
             while (occupied) {
                 // TODO: Check when "To" is negative.
