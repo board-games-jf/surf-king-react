@@ -4,7 +4,7 @@ import { CardLifeGuardFloat, CardStone, CardSwimmingFin } from "./Cards";
 const hexClickAction_mode1 = (G, ctx, moves, cell) => {
     // TODO: Check if the player who is playing can make the move.
     if (ctx.phase === 'firt_move_piece' || ctx.phase === 'maneuver') {
-        movePiece(G, ctx, moves, cell);
+        return movePiece(G, ctx, moves, cell);
     }
 }
 
@@ -24,26 +24,7 @@ const movePiece = (G, ctx, moves, cell) => {
     const currentPlayerPosition = G.players[currentPlayer].cellPosition
     const nextPosition = cell.position;
 
-    if (G.players[currentPlayer].energy === 0) {
-        return false;
-    }
-
-    if (G.cells[nextPosition].player) {
-        return false;
-    }
-
-    if (G.cells[nextPosition].obstacle?.Name === CardStone.Name) {
-        return false;
-    }
-
-    if (Math.abs(nextPosition - currentPlayerPosition) === MOVE_FORWARD || // Forward or Backward
-        Math.abs(nextPosition - currentPlayerPosition) === MOVE_FORWARD_RIGHT || // Forward right or Backward right
-        Math.abs(nextPosition - currentPlayerPosition) === MOVE_FORWARD_LEFT) { // Forward left or Backward left
-        moves.movePiece(currentPlayerPosition, nextPosition);
-        return true
-    }
-
-    return false;
+    return moves.movePiece(currentPlayerPosition, nextPosition);
 }
 
 const actions = {
@@ -55,19 +36,5 @@ export const HexClickAction = (G, ctx, moves, mode, cell) => {
 }
 
 export const UseCardAction = (G, ctx, moves, mode, card, cardPos, args) => {
-    // TODO: Validate
-    switch (card.Name) {
-        case CardLifeGuardFloat.Name:
-        case CardSwimmingFin.Name:
-            if (G.players[ctx.currentPlayer].energy > 0) {
-                return false;
-            }
-            break;
-        default:
-            break;
-    }
-
-    moves.useCard(cardPos, args);
-
-    return true;
+    return moves.useCard(cardPos, args);
 }

@@ -167,10 +167,16 @@ const executeCardAction = (G, ctx, cardPos, args) => {
             removeObstacle(G, ctx, args[0], card);
             break;
         case CardLifeGuardFloat.Name:
-            if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
+            hasBeenUsed = currentPlayer.energy === 0;
+            if (hasBeenUsed) {
+                currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
+            }
             break;
         case CardSwimmingFin.Name:
-            if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY);
+            hasBeenUsed = currentPlayer.energy === 0;
+            if (hasBeenUsed) {
+                currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY);
+            }
             break;
         case CardTsunami.Name:
             tsunami(G, ctx, args[0], card);
@@ -311,31 +317,45 @@ const attack = (G, ctx, targetPosition) => {
 }
 
 const movePiece = (G, ctx, from, to) => {
-    // TODO: Validate moviment or trigger action
     const currentPlayer = G.players[ctx.currentPlayer];
-    let energyToLose = 1;
-    const hasCardBottledWater = currentPlayer.activeCard.find(card => card.Name === CardBottledWater.Name);
-    if (hasCardBottledWater) {
-        energyToLose = 0;
-        currentPlayer.activeCard = currentPlayer.activeCard.filter(card => {
-            return card.Name !== CardBottledWater.Name;
-        });
+
+    if (currentPlayer.energy === 0 ||
+        G.cells[to].player ||
+        G.cells[to].obstacle?.Name === CardStone.Name) {
+        return INVALID_MOVE;
     }
 
-    const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
-    to = newTo;
-    energyToLose = newEnergyToLose;
+    if (Math.abs(to - from) === MOVE_FORWARD || // Forward or Backward
+        Math.abs(to - from) === MOVE_FORWARD_RIGHT || // Forward right or Backward right
+        Math.abs(to - from) === MOVE_FORWARD_LEFT) { // Forward left or Backward left
+        let energyToLose = 1;
+        const hasCardBottledWater = currentPlayer.activeCard.find(card => card.Name === CardBottledWater.Name);
+        if (hasCardBottledWater) {
+            energyToLose = 0;
+            currentPlayer.activeCard = currentPlayer.activeCard.filter(card => {
+                return card.Name !== CardBottledWater.Name;
+            });
+        }
 
-    if (to !== from) {
-        G.cells[to].player = G.cells[from].player;
-        G.cells[from].player = undefined;
+        const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
+        to = newTo;
+        energyToLose = newEnergyToLose;
+
+        if (to !== from) {
+            G.cells[to].player = G.cells[from].player;
+            G.cells[from].player = undefined;
+        }
+
+        currentPlayer.energy = Math.min(Math.max(currentPlayer.energy - energyToLose, 0), MAX_ENERGY);
+
+        currentPlayer.cellPosition = to
+        currentPlayer.shouldReceiveCard = true
+        currentPlayer.played = true
+
+        return;
     }
 
-    currentPlayer.energy = Math.min(Math.max(currentPlayer.energy - energyToLose, 0), MAX_ENERGY);
-
-    currentPlayer.cellPosition = to
-    currentPlayer.shouldReceiveCard = true
-    currentPlayer.played = true
+    return INVALID_MOVE;
 }
 
 const getCard = (G, ctx) => {
@@ -459,7 +479,7 @@ export const SurfKingGame = {
             start: true,
         },
         use_card: {
-            moves: { useCard, skip: pass },
+            moves: { useCard, pass },
             turn: { maxMoves: 2 },
             onBegin: onBeginUseCard,
             onEnd: onEndPhase,
@@ -467,13 +487,13 @@ export const SurfKingGame = {
             next: 'to_drop_in',
         },
         to_drop_in: {
-            moves: { attack, skip: pass },
+            moves: { attack, pass },
             onEnd: onEndPhase,
             endIf: everyonePlay,
             next: 'maneuver',
         },
         maneuver: {
-            moves: { movePiece, skip: pass },
+            moves: { movePiece, pass },
             onEnd: onEndPhase,
             endIf: everyonePlay,
             next: 'receive_card',
