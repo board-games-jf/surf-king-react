@@ -150,6 +150,7 @@ const decreaseTurnRemaningForActiveCards = (G, ctx, currentPlayerPosition) => {
             const cardPos = currentPlayer.cards.findIndex(c => c.Name === card.Name);
             if (cardPos >= 0) {
                 currentPlayer.cards.splice(cardPos, 1);
+                G.cells[card.CellPosition].obstacle = undefined;
             }
         });
 
@@ -165,12 +166,22 @@ const executeCardAction = (G, ctx, cardPos, args) => {
     let hasBeenUsed = true;
     let mustBeDiscarded = true;
     switch (card.Name) {
+        case CardStone.Name:
+            if (!(card?.CellPosition > 0)) {
+                const cellPosition = args[0];
+                hasBeenUsed = placeObstacle(G, ctx, cellPosition, card);
+                card.CellPosition = cellPosition;
+                currentPlayer.activeCard.push({ ...card, TurnRemaning: 3 });
+            } else {
+                hasBeenUsed = false;
+            }
+            mustBeDiscarded = false;
+            break;
         case CardCyclone.Name:
         case CardIsland.Name:
-        case CardStone.Name:
         case CardStorm.Name:
         case CardShark.Name:
-            hasBeenUsed = placeObstacle(G, ctx, args[0], card)
+            hasBeenUsed = placeObstacle(G, ctx, args[0], card);
             break;
         case CardBigWave.Name:
         case CardSunburn.Name:
@@ -352,12 +363,9 @@ const tsunami = (G, ctx, position, obstacle) => {
 // Moves
 /********************************************************************************/
 const useCard = (G, ctx, cardPos, args) => {
-    // TODO: Validate moviment or trigger action
     const currentPlayer = G.players[ctx.currentPlayer];
-    const card = currentPlayer.cards[cardPos];
 
     const hasBeenUsed = executeCardAction(G, ctx, cardPos, args);
-    console.log("useCard:", { hasBeenUsed, card: card.Name, args });
     if (!hasBeenUsed) {
         return INVALID_MOVE;
     }
@@ -487,6 +495,8 @@ const pass = (G, ctx) => {
             ++currentPlayer.energy;
             currentPlayer.toFellOffTheBoard = -1;
         }
+
+        decreaseTurnRemaningForActiveCards(G, ctx, currentPlayer.position);
     }
 
     currentPlayer.played = true
@@ -503,8 +513,8 @@ const resetPlayerPlayed = (G) => {
 
 const onBeginUseCard = (G, ctx) => {
     // NOTE: currentPlayerPosition - Workaround. Check with boardgame.io why that.
-    const currentPlayerPosition = (parseInt(ctx.currentPlayer) + 1) % NUMBER_OF_PLAYERS;
-    decreaseTurnRemaningForActiveCards(G, ctx, currentPlayerPosition);
+    // const currentPlayerPosition = (parseInt(ctx.currentPlayer) + 1) % NUMBER_OF_PLAYERS;
+    // decreaseTurnRemaningForActiveCards(G, ctx, currentPlayerPosition);
     ++G.turn;
 }
 
