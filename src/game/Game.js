@@ -5,6 +5,8 @@ const hexClickAction_mode1 = (G, ctx, moves, cell) => {
     // TODO: Check if the player who is playing can make the move.
     if (ctx.phase === 'firt_move_piece' || ctx.phase === 'maneuver') {
         return movePiece(G, ctx, moves, cell);
+    } else if(ctx.phase === 'to_drop_in') {
+        return moves.attack(cell.position)
     }
 }
 

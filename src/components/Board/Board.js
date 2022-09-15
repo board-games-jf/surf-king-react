@@ -100,7 +100,7 @@ const Board = ({ G, ctx, moves }) => {
         }
     }
 
-    const onSkipHandle = () => moves.skip(G, ctx);
+    const onSkipHandle = () => moves.pass(G, ctx);
 
     const onCardClickHandle = (G, ctx, moves, mode, card, cardPos, args) => {
         switch (card.Name) {
