@@ -164,8 +164,8 @@ const Board = ({ G, ctx, moves }) => {
                     </div>
                     <div>
                         {Object.values(G.players).map((p, index) => (
-                            <div key={index} style={{ marginBottom: 8 }}>
-                                <text>player {p.position + 1} cards</text>
+                            <div key={index}>
+                                <h5>player {p.position + 1} cards</h5>
                                 {renderPlayerEnergy(G.players[p.position].energy, p.position)}
                                 {G.players[p.position].cards.map(renderCardByName)}
                             </div>

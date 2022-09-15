@@ -127,7 +127,7 @@ const executeCardAction = (G, ctx, cardPos, args) => {
     const card = currentPlayer.cards[cardPos];
 
     let hasBeenUsed = true;
-    let shouldBeDiscard = true;
+    let mustBeDiscarded = true;
     switch (card.Name) {
         // Obstacles
         case CardCyclone.Name:
@@ -178,13 +178,13 @@ const executeCardAction = (G, ctx, cardPos, args) => {
         // Acessories
         case CardAmulet.Name:
             currentPlayer.activeCard.push({ ...card, TurnRemaning: 1 });
-            shouldBeDiscard = false;
+            mustBeDiscarded = false;
             break
         default:
             break;
     }
 
-    if (hasBeenUsed && shouldBeDiscard) {
+    if (hasBeenUsed && mustBeDiscarded) {
         currentPlayer.cards.splice(cardPos, 1);
     }
 
@@ -260,44 +260,25 @@ const tsunami = (G, ctx, position, obstacle) => {
     }
 }
 
-/********************************************************************************/
-// Setup
-/********************************************************************************/
+const decreaseTurnRemaningForActiveCards = (G, ctx, currentPlayerPosition) => {
+    const currentPlayer = G.players[currentPlayerPosition];
 
-const setup = () => {
-    const cells = new Array(GRID_SIZE);
+    console.log("decreaseTurnRemaningForActiveCards", { currentPlayer, pos: ctx.currentPlayer, activeCard: currentPlayer.activeCard });
 
-    // TODO: Create the deck base on game mode
-    const deck = createDeck();
+    currentPlayer.activeCard.forEach(card => --card.TurnRemaning);
+    console.log("decreaseTurnRemaningForActiveCards", { activeCard: currentPlayer.activeCard });
+    currentPlayer.activeCard
+        .filter(card => card.TurnRemaning === 0)
+        .forEach(card => {
+            const cardPos = currentPlayer.cards.findIndex(c => c.Name === card.Name);
+            if (cardPos >= 0) {
+                currentPlayer.cards.splice(cardPos, 1);
+            }
+        });
 
-    const players = {}
-    for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
-        const initialCards = [deck.pop(), deck.pop()];
-        players[i] = createPlayer(i, initialCards);
-    }
-
-    let order = Object.keys(players);
-    // order = order.sort(() => Math.random() - 0.5) // TODO: Other mode?
-
-    // TODO: set player positions according to number of players.
-    for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
-        players[order[i]].cellPosition = i
-        cells[i] = { position: i, obstacle: undefined, player: players[order[i]] }
-    }
-
-    cells[28] = { position: 28, obstacle: CardShark, player: undefined }
-    cells[29] = { position: 29, obstacle: CardShark, player: undefined }
-    cells[30] = { position: 30, obstacle: CardShark, player: undefined }
-    cells[31] = { position: 31, obstacle: CardShark, player: undefined }
-    for (let i = 0; i < GRID_SIZE; ++i) {
-        if (!cells[i]) {
-            cells[i] = { position: i, obstacle: undefined, player: undefined }
-        }
-    }
-
-    const events = []
-
-    return { cells, players, events, turn: 0, order, deck }
+    currentPlayer.activeCard = currentPlayer.activeCard.filter(card => {
+        return card.TurnRemaning > 0;
+    });
 }
 
 /********************************************************************************/
@@ -380,7 +361,14 @@ const pass = (G, ctx) => {
 /********************************************************************************/
 
 const resetPlayerPlayed = (G) => {
-    Object['values'](G.players).forEach((p) => (p.played = false))
+    Object.values(G.players).forEach((p) => (p.played = false))
+}
+
+const onBeginUseCard = (G, ctx) => {
+    // NOTE: currentPlayerPosition - Workarround. Check with boardgame.io why that.
+    const currentPlayerPosition = (parseInt(ctx.currentPlayer) + 1) % NUMBER_OF_PLAYERS;
+    decreaseTurnRemaningForActiveCards(G, ctx, currentPlayerPosition);
+    ++G.turn;
 }
 
 const onEndPhase = (G) => {
@@ -388,7 +376,7 @@ const onEndPhase = (G) => {
 }
 
 const everyonePlay = (G) => {
-    return Object['values'](G.players).every((p) => p.played === true)
+    return Object.values(G.players).every((p) => p.played === true)
 }
 
 const endIf = (G) => {
@@ -402,6 +390,46 @@ const endIf = (G) => {
             }
         }
     }
+}
+
+/********************************************************************************/
+// Setup
+/********************************************************************************/
+
+const setup = () => {
+    const cells = new Array(GRID_SIZE);
+
+    // TODO: Create the deck base on game mode
+    const deck = createDeck();
+
+    const players = {}
+    for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
+        const initialCards = [deck.pop(), deck.pop()];
+        players[i] = createPlayer(i, initialCards);
+    }
+
+    let order = Object.keys(players);
+    // order = order.sort(() => Math.random() - 0.5) // TODO: Other mode?
+
+    // TODO: set player positions according to number of players.
+    for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
+        players[order[i]].cellPosition = i
+        cells[i] = { position: i, obstacle: undefined, player: players[order[i]] }
+    }
+
+    cells[28] = { position: 28, obstacle: CardShark, player: undefined }
+    cells[29] = { position: 29, obstacle: CardShark, player: undefined }
+    cells[30] = { position: 30, obstacle: CardShark, player: undefined }
+    cells[31] = { position: 31, obstacle: CardShark, player: undefined }
+    for (let i = 0; i < GRID_SIZE; ++i) {
+        if (!cells[i]) {
+            cells[i] = { position: i, obstacle: undefined, player: undefined }
+        }
+    }
+
+    const events = []
+
+    return { cells, players, events, turn: 0, order, deck }
 }
 
 /********************************************************************************/
@@ -433,10 +461,9 @@ export const SurfKingGame = {
         use_card: {
             moves: { useCard, skip: pass },
             turn: { maxMoves: 2 },
-            onBegin: (G, ctx) => { ++G.turn },
+            onBegin: onBeginUseCard,
             onEnd: onEndPhase,
             endIf: everyonePlay,
-            // next: 'to_get_on_the_board',
             next: 'to_drop_in',
         },
         to_drop_in: {
