@@ -1,4 +1,4 @@
-import { TurnOrder } from 'boardgame.io/core'
+import { INVALID_MOVE, TurnOrder } from 'boardgame.io/core'
 import { MOVE_BACKWARD, MOVE_BACKWARD_LEFT, MOVE_BACKWARD_RIGHT, MOVE_FORWARD, MOVE_FORWARD_LEFT, MOVE_FORWARD_RIGHT } from './Board';
 import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
 
@@ -11,6 +11,58 @@ export const NUMBER_OF_PLAYERS = 2;
 /********************************************************************************/
 // Auxiliary functions
 /********************************************************************************/
+
+const changePlayer = (G, ctx, targetCellPosition, card) => {
+    const currentPlayer = G.players[ctx.currentPlayer];
+    const currentPlayerCellPosition = currentPlayer.cellPosition;
+    const targetPlayer = G.players[G.cells[targetCellPosition].player.position];
+
+    if (isPlayerWearingAmulet(targetPlayer)) {
+        return false;
+    }
+
+    currentPlayer.cellPosition = targetCellPosition;
+    targetPlayer.cellPosition = currentPlayerCellPosition;
+
+    G.cells[currentPlayerCellPosition].player = targetPlayer;
+    G.cells[targetCellPosition].player = currentPlayer;
+
+    return true
+}
+
+const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
+    // TODO: Create unit test.
+
+    switch (G.cells[to].obstacle?.Name) {
+        case CardCyclone.Name:
+            const dice = Math.floor(Math.random() * 6);
+            const newPos = [MOVE_FORWARD, MOVE_FORWARD_RIGHT, MOVE_BACKWARD_LEFT, MOVE_BACKWARD, MOVE_BACKWARD_RIGHT, MOVE_FORWARD_LEFT];
+            let occupied = true;
+            while (occupied) {
+                // TODO: Check when "To" is negative.
+                // while (to - newPos[dice] < 0) {
+                //     dice = Math.floor(Math.random() * 6);
+                // }
+                to += newPos[dice];
+                occupied = (G.cells[to].player && G.cells[to].player.position !== G.players[ctx.currentPlayer].position) ||
+                    (G.cells[to].obstacle?.Name === CardStone.Name);
+            }
+            return checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
+        case CardIsland.Name:
+            energyToLose -= 2;
+            break;
+        case CardStorm.Name:
+            ++energyToLose;
+            break;
+        case CardShark.Name:
+            energyToLose += 2;
+            break;
+        default:
+            break;
+    }
+
+    return { newTo: to, newEnergyToLose: energyToLose }
+}
 
 const createDeck = () => {
     const deck = [];
@@ -57,44 +109,89 @@ const createPlayer = (position, cards) => {
     return { position, cards, played: false, shouldReceiveCard: false, cellPosition: -1, energy: 4, fellOffTheBoard: false, activeCard: [] }
 }
 
-const placeObstacle = (G, ctx, position, obstacle) => {
-    if (!G.cells[position].player && !G.cells[position].obstacle) {
-        G.cells[position].obstacle = obstacle;
-    }
-}
-
-const removeObstacle = (G, ctx, position, obstacle) => {
-    if (G.cells[position].obstacle) {
-        G.cells[position].obstacle = undefined;
-    }
-}
-
 const decreasePlayerEnergy = (G, ctx, position, card) => {
-    const targetPlayer = G.cells[position].player;
-    if (targetPlayer) {
-        switch (card.Name) {
-            case CardBigWave.Name:
-                G.players[targetPlayer.position].energy = Math.max(G.players[targetPlayer.position].energy - 2, 0);
-                break;
-            case CardSunburn.Name:
-                G.players[targetPlayer.position].energy = Math.max(G.players[targetPlayer.position].energy - 1, 0);
-                break;
-            default:
-                break;
+    const targetPlayer = G.players[G.cells[position].player.position];
+    if (targetPlayer && ([CardBigWave.Name, CardSunburn.Name].includes(card.Name))) {
+        if (isPlayerWearingAmulet(targetPlayer)) {
+            return false
         }
+
+        G.players[targetPlayer.position].energy = Math.max(G.players[targetPlayer.position].energy - 1, 0);
     }
+
+    return true
 }
 
-const changePlayer = (G, ctx, cellPosition, card) => {
-    const currentPlayerCellPosition = G.players[ctx.currentPlayer].cellPosition;
-    const targetPlayerPosition = G.cells[cellPosition].player.position;
+const executeCardAction = (G, ctx, cardPos, args) => {
+    const currentPlayer = G.players[ctx.currentPlayer];
+    const card = currentPlayer.cards[cardPos];
 
-    G.cells[currentPlayerCellPosition].player = G.players[targetPlayerPosition];
-    G.cells[cellPosition].player = G.players[ctx.currentPlayer];
+    let hasBeenUsed = true;
+    let shouldBeDiscard = true;
+    switch (card.Name) {
+        // Obstacles
+        case CardCyclone.Name:
+        case CardIsland.Name:
+        case CardStone.Name:
+        case CardStorm.Name:
+        case CardShark.Name:
+            placeObstacle(G, ctx, args[0], card)
+            break
+        // Actions
+        case CardBigWave.Name:
+        case CardSunburn.Name:
+            hasBeenUsed = decreasePlayerEnergy(G, ctx, args[0], card);
+            break
+        case CardBottledWater.Name:
+            currentPlayer.activeCard.push(card);
+            break
+        case CardCoconut.Name:
+            currentPlayer.energy = MAX_ENERGY;
+            break
+        case CardChange.Name:
+            hasBeenUsed = changePlayer(G, ctx, args[0], card);
+            break
+        case CardEnergy.Name:
+            ++currentPlayer.energy;
+            break;
+        case CardEnergyX2.Name:
+            currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
+            break;
+        case CardEnergyX3.Name:
+            currentPlayer.energy = Math.min(currentPlayer.energy + 3, MAX_ENERGY);
+            break;
+        case CardHangLoose.Name:
+            // TODO: Implement
+            break
+        case CardJumping.Name:
+            removeObstacle(G, ctx, args[0], card);
+            break;
+        case CardLifeGuardFloat.Name:
+            if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
+            break;
+        case CardSwimmingFin.Name:
+            if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY);
+            break;
+        case CardTsunami.Name:
+            tsunami(G, ctx, args[0], card);
+            break;
+        // Acessories
+        case CardAmulet.Name:
+            currentPlayer.activeCard.push({ ...card, TurnRemaning: 1 });
+            shouldBeDiscard = false;
+            break
+        default:
+            break;
+    }
 
-    G.players[ctx.currentPlayer].cellPosition = cellPosition;
-    G.players[targetPlayerPosition].cellPosition = currentPlayerCellPosition;
+    if (hasBeenUsed && shouldBeDiscard) {
+        currentPlayer.cards.splice(cardPos, 1);
+    }
+
+    return hasBeenUsed;
 }
+
+const isPlayerWearingAmulet = (player) => player.activeCard.find(card => card.Name === CardAmulet.Name);
 
 const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
     // TODO: Create unit test.
@@ -121,59 +218,46 @@ const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
         return moveToNextHexUnoccupied(G, ctx, playerPos, from, to);
     }
 
-    G.players[playerPos].cellPosition = to;
+    const targetPlayer = G.players[playerPos];
+    if (isPlayerWearingAmulet(targetPlayer)) {
+        return false;
+    }
+
+    targetPlayer.cellPosition = to;
     G.cells[to].player = G.players[playerPos];
     G.cells[from].player = undefined;
+
+    return true;
+}
+
+const placeObstacle = (G, ctx, position, obstacle) => {
+    if (!G.cells[position].player && !G.cells[position].obstacle) {
+        G.cells[position].obstacle = obstacle;
+    }
+}
+
+const removeObstacle = (G, ctx, position, obstacle) => {
+    if (G.cells[position].obstacle) {
+        G.cells[position].obstacle = undefined;
+    }
 }
 
 const tsunami = (G, ctx, position, obstacle) => {
     if (G.cells[position].player) {
         moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
     }
+
     for (let i = 0; i < 3; ++i) {
         position += MOVE_FORWARD_RIGHT;
         if (G.cells[position].player) {
             moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
         }
+
         position += MOVE_BACKWARD_LEFT;
         if (G.cells[position].player) {
             moveToNextHexUnoccupied(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
         }
     }
-}
-
-const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
-    // TODO: Create unit test.
-
-    switch (G.cells[to].obstacle?.Name) {
-        case CardCyclone.Name:
-            const dice = Math.floor(Math.random() * 6);
-            const newPos = [MOVE_FORWARD, MOVE_FORWARD_RIGHT, MOVE_BACKWARD_LEFT, MOVE_BACKWARD, MOVE_BACKWARD_RIGHT, MOVE_FORWARD_LEFT];
-            let occupied = true;
-            while (occupied) {
-                // TODO: Check when "To" is negative.
-                // while (to - newPos[dice] < 0) {
-                //     dice = Math.floor(Math.random() * 6);
-                // }
-                to += newPos[dice];
-                occupied = (G.cells[to].player && G.cells[to].player.position !== G.players[ctx.currentPlayer].position) ||
-                    (G.cells[to].obstacle?.Name === CardStone.Name);
-            }
-            return checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
-        case CardIsland.Name:
-            energyToLose -= 2;
-            break;
-        case CardStorm.Name:
-            ++energyToLose;
-            break;
-        case CardShark.Name:
-            energyToLose += 2;
-            break;
-        default:
-            break;
-    }
-
-    return { newTo: to, newEnergyToLose: energyToLose }
 }
 
 /********************************************************************************/
@@ -219,77 +303,21 @@ const setup = () => {
 /********************************************************************************/
 // Moves
 /********************************************************************************/
-const executeCardAction = (G, ctx, card, args) => {
-    const currentPlayer = G.players[ctx.currentPlayer];
-    switch (card.Name) {
-        // Obstacles
-        case CardCyclone.Name:
-        case CardIsland.Name:
-        case CardStone.Name:
-        case CardStorm.Name:
-        case CardShark.Name:
-            placeObstacle(G, ctx, args[0], card)
-            break
-        // Actions
-        case CardBigWave.Name:
-        case CardSunburn.Name:
-            decreasePlayerEnergy(G, ctx, args[0], card);
-            break
-        case CardBottledWater.Name:
-            currentPlayer.activeCard.push(card);
-            break
-        case CardCoconut.Name:
-            currentPlayer.energy = MAX_ENERGY;
-            break
-        case CardChange.Name:
-            changePlayer(G, ctx, args[0], card);
-            break
-        case CardEnergy.Name:
-            ++currentPlayer.energy;
-            break;
-        case CardEnergyX2.Name:
-            currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
-            break;
-        case CardEnergyX3.Name:
-            currentPlayer.energy = Math.min(currentPlayer.energy + 3, MAX_ENERGY);
-            break;
-        case CardHangLoose.Name:
-            // TODO: Implement
-            break
-        case CardJumping.Name:
-            removeObstacle(G, ctx, args[0], card);
-            break;
-        case CardLifeGuardFloat.Name:
-            if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
-            break;
-        case CardSwimmingFin.Name:
-            if (currentPlayer.energy === 0) currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY);
-            break;
-        case CardTsunami.Name:
-            tsunami(G, ctx, args[0], card);
-            break;
-        // Acessories
-        case CardAmulet.Name:
-            // TODO: Implement
-            break;
-        default:
-            break;
-    }
-}
-
 const useCard = (G, ctx, cardPos, args) => {
     // TODO: Validate moviment or trigger action
-    const currentPlayer = G.players[ctx.currentPlayer]
-    const card = currentPlayer.cards[cardPos]
-    currentPlayer.cards.splice(cardPos, 1)
+    const currentPlayer = G.players[ctx.currentPlayer];
+    const card = currentPlayer.cards[cardPos];
 
-    console.log("useCard:", { cardPos, args, cardName: card.Name });
-    executeCardAction(G, ctx, card, args);
+    const hasBeenUsed = executeCardAction(G, ctx, cardPos, args);
+    console.log("useCard:", { hasBeenUsed, card: card.Name, args });
+    if (!hasBeenUsed) {
+        return INVALID_MOVE;
+    }
 
     currentPlayer.shouldReceiveCard = true
 
     if (!currentPlayer.played && ctx.numMoves === 1) {
-        skip(G, ctx);
+        pass(G, ctx);
     }
 }
 
@@ -338,7 +366,7 @@ const getCard = (G, ctx) => {
     G.players[ctx.currentPlayer].played = true
 }
 
-const skip = (G, ctx) => {
+const pass = (G, ctx) => {
     if (ctx.phase === 'maneuver') {
         G.players[ctx.currentPlayer].energy = Math.min(G.players[ctx.currentPlayer].energy + 1, MAX_ENERGY);
     }
@@ -403,7 +431,7 @@ export const SurfKingGame = {
             start: true,
         },
         use_card: {
-            moves: { useCard, skip },
+            moves: { useCard, skip: pass },
             turn: { maxMoves: 2 },
             onBegin: (G, ctx) => { ++G.turn },
             onEnd: onEndPhase,
@@ -412,13 +440,13 @@ export const SurfKingGame = {
             next: 'to_drop_in',
         },
         to_drop_in: {
-            moves: { attack, skip },
+            moves: { attack, skip: pass },
             onEnd: onEndPhase,
             endIf: everyonePlay,
             next: 'maneuver',
         },
         maneuver: {
-            moves: { movePiece, skip },
+            moves: { movePiece, skip: pass },
             onEnd: onEndPhase,
             endIf: everyonePlay,
             next: 'receive_card',
