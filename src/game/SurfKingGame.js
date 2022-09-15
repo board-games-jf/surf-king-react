@@ -17,7 +17,7 @@ const changePlayer = (G, ctx, targetCellPosition, card) => {
     const currentPlayerCellPosition = currentPlayer.cellPosition;
     const targetPlayer = G.players[G.cells[targetCellPosition].player.position];
 
-    if (isPlayerWearingAmulet(targetPlayer)) {
+    if (!card && isPlayerWearingAmulet(targetPlayer)) {
         return false;
     }
 
@@ -211,6 +211,8 @@ const executeCardAction = (G, ctx, cardPos, args) => {
     return hasBeenUsed;
 }
 
+const getDeckCard = (G) => G.deck.pop(); // TODO: Implenent when deck is empty.
+
 const increasePlayerEnergy = (G, ctx, card) => {
     const currentPlayer = G.players[ctx.currentPlayer];
 
@@ -258,7 +260,7 @@ const moveToNextHexUnoccupied = (G, ctx, playerPos, from, to) => {
     }
 
     if (G.cells[to].obstacle?.Name === CardCyclone.Name) {
-        const dice = Math.floor(Math.random() * 6);
+        const dice = rollDice();
         const newPos = [MOVE_FORWARD, MOVE_FORWARD_RIGHT, MOVE_BACKWARD_LEFT, MOVE_BACKWARD, MOVE_BACKWARD_RIGHT, MOVE_FORWARD_LEFT];
         let occupied = true;
         while (occupied) {
@@ -371,15 +373,24 @@ const attack = (G, ctx, targetCellPosition) => {
     targetPlayer.energy = Math.max(targetPlayer.energy - defLosses, 0);
     if (targetPlayer.energy === 0) {
         targetPlayer.toFellOffTheBoard = G.turn;
+
+        if (targetPlayer.cards.length > 0) {
+            const cardPos = Math.floor(Math.random() * targetPlayer.cards.length);
+            const card = { ...targetPlayer.cards[cardPos] };
+            targetPlayer.cards.splice(cardPos, 1);
+            currentPlayer.cards.push(card);
+
+            changePlayer(G, ctx, targetPlayer.cellPosition, null);
+        }
     }
 
     currentPlayer.energy = Math.max(currentPlayer.energy - atkLosses, 0);
     if (currentPlayer.energy === 0) {
         currentPlayer.toFellOffTheBoard = G.turn;
+
+        targetPlayer.cards.push(getDeckCard(G));
     }
     currentPlayer.shouldReceiveCard = true;
-
-    // return INVALID_MOVE; // NOTE: It is a workaround to continue playing. 
 }
 
 const movePiece = (G, ctx, from, to) => {
@@ -424,8 +435,8 @@ const movePiece = (G, ctx, from, to) => {
 const getCard = (G, ctx) => {
     const currentPlayer = G.players[ctx.currentPlayer];
     if (currentPlayer.shouldReceiveCard) {
-        const card = G.deck.pop()
-        currentPlayer.cards.push(card)
+        const card = getDeckCard(G);
+        currentPlayer.cards.push(card);
     }
     currentPlayer.shouldReceiveCard = false;
     currentPlayer.played = true;
