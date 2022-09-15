@@ -54,7 +54,7 @@ const createDeck = () => {
 }
 
 const createPlayer = (position, cards) => {
-    return { position, cards, played: false, shouldReceiveCard: false, cellPosition: -1, energy: 4, fellOffTheBoard: false, activeCard: null }
+    return { position, cards, played: false, shouldReceiveCard: false, cellPosition: -1, energy: 4, fellOffTheBoard: false, activeCard: [] }
 }
 
 const placeObstacle = (G, ctx, position, obstacle) => {
@@ -236,7 +236,7 @@ const executeCardAction = (G, ctx, card, args) => {
             decreasePlayerEnergy(G, ctx, args[0], card);
             break
         case CardBottledWater.Name:
-            currentPlayer.activeCard = card;
+            currentPlayer.activeCard.push(card);
             break
         case CardCoconut.Name:
             currentPlayer.energy = MAX_ENERGY;
@@ -305,9 +305,12 @@ const movePiece = (G, ctx, from, to) => {
     // TODO: Validate moviment or trigger action
     const currentPlayer = G.players[ctx.currentPlayer];
     let energyToLose = 1;
-    if (currentPlayer.activeCard && currentPlayer.activeCard.Name === CardBottledWater.Name) {
+    const hasCardBottledWater = currentPlayer.activeCard.find(card => card.Name === CardBottledWater.Name);
+    if (hasCardBottledWater) {
         energyToLose = 0;
-        currentPlayer.activeCard = null;
+        currentPlayer.activeCard = currentPlayer.activeCard.filter(card => {
+            return card.Name !== CardBottledWater.Name;
+        });
     }
 
     const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
