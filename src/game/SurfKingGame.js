@@ -4,7 +4,7 @@ import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, Car
 
 export const MAX_ENERGY = 4;
 const MAX_CARDS_ON_HAND = 5;
-const GRID_SIZE = 53;
+export const GRID_SIZE = 53;
 
 // TODO: Get number of players from session
 export const NUMBER_OF_PLAYERS = 2;
@@ -44,9 +44,7 @@ const changePlayer = (G, ctx, targetCellPosition, card) => {
     return true
 }
 
-const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
-    // TODO: Create unit test.
-
+export const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
     switch (G.cells[to].obstacle?.Name) {
         case CardCyclone.Name:
             const dice = rollDice();
@@ -120,19 +118,19 @@ const createDeck = () => {
     return shuffled;
 }
 
-export const createPlayer = (position, cards) => {
-    return {
-        position,
-        cards,
-        played: false,
-        shouldReceiveCard: false,
-        blocked: false,
-        energy: MAX_ENERGY,
-        cellPosition: -1,
-        toFellOffTheBoard: -1,
-        activeCard: [],
-    }
-}
+export const createCell = (position, obstacle, player) => ({ position, obstacle, player });
+
+export const createPlayer = (position, cards) => ({
+    position,
+    cards,
+    played: false,
+    shouldReceiveCard: false,
+    blocked: false,
+    energy: MAX_ENERGY,
+    cellPosition: -1,
+    toFellOffTheBoard: -1,
+    activeCard: [],
+})
 
 const decreasePlayerEnergy = (G, ctx, position, card) => {
     const targetPlayer = G.players[G.cells[position].player.position];
@@ -593,7 +591,7 @@ const setup = () => {
     // TODO: set player positions according to number of players.
     for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
         players[order[i]].cellPosition = i
-        cells[i] = { position: i, obstacle: undefined, player: players[order[i]] }
+        cells[i] = createCell(i, undefined, players[order[i]]);
     }
 
     cells[28] = { position: 28, obstacle: CardShark, player: undefined }
@@ -602,7 +600,7 @@ const setup = () => {
     cells[31] = { position: 31, obstacle: CardShark, player: undefined }
     for (let i = 0; i < GRID_SIZE; ++i) {
         if (!cells[i]) {
-            cells[i] = { position: i, obstacle: undefined, player: undefined }
+            cells[i] = createCell(i, undefined, undefined);
         }
     }
 
