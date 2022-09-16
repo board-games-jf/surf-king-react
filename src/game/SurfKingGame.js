@@ -2,7 +2,7 @@ import { INVALID_MOVE, TurnOrder } from 'boardgame.io/core'
 import { MOVE_BACKWARD, MOVE_BACKWARD_LEFT, MOVE_BACKWARD_RIGHT, MOVE_FORWARD, MOVE_FORWARD_LEFT, MOVE_FORWARD_RIGHT } from './Board';
 import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
 
-const MAX_ENERGY = 4;
+export const MAX_ENERGY = 4;
 const MAX_CARDS_ON_HAND = 5;
 const GRID_SIZE = 53;
 
@@ -12,7 +12,7 @@ export const NUMBER_OF_PLAYERS = 2;
 /********************************************************************************/
 // Auxiliary functions
 /********************************************************************************/
-const applyEnergyToLose = (G, player, energyToLose) => {
+export const applyEnergyToLose = (G, player, energyToLose) => {
     player.energy = Math.min(Math.max(player.energy - energyToLose, 0), MAX_ENERGY);
     if (player.energy === 0) {
         player.toFellOffTheBoard = G.turn;
@@ -120,7 +120,7 @@ const createDeck = () => {
     return shuffled;
 }
 
-const createPlayer = (position, cards) => {
+export const createPlayer = (position, cards) => {
     return {
         position,
         cards,
