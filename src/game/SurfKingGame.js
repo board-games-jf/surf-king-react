@@ -120,7 +120,17 @@ const createDeck = () => {
 }
 
 const createPlayer = (position, cards) => {
-    return { position, cards, played: false, shouldReceiveCard: false, cellPosition: -1, energy: 4, toFellOffTheBoard: -1, activeCard: [] }
+    return {
+        position,
+        cards,
+        played: false,
+        shouldReceiveCard: false,
+        blocked: false,
+        energy: MAX_ENERGY,
+        cellPosition: -1,
+        toFellOffTheBoard: -1,
+        activeCard: [],
+    }
 }
 
 const decreasePlayerEnergy = (G, ctx, position, card) => {
@@ -385,11 +395,13 @@ const transferRandomCardFromPlayerToOtherOne = (fromPlayer, toPlayer) => {
 }
 
 const attack = (G, ctx, targetCellPosition) => {
-    if (!G.cells[targetCellPosition].player) {
+    const currentPlayer = G.players[ctx.currentPlayer];
+
+    if (currentPlayer.blocked ||
+        !G.cells[targetCellPosition].player) {
         return INVALID_MOVE;
     }
 
-    const currentPlayer = G.players[ctx.currentPlayer];
     const targetPlayer = G.players[G.cells[targetCellPosition].player.position];
 
     if (currentPlayer.energy === 0 ||
@@ -442,7 +454,8 @@ const attack = (G, ctx, targetCellPosition) => {
 const movePiece = (G, ctx, from, to) => {
     const currentPlayer = G.players[ctx.currentPlayer];
 
-    if (currentPlayer.energy === 0 ||
+    if (currentPlayer.blocked ||
+        currentPlayer.energy === 0 ||
         isFallOfTheBoard(G, currentPlayer) ||
         (G.cells[to].player && !isFallOfTheBoard(G, G.players[G.cells[to].player.position])) ||
         G.cells[to].obstacle?.Name === CardStone.Name ||
@@ -486,7 +499,7 @@ const getCard = (G, ctx) => {
 
 const pass = (G, ctx) => {
     const currentPlayer = G.players[ctx.currentPlayer];
-    if (ctx.phase === 'maneuver' && !isFallOfTheBoard(G, currentPlayer)) {
+    if (ctx.phase === 'maneuver' && !isFallOfTheBoard(G, currentPlayer) && !currentPlayer.blocked) {
         currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY);
     }
 
@@ -494,6 +507,9 @@ const pass = (G, ctx) => {
         if (isFallOfTheBoard(G, currentPlayer)) {
             ++currentPlayer.energy;
             currentPlayer.toFellOffTheBoard = -1;
+            currentPlayer.blocked = true;
+        } else {
+            currentPlayer.blocked = false;
         }
 
         decreaseTurnRemaningForActiveCards(G, ctx, currentPlayer.position);
