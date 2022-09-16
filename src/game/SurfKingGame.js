@@ -76,7 +76,7 @@ export const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
     return { newTo: to, newEnergyToLose: energyToLose }
 }
 
-const createDeck = () => {
+export const createDeck = () => {
     const deck = [];
 
     const addCards = (card, quantity) => {
@@ -86,34 +86,40 @@ const createDeck = () => {
     }
 
     // Obstacles
-    addCards(CardCyclone, 4)
-    addCards(CardIsland, 4)
-    addCards(CardStone, 4)
-    addCards(CardStorm, 4)
-    // addCards(CardShark, 4) // NOTE: Already on board.
+    addCards(CardCyclone, 4);
+    addCards(CardIsland, 4);
+    addCards(CardStone, 4);
+    addCards(CardStorm, 4);
+    // addCards(CardShark, 0); // NOTE: The board already have 4 Sharks
 
     // Actions
-    addCards(CardBigWave, 4)
-    addCards(CardBottledWater, 4)
-    addCards(CardCoconut, 4)
-    addCards(CardChange, 2)
-    addCards(CardEnergy, 8)
-    addCards(CardEnergyX2, 4)
-    addCards(CardEnergyX3, 2)
-    addCards(CardHangLoose, 1)
-    addCards(CardJumping, 2)
-    addCards(CardLifeGuardFloat, 4)
-    addCards(CardSwimmingFin, 4)
-    addCards(CardSunburn, 4)
-    addCards(CardTsunami, 4)
+    addCards(CardBigWave, 4);
+    addCards(CardBottledWater, 4);
+    addCards(CardCoconut, 4);
+    addCards(CardChange, 2);
+    addCards(CardEnergy, 8);
+    addCards(CardEnergyX2, 4);
+    addCards(CardEnergyX3, 2);
+    addCards(CardHangLoose, 1);
+    addCards(CardJumping, 2);
+    addCards(CardLifeGuardFloat, 4);
+    addCards(CardSwimmingFin, 4);
+    addCards(CardSunburn, 4);
+    addCards(CardTsunami, 4);
 
     // Acessories
-    addCards(CardAmulet, 1)
+    addCards(CardAmulet, 1);
 
     const shuffled = deck
         .map(value => ({ value, sort: Math.random() }))
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value)
+        .map(value => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value)
+        .map(value => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value);
 
     return shuffled;
 }
