@@ -3,6 +3,7 @@ import { MOVE_BACKWARD, MOVE_BACKWARD_LEFT, MOVE_BACKWARD_RIGHT, MOVE_FORWARD, M
 import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
 
 const MAX_ENERGY = 4;
+const MAX_CARDS_ON_HAND = 5;
 const GRID_SIZE = 53;
 
 // TODO: Get number of players from session
@@ -167,6 +168,14 @@ const decreaseTurnRemaningForActiveCards = (G, ctx, currentPlayerPosition) => {
     currentPlayer.activeCard = currentPlayer.activeCard.filter(card => {
         return card.TurnRemaning > 0;
     });
+}
+
+const discardCardsIfNeeded = (player, cardLimitOnHand) => {
+    if (player.cards.length >= MAX_CARDS_ON_HAND) {
+        for (let i = 0; i < player.cards.length - cardLimitOnHand; ++i) {
+            player.cards.splice(Math.floor(Math.random() * player.cards.length), 1);
+        }
+    }
 }
 
 const executeCardAction = (G, ctx, cardPos, args) => {
@@ -490,8 +499,11 @@ const movePiece = (G, ctx, from, to) => {
 const getCard = (G, ctx) => {
     const currentPlayer = G.players[ctx.currentPlayer];
     if (currentPlayer.shouldReceiveCard) {
+        discardCardsIfNeeded(currentPlayer, MAX_CARDS_ON_HAND - 1);
         const card = getDeckCard(G);
         currentPlayer.cards.push(card);
+    } else {
+        discardCardsIfNeeded(currentPlayer, MAX_CARDS_ON_HAND);
     }
     currentPlayer.shouldReceiveCard = false;
     currentPlayer.played = true;
@@ -513,6 +525,10 @@ const pass = (G, ctx) => {
         }
 
         decreaseTurnRemaningForActiveCards(G, ctx, currentPlayer.position);
+    }
+
+    if (ctx.phase === 'receive_card') {
+        discardCardsIfNeeded(currentPlayer, MAX_CARDS_ON_HAND);
     }
 
     currentPlayer.played = true
