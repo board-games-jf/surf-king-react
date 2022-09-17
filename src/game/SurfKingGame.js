@@ -163,23 +163,21 @@ export const decreasePlayerEnergyByCard = (G, ctx, cellPosition, card) => {
     return false;
 }
 
-const decreaseRemaningTurnForActiveCards = (G, ctx, currentPlayerPosition) => {
-    const currentPlayer = G.players[currentPlayerPosition];
+export const decreaseRemainingTurnForActiveCards = (G, ctx, playerPosition) => {
+    const player = G.players[playerPosition];
 
-    currentPlayer.activeCard.forEach(card => --card.RemaningTurn);
-    currentPlayer.activeCard
+    player.activeCard.forEach(card => --card.RemaningTurn);
+    player.activeCard
         .filter(card => card.RemaningTurn === 0)
         .forEach(card => {
-            const cardPos = currentPlayer.cards.findIndex(c => c.Name === card.Name);
+            const cardPos = player.cards.findIndex(c => c.Name === card.Name);
             if (cardPos >= 0) {
-                currentPlayer.cards.splice(cardPos, 1);
+                player.cards.splice(cardPos, 1);
                 G.cells[card.CellPosition].obstacle = undefined;
             }
         });
 
-    currentPlayer.activeCard = currentPlayer.activeCard.filter(card => {
-        return card.RemaningTurn > 0;
-    });
+    player.activeCard = player.activeCard.filter(card => card.RemaningTurn > 0);
 }
 
 const discardCardsIfNeeded = (player, cardLimitOnHand) => {
@@ -595,7 +593,7 @@ const pass = (G, ctx) => {
 
         // NOTE: This is the way to decrease the remaining turn of active cards for the next player before he plays a card.
         const nextPlayerPosition = (currentPlayer.position + 1) % NUMBER_OF_PLAYERS;
-        decreaseRemaningTurnForActiveCards(G, ctx, nextPlayerPosition);
+        decreaseRemainingTurnForActiveCards(G, ctx, nextPlayerPosition);
     }
 }
 
