@@ -156,7 +156,7 @@ const Board = ({ G, ctx, moves }) => {
         <div>
             <HexGrid cellProps={cellProps} renderCell={renderCell} onHexClick={onHexClickedHandle} />
             <div>
-                <h3>{`[${G.turn + 1}] - ${ctx.phase}: player ${parseInt(ctx.currentPlayer) + 1}'s turn`}</h3>
+                <h3>{`[${G.turn}] - ${G.currentMove}: player ${parseInt(ctx.currentPlayer) + 1}'s turn`}</h3>
                 {!placingObstacle && !removingObstacle && !selectPlayerTarget && !selectTsunami ? (<>
                     <div style={{ marginBottom: 20 }}>
                         <button style={{ width: 100, height: 30 }} onClick={onGoForItHandle}>go for it</button>

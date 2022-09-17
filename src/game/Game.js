@@ -1,11 +1,10 @@
-import { MOVE_FORWARD, MOVE_FORWARD_LEFT, MOVE_FORWARD_RIGHT } from "./Board";
-import { CardLifeGuardFloat, CardStone, CardSwimmingFin } from "./Cards";
+import { MOVE_DROP_IN, MOVE_MANEUVER } from "./SurfKingGame";
 
 const hexClickAction_mode1 = (G, ctx, moves, cell) => {
     // TODO: Check if the player who is playing can make the move.
-    if (ctx.phase === 'firt_move_piece' || ctx.phase === 'maneuver') {
-        return movePiece(G, ctx, moves, cell);
-    } else if(ctx.phase === 'to_drop_in') {
+    if (G.currentMove === MOVE_MANEUVER) {
+        return maneuver(G, ctx, moves, cell);
+    } else if (G.currentMove === MOVE_DROP_IN) {
         return moves.attack(cell.position)
     }
 }
@@ -15,18 +14,18 @@ const hexClickAction_mode2 = (G, ctx, cell) => {
     // if (G.turn === 0) {
     //     moves.placeObstacule(cell.position, SharkObstacle)
     // } else if (G.turn === 1) {
-    //     movePiece(G, ctx, moves, cell);
+    //     maneuver(G, ctx, moves, cell);
     // } else {
     //     // TODO: Implements
     // }
 }
 
-const movePiece = (G, ctx, moves, cell) => {
+const maneuver = (G, ctx, moves, cell) => {
     const currentPlayer = ctx.currentPlayer
     const currentPlayerPosition = G.players[currentPlayer].cellPosition
     const nextPosition = cell.position;
 
-    return moves.movePiece(currentPlayerPosition, nextPosition);
+    return moves.maneuver(currentPlayerPosition, nextPosition);
 }
 
 const actions = {
