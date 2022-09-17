@@ -172,8 +172,13 @@ export const decreaseRemainingTurnForActiveCards = (G, ctx, playerPosition) => {
         .forEach(card => {
             const cardPos = player.cards.findIndex(c => c.Name === card.Name);
             if (cardPos >= 0) {
+                const card = player.cards[cardPos];
+                if (card.Category !== CardCategoryObstacle) {
+                    G.discardedCards.push(card);
+                } else {
+                    G.cells[card.CellPosition].obstacle = undefined;
+                }
                 player.cards.splice(cardPos, 1);
-                G.cells[card.CellPosition].obstacle = undefined;
             }
         });
 
@@ -261,6 +266,7 @@ const executeCardAction = (G, ctx, cardPos, args) => {
     }
 
     if (hasBeenUsed && mustBeDiscarded) {
+        // TODO: Send card to discarded Cards.
         currentPlayer.cards.splice(cardPos, 1);
     }
 
