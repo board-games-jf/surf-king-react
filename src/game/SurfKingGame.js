@@ -1,4 +1,5 @@
-import { INVALID_MOVE, TurnOrder } from 'boardgame.io/core'
+import { INVALID_MOVE, TurnOrder } from 'boardgame.io/core';
+import _ from 'lodash';
 import { MOVE_BACKWARD, MOVE_BACKWARD_LEFT, MOVE_BACKWARD_RIGHT, MOVE_FORWARD, MOVE_FORWARD_LEFT, MOVE_FORWARD_RIGHT } from './Board';
 import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
 
@@ -142,21 +143,24 @@ export const createPlayer = (position, cards) => ({
     activeCard: [],
 })
 
-const decreasePlayerEnergy = (G, ctx, position, card) => {
-    const targetPlayer = G.players[G.cells[position].player.position];
+export const decreasePlayerEnergyByCard = (G, ctx, cellPosition, card) => {
+    const targetPlayer = G.players[G.cells[cellPosition].player?.position];
     if (targetPlayer && ([CardBigWave.Name, CardSunburn.Name].includes(card.Name))) {
         if (isPlayerWearingAmulet(targetPlayer)) {
-            return false
+            return false;
         }
 
-        applyEnergyToLose(G, ctx, targetPlayer, 1);
+        const energyToLose = card.Name === CardBigWave.Name ? 2 : 1
+        applyEnergyToLose(G, ctx, targetPlayer, energyToLose);
 
         if (targetPlayer.energy === 0) {
             transferRandomCardFromPlayerToOtherOne(targetPlayer, G.players[ctx.currentPlayer]);
         }
+
+        return true;
     }
 
-    return true
+    return false;
 }
 
 const decreaseRemaningTurnForActiveCards = (G, ctx, currentPlayerPosition) => {
@@ -212,7 +216,7 @@ const executeCardAction = (G, ctx, cardPos, args) => {
             break;
         case CardBigWave.Name:
         case CardSunburn.Name:
-            hasBeenUsed = decreasePlayerEnergy(G, ctx, args[0], card);
+            hasBeenUsed = decreasePlayerEnergyByCard(G, ctx, args[0], card);
             break;
         case CardBottledWater.Name:
             currentPlayer.activeCard.push(card);
@@ -402,7 +406,9 @@ const transferRandomCardFromPlayerToOtherOne = (fromPlayer, toPlayer) => {
     const cardPos = Math.floor(Math.random() * fromPlayer.cards.length);
     const card = { ...fromPlayer.cards[cardPos] };
     fromPlayer.cards.splice(cardPos, 1);
-    toPlayer.cards.push(card);
+    if (!_.isEmpty(card)) {
+        toPlayer.cards.push(card);
+    }
 }
 
 const tsunami = (G, ctx, position, obstacle) => {
