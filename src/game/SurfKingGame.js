@@ -183,7 +183,7 @@ export const decreaseRemainingTurnForActiveCards = (G, ctx, playerPosition) => {
 export const discardCardsIfNeeded = (player, cardLimitOnHand) => {
     if (player.cards.length >= MAX_CARDS_ON_HAND) {
         let i = player.cards.length - cardLimitOnHand;
-        while(i-- > 0) {
+        while (i-- > 0) {
             player.cards.splice(Math.floor(Math.random() * player.cards.length), 1);
         }
     }
@@ -274,7 +274,16 @@ const getCard = (G, ctx) => {
     }
 }
 
-const getDeckCard = (G) => G.deck.pop(); // TODO: Implenent when deck is empty.
+export const getDeckCard = (G) => {
+    if (G.deck.length === 0) {
+        G.deck = G.discardedCards
+            .map(value => ({ value, sort: Math.random() }))
+            .sort((a, b) => a.sort - b.sort)
+            .map(({ value }) => value);
+    }
+
+    return G.deck.pop();
+}
 
 const getTurn = (G, ctx) => G.turn;
 
@@ -666,7 +675,7 @@ const setup = () => {
 
     const events = []
 
-    return { cells, players, events, turn: 0, order, deck, currentMove: MOVE_MANEUVER }
+    return { cells, players, events, turn: 0, order, deck, discardedCards: [], currentMove: MOVE_MANEUVER }
 }
 
 /********************************************************************************/
