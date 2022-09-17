@@ -266,7 +266,10 @@ const executeCardAction = (G, ctx, cardPos, args) => {
     }
 
     if (hasBeenUsed && mustBeDiscarded) {
-        // TODO: Send card to discarded Cards.
+        const card = currentPlayer.cards[cardPos];
+        if (card.Category !== CardCategoryObstacle) {
+            G.discardedCards.push(card);
+        }
         currentPlayer.cards.splice(cardPos, 1);
     }
 
