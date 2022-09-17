@@ -4,7 +4,7 @@ import { MOVE_BACKWARD, MOVE_BACKWARD_LEFT, MOVE_BACKWARD_RIGHT, MOVE_FORWARD, M
 import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
 
 export const MAX_ENERGY = 4;
-const MAX_CARDS_ON_HAND = 5;
+export const MAX_CARDS_ON_HAND = 5;
 export const GRID_SIZE = 53;
 
 // TODO: Get number of players from session
@@ -180,9 +180,10 @@ export const decreaseRemainingTurnForActiveCards = (G, ctx, playerPosition) => {
     player.activeCard = player.activeCard.filter(card => card.RemaningTurn > 0);
 }
 
-const discardCardsIfNeeded = (player, cardLimitOnHand) => {
+export const discardCardsIfNeeded = (player, cardLimitOnHand) => {
     if (player.cards.length >= MAX_CARDS_ON_HAND) {
-        for (let i = 0; i < player.cards.length - cardLimitOnHand; ++i) {
+        let i = player.cards.length - cardLimitOnHand;
+        while(i-- > 0) {
             player.cards.splice(Math.floor(Math.random() * player.cards.length), 1);
         }
     }
