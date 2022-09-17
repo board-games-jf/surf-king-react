@@ -1,7 +1,7 @@
 import { INVALID_MOVE, TurnOrder } from 'boardgame.io/core';
 import _ from 'lodash';
 import { MOVE_BACKWARD, MOVE_BACKWARD_LEFT, MOVE_BACKWARD_RIGHT, MOVE_FORWARD, MOVE_FORWARD_LEFT, MOVE_FORWARD_RIGHT } from './Board';
-import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
+import { CardAmulet, CardBigWave, CardBottledWater, CardCategoryObstacle, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
 
 export const MAX_ENERGY = 4;
 export const MAX_CARDS_ON_HAND = 5;
@@ -180,11 +180,16 @@ export const decreaseRemainingTurnForActiveCards = (G, ctx, playerPosition) => {
     player.activeCard = player.activeCard.filter(card => card.RemaningTurn > 0);
 }
 
-export const discardCardsIfNeeded = (player, cardLimitOnHand) => {
+export const discardCardsIfNeeded = (G, player, cardLimitOnHand) => {
     if (player.cards.length >= MAX_CARDS_ON_HAND) {
         let i = player.cards.length - cardLimitOnHand;
         while (i-- > 0) {
-            player.cards.splice(Math.floor(Math.random() * player.cards.length), 1);
+            const cardPos = Math.floor(Math.random() * player.cards.length);
+            const card = player.cards[cardPos];
+            if (card.Category !== CardCategoryObstacle) {
+                G.discardedCards.push(card);
+            }
+            player.cards.splice(cardPos, 1);
         }
     }
 }
@@ -266,11 +271,11 @@ const getCard = (G, ctx) => {
     const currentPlayer = G.players[ctx.currentPlayer];
     if (currentPlayer.shouldReceiveCard) {
         currentPlayer.shouldReceiveCard = false;
-        discardCardsIfNeeded(currentPlayer, MAX_CARDS_ON_HAND - 1);
+        discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND - 1);
         const card = getDeckCard(G);
         currentPlayer.cards.push(card);
     } else {
-        discardCardsIfNeeded(currentPlayer, MAX_CARDS_ON_HAND);
+        discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND);
     }
 }
 
@@ -590,7 +595,7 @@ const pass = (G, ctx) => {
             currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY);
         }
 
-        discardCardsIfNeeded(currentPlayer, MAX_CARDS_ON_HAND);
+        discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND);
 
         gotoNextMove(G, ctx);
 
