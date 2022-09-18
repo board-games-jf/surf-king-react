@@ -513,7 +513,7 @@ const tsunami = (G, ctx, cellPosition) => {
 /********************************************************************************/
 // Moves
 /********************************************************************************/
-const useCard = (G, ctx, cardPos, args) => {
+export const useCard = (G, ctx, cardPos, args) => {
     if (G.currentMove !== MOVE_USE_CARD) {
         return INVALID_MOVE
     }
