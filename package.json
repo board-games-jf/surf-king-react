@@ -24,7 +24,8 @@
         "format": "prettier --write .",
         "dev": "concurrently \"yarn run client\" \"yarn run server\"",
         "client": "react-scripts start",
-        "server": "node -r esm src/server/index.js"
+        "server": "node -r esm src/server/index.js",
+        "prepare": "husky install"
     },
     "eslintConfig": {
         "extends": [
@@ -46,7 +47,12 @@
     },
     "devDependencies": {
         "concurrently": "^4.1.0",
+        "husky": "^8.0.1",
+        "lint-staged": "^13.0.3",
         "prettier": "^2.7.1",
         "prettierrc": "^0.0.0-5"
+    },
+    "lint-staged": {
+        "**/*": "prettier --write --ignore-unknown"
     }
 }
