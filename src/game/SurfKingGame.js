@@ -199,7 +199,7 @@ export const discardCardsIfNeeded = (G, player, cardLimitOnHand) => {
     }
 }
 
-const executeCardAction = (G, ctx, cardPos, args) => {
+export const executeCardAction = (G, ctx, cardPos, args) => {
     const currentPlayer = G.players[ctx.currentPlayer];
     const card = currentPlayer.cards[cardPos];
 
@@ -207,13 +207,17 @@ const executeCardAction = (G, ctx, cardPos, args) => {
     let mustBeDiscarded = true;
     switch (card.Name) {
         case CardStone.Name:
-            if (!(card?.CellPosition > 0)) {
-                const cellPosition = args[0];
-                hasBeenUsed = placeObstacle(G, ctx, cellPosition, card);
-                card.CellPosition = cellPosition;
-                currentPlayer.activeCard.push({ ...card, RemaningTurn: 3 });
-            } else {
+            const cellPosition = args[0];
+            const hasCardBeenUsedBefore = currentPlayer.activeCard
+                .find(ac => ac.Name === card.Name && ac.CellPosition === cellPosition && ac.RemaningTurn > 0)
+            if (hasCardBeenUsedBefore) {
                 hasBeenUsed = false;
+            } else {
+                hasBeenUsed = placeObstacle(G, ctx, cellPosition, card);
+                if (hasBeenUsed) {
+                    card.CellPosition = cellPosition;
+                    currentPlayer.activeCard.push({ ...card, RemaningTurn: 3 });
+                }
             }
             mustBeDiscarded = false;
             break;
