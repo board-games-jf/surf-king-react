@@ -1,4 +1,5 @@
-import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardJumping, CardLifeGuardFloat, CardStone } from '../Cards';
+import { MOVE_BACKWARD } from '../Board';
+import { CardAmulet, CardBigWave, CardBottledWater, CardChange, CardCoconut, CardCyclone, CardJumping, CardLifeGuardFloat, CardStone, CardTsunami } from '../Cards';
 import { createCell, createPlayer, executeCardAction, GRID_SIZE, MAX_ENERGY } from '../SurfKingGame';
 
 describe('SurfKingGame executeCardAction', () => {
@@ -467,6 +468,111 @@ describe('SurfKingGame executeCardAction', () => {
             expect(hasBeenUsed).toBeFalsy();
             expect(G.cells[10]).toEqual(createCell(10, CardStone));
             expect(G.discardedCards).toHaveLength(0);
+        });
+    });
+
+    describe('Tsunami card', () => {
+        const card = CardTsunami;
+
+        it('happy path', () => {
+            const cells = [...Array.from({ length: GRID_SIZE }, (_, i) => {
+                return createCell(i, undefined, undefined);
+            })];
+            const players = [
+                { ...createPlayer(0, []), cellPosition: 7, cards: [card] },
+                { ...createPlayer(1, []), cellPosition: 11 },
+                { ...createPlayer(2, []), cellPosition: 8 },
+                { ...createPlayer(3, []), cellPosition: 12 },
+                { ...createPlayer(4, []), cellPosition: 9 },
+                { ...createPlayer(5, []), cellPosition: 13 },
+                { ...createPlayer(6, []), cellPosition: 10 },
+            ];
+            players.forEach(player => cells[player.cellPosition].player = player);
+            const G = { players, discardedCards: [], cells };
+            const ctx = { currentPlayer: '0' };
+            const cardPos = 0;
+            const targetCellPosition = 7;
+            const args = [targetCellPosition];
+
+            const hasBeenUsed = executeCardAction(G, ctx, cardPos, args);
+
+            const expectedCells = [...Array.from({ length: GRID_SIZE }, (_, i) => {
+                return createCell(i, undefined, undefined);
+            })];
+            [
+                { ...createPlayer(0, []), cellPosition: 7 + MOVE_BACKWARD, cards: [] },
+                { ...createPlayer(1, []), cellPosition: 11 + MOVE_BACKWARD },
+                { ...createPlayer(2, []), cellPosition: 8 + MOVE_BACKWARD },
+                { ...createPlayer(3, []), cellPosition: 12 + MOVE_BACKWARD },
+                { ...createPlayer(4, []), cellPosition: 9 + MOVE_BACKWARD },
+                { ...createPlayer(5, []), cellPosition: 13 + MOVE_BACKWARD },
+                { ...createPlayer(6, []), cellPosition: 10 + MOVE_BACKWARD },
+            ].forEach(player => expectedCells[player.cellPosition].player = player);
+            expect(hasBeenUsed).toBeTruthy();
+            expect(G.cells).toEqual(expectedCells);
+            expect(G.discardedCards).toEqual([card]);
+        });
+
+        it('cannot be used', () => {
+            const cells = [...Array.from({ length: GRID_SIZE }, (_, i) => {
+                return createCell(i, undefined, undefined);
+            })];
+            const players = [
+                { ...createPlayer(0, []), cellPosition: 7, cards: [card] },
+                { ...createPlayer(1, []), cellPosition: 11 },
+                { ...createPlayer(2, []), cellPosition: 8 },
+                { ...createPlayer(3, []), cellPosition: 12 },
+                { ...createPlayer(4, []), cellPosition: 9 },
+                { ...createPlayer(5, []), cellPosition: 13 },
+                { ...createPlayer(6, []), cellPosition: 10 },
+            ];
+            players.forEach(player => cells[player.cellPosition].player = player);
+            const G = { players, discardedCards: [], cells };
+            const ctx = { currentPlayer: '0' };
+            const cardPos = 0;
+            const targetCellPosition = 10;
+            const args = [targetCellPosition];
+
+            const hasBeenUsed = executeCardAction(G, ctx, cardPos, args);
+
+            const expectedCells = [...Array.from({ length: GRID_SIZE }, (_, i) => {
+                return createCell(i, undefined, undefined);
+            })];
+            players.forEach(player => expectedCells[player.cellPosition].player = player);
+            expect(hasBeenUsed).toBeFalsy();
+            expect(G.cells).toEqual(expectedCells);
+            expect(G.discardedCards).toHaveLength(0);
+        });
+
+        it('no players to move', () => {
+            const cells = [...Array.from({ length: GRID_SIZE }, (_, i) => {
+                return createCell(i, undefined, undefined);
+            })];
+            const players = [
+                { ...createPlayer(0, []), cellPosition: 7, cards: [card] },
+                { ...createPlayer(1, []), cellPosition: 11 },
+                { ...createPlayer(2, []), cellPosition: 8 },
+                { ...createPlayer(3, []), cellPosition: 12 },
+                { ...createPlayer(4, []), cellPosition: 9 },
+                { ...createPlayer(5, []), cellPosition: 13 },
+                { ...createPlayer(6, []), cellPosition: 10 },
+            ];
+            players.forEach(player => cells[player.cellPosition].player = player);
+            const G = { players, discardedCards: [], cells };
+            const ctx = { currentPlayer: '0' };
+            const cardPos = 0;
+            const targetCellPosition = 14;
+            const args = [targetCellPosition];
+
+            const hasBeenUsed = executeCardAction(G, ctx, cardPos, args);
+
+            const expectedCells = [...Array.from({ length: GRID_SIZE }, (_, i) => {
+                return createCell(i, undefined, undefined);
+            })];
+            players.forEach(player => expectedCells[player.cellPosition].player = player);
+            expect(hasBeenUsed).toBeTruthy();
+            expect(G.cells).toEqual(expectedCells);
+            expect(G.discardedCards).toEqual([card]);
         });
     });
 

@@ -259,7 +259,7 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
             hasBeenUsed = removeObstacle(G, ctx, args[0], card);
             break;
         case CardTsunami.Name:
-            tsunami(G, ctx, args[0], card);
+            hasBeenUsed = tsunami(G, ctx, args[0]);
             break;
         case CardAmulet.Name:
         case CardHangLoose.Name:
@@ -438,22 +438,29 @@ const transferRandomCardFromPlayerToOtherOne = (fromPlayer, toPlayer) => {
     }
 }
 
-const tsunami = (G, ctx, position, obstacle) => {
-    if (G.cells[position].player) {
-        moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
+const tsunami = (G, ctx, cellPosition) => {
+    const allowedCellPositions = Array.from({ length: 8 }, (_, i) => 0 + (i * MOVE_FORWARD));
+    if (!allowedCellPositions.includes(cellPosition)) {
+        return false;
+    }
+
+    if (G.cells[cellPosition].player) {
+        moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[cellPosition].player.position, cellPosition, cellPosition + MOVE_BACKWARD);
     }
 
     for (let i = 0; i < 3; ++i) {
-        position += MOVE_FORWARD_RIGHT;
-        if (G.cells[position].player) {
-            moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
+        cellPosition += MOVE_FORWARD_RIGHT;
+        if (G.cells[cellPosition].player) {
+            moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[cellPosition].player.position, cellPosition, cellPosition + MOVE_BACKWARD);
         }
 
-        position += MOVE_BACKWARD_LEFT;
-        if (G.cells[position].player) {
-            moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[position].player.position, position, position + MOVE_BACKWARD);
+        cellPosition += MOVE_BACKWARD_LEFT;
+        if (G.cells[cellPosition].player) {
+            moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[cellPosition].player.position, cellPosition, cellPosition + MOVE_BACKWARD);
         }
     }
+
+    return true;
 }
 
 /********************************************************************************/
