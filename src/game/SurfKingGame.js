@@ -1,146 +1,181 @@
-import { INVALID_MOVE, TurnOrder } from 'boardgame.io/core';
-import _ from 'lodash';
-import { MOVE_BACKWARD, MOVE_BACKWARD_LEFT, MOVE_BACKWARD_RIGHT, MOVE_FORWARD, MOVE_FORWARD_LEFT, MOVE_FORWARD_RIGHT } from './Board';
-import { CardAmulet, CardBigWave, CardBottledWater, CardCategoryObstacle, CardChange, CardCoconut, CardCyclone, CardEnergy, CardEnergyX2, CardEnergyX3, CardHangLoose, CardIsland, CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardSwimmingFin, CardTsunami } from "./Cards";
+import { INVALID_MOVE, TurnOrder } from 'boardgame.io/core'
+import _ from 'lodash'
+import {
+    MOVE_BACKWARD,
+    MOVE_BACKWARD_LEFT,
+    MOVE_BACKWARD_RIGHT,
+    MOVE_FORWARD,
+    MOVE_FORWARD_LEFT,
+    MOVE_FORWARD_RIGHT,
+} from './Board'
+import {
+    CardAmulet,
+    CardBigWave,
+    CardBottledWater,
+    CardCategoryObstacle,
+    CardChange,
+    CardCoconut,
+    CardCyclone,
+    CardEnergy,
+    CardEnergyX2,
+    CardEnergyX3,
+    CardHangLoose,
+    CardIsland,
+    CardJumping,
+    CardLifeGuardFloat,
+    CardShark,
+    CardStone,
+    CardStorm,
+    CardSunburn,
+    CardSwimmingFin,
+    CardTsunami,
+} from './Cards'
 
-export const MAX_ENERGY = 4;
-export const MAX_CARDS_ON_HAND = 5;
-export const GRID_SIZE = 53;
+export const MAX_ENERGY = 4
+export const MAX_CARDS_ON_HAND = 5
+export const GRID_SIZE = 53
 
 // TODO: Get number of players from session
-export const NUMBER_OF_PLAYERS = 2;
+export const NUMBER_OF_PLAYERS = 2
 
-export const MOVE_USE_CARD = 'use_card';
-export const MOVE_DROP_IN = 'drop_in';
-export const MOVE_MANEUVER = 'maneuver';
+export const MOVE_USE_CARD = 'use_card'
+export const MOVE_DROP_IN = 'drop_in'
+export const MOVE_MANEUVER = 'maneuver'
 
 /********************************************************************************/
 // Auxiliary functions
 /********************************************************************************/
 export const applyEnergyToLose = (G, ctx, player, energyToLose) => {
-    player.energy = Math.min(Math.max(player.energy - energyToLose, 0), MAX_ENERGY);
+    player.energy = Math.min(Math.max(player.energy - energyToLose, 0), MAX_ENERGY)
     if (player.energy === 0) {
-        player.toFellOffTheBoard = getTurn(G, ctx);
+        player.toFellOffTheBoard = getTurn(G, ctx)
     }
-};
+}
 
 const changePlayer = (G, ctx, targetCellPosition, card) => {
-    const currentPlayer = G.players[ctx.currentPlayer];
-    const currentPlayerCellPosition = currentPlayer.cellPosition;
-    const targetPlayer = G.players[G.cells[targetCellPosition]?.player?.position];
+    const currentPlayer = G.players[ctx.currentPlayer]
+    const currentPlayerCellPosition = currentPlayer.cellPosition
+    const targetPlayer = G.players[G.cells[targetCellPosition]?.player?.position]
 
-    if (!targetPlayer ||
-        (card && isPlayerWearingAmulet(targetPlayer))) {
-        return false;
+    if (!targetPlayer || (card && isPlayerWearingAmulet(targetPlayer))) {
+        return false
     }
 
-    let energyToLose = 0;
-    const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, targetCellPosition, energyToLose);
-    targetCellPosition = newTo;
-    energyToLose = newEnergyToLose;
+    let energyToLose = 0
+    const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, targetCellPosition, energyToLose)
+    targetCellPosition = newTo
+    energyToLose = newEnergyToLose
 
-    applyEnergyToLose(G, ctx, currentPlayer, energyToLose);
+    applyEnergyToLose(G, ctx, currentPlayer, energyToLose)
 
-    currentPlayer.cellPosition = targetCellPosition;
-    targetPlayer.cellPosition = currentPlayerCellPosition;
+    currentPlayer.cellPosition = targetCellPosition
+    targetPlayer.cellPosition = currentPlayerCellPosition
 
-    G.cells[currentPlayerCellPosition].player = targetPlayer;
-    G.cells[targetCellPosition].player = currentPlayer;
+    G.cells[currentPlayerCellPosition].player = targetPlayer
+    G.cells[targetCellPosition].player = currentPlayer
 
     return true
 }
 
 const nextCellUnoccupied = (G, cellPosition, playerIndex) => {
-    let nextUnoccupiedPosition = cellPosition;
-    const dice = rollDice();
-    const newPos = [MOVE_FORWARD, MOVE_FORWARD_RIGHT, MOVE_BACKWARD_LEFT, MOVE_BACKWARD, MOVE_BACKWARD_RIGHT, MOVE_FORWARD_LEFT];
-    let occupied = true;
+    let nextUnoccupiedPosition = cellPosition
+    const dice = rollDice()
+    const newPos = [
+        MOVE_FORWARD,
+        MOVE_FORWARD_RIGHT,
+        MOVE_BACKWARD_LEFT,
+        MOVE_BACKWARD,
+        MOVE_BACKWARD_RIGHT,
+        MOVE_FORWARD_LEFT,
+    ]
+    let occupied = true
     while (occupied) {
         // TODO: Check when "To" is negative.
         // while (to - newPos[dice] < 0) {
         //     dice = Math.floor(Math.random() * 6);
         // }
-        nextUnoccupiedPosition += newPos[dice];
-        const hasAnotherPlayer = G.cells[nextUnoccupiedPosition].player &&
-            G.cells[nextUnoccupiedPosition].player.position !== G.players[playerIndex].position;
-        const hasStone = G.cells[nextUnoccupiedPosition].obstacle?.Name === CardStone.Name;
-        occupied = hasAnotherPlayer || hasStone;
+        nextUnoccupiedPosition += newPos[dice]
+        const hasAnotherPlayer =
+            G.cells[nextUnoccupiedPosition].player &&
+            G.cells[nextUnoccupiedPosition].player.position !== G.players[playerIndex].position
+        const hasStone = G.cells[nextUnoccupiedPosition].obstacle?.Name === CardStone.Name
+        occupied = hasAnotherPlayer || hasStone
     }
 
-    return nextUnoccupiedPosition;
+    return nextUnoccupiedPosition
 }
 
 export const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
     switch (G.cells[to].obstacle?.Name) {
         case CardCyclone.Name:
             // TODO: Check when "To" is negative.
-            to = nextCellUnoccupied(G, to, ctx.currentPlayer);
-            return checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
+            to = nextCellUnoccupied(G, to, ctx.currentPlayer)
+            return checkAndProcessAnyObstacle(G, ctx, to, energyToLose)
         case CardIsland.Name:
-            energyToLose -= 2;
-            break;
+            energyToLose -= 2
+            break
         case CardStorm.Name:
-            ++energyToLose;
-            break;
+            ++energyToLose
+            break
         case CardShark.Name:
-            energyToLose += 2;
-            break;
+            energyToLose += 2
+            break
         default:
-            break;
+            break
     }
 
     return { newTo: to, newEnergyToLose: energyToLose }
 }
 
 export const createDeck = () => {
-    const deck = [];
+    const deck = []
 
     const addCards = (card, quantity) => {
         for (let i = 0; i < quantity; i++) {
-            deck.push(card);
+            deck.push(card)
         }
     }
 
     // Obstacles
-    addCards(CardCyclone, 4);
-    addCards(CardIsland, 4);
-    addCards(CardStone, 4);
-    addCards(CardStorm, 4);
+    addCards(CardCyclone, 4)
+    addCards(CardIsland, 4)
+    addCards(CardStone, 4)
+    addCards(CardStorm, 4)
     // addCards(CardShark, 0); // NOTE: The board already have 4 Sharks
 
     // Actions
-    addCards(CardBigWave, 4);
-    addCards(CardBottledWater, 4);
-    addCards(CardCoconut, 4);
-    addCards(CardChange, 2);
-    addCards(CardEnergy, 8);
-    addCards(CardEnergyX2, 4);
-    addCards(CardEnergyX3, 2);
-    addCards(CardHangLoose, 1);
-    addCards(CardJumping, 2);
-    addCards(CardLifeGuardFloat, 4);
-    addCards(CardSwimmingFin, 4);
-    addCards(CardSunburn, 4);
-    addCards(CardTsunami, 4);
+    addCards(CardBigWave, 4)
+    addCards(CardBottledWater, 4)
+    addCards(CardCoconut, 4)
+    addCards(CardChange, 2)
+    addCards(CardEnergy, 8)
+    addCards(CardEnergyX2, 4)
+    addCards(CardEnergyX3, 2)
+    addCards(CardHangLoose, 1)
+    addCards(CardJumping, 2)
+    addCards(CardLifeGuardFloat, 4)
+    addCards(CardSwimmingFin, 4)
+    addCards(CardSunburn, 4)
+    addCards(CardTsunami, 4)
 
     // Acessories
-    addCards(CardAmulet, 1);
+    addCards(CardAmulet, 1)
 
     const shuffled = deck
-        .map(value => ({ value, sort: Math.random() }))
+        .map((value) => ({ value, sort: Math.random() }))
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value)
-        .map(value => ({ value, sort: Math.random() }))
+        .map((value) => ({ value, sort: Math.random() }))
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value)
-        .map(value => ({ value, sort: Math.random() }))
+        .map((value) => ({ value, sort: Math.random() }))
         .sort((a, b) => a.sort - b.sort)
-        .map(({ value }) => value);
+        .map(({ value }) => value)
 
-    return shuffled;
+    return shuffled
 }
 
-export const createCell = (position, obstacle, player) => ({ position, obstacle, player });
+export const createCell = (position, obstacle, player) => ({ position, obstacle, player })
 
 export const createPlayer = (position, cards) => ({
     position,
@@ -155,300 +190,325 @@ export const createPlayer = (position, cards) => ({
 })
 
 export const decreasePlayerEnergyByCard = (G, ctx, cellPosition, card) => {
-    const targetPlayer = G.players[G.cells[cellPosition].player?.position];
-    if (targetPlayer && ([CardBigWave.Name, CardSunburn.Name].includes(card.Name))) {
+    const targetPlayer = G.players[G.cells[cellPosition].player?.position]
+    if (targetPlayer && [CardBigWave.Name, CardSunburn.Name].includes(card.Name)) {
         if (isPlayerWearingAmulet(targetPlayer)) {
-            return false;
+            return false
         }
 
         const energyToLose = card.Name === CardBigWave.Name ? 2 : 1
-        applyEnergyToLose(G, ctx, targetPlayer, energyToLose);
+        applyEnergyToLose(G, ctx, targetPlayer, energyToLose)
 
         if (targetPlayer.energy === 0) {
-            transferRandomCardFromPlayerToOtherOne(targetPlayer, G.players[ctx.currentPlayer]);
+            transferRandomCardFromPlayerToOtherOne(targetPlayer, G.players[ctx.currentPlayer])
         }
 
-        return true;
+        return true
     }
 
-    return false;
+    return false
 }
 
 export const decreaseRemainingTurnForActiveCards = (G, ctx, playerPosition) => {
-    const player = G.players[playerPosition];
+    const player = G.players[playerPosition]
 
-    player.activeCard.forEach(card => --card.RemaningTurn);
+    player.activeCard.forEach((card) => --card.RemaningTurn)
     player.activeCard
-        .filter(card => card.RemaningTurn === 0)
-        .forEach(card => {
-            const cardPos = player.cards.findIndex(c => c.Name === card.Name);
+        .filter((card) => card.RemaningTurn === 0)
+        .forEach((card) => {
+            const cardPos = player.cards.findIndex((c) => c.Name === card.Name)
             if (cardPos >= 0) {
-                const card = player.cards[cardPos];
+                const card = player.cards[cardPos]
                 if (card.Category !== CardCategoryObstacle) {
-                    G.discardedCards.push(card);
+                    G.discardedCards.push(card)
                 } else {
-                    G.cells[card.CellPosition].obstacle = undefined;
+                    G.cells[card.CellPosition].obstacle = undefined
                 }
-                player.cards.splice(cardPos, 1);
+                player.cards.splice(cardPos, 1)
             }
-        });
+        })
 
-    player.activeCard = player.activeCard.filter(card => card.RemaningTurn > 0);
+    player.activeCard = player.activeCard.filter((card) => card.RemaningTurn > 0)
 }
 
 export const discardCardsIfNeeded = (G, player, cardLimitOnHand) => {
     if (player.cards.length >= MAX_CARDS_ON_HAND) {
-        let i = player.cards.length - cardLimitOnHand;
+        let i = player.cards.length - cardLimitOnHand
         while (i-- > 0) {
-            const cardPos = Math.floor(Math.random() * player.cards.length);
-            const card = player.cards[cardPos];
+            const cardPos = Math.floor(Math.random() * player.cards.length)
+            const card = player.cards[cardPos]
             if (card.Category !== CardCategoryObstacle) {
-                G.discardedCards.push(card);
+                G.discardedCards.push(card)
             }
-            player.cards.splice(cardPos, 1);
+            player.cards.splice(cardPos, 1)
         }
     }
 }
 
 export const executeCardAction = (G, ctx, cardPos, args) => {
-    const currentPlayer = G.players[ctx.currentPlayer];
-    const card = currentPlayer.cards[cardPos];
+    const currentPlayer = G.players[ctx.currentPlayer]
+    const card = currentPlayer.cards[cardPos]
 
-    let hasBeenUsed = true;
-    let mustBeDiscarded = true;
+    let hasBeenUsed = true
+    let mustBeDiscarded = true
     switch (card.Name) {
         case CardStone.Name:
-            const cellPosition = args[0];
-            const hasCardBeenUsedBefore = currentPlayer.activeCard
-                .find(ac => ac.Name === card.Name && ac.CellPosition === cellPosition && ac.RemaningTurn > 0)
+            const cellPosition = args[0]
+            const hasCardBeenUsedBefore = currentPlayer.activeCard.find(
+                (ac) => ac.Name === card.Name && ac.CellPosition === cellPosition && ac.RemaningTurn > 0
+            )
             if (hasCardBeenUsedBefore) {
-                hasBeenUsed = false;
+                hasBeenUsed = false
             } else {
-                hasBeenUsed = placeObstacle(G, ctx, cellPosition, card);
+                hasBeenUsed = placeObstacle(G, ctx, cellPosition, card)
                 if (hasBeenUsed) {
-                    card.CellPosition = cellPosition;
-                    currentPlayer.activeCard.push({ ...card, RemaningTurn: 3 });
+                    card.CellPosition = cellPosition
+                    currentPlayer.activeCard.push({ ...card, RemaningTurn: 3 })
                 }
             }
-            mustBeDiscarded = false;
-            break;
+            mustBeDiscarded = false
+            break
         case CardCyclone.Name:
         case CardIsland.Name:
         case CardStorm.Name:
         case CardShark.Name:
-            hasBeenUsed = placeObstacle(G, ctx, args[0], card);
-            break;
+            hasBeenUsed = placeObstacle(G, ctx, args[0], card)
+            break
         case CardBigWave.Name:
         case CardSunburn.Name:
-            hasBeenUsed = decreasePlayerEnergyByCard(G, ctx, args[0], card);
-            break;
+            hasBeenUsed = decreasePlayerEnergyByCard(G, ctx, args[0], card)
+            break
         case CardBottledWater.Name:
-            currentPlayer.activeCard.push(card);
-            break;
+            currentPlayer.activeCard.push(card)
+            break
         case CardCoconut.Name:
         case CardEnergy.Name:
         case CardEnergyX2.Name:
         case CardEnergyX3.Name:
-            hasBeenUsed = currentPlayer.energy > 0 && !isFallOfTheBoard(getTurn(G, ctx), currentPlayer);
+            hasBeenUsed = currentPlayer.energy > 0 && !isFallOfTheBoard(getTurn(G, ctx), currentPlayer)
             if (hasBeenUsed) {
-                increasePlayerEnergy(G, ctx, card);
+                increasePlayerEnergy(G, ctx, card)
             }
-            break;
+            break
         case CardLifeGuardFloat.Name:
         case CardSwimmingFin.Name:
-            hasBeenUsed = currentPlayer.energy === 0 && isFallOfTheBoard(getTurn(G, ctx), currentPlayer);
+            hasBeenUsed = currentPlayer.energy === 0 && isFallOfTheBoard(getTurn(G, ctx), currentPlayer)
             if (hasBeenUsed) {
-                increasePlayerEnergy(G, ctx, card);
-                currentPlayer.toFellOffTheBoard = -1;
+                increasePlayerEnergy(G, ctx, card)
+                currentPlayer.toFellOffTheBoard = -1
             }
-            break;
+            break
         case CardChange.Name:
-            hasBeenUsed = changePlayer(G, ctx, args[0], card);
-            break;
+            hasBeenUsed = changePlayer(G, ctx, args[0], card)
+            break
         case CardJumping.Name:
-            hasBeenUsed = removeObstacle(G, ctx, args[0], card);
-            break;
+            hasBeenUsed = removeObstacle(G, ctx, args[0], card)
+            break
         case CardTsunami.Name:
-            hasBeenUsed = tsunami(G, ctx, args[0]);
-            break;
+            hasBeenUsed = tsunami(G, ctx, args[0])
+            break
         case CardAmulet.Name:
         case CardHangLoose.Name:
-            currentPlayer.activeCard.push({ ...card, RemaningTurn: 1 });
-            mustBeDiscarded = false;
-            break;
+            currentPlayer.activeCard.push({ ...card, RemaningTurn: 1 })
+            mustBeDiscarded = false
+            break
         default:
-            break;
+            break
     }
 
     if (hasBeenUsed && mustBeDiscarded) {
-        const card = currentPlayer.cards[cardPos];
+        const card = currentPlayer.cards[cardPos]
         if (card.Category !== CardCategoryObstacle) {
-            G.discardedCards.push(card);
+            G.discardedCards.push(card)
         }
-        currentPlayer.cards.splice(cardPos, 1);
+        currentPlayer.cards.splice(cardPos, 1)
     }
 
-    return hasBeenUsed;
+    return hasBeenUsed
 }
 
 const getCard = (G, ctx) => {
-    const currentPlayer = G.players[ctx.currentPlayer];
+    const currentPlayer = G.players[ctx.currentPlayer]
     if (currentPlayer.shouldReceiveCard) {
-        currentPlayer.shouldReceiveCard = false;
-        discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND - 1);
-        const card = getDeckCard(G);
-        currentPlayer.cards.push(card);
+        currentPlayer.shouldReceiveCard = false
+        discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND - 1)
+        const card = getDeckCard(G)
+        currentPlayer.cards.push(card)
     } else {
-        discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND);
+        discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND)
     }
 }
 
 export const getDeckCard = (G) => {
     if (G.deck.length === 0) {
         G.deck = G.discardedCards
-            .map(value => ({ value, sort: Math.random() }))
+            .map((value) => ({ value, sort: Math.random() }))
             .sort((a, b) => a.sort - b.sort)
-            .map(({ value }) => value);
+            .map(({ value }) => value)
     }
 
-    return G.deck.pop();
+    return G.deck.pop()
 }
 
-const getTurn = (G, ctx) => G.turn;
+const getTurn = (G, ctx) => G.turn
 
 const gotoNextMove = (G, ctx) => {
     switch (G.currentMove) {
         case MOVE_USE_CARD:
-            G.currentMove = MOVE_DROP_IN;
-            break;
+            G.currentMove = MOVE_DROP_IN
+            break
         case MOVE_DROP_IN:
-            G.currentMove = MOVE_MANEUVER;
-            break;
+            G.currentMove = MOVE_MANEUVER
+            break
         case MOVE_MANEUVER:
-            G.currentMove = MOVE_USE_CARD;
-            break;
+            G.currentMove = MOVE_USE_CARD
+            break
         default:
-            break;
+            break
     }
 }
 
 export const increasePlayerEnergy = (G, ctx, card) => {
-    const currentPlayer = G.players[ctx.currentPlayer];
+    const currentPlayer = G.players[ctx.currentPlayer]
 
     const values = {
-        [CardCoconut.Name]: () => currentPlayer.energy = MAX_ENERGY,
-        [CardEnergy.Name]: () => currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY),
-        [CardEnergyX2.Name]: () => currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY),
-        [CardEnergyX3.Name]: () => currentPlayer.energy = Math.min(currentPlayer.energy + 3, MAX_ENERGY),
-        [CardLifeGuardFloat.Name]: () => currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY),
-        [CardSwimmingFin.Name]: () => currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY),
-    };
-    values[card.Name]();
+        [CardCoconut.Name]: () => (currentPlayer.energy = MAX_ENERGY),
+        [CardEnergy.Name]: () => (currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY)),
+        [CardEnergyX2.Name]: () => (currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY)),
+        [CardEnergyX3.Name]: () => (currentPlayer.energy = Math.min(currentPlayer.energy + 3, MAX_ENERGY)),
+        [CardLifeGuardFloat.Name]: () => (currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY)),
+        [CardSwimmingFin.Name]: () => (currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY)),
+    }
+    values[card.Name]()
 }
 
 const isCloseTo = (a, b) => {
-    return Math.abs(a - b) === MOVE_FORWARD || // Forward or Backward
+    return (
+        Math.abs(a - b) === MOVE_FORWARD || // Forward or Backward
         Math.abs(a - b) === MOVE_FORWARD_RIGHT || // Forward right or Backward right
-        Math.abs(a - b) === MOVE_FORWARD_LEFT // Forward left or Backward left
+        Math.abs(a - b) === MOVE_FORWARD_LEFT
+    ) // Forward left or Backward left
 }
 
-const isFallOfTheBoard = (turn, player) => player.toFellOffTheBoard > -1 && player.toFellOffTheBoard <= turn;
+const isFallOfTheBoard = (turn, player) => player.toFellOffTheBoard > -1 && player.toFellOffTheBoard <= turn
 
-const isPlayerUsingHangLoose = (player) => player.activeCard.find(card => card.Name === CardHangLoose.Name);
+const isPlayerUsingHangLoose = (player) => player.activeCard.find((card) => card.Name === CardHangLoose.Name)
 
-const isPlayerWearingAmulet = (player) => player.activeCard.find(card => card.Name === CardAmulet.Name);
+const isPlayerWearingAmulet = (player) => player.activeCard.find((card) => card.Name === CardAmulet.Name)
 
 const movePlayer = (G, ctx, player, from, to, energyToLose) => {
-    const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, to, energyToLose);
-    to = newTo;
-    energyToLose = newEnergyToLose;
+    const { newTo, newEnergyToLose } = checkAndProcessAnyObstacle(G, ctx, to, energyToLose)
+    to = newTo
+    energyToLose = newEnergyToLose
 
     if (to !== from) {
-        G.cells[to].player = G.cells[from].player;
-        G.cells[from].player = undefined;
+        G.cells[to].player = G.cells[from].player
+        G.cells[from].player = undefined
     }
 
-    player.cellPosition = to;
+    player.cellPosition = to
 
-    applyEnergyToLose(G, ctx, player, energyToLose);
+    applyEnergyToLose(G, ctx, player, energyToLose)
 
-    return true;
+    return true
 }
 
 export const moveToNextHexUnoccupiedByTsunami = (G, ctx, playerPos, from, to) => {
-    const targetPlayer = G.players[playerPos];
+    const targetPlayer = G.players[playerPos]
     if (isPlayerWearingAmulet(targetPlayer)) {
-        return false;
+        return false
     }
 
-    const hasAnotherPlayer = G.cells[to].player && G.cells[to].player.position !== playerPos;
+    const hasAnotherPlayer = G.cells[to].player && G.cells[to].player.position !== playerPos
     if (hasAnotherPlayer) {
-        return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to + MOVE_BACKWARD);
+        return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to + MOVE_BACKWARD)
     }
 
     if (G.cells[to].obstacle?.Name === CardStone.Name) {
-        return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to + MOVE_BACKWARD);
+        return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to + MOVE_BACKWARD)
     }
 
     if (G.cells[to].obstacle?.Name === CardCyclone.Name) {
         // TODO: Check when "To" is negative.
-        to = nextCellUnoccupied(G, to, playerPos);
-        return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to);
+        to = nextCellUnoccupied(G, to, playerPos)
+        return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to)
     }
 
-    return movePlayer(G, ctx, targetPlayer, from, to, 0);
+    return movePlayer(G, ctx, targetPlayer, from, to, 0)
 }
 
 const placeObstacle = (G, ctx, position, obstacle) => {
     if (!G.cells[position].player && !G.cells[position].obstacle) {
-        G.cells[position].obstacle = obstacle;
-        return true;
+        G.cells[position].obstacle = obstacle
+        return true
     }
-    return false;
+    return false
 }
 
 const removeObstacle = (G, ctx, position, obstacle) => {
     if (G.cells[position].obstacle) {
-        G.cells[position].obstacle = undefined;
-        return true;
+        G.cells[position].obstacle = undefined
+        return true
     }
-    return false;
+    return false
+}
+
+const resetPlayerPlayed = (G) => {
+    Object.values(G.players).forEach((p) => (p.played = false))
 }
 
 const rollDice = () => Math.floor(Math.random() * 6)
 
 const transferRandomCardFromPlayerToOtherOne = (fromPlayer, toPlayer) => {
-    const cardPos = Math.floor(Math.random() * fromPlayer.cards.length);
-    const card = { ...fromPlayer.cards[cardPos] };
-    fromPlayer.cards.splice(cardPos, 1);
+    const cardPos = Math.floor(Math.random() * fromPlayer.cards.length)
+    const card = { ...fromPlayer.cards[cardPos] }
+    fromPlayer.cards.splice(cardPos, 1)
     if (!_.isEmpty(card)) {
-        toPlayer.cards.push(card);
+        toPlayer.cards.push(card)
     }
 }
 
 const tsunami = (G, ctx, cellPosition) => {
-    const allowedCellPositions = Array.from({ length: 8 }, (_, i) => 0 + (i * MOVE_FORWARD));
+    const allowedCellPositions = Array.from({ length: 8 }, (_, i) => 0 + i * MOVE_FORWARD)
     if (!allowedCellPositions.includes(cellPosition)) {
-        return false;
+        return false
     }
 
     if (G.cells[cellPosition].player) {
-        moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[cellPosition].player.position, cellPosition, cellPosition + MOVE_BACKWARD);
+        moveToNextHexUnoccupiedByTsunami(
+            G,
+            ctx,
+            G.cells[cellPosition].player.position,
+            cellPosition,
+            cellPosition + MOVE_BACKWARD
+        )
     }
 
     for (let i = 0; i < 3; ++i) {
-        cellPosition += MOVE_FORWARD_RIGHT;
+        cellPosition += MOVE_FORWARD_RIGHT
         if (G.cells[cellPosition].player) {
-            moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[cellPosition].player.position, cellPosition, cellPosition + MOVE_BACKWARD);
+            moveToNextHexUnoccupiedByTsunami(
+                G,
+                ctx,
+                G.cells[cellPosition].player.position,
+                cellPosition,
+                cellPosition + MOVE_BACKWARD
+            )
         }
 
-        cellPosition += MOVE_BACKWARD_LEFT;
+        cellPosition += MOVE_BACKWARD_LEFT
         if (G.cells[cellPosition].player) {
-            moveToNextHexUnoccupiedByTsunami(G, ctx, G.cells[cellPosition].player.position, cellPosition, cellPosition + MOVE_BACKWARD);
+            moveToNextHexUnoccupiedByTsunami(
+                G,
+                ctx,
+                G.cells[cellPosition].player.position,
+                cellPosition,
+                cellPosition + MOVE_BACKWARD
+            )
         }
     }
 
-    return true;
+    return true
 }
 
 /********************************************************************************/
@@ -456,195 +516,187 @@ const tsunami = (G, ctx, cellPosition) => {
 /********************************************************************************/
 const useCard = (G, ctx, cardPos, args) => {
     if (G.currentMove !== MOVE_USE_CARD) {
-        return INVALID_MOVE;
+        return INVALID_MOVE
     }
 
-    const currentPlayer = G.players[ctx.currentPlayer];
+    const currentPlayer = G.players[ctx.currentPlayer]
 
-    const hasBeenUsed = executeCardAction(G, ctx, cardPos, args);
+    const hasBeenUsed = executeCardAction(G, ctx, cardPos, args)
     if (!hasBeenUsed) {
-        return INVALID_MOVE;
+        return INVALID_MOVE
     }
 
     currentPlayer.shouldReceiveCard = true
 
     if (!currentPlayer.played && ctx.numMoves === 1) {
-        pass(G, ctx);
-        // gotoNextMove(G, ctx);
+        pass(G, ctx)
     }
 }
 
 const dropIn = (G, ctx, targetCellPosition) => {
     if (G.currentMove !== MOVE_DROP_IN) {
-        return INVALID_MOVE;
+        return INVALID_MOVE
     }
 
-    const currentPlayer = G.players[ctx.currentPlayer];
+    const currentPlayer = G.players[ctx.currentPlayer]
 
-    if (currentPlayer.blocked ||
-        !G.cells[targetCellPosition].player) {
-        return INVALID_MOVE;
+    if (currentPlayer.blocked || !G.cells[targetCellPosition].player) {
+        return INVALID_MOVE
     }
 
-    const targetPlayer = G.players[G.cells[targetCellPosition].player.position];
+    const targetPlayer = G.players[G.cells[targetCellPosition].player.position]
 
-    if (currentPlayer.energy === 0 ||
+    if (
+        currentPlayer.energy === 0 ||
         targetPlayer.energy === 0 ||
         isPlayerWearingAmulet(targetPlayer) ||
         isPlayerUsingHangLoose(targetPlayer) ||
-        !isCloseTo(currentPlayer.cellPosition, targetCellPosition)) {
-        return INVALID_MOVE;
+        !isCloseTo(currentPlayer.cellPosition, targetCellPosition)
+    ) {
+        return INVALID_MOVE
     }
 
-    let atkLosses = 0;
-    let defLosses = 0;
-    G.atkDices = Array.from({ length: currentPlayer.energy }, () => rollDice()).sort().reverse();
-    G.defDices = Array.from({ length: targetPlayer.energy }, () => rollDice()).sort().reverse();
+    let atkLosses = 0
+    let defLosses = 0
+    G.atkDices = Array.from({ length: currentPlayer.energy }, () => rollDice())
+        .sort()
+        .reverse()
+    G.defDices = Array.from({ length: targetPlayer.energy }, () => rollDice())
+        .sort()
+        .reverse()
     for (let i = 0; i < MAX_ENERGY; ++i) {
         if (i >= G.atkDices.length || i >= G.defDices.length) {
-            break;
+            break
         }
 
-        if (G.atkDices[i] > G.defDices[i]) { // atk win
-            ++defLosses;
-        } else { // def win
-            ++atkLosses;
+        if (G.atkDices[i] > G.defDices[i]) {
+            // atk win
+            ++defLosses
+        } else {
+            // def win
+            ++atkLosses
         }
     }
 
-    currentPlayer.energy = Math.max(currentPlayer.energy - atkLosses, 0);
+    currentPlayer.energy = Math.max(currentPlayer.energy - atkLosses, 0)
     if (currentPlayer.energy === 0) {
-        currentPlayer.toFellOffTheBoard = getTurn(G, ctx);
+        currentPlayer.toFellOffTheBoard = getTurn(G, ctx)
 
-        targetPlayer.cards.push(getDeckCard(G));
+        targetPlayer.cards.push(getDeckCard(G))
     }
 
-    targetPlayer.energy = Math.max(targetPlayer.energy - defLosses, 0);
+    targetPlayer.energy = Math.max(targetPlayer.energy - defLosses, 0)
     if (targetPlayer.energy === 0) {
-        targetPlayer.toFellOffTheBoard = getTurn(G, ctx);
+        targetPlayer.toFellOffTheBoard = getTurn(G, ctx)
 
         if (targetPlayer.cards.length > 0) {
-            transferRandomCardFromPlayerToOtherOne(targetPlayer, currentPlayer);
+            transferRandomCardFromPlayerToOtherOne(targetPlayer, currentPlayer)
 
             if (!changePlayer(G, ctx, targetPlayer.cellPosition, null)) {
-                return INVALID_MOVE;
+                return INVALID_MOVE
             }
         }
     }
 
-    currentPlayer.shouldReceiveCard = true;
+    currentPlayer.shouldReceiveCard = true
 }
 
 const maneuver = (G, ctx, from, to) => {
     if (G.currentMove !== MOVE_MANEUVER) {
-        return INVALID_MOVE;
+        return INVALID_MOVE
     }
 
-    const currentPlayer = G.players[ctx.currentPlayer];
+    const currentPlayer = G.players[ctx.currentPlayer]
 
-    if (currentPlayer.blocked ||
+    if (
+        currentPlayer.blocked ||
         currentPlayer.energy === 0 ||
         isFallOfTheBoard(getTurn(G, ctx), currentPlayer) ||
         (G.cells[to].player && !isFallOfTheBoard(getTurn(G, ctx), G.players[G.cells[to].player.position])) ||
         G.cells[to].obstacle?.Name === CardStone.Name ||
-        !isCloseTo(to, from)) {
-        return INVALID_MOVE;
+        !isCloseTo(to, from)
+    ) {
+        return INVALID_MOVE
     }
 
     if (G.cells[to].player && isFallOfTheBoard(getTurn(G, ctx), G.players[G.cells[to].player.position])) {
         if (!changePlayer(G, ctx, to, null)) {
-            return INVALID_MOVE;
+            return INVALID_MOVE
         }
 
-        pass(G, ctx);
-        return;
+        pass(G, ctx)
+        return
     }
 
-    let energyToLose = 1;
-    const hasCardBottledWater = currentPlayer.activeCard.find(card => card.Name === CardBottledWater.Name);
+    let energyToLose = 1
+    const hasCardBottledWater = currentPlayer.activeCard.find((card) => card.Name === CardBottledWater.Name)
     if (hasCardBottledWater) {
-        energyToLose = 0;
-        currentPlayer.activeCard = currentPlayer.activeCard.filter(card => {
-            return card.Name !== CardBottledWater.Name;
-        });
+        energyToLose = 0
+        currentPlayer.activeCard = currentPlayer.activeCard.filter((card) => {
+            return card.Name !== CardBottledWater.Name
+        })
     }
 
     if (!movePlayer(G, ctx, currentPlayer, from, to, energyToLose)) {
-        return INVALID_MOVE;
+        return INVALID_MOVE
     }
 
-    currentPlayer.shouldReceiveCard = true;
-    getCard(G, ctx);
+    currentPlayer.shouldReceiveCard = true
+    getCard(G, ctx)
 
-    pass(G, ctx);
+    pass(G, ctx)
 }
 
 const pass = (G, ctx) => {
-    const currentPlayer = G.players[ctx.currentPlayer];
+    const currentPlayer = G.players[ctx.currentPlayer]
 
     if (G.currentMove === MOVE_USE_CARD) {
         if (isFallOfTheBoard(getTurn(G, ctx), currentPlayer)) {
-            ++currentPlayer.energy;
-            currentPlayer.toFellOffTheBoard = -1;
-            currentPlayer.blocked = true;
+            ++currentPlayer.energy
+            currentPlayer.toFellOffTheBoard = -1
+            currentPlayer.blocked = true
         } else {
-            currentPlayer.blocked = false;
+            currentPlayer.blocked = false
         }
 
-        gotoNextMove(G, ctx);
+        gotoNextMove(G, ctx)
     } else if (G.currentMove === MOVE_DROP_IN) {
-        gotoNextMove(G, ctx);
+        gotoNextMove(G, ctx)
     } else if (G.currentMove === MOVE_MANEUVER) {
         if (ctx.phase === 'phaseA') {
-            currentPlayer.played = true;
-            return;
+            currentPlayer.played = true
+            return
         }
 
         if (!isFallOfTheBoard(getTurn(G, ctx), currentPlayer) && !currentPlayer.blocked) {
-            currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY);
+            currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY)
         }
 
-        discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND);
+        discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND)
 
-        gotoNextMove(G, ctx);
+        gotoNextMove(G, ctx)
 
-        currentPlayer.played = true;
+        currentPlayer.played = true
         if (everyonePlay(G)) {
-            resetPlayerPlayed(G);
-            ++G.turn;
+            resetPlayerPlayed(G)
+            ++G.turn
         }
-        ctx.events.endTurn();
+        ctx.events.endTurn()
 
         // NOTE: This is the way to decrease the remaining turn of active cards for the next player before he plays a card.
-        const nextPlayerPosition = (currentPlayer.position + 1) % NUMBER_OF_PLAYERS;
-        decreaseRemainingTurnForActiveCards(G, ctx, nextPlayerPosition);
+        const nextPlayerPosition = (currentPlayer.position + 1) % NUMBER_OF_PLAYERS
+        decreaseRemainingTurnForActiveCards(G, ctx, nextPlayerPosition)
     }
 }
 
 /********************************************************************************/
-// Moves
+// Setup
 /********************************************************************************/
-
-const resetPlayerPlayed = (G) => {
-    Object.values(G.players).forEach((p) => (p.played = false))
-}
-
-const onEndPhaseA = (G, ctx) => {
-    gotoNextMove(G, ctx);
-    resetPlayerPlayed(G);
-    ++G.turn;
-}
-
-const everyonePlay = (G) => {
-    return Object.values(G.players).every((p) => p.played === true)
-}
-
 const endIf = (G) => {
-    // A player wins if he arrives at one of the cells: 50, 51, 52, or 53.
-    for (let i = 50; i <= 53; ++i) {
-        const cell = G.cells[i - 1]
+    for (let i = GRID_SIZE - 4; i < GRID_SIZE; ++i) {
+        const cell = G.cells[i]
         if (cell) {
-            const player = cell.player
+            const player = G.players[cell.player.position]
             if (player) {
                 return { winner: player }
             }
@@ -652,29 +704,35 @@ const endIf = (G) => {
     }
 }
 
-/********************************************************************************/
-// Setup
-/********************************************************************************/
+const everyonePlay = (G) => {
+    return Object.values(G.players).every((p) => p.played === true)
+}
+
+const onEndPhaseA = (G, ctx) => {
+    gotoNextMove(G, ctx)
+    resetPlayerPlayed(G)
+    ++G.turn
+}
 
 const setup = () => {
-    const cells = new Array(GRID_SIZE);
+    const cells = new Array(GRID_SIZE)
 
     // TODO: Create the deck base on game mode
-    const deck = createDeck();
+    const deck = createDeck()
 
     const players = {}
     for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
-        const initialCards = [deck.pop(), deck.pop()];
-        players[i] = createPlayer(i, initialCards);
+        const initialCards = [deck.pop(), deck.pop()]
+        players[i] = createPlayer(i, initialCards)
     }
 
-    let order = Object.keys(players);
+    let order = Object.keys(players)
     // order = order.sort(() => Math.random() - 0.5) // TODO: Other mode?
 
     // TODO: set player positions according to number of players.
     for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
         players[order[i]].cellPosition = i
-        cells[i] = createCell(i, undefined, players[order[i]]);
+        cells[i] = createCell(i, undefined, players[order[i]])
     }
 
     cells[28] = { position: 28, obstacle: CardShark, player: undefined }
@@ -683,7 +741,7 @@ const setup = () => {
     cells[31] = { position: 31, obstacle: CardShark, player: undefined }
     for (let i = 0; i < GRID_SIZE; ++i) {
         if (!cells[i]) {
-            cells[i] = createCell(i, undefined, undefined);
+            cells[i] = createCell(i, undefined, undefined)
         }
     }
 
@@ -708,8 +766,10 @@ export const SurfKingGame = {
     phases: {
         phaseA: {
             moves: { maneuver },
-            turn: { minMoves: 1, maxMoves: 1, },
-            onBegin: (G, ctx) => { ++G.turn; },
+            turn: { minMoves: 1, maxMoves: 1 },
+            onBegin: (G, ctx) => {
+                ++G.turn
+            },
             onEnd: onEndPhaseA,
             endIf: everyonePlay,
             next: 'phaseB',
@@ -717,7 +777,9 @@ export const SurfKingGame = {
         },
         phaseB: {
             moves: { useCard, dropIn, maneuver, pass },
-            onBegin: (G, ctx) => { resetPlayerPlayed(G); }
+            onBegin: (G, ctx) => {
+                resetPlayerPlayed(G)
+            },
         },
     },
 

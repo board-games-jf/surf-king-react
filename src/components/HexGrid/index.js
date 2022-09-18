@@ -1,1 +1,1 @@
-export { default as HexGrid } from './HexGrid';
+export { default as HexGrid } from './HexGrid'

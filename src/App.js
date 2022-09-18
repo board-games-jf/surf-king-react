@@ -1,12 +1,12 @@
-import './App.css';
-import BoardPage from './pages/board';
+import './App.css'
+import BoardPage from './pages/board'
 
 function App() {
-  return (
-    <div className="App">
-      <BoardPage />
-    </div>
-  );
+    return (
+        <div className="App">
+            <BoardPage />
+        </div>
+    )
 }
 
-export default App;
+export default App

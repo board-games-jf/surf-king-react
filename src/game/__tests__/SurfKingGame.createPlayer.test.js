@@ -1,12 +1,12 @@
-import { CardStone } from '../Cards';
-import { createPlayer, MAX_ENERGY } from '../SurfKingGame';
+import { CardStone } from '../Cards'
+import { createPlayer, MAX_ENERGY } from '../SurfKingGame'
 
 describe('SurfKingGame createPlayer', () => {
     it('happy path', () => {
-        const position = 1;
-        const cards = [CardStone, CardStone];
+        const position = 1
+        const cards = [CardStone, CardStone]
 
-        const cell = createPlayer(position, cards);
+        const cell = createPlayer(position, cards)
 
         expect(cell).toEqual({
             position,
@@ -18,6 +18,6 @@ describe('SurfKingGame createPlayer', () => {
             cellPosition: -1,
             toFellOffTheBoard: -1,
             activeCard: [],
-        });
-    });
-});
+        })
+    })
+})

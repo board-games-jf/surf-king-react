@@ -8,10 +8,10 @@ const API_PORT = Number(process.env.API_PORT || DEFAULT_LOBBY_PORT)
 const server = Server({ games: [SurfKingGame] })
 
 const lobbyConfig = {
-  apiPort: API_PORT,
-  apiCallback: () => console.log(`Running Lobby API on port ${API_PORT}...`),
+    apiPort: API_PORT,
+    apiCallback: () => console.log(`Running Lobby API on port ${API_PORT}...`),
 }
 
 server.run({ port: PORT, lobbyConfig }, () => {
-  console.log(`Serving at: http://localhost:${PORT}/`)
+    console.log(`Serving at: http://localhost:${PORT}/`)
 })

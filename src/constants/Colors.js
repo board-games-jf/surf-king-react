@@ -1,1 +1,1 @@
-export const seaColor = "#66B6E3"
+export const seaColor = '#66B6E3'
