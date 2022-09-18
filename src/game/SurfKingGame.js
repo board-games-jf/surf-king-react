@@ -27,9 +27,10 @@ export const applyEnergyToLose = (G, ctx, player, energyToLose) => {
 const changePlayer = (G, ctx, targetCellPosition, card) => {
     const currentPlayer = G.players[ctx.currentPlayer];
     const currentPlayerCellPosition = currentPlayer.cellPosition;
-    const targetPlayer = G.players[G.cells[targetCellPosition].player.position];
+    const targetPlayer = G.players[G.cells[targetCellPosition]?.player?.position];
 
-    if (card && isPlayerWearingAmulet(targetPlayer)) {
+    if (!targetPlayer ||
+        (card && isPlayerWearingAmulet(targetPlayer))) {
         return false;
     }
 
