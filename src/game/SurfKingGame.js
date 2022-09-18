@@ -382,12 +382,11 @@ export const increasePlayerEnergy = (G, ctx, card) => {
     values[card.Name]()
 }
 
-const isCloseTo = (a, b) => {
-    return (
-        Math.abs(a - b) === MOVE_FORWARD || // Forward or Backward
-        Math.abs(a - b) === MOVE_FORWARD_RIGHT || // Forward right or Backward right
-        Math.abs(a - b) === MOVE_FORWARD_LEFT
-    ) // Forward left or Backward left
+export const isCloseTo = (a, b) => {
+    const forwardOrBackward = Math.abs(a - b) === MOVE_FORWARD
+    const forwardOrBackward_Right = Math.abs(a - b) === MOVE_FORWARD_RIGHT
+    const forwardOrBackward_Left = Math.abs(a - b) === MOVE_FORWARD_LEFT
+    return forwardOrBackward || forwardOrBackward_Right || forwardOrBackward_Left
 }
 
 const isFallOfTheBoard = (turn, player) => player.toFellOffTheBoard > -1 && player.toFellOffTheBoard <= turn
