@@ -332,31 +332,18 @@ const gotoNextMove = (G, ctx) => {
     }
 }
 
-const increasePlayerEnergy = (G, ctx, card) => {
+export const increasePlayerEnergy = (G, ctx, card) => {
     const currentPlayer = G.players[ctx.currentPlayer];
 
-    switch (card.Name) {
-        case CardCoconut.Name:
-            currentPlayer.energy = MAX_ENERGY;
-            break;
-        case CardEnergy.Name:
-            ++currentPlayer.energy;
-            break;
-        case CardEnergyX2.Name:
-            currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
-            break;
-        case CardEnergyX3.Name:
-            currentPlayer.energy = Math.min(currentPlayer.energy + 3, MAX_ENERGY);
-            break;
-        case CardLifeGuardFloat.Name:
-            currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY);
-            break;
-        case CardSwimmingFin.Name:
-            currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY);
-            break;
-        default:
-            break;
-    }
+    const values = {
+        [CardCoconut.Name]: () => currentPlayer.energy = MAX_ENERGY,
+        [CardEnergy.Name]: () => currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY),
+        [CardEnergyX2.Name]: () => currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY),
+        [CardEnergyX3.Name]: () => currentPlayer.energy = Math.min(currentPlayer.energy + 3, MAX_ENERGY),
+        [CardLifeGuardFloat.Name]: () => currentPlayer.energy = Math.min(currentPlayer.energy + 2, MAX_ENERGY),
+        [CardSwimmingFin.Name]: () => currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY),
+    };
+    values[card.Name]();
 }
 
 const isCloseTo = (a, b) => {
