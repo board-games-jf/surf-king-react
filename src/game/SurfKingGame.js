@@ -61,9 +61,10 @@ const nextCellUnoccupied = (G, cellPosition, playerIndex) => {
         //     dice = Math.floor(Math.random() * 6);
         // }
         nextUnoccupiedPosition += newPos[dice];
-        occupied = (G.cells[nextUnoccupiedPosition].player && 
-            G.cells[nextUnoccupiedPosition].player.position !== G.players[playerIndex].position) ||
-            G.cells[nextUnoccupiedPosition].obstacle?.Name === CardStone.Name;
+        const hasAnotherPlayer = G.cells[nextUnoccupiedPosition].player &&
+            G.cells[nextUnoccupiedPosition].player.position !== G.players[playerIndex].position;
+        const hasStone = G.cells[nextUnoccupiedPosition].obstacle?.Name === CardStone.Name;
+        occupied = hasAnotherPlayer || hasStone;
     }
 
     return nextUnoccupiedPosition;
@@ -388,34 +389,24 @@ const movePlayer = (G, ctx, player, from, to, energyToLose) => {
 }
 
 export const moveToNextHexUnoccupiedByTsunami = (G, ctx, playerPos, from, to) => {
-    // TODO: Create unit test.
+    const targetPlayer = G.players[playerPos];
+    if (isPlayerWearingAmulet(targetPlayer)) {
+        return false;
+    }
 
-    // TODO: Check when "To" is negative.
+    const hasAnotherPlayer = G.cells[to].player && G.cells[to].player.position !== playerPos;
+    if (hasAnotherPlayer) {
+        return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to + MOVE_BACKWARD);
+    }
 
-    if (G.cells[to].player) {
+    if (G.cells[to].obstacle?.Name === CardStone.Name) {
         return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to + MOVE_BACKWARD);
     }
 
     if (G.cells[to].obstacle?.Name === CardCyclone.Name) {
-        const dice = rollDice();
-        const newPos = [MOVE_FORWARD, MOVE_FORWARD_RIGHT, MOVE_BACKWARD_LEFT, MOVE_BACKWARD, MOVE_BACKWARD_RIGHT, MOVE_FORWARD_LEFT];
-        let occupied = true;
-        while (occupied) {
-            // TODO: Check when "To" is negative.
-            // while (to - newPos[dice] < 0) {
-            //     dice = Math.floor(Math.random() * 6);
-            // }
-            to += newPos[dice];
-            occupied = (G.cells[to].player && G.cells[to].player.position !== G.players[playerPos].position) ||
-                (G.cells[to].obstacle?.Name === CardStone.Name);
-        }
-
+        // TODO: Check when "To" is negative.
+        to = nextCellUnoccupied(G, to, playerPos);
         return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to);
-    }
-
-    const targetPlayer = G.players[playerPos];
-    if (isPlayerWearingAmulet(targetPlayer)) {
-        return false;
     }
 
     return movePlayer(G, ctx, targetPlayer, from, to, 0);
