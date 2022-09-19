@@ -390,6 +390,7 @@ export const isCloseTo = (a, b) => {
     return forwardOrBackward || forwardOrBackward_Right || forwardOrBackward_Left
 }
 
+// TODO: Shall we consider player.energy === 0?
 const isFallOfTheBoard = (turn, player) => player.toFellOffTheBoard > -1 && player.toFellOffTheBoard <= turn
 
 const isPlayerUsingHangLoose = (player) => player.activeCard.find((card) => card.Name === CardHangLoose.Name)
@@ -646,45 +647,54 @@ export const maneuver = (G, ctx, from, to) => {
     pass(G, ctx)
 }
 
-const pass = (G, ctx) => {
+export const pass = (G, ctx) => {
     const currentPlayer = G.players[ctx.currentPlayer]
 
-    if (G.currentMove === MOVE_USE_CARD) {
-        if (isFallOfTheBoard(getTurn(G, ctx), currentPlayer)) {
-            ++currentPlayer.energy
-            currentPlayer.toFellOffTheBoard = -1
-            currentPlayer.blocked = true
-        } else {
-            currentPlayer.blocked = false
-        }
+    switch (G.currentMove) {
+        case MOVE_USE_CARD:
+            if (isFallOfTheBoard(getTurn(G, ctx), currentPlayer)) {
+                currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY)
+                currentPlayer.toFellOffTheBoard = -1
+                currentPlayer.blocked = true
+            } else {
+                currentPlayer.blocked = false
+            }
 
-        gotoNextMove(G, ctx)
-    } else if (G.currentMove === MOVE_DROP_IN) {
-        gotoNextMove(G, ctx)
-    } else if (G.currentMove === MOVE_MANEUVER) {
-        if (ctx.phase === 'phaseA') {
+            gotoNextMove(G, ctx)
+
+            break
+        case MOVE_DROP_IN:
+            gotoNextMove(G, ctx)
+
+            break
+        case MOVE_MANEUVER:
+            if (ctx.phase === 'phaseA') {
+                currentPlayer.played = true
+                return
+            }
+
+            if (!isFallOfTheBoard(getTurn(G, ctx), currentPlayer) && !currentPlayer.blocked && !currentPlayer.moved) {
+                currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY)
+            }
+
+            discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND)
+
+            gotoNextMove(G, ctx)
+
             currentPlayer.played = true
-            return
-        }
+            if (everyonePlay(G)) {
+                resetPlayerPlayed(G)
+                ++G.turn
+            }
+            ctx.events.endTurn()
 
-        if (!isFallOfTheBoard(getTurn(G, ctx), currentPlayer) && !currentPlayer.blocked && !currentPlayer.moved) {
-            currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY)
-        }
+            // NOTE: This is the way to decrease the remaining turn of active cards for the next player before he plays a card.
+            const nextPlayerPosition = (currentPlayer.position + 1) % NUMBER_OF_PLAYERS
+            decreaseRemainingTurnForActiveCards(G, ctx, nextPlayerPosition)
 
-        discardCardsIfNeeded(G, currentPlayer, MAX_CARDS_ON_HAND)
-
-        gotoNextMove(G, ctx)
-
-        currentPlayer.played = true
-        if (everyonePlay(G)) {
-            resetPlayerPlayed(G)
-            ++G.turn
-        }
-        ctx.events.endTurn()
-
-        // NOTE: This is the way to decrease the remaining turn of active cards for the next player before he plays a card.
-        const nextPlayerPosition = (currentPlayer.position + 1) % NUMBER_OF_PLAYERS
-        decreaseRemainingTurnForActiveCards(G, ctx, nextPlayerPosition)
+            break
+        default:
+            break
     }
 }
 

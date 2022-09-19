@@ -1,12 +1,8 @@
 import { INVALID_MOVE } from 'boardgame.io/core'
+import MockedEvents, { mockedEndTurnFn } from '.'
 import { MOVE_FORWARD } from '../../Board'
 import { CardBottledWater, CardEnergy, CardStone } from '../../Cards'
 import { createCell, createPlayer, GRID_SIZE, maneuver, MOVE_MANEUVER, MOVE_USE_CARD } from '../../SurfKingGame'
-
-const mockedEndTurnFn = jest.fn()
-class MockedEvents {
-    endTurn = () => mockedEndTurnFn()
-}
 
 describe('SurfKingGame maneuver', () => {
     describe('maneuver valid', () => {
