@@ -187,6 +187,7 @@ export const createPlayer = (position, cards) => ({
     cellPosition: -1,
     toFellOffTheBoard: -1,
     activeCard: [],
+    moved: false,
 })
 
 export const decreasePlayerEnergyByCard = (G, ctx, cellPosition, card) => {
@@ -408,8 +409,6 @@ const movePlayer = (G, ctx, player, from, to, energyToLose) => {
     player.cellPosition = to
 
     applyEnergyToLose(G, ctx, player, energyToLose)
-
-    return true
 }
 
 export const moveToNextHexUnoccupiedByTsunami = (G, ctx, playerPos, from, to) => {
@@ -433,7 +432,9 @@ export const moveToNextHexUnoccupiedByTsunami = (G, ctx, playerPos, from, to) =>
         return moveToNextHexUnoccupiedByTsunami(G, ctx, playerPos, from, to)
     }
 
-    return movePlayer(G, ctx, targetPlayer, from, to, 0)
+    movePlayer(G, ctx, targetPlayer, from, to, 0)
+
+    return true
 }
 
 const placeObstacle = (G, ctx, position, obstacle) => {
@@ -601,7 +602,7 @@ export const dropIn = (G, ctx, targetCellPosition) => {
     currentPlayer.shouldReceiveCard = true
 }
 
-const maneuver = (G, ctx, from, to) => {
+export const maneuver = (G, ctx, from, to) => {
     if (G.currentMove !== MOVE_MANEUVER) {
         return INVALID_MOVE
     }
@@ -621,9 +622,11 @@ const maneuver = (G, ctx, from, to) => {
 
     if (G.cells[to].player && isFallOfTheBoard(getTurn(G, ctx), G.players[G.cells[to].player.position])) {
         if (!changePlayer(G, ctx, to, null)) {
+            // TODO: Is it possible to get here?
             return INVALID_MOVE
         }
 
+        currentPlayer.moved = true
         pass(G, ctx)
         return
     }
@@ -637,9 +640,8 @@ const maneuver = (G, ctx, from, to) => {
         })
     }
 
-    if (!movePlayer(G, ctx, currentPlayer, from, to, energyToLose)) {
-        return INVALID_MOVE
-    }
+    movePlayer(G, ctx, currentPlayer, from, to, energyToLose)
+    currentPlayer.moved = true
 
     currentPlayer.shouldReceiveCard = true
     getCard(G, ctx)
@@ -668,7 +670,7 @@ const pass = (G, ctx) => {
             return
         }
 
-        if (!isFallOfTheBoard(getTurn(G, ctx), currentPlayer) && !currentPlayer.blocked) {
+        if (!isFallOfTheBoard(getTurn(G, ctx), currentPlayer) && !currentPlayer.blocked && !currentPlayer.moved) {
             currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY)
         }
 

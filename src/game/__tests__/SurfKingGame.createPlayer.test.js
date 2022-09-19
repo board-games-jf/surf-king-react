@@ -18,6 +18,7 @@ describe('SurfKingGame createPlayer', () => {
             cellPosition: -1,
             toFellOffTheBoard: -1,
             activeCard: [],
+            moved: false,
         })
     })
 })
