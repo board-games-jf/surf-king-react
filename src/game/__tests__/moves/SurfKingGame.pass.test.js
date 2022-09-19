@@ -1,4 +1,4 @@
-import MockedEvents, { mockedEndTurnFn } from '.'
+import MockedEvents, { mockedEndTurnFn } from '../../../helpers/tests'
 import { CardEnergy, CardStone } from '../../Cards'
 import {
     createCell,

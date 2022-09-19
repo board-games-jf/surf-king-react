@@ -1,5 +1,5 @@
 import { INVALID_MOVE } from 'boardgame.io/core'
-import MockedEvents, { mockedEndTurnFn } from '.'
+import MockedEvents, { mockedEndTurnFn } from '../../../helpers/tests'
 import { MOVE_FORWARD } from '../../Board'
 import { CardBottledWater, CardEnergy, CardStone } from '../../Cards'
 import { createCell, createPlayer, GRID_SIZE, maneuver, MOVE_MANEUVER, MOVE_USE_CARD } from '../../SurfKingGame'
