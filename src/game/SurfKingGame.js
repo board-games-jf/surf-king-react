@@ -695,7 +695,7 @@ const endIf = (G) => {
     for (let i = GRID_SIZE - 4; i < GRID_SIZE; ++i) {
         const cell = G.cells[i]
         if (cell) {
-            const player = G.players[cell.player.position]
+            const player = G.players[cell.player?.position]
             if (player) {
                 return { winner: player }
             }
