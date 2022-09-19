@@ -532,7 +532,7 @@ export const useCard = (G, ctx, cardPos, args) => {
     }
 }
 
-const dropIn = (G, ctx, targetCellPosition) => {
+export const dropIn = (G, ctx, targetCellPosition) => {
     if (G.currentMove !== MOVE_DROP_IN) {
         return INVALID_MOVE
     }
@@ -590,10 +590,11 @@ const dropIn = (G, ctx, targetCellPosition) => {
 
         if (targetPlayer.cards.length > 0) {
             transferRandomCardFromPlayerToOtherOne(targetPlayer, currentPlayer)
+        }
 
-            if (!changePlayer(G, ctx, targetPlayer.cellPosition, null)) {
-                return INVALID_MOVE
-            }
+        if (!changePlayer(G, ctx, targetPlayer.cellPosition, null)) {
+            // TODO: Is it possible to get here?
+            return INVALID_MOVE
         }
     }
 
