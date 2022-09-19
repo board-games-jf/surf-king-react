@@ -620,27 +620,24 @@ export const maneuver = (G, ctx, from, to) => {
         return INVALID_MOVE
     }
 
+    const hasCardBottledWater = currentPlayer.activeCard.find((card) => card.Name === CardBottledWater.Name)
+
     if (G.cells[to].player && isFallOfTheBoard(getTurn(G, ctx), G.players[G.cells[to].player.position])) {
         if (!changePlayer(G, ctx, to, null)) {
             // TODO: Is it possible to get here?
             return INVALID_MOVE
         }
-
-        currentPlayer.moved = true
-        pass(G, ctx)
-        return
+    } else {
+        const energyToLose = hasCardBottledWater ? 0 : 1
+        movePlayer(G, ctx, currentPlayer, from, to, energyToLose)
     }
 
-    let energyToLose = 1
-    const hasCardBottledWater = currentPlayer.activeCard.find((card) => card.Name === CardBottledWater.Name)
     if (hasCardBottledWater) {
-        energyToLose = 0
         currentPlayer.activeCard = currentPlayer.activeCard.filter((card) => {
             return card.Name !== CardBottledWater.Name
         })
     }
 
-    movePlayer(G, ctx, currentPlayer, from, to, energyToLose)
     currentPlayer.moved = true
 
     currentPlayer.shouldReceiveCard = true

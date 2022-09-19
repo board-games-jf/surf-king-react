@@ -1,6 +1,6 @@
 import { INVALID_MOVE } from 'boardgame.io/core'
 import { MOVE_FORWARD } from '../../Board'
-import { CardEnergy, CardStone } from '../../Cards'
+import { CardBottledWater, CardEnergy, CardStone } from '../../Cards'
 import { createCell, createPlayer, GRID_SIZE, maneuver, MOVE_MANEUVER, MOVE_USE_CARD } from '../../SurfKingGame'
 
 const mockedEndTurnFn = jest.fn()
@@ -36,7 +36,14 @@ describe('SurfKingGame maneuver', () => {
 
                 expect(result).toBeUndefined()
                 expect(G.deck).toEqual([CardEnergy])
-                expect(player1).toEqual({ ...player1, played: true, energy: 3, cards: [CardEnergy], moved: true })
+                expect(player1).toEqual({
+                    ...player1,
+                    played: true,
+                    energy: 3,
+                    cards: [CardEnergy],
+                    moved: true,
+                    cellPosition: to,
+                })
                 expect(player2.played).toBeFalsy()
             })
         })
@@ -68,8 +75,102 @@ describe('SurfKingGame maneuver', () => {
                 expect(mockedEndTurnFn.mock.calls.length).toEqual(1)
                 expect(result).toBeUndefined()
                 expect(G.deck).toEqual([CardEnergy])
-                expect(player1).toEqual({ ...player1, played: true, energy: 3, cards: [CardEnergy], moved: true })
+                expect(player1).toEqual({
+                    ...player1,
+                    played: true,
+                    energy: 3,
+                    cards: [CardEnergy],
+                    moved: true,
+                    cellPosition: to,
+                })
                 expect(player2.played).toBeFalsy()
+            })
+
+            it('there is another player fell of the board on target cell should change position with him without lose energy', () => {
+                const player1 = { ...createPlayer(0, []), energy: 3, cellPosition: 7 }
+                const player2 = {
+                    ...createPlayer(1, []),
+                    energy: 3,
+                    cellPosition: 7 + MOVE_FORWARD,
+                    toFellOffTheBoard: 1,
+                }
+                const cells = [
+                    ...Array.from({ length: GRID_SIZE }, (_, i) => {
+                        if (i === 7) return createCell(i, undefined, player1)
+                        if (i === 7 + MOVE_FORWARD) return createCell(i, undefined, player2)
+                        return createCell(i, undefined, undefined)
+                    }),
+                ]
+                const G = {
+                    players: [player1, player2],
+                    turn: 2,
+                    cells,
+                    currentMove: MOVE_MANEUVER,
+                    deck: [CardEnergy, CardEnergy],
+                }
+                const ctx = { phase: 'phaseB', currentPlayer: '0', events: new MockedEvents() }
+                const from = player1.cellPosition
+                const to = from + MOVE_FORWARD
+
+                const result = maneuver(G, ctx, from, to)
+
+                expect(mockedEndTurnFn.mock.calls.length).toEqual(1)
+                expect(result).toBeUndefined()
+                expect(G.deck).toEqual([CardEnergy])
+                expect(player1).toEqual({
+                    ...player1,
+                    played: true,
+                    energy: 3,
+                    cards: [CardEnergy],
+                    moved: true,
+                    cellPosition: to,
+                })
+                expect(player2).toEqual({
+                    ...player2,
+                    played: false,
+                    energy: 3,
+                    cards: [],
+                    toFellOffTheBoard: 1,
+                    moved: false,
+                    cellPosition: from,
+                })
+            })
+
+            it('current player has used a BottledWater card should move without lose energy', () => {
+                const player1 = { ...createPlayer(0, []), cellPosition: 7, activeCard: [CardBottledWater] }
+                const player2 = { ...createPlayer(1, []), cellPosition: 11 }
+                const cells = [
+                    ...Array.from({ length: GRID_SIZE }, (_, i) => {
+                        if (i === 7) return createCell(i, undefined, player1)
+                        if (i === 11) return createCell(i, undefined, player2)
+                        return createCell(i, undefined, undefined)
+                    }),
+                ]
+                const G = {
+                    players: [player1, player2],
+                    turn: 2,
+                    cells,
+                    currentMove: MOVE_MANEUVER,
+                    deck: [CardEnergy, CardEnergy],
+                }
+                const ctx = { phase: 'phaseB', currentPlayer: '0', events: new MockedEvents() }
+                const from = player1.cellPosition
+                const to = from + MOVE_FORWARD
+
+                const result = maneuver(G, ctx, from, to)
+
+                expect(mockedEndTurnFn.mock.calls.length).toEqual(1)
+                expect(result).toBeUndefined()
+                expect(G.deck).toEqual([CardEnergy])
+                expect(player1).toEqual({
+                    ...player1,
+                    played: true,
+                    energy: 4,
+                    cards: [CardEnergy],
+                    moved: true,
+                    activeCard: [],
+                    cellPosition: to,
+                })
             })
         })
     })
