@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { HexGrid } from '../HexGrid'
 import { seaColor } from '../../constants/Colors'
-import { UseCardAction, HexClickAction } from '../../game/Game'
 import {
     CardAmulet,
     CardBigWave,
@@ -25,6 +24,7 @@ import {
 } from '../../game/Cards'
 
 import EnergyImage from '../../assets/energy.png'
+import { MOVE_DROP_IN, MOVE_MANEUVER } from '../../game/SurfKingGame'
 
 const Board = ({ G, ctx, moves }) => {
     const gameMode = 1
@@ -77,21 +77,29 @@ const Board = ({ G, ctx, moves }) => {
 
     const onHexClickedHandle = (cell) => {
         if (placingObstacle != null) {
-            UseCardAction(G, ctx, moves, gameMode, placingObstacle.card, placingObstacle.cardPos, [cell.position])
+            moves.useCard(placingObstacle.cardPos, [cell.position])
             setPlacingObstacle(null)
         } else if (removingObstacle != null) {
-            UseCardAction(G, ctx, moves, gameMode, removingObstacle.card, removingObstacle.cardPos, [cell.position])
+            moves.useCard(removingObstacle.cardPos, [cell.position])
             setRemovingObstacle(null)
         } else if (selectPlayerTarget != null) {
-            UseCardAction(G, ctx, moves, gameMode, selectPlayerTarget.card, selectPlayerTarget.cardPos, [cell.position])
+            moves.useCard(selectPlayerTarget.cardPos, [cell.position])
             setSelectPlayerTarget(null)
         } else if (selectTsunami != null) {
             if ([7, 14, 21, 28, 35, 42].includes(cell.position)) {
-                UseCardAction(G, ctx, moves, gameMode, selectTsunami.card, selectTsunami.cardPos, [cell.position])
+                moves.useCard(selectTsunami.cardPos, [cell.position])
                 setSelectTsunami(null)
             }
         } else {
-            HexClickAction(G, ctx, moves, gameMode, cell)
+            if (G.currentMove === MOVE_MANEUVER) {
+                const currentPlayer = ctx.currentPlayer
+                const currentPlayerPosition = G.players[currentPlayer].cellPosition
+                const nextPosition = cell.position
+
+                return moves.maneuver(currentPlayerPosition, nextPosition)
+            } else if (G.currentMove === MOVE_DROP_IN) {
+                return moves.attack(cell.position)
+            }
         }
     }
 
@@ -133,7 +141,7 @@ const Board = ({ G, ctx, moves }) => {
             case CardLifeGuardFloat.Name:
             case CardSwimmingFin.Name:
             case CardAmulet.Name:
-                UseCardAction(G, ctx, moves, mode, card, cardPos, args)
+                moves.useCard(cardPos, args)
                 break
             case CardJumping.Name:
                 setRemovingObstacle({ card, cardPos })
