@@ -703,12 +703,9 @@ export const pass = (G, ctx) => {
 /********************************************************************************/
 const endIf = (G) => {
     for (let i = GRID_SIZE - 4; i < GRID_SIZE; ++i) {
-        const cell = G.cells[i]
-        if (cell) {
-            const player = G.players[cell.player?.position]
-            if (player) {
-                return { winner: player }
-            }
+        const player = G.players[G.cells?.[i]?.player?.position]
+        if (player) {
+            return { winner: player }
         }
     }
 }
@@ -723,7 +720,7 @@ const onEndPhaseA = (G, ctx) => {
     ++G.turn
 }
 
-const setup = () => {
+export const setup = () => {
     const cells = new Array(GRID_SIZE)
 
     // TODO: Create the deck base on game mode
