@@ -176,6 +176,8 @@ const Board = ({ G, ctx, moves }) => {
         )
     }
 
+    const p = G.players[ctx.currentPlayer]
+
     return (
         <div>
             <HexGrid cellProps={cellProps} renderCell={renderCell} onHexClick={onHexClickedHandle} />
@@ -192,13 +194,11 @@ const Board = ({ G, ctx, moves }) => {
                             </button>
                         </div>
                         <div>
-                            {Object.values(G.players).map((p, index) => (
-                                <div key={index}>
-                                    <div style={{ marginTop: 8 }}>player {p.position + 1} cards</div>
-                                    {renderPlayerEnergy(G.players[p.position].energy, p.position)}
-                                    {G.players[p.position].cards.map(renderCardByName)}
-                                </div>
-                            ))}
+                            <div>
+                                <div style={{ marginTop: 8 }}>player {p.position + 1} cards</div>
+                                {renderPlayerEnergy(p.energy, p.position)}
+                                {p.cards.map(renderCardByName)}
+                            </div>
                         </div>
                     </>
                 ) : (
