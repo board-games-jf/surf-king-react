@@ -88,7 +88,7 @@ describe('SurfKingGame maneuver', () => {
                     ...createPlayer(1, []),
                     energy: 3,
                     cellPosition: 7 + MOVE_FORWARD,
-                    toFellOffTheBoard: 1,
+                    fellOffTheBoard: 1,
                 }
                 const cells = [
                     ...Array.from({ length: GRID_SIZE }, (_, i) => {
@@ -126,7 +126,7 @@ describe('SurfKingGame maneuver', () => {
                     played: false,
                     energy: 3,
                     cards: [],
-                    toFellOffTheBoard: 1,
+                    fellOffTheBoard: 1,
                     moved: false,
                     cellPosition: from,
                 })
@@ -232,7 +232,7 @@ describe('SurfKingGame maneuver', () => {
     })
 
     it(`when current player is fall off the board should return 'INVALID_MOVE'`, () => {
-        const player1 = { ...createPlayer(0, []), energy: 3, cellPosition: 7, toFellOffTheBoard: 2 }
+        const player1 = { ...createPlayer(0, []), energy: 3, cellPosition: 7, fellOffTheBoard: 2 }
         const player2 = { ...createPlayer(1, []), energy: 3, cellPosition: 11 }
         const cells = [
             ...Array.from({ length: GRID_SIZE }, (_, i) => {

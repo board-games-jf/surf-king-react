@@ -13,7 +13,7 @@ import {
 describe('SurfKingGame pass', () => {
     describe('MOVE_USE_CARD -> MOVE_DROP_IN', () => {
         it('current player has fell off the board', () => {
-            const currentPlayer = { ...createPlayer(0, []), cellPosition: 7, energy: 0, toFellOffTheBoard: 1 }
+            const currentPlayer = { ...createPlayer(0, []), cellPosition: 7, energy: 0, fellOffTheBoard: 1 }
             const nextPlayer = { ...createPlayer(1, []), cellPosition: 11, energy: 3 }
             const cells = [
                 ...Array.from({ length: GRID_SIZE }, (_, i) => {
@@ -34,7 +34,7 @@ describe('SurfKingGame pass', () => {
             pass(G, ctx)
 
             expect(G).toEqual({ ...G, currentMove: MOVE_DROP_IN, turn: 2 })
-            expect(currentPlayer).toEqual({ ...currentPlayer, blocked: true, energy: 1, toFellOffTheBoard: -1 })
+            expect(currentPlayer).toEqual({ ...currentPlayer, blocked: true, energy: 1, fellOffTheBoard: -1 })
         })
 
         it('current player has not fell off the board', () => {

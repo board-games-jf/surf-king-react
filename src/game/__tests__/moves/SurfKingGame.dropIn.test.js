@@ -80,7 +80,7 @@ describe('SurfKingGame dropIn', () => {
             expect(player1).toEqual({
                 ...player1,
                 energy: 3,
-                toFellOffTheBoard: -1,
+                fellOffTheBoard: -1,
                 cellPosition: 11,
                 cards: [CardEnergy],
                 shouldReceiveCard: true,
@@ -88,7 +88,7 @@ describe('SurfKingGame dropIn', () => {
             expect(player2).toEqual({
                 ...player2,
                 energy: 0,
-                toFellOffTheBoard: 2,
+                fellOffTheBoard: 2,
                 cellPosition: 7,
                 cards: [],
             })
@@ -116,7 +116,7 @@ describe('SurfKingGame dropIn', () => {
             expect(player1).toEqual({
                 ...player1,
                 energy: 3,
-                toFellOffTheBoard: -1,
+                fellOffTheBoard: -1,
                 cellPosition: 11,
                 cards: [],
                 shouldReceiveCard: true,
@@ -124,7 +124,7 @@ describe('SurfKingGame dropIn', () => {
             expect(player2).toEqual({
                 ...player2,
                 energy: 0,
-                toFellOffTheBoard: 2,
+                fellOffTheBoard: 2,
                 cellPosition: 7,
                 cards: [],
             })
@@ -168,7 +168,7 @@ describe('SurfKingGame dropIn', () => {
             expect(player1).toEqual({
                 ...player1,
                 energy: 1,
-                toFellOffTheBoard: -1,
+                fellOffTheBoard: -1,
                 cellPosition: 7,
                 cards: [],
                 shouldReceiveCard: true,
@@ -176,7 +176,7 @@ describe('SurfKingGame dropIn', () => {
             expect(player2).toEqual({
                 ...player2,
                 energy: 2,
-                toFellOffTheBoard: -1,
+                fellOffTheBoard: -1,
                 cellPosition: 11,
                 cards: [],
             })
@@ -225,7 +225,7 @@ describe('SurfKingGame dropIn', () => {
             expect(player1).toEqual({
                 ...player1,
                 energy: 0,
-                toFellOffTheBoard: 2,
+                fellOffTheBoard: 2,
                 cellPosition: 7,
                 cards: [],
                 shouldReceiveCard: true,
@@ -233,7 +233,7 @@ describe('SurfKingGame dropIn', () => {
             expect(player2).toEqual({
                 ...player2,
                 energy: 3,
-                toFellOffTheBoard: -1,
+                fellOffTheBoard: -1,
                 cellPosition: 11,
                 cards: [CardEnergy],
             })

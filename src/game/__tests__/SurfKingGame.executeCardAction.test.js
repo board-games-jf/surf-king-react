@@ -294,7 +294,7 @@ describe('SurfKingGame executeCardAction', () => {
         })
 
         it('player fell of the board', () => {
-            const player1 = { ...createPlayer(0, [card]), toFellOffTheBoard: 1 }
+            const player1 = { ...createPlayer(0, [card]), fellOffTheBoard: 1 }
             const player2 = createPlayer(1, [])
             const G = { players: [player1, player2], turn: 2, discardedCards: [] }
             const ctx = { currentPlayer: '0' }
@@ -317,7 +317,7 @@ describe('SurfKingGame executeCardAction', () => {
         const card = CardLifeGuardFloat
 
         it('happy path', () => {
-            const player1 = { ...createPlayer(0, [card]), energy: 0, toFellOffTheBoard: 1 }
+            const player1 = { ...createPlayer(0, [card]), energy: 0, fellOffTheBoard: 1 }
             const player2 = createPlayer(1, [])
             const G = { players: [player1, player2], turn: 2, discardedCards: [] }
             const ctx = { currentPlayer: '0' }
@@ -332,7 +332,7 @@ describe('SurfKingGame executeCardAction', () => {
                 activeCard: [],
                 cards: [],
                 energy: 2,
-                toFellOffTheBoard: -1,
+                fellOffTheBoard: -1,
             })
             expect(G.discardedCards).toEqual([card])
         })
@@ -358,7 +358,7 @@ describe('SurfKingGame executeCardAction', () => {
         })
 
         it('player fell of the board', () => {
-            const player1 = { ...createPlayer(0, [card]), toFellOffTheBoard: 1 }
+            const player1 = { ...createPlayer(0, [card]), fellOffTheBoard: 1 }
             const player2 = createPlayer(1, [])
             const G = { players: [player1, player2], turn: 2, discardedCards: [] }
             const ctx = { currentPlayer: '0' }
@@ -372,7 +372,7 @@ describe('SurfKingGame executeCardAction', () => {
                 ...player1,
                 activeCard: [],
                 cards: [card],
-                toFellOffTheBoard: 1,
+                fellOffTheBoard: 1,
             })
             expect(G.discardedCards).toHaveLength(0)
         })

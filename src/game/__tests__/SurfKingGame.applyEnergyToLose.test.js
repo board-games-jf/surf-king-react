@@ -26,7 +26,7 @@ describe('SurfKingGame applyEnergyToLose', () => {
             const G = { players: [player1, player2], turn: 2 }
             const ctx = {}
             applyEnergyToLose(G, ctx, player1, 2)
-            expect(G.players).toEqual([{ ...player1, energy: 0, toFellOffTheBoard: 2 }, player2])
+            expect(G.players).toEqual([{ ...player1, energy: 0, fellOffTheBoard: 2 }, player2])
         })
     })
 

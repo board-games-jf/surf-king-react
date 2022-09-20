@@ -16,7 +16,7 @@ describe('SurfKingGame createPlayer', () => {
             blocked: false,
             energy: MAX_ENERGY,
             cellPosition: -1,
-            toFellOffTheBoard: -1,
+            fellOffTheBoard: -1,
             activeCard: [],
             moved: false,
         })

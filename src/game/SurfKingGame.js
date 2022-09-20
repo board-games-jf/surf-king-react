@@ -48,7 +48,7 @@ export const MOVE_MANEUVER = 'maneuver'
 export const applyEnergyToLose = (G, ctx, player, energyToLose) => {
     player.energy = Math.min(Math.max(player.energy - energyToLose, 0), MAX_ENERGY)
     if (player.energy === 0) {
-        player.toFellOffTheBoard = getTurn(G, ctx)
+        player.fellOffTheBoard = getTurn(G, ctx)
     }
 }
 
@@ -185,7 +185,7 @@ export const createPlayer = (position, cards) => ({
     blocked: false,
     energy: MAX_ENERGY,
     cellPosition: -1,
-    toFellOffTheBoard: -1,
+    fellOffTheBoard: -1,
     activeCard: [],
     moved: false,
 })
@@ -296,7 +296,7 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
             hasBeenUsed = currentPlayer.energy === 0 && isFallOfTheBoard(getTurn(G, ctx), currentPlayer)
             if (hasBeenUsed) {
                 increasePlayerEnergy(G, ctx, card)
-                currentPlayer.toFellOffTheBoard = -1
+                currentPlayer.fellOffTheBoard = -1
             }
             break
         case CardChange.Name:
@@ -391,7 +391,7 @@ export const isCloseTo = (a, b) => {
 }
 
 // TODO: Shall we consider player.energy === 0?
-const isFallOfTheBoard = (turn, player) => player.toFellOffTheBoard > -1 && player.toFellOffTheBoard <= turn
+const isFallOfTheBoard = (turn, player) => player.fellOffTheBoard > -1 && player.fellOffTheBoard <= turn
 
 const isPlayerUsingHangLoose = (player) => player.activeCard.find((card) => card.Name === CardHangLoose.Name)
 
@@ -581,14 +581,14 @@ export const dropIn = (G, ctx, targetCellPosition) => {
 
     currentPlayer.energy = Math.max(currentPlayer.energy - atkLosses, 0)
     if (currentPlayer.energy === 0) {
-        currentPlayer.toFellOffTheBoard = getTurn(G, ctx)
+        currentPlayer.fellOffTheBoard = getTurn(G, ctx)
 
         targetPlayer.cards.push(getDeckCard(G))
     }
 
     targetPlayer.energy = Math.max(targetPlayer.energy - defLosses, 0)
     if (targetPlayer.energy === 0) {
-        targetPlayer.toFellOffTheBoard = getTurn(G, ctx)
+        targetPlayer.fellOffTheBoard = getTurn(G, ctx)
 
         if (targetPlayer.cards.length > 0) {
             transferRandomCardFromPlayerToOtherOne(targetPlayer, currentPlayer)
@@ -654,7 +654,7 @@ export const pass = (G, ctx) => {
         case MOVE_USE_CARD:
             if (isFallOfTheBoard(getTurn(G, ctx), currentPlayer)) {
                 currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY)
-                currentPlayer.toFellOffTheBoard = -1
+                currentPlayer.fellOffTheBoard = -1
                 currentPlayer.blocked = true
             } else {
                 currentPlayer.blocked = false
