@@ -256,7 +256,7 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
         case CardStone.Name:
             const cellPosition = args[0]
             const hasCardBeenUsedBefore = currentPlayer.activeCard.find(
-                (ac) => ac.Name === card.Name && ac.CellPosition === cellPosition && ac.RemaningTurn > 0
+                (ac) => ac.Name === card.Name && ac.RemaningTurn > 0
             )
             if (hasCardBeenUsedBefore) {
                 hasBeenUsed = false

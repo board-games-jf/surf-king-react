@@ -43,7 +43,7 @@ describe('SurfKingGame executeCardAction', () => {
             expect(G.discardedCards).toHaveLength(0)
         })
 
-        it('card has already been used before', () => {
+        it('card has already been used before for the same target cell', () => {
             const card = CardStone
             const targetCellPosition = 10
             const player1 = {
@@ -63,6 +63,39 @@ describe('SurfKingGame executeCardAction', () => {
             const ctx = { currentPlayer: '0' }
             const cardPos = 0
             const args = [targetCellPosition]
+
+            const hasBeenUsed = executeCardAction(G, ctx, cardPos, args)
+
+            expect(hasBeenUsed).toBeFalsy()
+            expect(player1).toEqual({
+                ...player1,
+                cards: [card],
+                activeCard: [{ ...card, RemaningTurn: 1, CellPosition: targetCellPosition }],
+            })
+            expect(G.discardedCards).toHaveLength(0)
+        })
+
+        it('card has already been used before in another target cell', () => {
+            const card = CardStone
+            const targetCellPosition = 10
+            const player1 = {
+                ...createPlayer(0, [card]),
+                activeCard: [{ ...card, RemaningTurn: 1, CellPosition: targetCellPosition }],
+            }
+            const player2 = createPlayer(1, [])
+            const cells = [
+                ...Array.from({ length: GRID_SIZE }, (_, i) => {
+                    if (i === 0) return createCell(i, undefined, player1)
+                    if (i === 1) return createCell(i, undefined, player2)
+                    if (i === targetCellPosition) return createCell(i, card, undefined)
+                    return createCell(i, undefined, undefined)
+                }),
+            ]
+            const G = { players: [player1, player2], turn: 2, discardedCards: [], cells }
+            const ctx = { currentPlayer: '0' }
+            const cardPos = 0
+            const anotherTargetCellPosition = 11
+            const args = [anotherTargetCellPosition]
 
             const hasBeenUsed = executeCardAction(G, ctx, cardPos, args)
 
