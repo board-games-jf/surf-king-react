@@ -328,7 +328,7 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
     return hasBeenUsed
 }
 
-const getCard = (G, ctx) => {
+export const getCard = (G, ctx) => {
     const currentPlayer = G.players[ctx.currentPlayer]
     if (currentPlayer.shouldReceiveCard) {
         currentPlayer.shouldReceiveCard = false
