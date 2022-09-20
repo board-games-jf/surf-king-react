@@ -220,6 +220,51 @@ describe('SurfKingGame pass', () => {
             })
 
             describe('everyone has not played yet', () => {
+                it('current player has not been moved', () => {
+                    const currentPlayer = {
+                        ...createPlayer(1, []),
+                        energy: 3,
+                        cellPosition: 7,
+                        played: false,
+                    }
+                    const nextPlayer = {
+                        ...createPlayer(0, []),
+                        cellPosition: 11,
+                        played: false,
+                    }
+                    const cells = [
+                        ...Array.from({ length: GRID_SIZE }, (_, i) => {
+                            if (i === 7) return createCell(i, undefined, currentPlayer)
+                            if (i === 11) return createCell(i, undefined, nextPlayer)
+                            return createCell(i, undefined, undefined)
+                        }),
+                    ]
+                    const G = {
+                        players: [currentPlayer, nextPlayer],
+                        turn: 2,
+                        cells,
+                        currentMove: MOVE_MANEUVER,
+                        deck: [CardEnergy, CardEnergy],
+                    }
+                    const ctx = { phase: 'phaseB', currentPlayer: '0', events: new MockedEvents() }
+
+                    pass(G, ctx)
+
+                    expect(mockedEndTurnFn.mock.calls.length).toEqual(1)
+                    expect(G).toEqual({ ...G, currentMove: MOVE_USE_CARD, turn: 2 })
+                    expect(currentPlayer).toEqual({
+                        ...currentPlayer,
+                        energy: 4,
+                        moved: false,
+                        played: true,
+                        cards: [],
+                    })
+                    expect(nextPlayer).toEqual({
+                        ...nextPlayer,
+                        played: false,
+                    })
+                })
+
                 it('next player has active cards', () => {
                     const stone1 = { ...CardStone, RemaningTurn: 2, CellPosition: 14 }
                     const stone2 = { ...CardStone, RemaningTurn: 2, CellPosition: 15 }

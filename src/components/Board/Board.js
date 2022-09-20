@@ -98,7 +98,7 @@ const Board = ({ G, ctx, moves }) => {
 
                 return moves.maneuver(currentPlayerPosition, nextPosition)
             } else if (G.currentMove === MOVE_DROP_IN) {
-                return moves.attack(cell.position)
+                return moves.dropIn(cell.position)
             }
         }
     }

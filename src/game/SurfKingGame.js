@@ -673,6 +673,11 @@ export const pass = (G, ctx) => {
                 return
             }
 
+            console.log('MOVE_MANEUVER', {
+                isFallOfTheBoard: isFallOfTheBoard(getTurn(G, ctx), currentPlayer),
+                blocked: currentPlayer.blocked,
+                moved: currentPlayer.moved,
+            })
             if (!isFallOfTheBoard(getTurn(G, ctx), currentPlayer) && !currentPlayer.blocked && !currentPlayer.moved) {
                 currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY)
             }
@@ -691,6 +696,8 @@ export const pass = (G, ctx) => {
             // NOTE: This is the way to decrease the remaining turn of active cards for the next player before he plays a card.
             const nextPlayerPosition = (currentPlayer.position + 1) % NUMBER_OF_PLAYERS
             decreaseRemainingTurnForActiveCards(G, ctx, nextPlayerPosition)
+
+            G.players[nextPlayerPosition].moved = false
 
             break
         default:
