@@ -162,21 +162,53 @@ const Board = ({ G, ctx, moves }) => {
         return <div>{energies}</div>
     }
 
-    const renderCardByName = (card, index) => {
+    const renderCardByName = (card, index, activeCards) => {
         const name = card.Name.replace(/\s+/g, '').toLowerCase()
         const src = require(`../../assets/cards/${name}.png`)
+        const activeCard = activeCards.find((c) => c.Name === card.Name && c.CellPosition === card.CellPosition)
+        const opacity = activeCard ? 0.5 : 1
+        const remaningTurn = activeCard ? activeCard.RemaningTurn : 0
         return (
-            <img
-                key={`${name}_${index}`}
-                alt=""
-                src={src}
-                width="100"
-                onClick={() => onCardClickHandle(G, ctx, moves, gameMode, card, index)}
-            />
+            <div style={{ position: 'relative', textAlign: 'center' }}>
+                <img
+                    key={`${name}_${index}`}
+                    style={{ opacity }}
+                    alt=""
+                    src={src}
+                    width="100"
+                    onClick={() => onCardClickHandle(G, ctx, moves, gameMode, card, index)}
+                />
+                {remaningTurn > 0 && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            background: 'white',
+                            width: 18,
+                            height: 18,
+                            borderRadius: 18,
+                            textAlign: 'center',
+                        }}
+                    >
+                        {remaningTurn}
+                    </div>
+                )}
+            </div>
         )
     }
 
-    const p = G.players[ctx.currentPlayer]
+    const renderDices = (G) => {
+        return (
+            G.atkDices?.length > 0 && (
+                <>
+                    <div>atk: {G.atkDices}</div>
+                    <div>def: {G.defDices}</div>
+                </>
+            )
+        )
+    }
 
     return (
         <div>
@@ -193,13 +225,27 @@ const Board = ({ G, ctx, moves }) => {
                                 skip
                             </button>
                         </div>
-                        <div>
-                            <div>
-                                <div style={{ marginTop: 8 }}>player {p.position + 1} cards</div>
-                                {renderPlayerEnergy(p.energy, p.position)}
-                                {p.cards.map(renderCardByName)}
-                            </div>
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}
+                        >
+                            {Object.values(G.players).map((p, index) => (
+                                <div key={index}>
+                                    <div style={{ marginTop: 8 }}>player {p.position + 1} cards</div>
+                                    {renderPlayerEnergy(G.players[p.position].energy, p.position)}
+                                    <div style={{ display: 'flex' }}>
+                                        {G.players[p.position].cards.map((card, index) =>
+                                            renderCardByName(card, index, G.players[p.position].activeCard)
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
+                        {renderDices(G)}
                     </>
                 ) : (
                     <>
