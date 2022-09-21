@@ -460,12 +460,22 @@ const resetPlayerPlayed = (G) => {
 
 const rollDice = () => Math.floor(Math.random() * 6)
 
-const transferRandomCardFromPlayerToOtherOne = (fromPlayer, toPlayer) => {
-    const cardPos = Math.floor(Math.random() * fromPlayer.cards.length)
-    const card = { ...fromPlayer.cards[cardPos] }
-    fromPlayer.cards.splice(cardPos, 1)
-    if (!_.isEmpty(card)) {
-        toPlayer.cards.push(card)
+export const transferRandomCardFromPlayerToOtherOne = (fromPlayer, toPlayer) => {
+    const allowed = {}
+    fromPlayer.cards.forEach((card, index) => {
+        if (!fromPlayer.activeCard.find((c) => c.Name === card.Name && c.CellPosition === card.CellPosition)) {
+            allowed[index] = card
+        }
+    })
+
+    const keys = [...Object.keys(allowed)]
+    if (keys.length > 0) {
+        const cardPos = Math.floor(Math.random() * keys.length)
+        const card = { ...fromPlayer.cards[cardPos] }
+        fromPlayer.cards.splice(cardPos, 1)
+        if (!_.isEmpty(card)) {
+            toPlayer.cards.push(card)
+        }
     }
 }
 
