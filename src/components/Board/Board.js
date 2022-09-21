@@ -59,12 +59,33 @@ const Board = ({ G, ctx, moves }) => {
         if (cell.player) {
             return (
                 <text x="50%" y="50%" fontSize={80} style={{ fill: 'black' }} textAnchor="middle">
-                    {`P-${cell.player.position + 1}`}
+                    {`#${cell.player.position + 1}`}
                 </text>
             )
         }
 
         if (cell.obstacle) {
+            if (cell.obstacle.Name === CardStone.Name) {
+                let elem = null
+                Object.values(G.players).forEach((p) =>
+                    p.activeCard.forEach((card) => {
+                        if (card.Name === cell.obstacle.Name && card.CellPosition === cell.obstacle.CellPosition) {
+                            elem = (
+                                <text
+                                    x="50%"
+                                    y="92%"
+                                    fontSize={80}
+                                    style={{ fill: 'gray', fontWeight: 'bold' }}
+                                    textAnchor="middle"
+                                >
+                                    {card.RemaningTurn}
+                                </text>
+                            )
+                        }
+                    })
+                )
+                return elem
+            }
             return
         }
 
@@ -100,19 +121,6 @@ const Board = ({ G, ctx, moves }) => {
             } else if (G.currentMove === MOVE_DROP_IN) {
                 return moves.dropIn(cell.position)
             }
-        }
-    }
-
-    const onGoForItHandle = () => {
-        switch (ctx.phase) {
-            case 'to_get_on_the_board':
-                moves.toGetOnTheBoard(G, ctx)
-                break
-            case 'receive_card':
-                moves.getCard(G, ctx)
-                break
-            default:
-                break
         }
     }
 
@@ -159,7 +167,7 @@ const Board = ({ G, ctx, moves }) => {
         for (let i = 0; i < quantity; ++i) {
             energies.push(<img key={`energy_${playerPosition}_${i}`} alt="" src={EnergyImage} width={24} />)
         }
-        return <div>{energies}</div>
+        return <div style={{ height: 24 }}>{energies}</div>
     }
 
     const renderCardByName = (card, index, activeCards) => {
@@ -202,10 +210,10 @@ const Board = ({ G, ctx, moves }) => {
     const renderDices = (G) => {
         return (
             G.atkDices?.length > 0 && (
-                <>
-                    <div>atk: {G.atkDices}</div>
-                    <div>def: {G.defDices}</div>
-                </>
+                <div style={{ textAlign: 'left' }}>
+                    <div>atk: {G.atkDices.join(' ')}</div>
+                    <div>def: {G.defDices.join(' ')}</div>
+                </div>
             )
         )
     }
@@ -217,25 +225,37 @@ const Board = ({ G, ctx, moves }) => {
                 <h3>{`[${G.turn}] - ${G.currentMove}: player ${parseInt(ctx.currentPlayer) + 1}'s turn`}</h3>
                 {!placingObstacle && !removingObstacle && !selectPlayerTarget && !selectTsunami ? (
                     <>
-                        <div style={{ marginBottom: 20 }}>
-                            <button style={{ width: 100, height: 30 }} onClick={onGoForItHandle}>
-                                go for it
-                            </button>
-                            <button style={{ width: 100, height: 30 }} onClick={onSkipHandle}>
-                                skip
-                            </button>
-                        </div>
                         <div
                             style={{
+                                marginBottom: 20,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'center',
                                 alignItems: 'center',
                             }}
                         >
+                            <button style={{ width: 100, height: 30 }} onClick={onSkipHandle}>
+                                skip
+                            </button>
+                            <div>{renderDices(G)}</div>
+                        </div>
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'space-evenly',
+                                alignItems: 'center',
+                            }}
+                        >
                             {Object.values(G.players).map((p, index) => (
-                                <div key={index}>
-                                    <div style={{ marginTop: 8 }}>player {p.position + 1} cards</div>
+                                <div key={index} style={{ border: '1px solid black' }}>
+                                    <div style={{ marginTop: 8 }}>
+                                        {p.position === parseInt(ctx.currentPlayer) ? (
+                                            <b>player {p.position + 1} cards</b>
+                                        ) : (
+                                            <>player {p.position + 1} cards</>
+                                        )}
+                                    </div>
                                     {renderPlayerEnergy(G.players[p.position].energy, p.position)}
                                     <div style={{ display: 'flex' }}>
                                         {G.players[p.position].cards.map((card, index) =>
@@ -245,7 +265,6 @@ const Board = ({ G, ctx, moves }) => {
                                 </div>
                             ))}
                         </div>
-                        {renderDices(G)}
                     </>
                 ) : (
                     <>
