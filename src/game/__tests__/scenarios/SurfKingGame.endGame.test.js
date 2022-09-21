@@ -63,7 +63,7 @@ describe('SurfKingGame endGame', () => {
                 played: true,
                 cards: [CardEnergy, CardEnergy],
             },
-            { ...nextPlayer, cellPosition: 46, energy: 3, moved: true, played: false, cards: [CardEnergy] }, // Should it be moved?
+            { ...nextPlayer, cellPosition: 46, energy: 3, moved: false, played: false, cards: [CardEnergy] },
         ]
         expect(G).toEqual({ ...G, turn: 2, cells: expectedCells, players: expectedPlayers })
         expect(G.deck).toHaveLength(2)
