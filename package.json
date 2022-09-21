@@ -31,6 +31,7 @@
         "test": "react-scripts test",
         "eject": "react-scripts eject",
         "format": "prettier --write .",
+        "coverage": "yarn run test -- --coverage --watchAll=false",
         "dev": "concurrently \"yarn run client\" \"yarn run server\"",
         "client": "react-scripts start",
         "server": "node -r esm src/server/index.js",
