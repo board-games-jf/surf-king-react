@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+    surf-king:
+        build: .
+        ports:
+            - '3000:3000'
+            - '9000:9000'
+            - '9090:9090'
