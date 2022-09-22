@@ -680,7 +680,6 @@ export const maneuver = (G, ctx, from, to) => {
     currentPlayer.moved = true
 
     currentPlayer.shouldReceiveCard = true
-    getCard(G, ctx)
 
     pass(G, ctx)
 }
@@ -706,13 +705,16 @@ export const pass = (G, ctx) => {
 
             break
         case MOVE_MANEUVER:
+            getCard(G, ctx)
+
             if (ctx.phase === 'phaseA') {
                 currentPlayer.played = true
 
                 const nextPlayerPosition = (currentPlayer.position + 1) % ctx.numPlayers
 
-                // NOTE: This is the way to erase moved flag.
+                // NOTE: This is the way to erase moved and shouldReceiveCard flag.
                 G.players[nextPlayerPosition].moved = false
+                G.players[nextPlayerPosition].shouldReceiveCard = false
 
                 return
             }
@@ -730,16 +732,17 @@ export const pass = (G, ctx) => {
                 resetPlayerPlayed(G)
                 ++G.turn
             }
-            ctx.events.endTurn()
 
             const nextPlayerPosition = (currentPlayer.position + 1) % ctx.numPlayers
 
             // NOTE: This is the way to decrease the remaining turn of active cards for the next player before he plays a card.
             decreaseRemainingTurnForActiveCards(G, ctx, nextPlayerPosition)
 
-            // NOTE: This is the way to erase moved flag.
+            // NOTE: This is the way to erase moved and shouldReceiveCard flag.
             G.players[nextPlayerPosition].moved = false
+            G.players[nextPlayerPosition].shouldReceiveCard = false
 
+            ctx.events.endTurn()
             break
         default:
             break

@@ -26,6 +26,7 @@ describe('SurfKingGame endGame', () => {
 
         const client = Client({
             game: SurfKingGameCustomScenario,
+            numPlayers: 2,
         })
 
         // Phase A

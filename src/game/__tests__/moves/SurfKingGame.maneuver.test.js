@@ -38,9 +38,10 @@ describe('SurfKingGame maneuver', () => {
                     energy: 3,
                     cards: [CardEnergy],
                     moved: true,
+                    shouldReceiveCard: false,
                     cellPosition: to,
                 })
-                expect(player2.played).toBeFalsy()
+                expect(player2).toEqual({ ...player2, played: false, shouldReceiveCard: false, moved: false })
             })
         })
 
