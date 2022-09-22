@@ -124,6 +124,13 @@ export const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
     return { newTo: to, newEnergyToLose: energyToLose }
 }
 
+const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; --i) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[array[i], array[j]] = [array[j], array[i]]
+    }
+}
+
 export const createDeck = () => {
     const deck = []
 
@@ -158,18 +165,10 @@ export const createDeck = () => {
     // Acessories
     addCards(CardAmulet, 1)
 
-    const shuffled = deck
-        .map((value) => ({ value, sort: Math.random() }))
-        .sort((a, b) => a.sort - b.sort)
-        .map(({ value }) => value)
-        .map((value) => ({ value, sort: Math.random() }))
-        .sort((a, b) => a.sort - b.sort)
-        .map(({ value }) => value)
-        .map((value) => ({ value, sort: Math.random() }))
-        .sort((a, b) => a.sort - b.sort)
-        .map(({ value }) => value)
+    shuffleArray(deck)
+    shuffleArray(deck)
 
-    return shuffled
+    return deck
 }
 
 export const createCell = (position, obstacle, player) => ({ position, obstacle, player })
@@ -360,7 +359,11 @@ export const getDeckCard = (G) => {
             .map(({ value }) => value)
     }
 
-    return G.deck.pop()
+    // return G.deck.pop()
+    const cardPos = Math.floor(Math.random() * G.deck.length)
+    const card = G.deck[cardPos]
+    G.deck.splice(cardPos, 1)
+    return card
 }
 
 const getTurn = (G, ctx) => G.turn
@@ -772,9 +775,16 @@ export const setup = (ctx) => {
     // TODO: Create the deck base on game mode
     const deck = createDeck()
 
+    const getRandomDeckCard = () => {
+        const cardPos = Math.floor(Math.random() * deck.length)
+        const card = deck[cardPos]
+        deck.splice(cardPos, 1)
+        return card
+    }
+
     const players = {}
     for (let i = 0; i < ctx.numPlayers; ++i) {
-        const initialCards = [deck.pop(), deck.pop()]
+        const initialCards = [getRandomDeckCard(), getRandomDeckCard()]
         players[i] = createPlayer(i, initialCards)
     }
 
