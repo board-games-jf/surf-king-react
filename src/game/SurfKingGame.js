@@ -464,17 +464,19 @@ const placeObstacle = (G, ctx, cellPosition, obstacle) => {
 const removeObstacle = (G, ctx, cellPosition) => {
     const obstacle = G.cells[cellPosition].obstacle
     if (obstacle) {
-        G.players[obstacle.OwnerPosition].activeCard = G.players[obstacle.OwnerPosition].activeCard.filter(
-            (card) =>
-                card.Name !== CardStone.Name ||
-                (card.Name === CardStone.Name && card.CellPosition !== obstacle.CellPosition)
-        )
+        if (obstacle.OwnerPosition) {
+            G.players[obstacle.OwnerPosition].activeCard = G.players[obstacle?.OwnerPosition]?.activeCard.filter(
+                (card) =>
+                    card.Name !== CardStone.Name ||
+                    (card.Name === CardStone.Name && card.CellPosition !== obstacle.CellPosition)
+            )
 
-        G.players[obstacle.OwnerPosition].cards = G.players[obstacle.OwnerPosition].cards.filter(
-            (card) =>
-                card.Name !== CardStone.Name ||
-                (card.Name === CardStone.Name && card.CellPosition !== obstacle.CellPosition)
-        )
+            G.players[obstacle.OwnerPosition].cards = G.players?.[obstacle?.OwnerPosition]?.cards.filter(
+                (card) =>
+                    card.Name !== CardStone.Name ||
+                    (card.Name === CardStone.Name && card.CellPosition !== obstacle.CellPosition)
+            )
+        }
 
         G.cells[cellPosition].obstacle = undefined
         return true
