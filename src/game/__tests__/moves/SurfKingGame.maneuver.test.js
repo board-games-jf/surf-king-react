@@ -62,7 +62,7 @@ describe('SurfKingGame maneuver', () => {
                     currentMove: MOVE_MANEUVER,
                     deck: [CardEnergy, CardEnergy],
                 }
-                const ctx = { phase: 'phaseB', currentPlayer: '0', events: new MockedEvents() }
+                const ctx = { phase: 'phaseB', numPlayers: 2, currentPlayer: '0', events: new MockedEvents() }
                 const from = player1.cellPosition
                 const to = from + MOVE_FORWARD
 
@@ -104,7 +104,7 @@ describe('SurfKingGame maneuver', () => {
                     currentMove: MOVE_MANEUVER,
                     deck: [CardEnergy, CardEnergy],
                 }
-                const ctx = { phase: 'phaseB', currentPlayer: '0', events: new MockedEvents() }
+                const ctx = { phase: 'phaseB', numPlayers: 2, currentPlayer: '0', events: new MockedEvents() }
                 const from = player1.cellPosition
                 const to = from + MOVE_FORWARD
 
@@ -149,7 +149,7 @@ describe('SurfKingGame maneuver', () => {
                     currentMove: MOVE_MANEUVER,
                     deck: [CardEnergy, CardEnergy],
                 }
-                const ctx = { phase: 'phaseB', currentPlayer: '0', events: new MockedEvents() }
+                const ctx = { phase: 'phaseB', numPlayers: 2, currentPlayer: '0', events: new MockedEvents() }
                 const from = player1.cellPosition
                 const to = from + MOVE_FORWARD
 

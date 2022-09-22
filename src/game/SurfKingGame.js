@@ -35,9 +35,6 @@ export const MAX_ENERGY = 4
 export const MAX_CARDS_ON_HAND = 5
 export const GRID_SIZE = 53
 
-// TODO: Get number of players from session
-export const NUMBER_OF_PLAYERS = 2
-
 export const MOVE_USE_CARD = 'use_card'
 export const MOVE_DROP_IN = 'drop_in'
 export const MOVE_MANEUVER = 'maneuver'
@@ -730,7 +727,7 @@ export const pass = (G, ctx) => {
             ctx.events.endTurn()
 
             // NOTE: This is the way to decrease the remaining turn of active cards for the next player before he plays a card.
-            const nextPlayerPosition = (currentPlayer.position + 1) % NUMBER_OF_PLAYERS
+            const nextPlayerPosition = (currentPlayer.position + 1) % ctx.numPlayers
             decreaseRemainingTurnForActiveCards(G, ctx, nextPlayerPosition)
 
             G.players[nextPlayerPosition].moved = false
@@ -763,14 +760,14 @@ const onEndPhaseA = (G, ctx) => {
     ++G.turn
 }
 
-export const setup = () => {
+export const setup = (ctx) => {
     const cells = new Array(GRID_SIZE)
 
     // TODO: Create the deck base on game mode
     const deck = createDeck()
 
     const players = {}
-    for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
+    for (let i = 0; i < ctx.numPlayers; ++i) {
         const initialCards = [deck.pop(), deck.pop()]
         players[i] = createPlayer(i, initialCards)
     }
@@ -779,7 +776,7 @@ export const setup = () => {
     // order = order.sort(() => Math.random() - 0.5) // TODO: Other mode?
 
     // TODO: set player positions according to number of players.
-    for (let i = 0; i < NUMBER_OF_PLAYERS; ++i) {
+    for (let i = 0; i < ctx.numPlayers; ++i) {
         players[order[i]].cellPosition = i
         cells[i] = createCell(i, undefined, players[order[i]])
     }

@@ -23,9 +23,9 @@ const HomePage = () => (
             </DetachedFab>
         </Item>
         <Item>
-            <DetachedFab variant="extended" component={Link} to="/two-players">
+            <DetachedFab variant="extended" component={Link} to="/local">
                 <IconPeople />
-                <DetachedText>{intl.get('home.two_players')}</DetachedText>
+                <DetachedText>{intl.get('home.local')}</DetachedText>
             </DetachedFab>
         </Item>
     </Container>

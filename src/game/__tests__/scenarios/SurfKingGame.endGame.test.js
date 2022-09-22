@@ -16,8 +16,8 @@ describe('SurfKingGame endGame', () => {
         ]
         const SurfKingGameCustomScenario = {
             ...SurfKingGame,
-            setup: () => ({
-                ...setup(),
+            setup: (ctx) => ({
+                ...setup(ctx),
                 players: [currentPlayer, nextPlayer],
                 deck: new Array(5).fill(CardEnergy),
                 cells,

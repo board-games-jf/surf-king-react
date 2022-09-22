@@ -147,7 +147,7 @@ describe('SurfKingGame pass', () => {
                         currentMove: MOVE_MANEUVER,
                         deck: [CardEnergy, CardEnergy],
                     }
-                    const ctx = { phase: 'phaseB', currentPlayer: '1', events: new MockedEvents() }
+                    const ctx = { phase: 'phaseB', numPlayers: 2, currentPlayer: '1', events: new MockedEvents() }
 
                     pass(G, ctx)
 
@@ -198,7 +198,7 @@ describe('SurfKingGame pass', () => {
                         currentMove: MOVE_MANEUVER,
                         deck: [CardEnergy, CardEnergy],
                     }
-                    const ctx = { phase: 'phaseB', currentPlayer: '1', events: new MockedEvents() }
+                    const ctx = { phase: 'phaseB', numPlayers: 2, currentPlayer: '1', events: new MockedEvents() }
 
                     pass(G, ctx)
 
@@ -246,7 +246,7 @@ describe('SurfKingGame pass', () => {
                         currentMove: MOVE_MANEUVER,
                         deck: [CardEnergy, CardEnergy],
                     }
-                    const ctx = { phase: 'phaseB', currentPlayer: '0', events: new MockedEvents() }
+                    const ctx = { phase: 'phaseB', numPlayers: 2, currentPlayer: '0', events: new MockedEvents() }
 
                     pass(G, ctx)
 
@@ -291,7 +291,7 @@ describe('SurfKingGame pass', () => {
                         currentMove: MOVE_MANEUVER,
                         deck: [CardEnergy, CardEnergy],
                     }
-                    const ctx = { phase: 'phaseB', currentPlayer: '0', events: new MockedEvents() }
+                    const ctx = { phase: 'phaseB', numPlayers: 2, currentPlayer: '0', events: new MockedEvents() }
 
                     pass(G, ctx)
 
@@ -337,7 +337,7 @@ describe('SurfKingGame pass', () => {
                         currentMove: MOVE_MANEUVER,
                         deck: [CardEnergy, CardEnergy],
                     }
-                    const ctx = { phase: 'phaseB', currentPlayer: '0', events: new MockedEvents() }
+                    const ctx = { phase: 'phaseB', numPlayers: 2, currentPlayer: '0', events: new MockedEvents() }
 
                     pass(G, ctx)
 
