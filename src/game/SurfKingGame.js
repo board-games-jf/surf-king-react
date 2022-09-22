@@ -297,10 +297,7 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
         case CardEnergy.Name:
         case CardEnergyX2.Name:
         case CardEnergyX3.Name:
-            hasBeenUsed = currentPlayer.energy > 0 && !isFallOfTheBoard(getTurn(G, ctx), currentPlayer)
-            if (hasBeenUsed) {
-                increasePlayerEnergy(G, ctx, card)
-            }
+            increasePlayerEnergy(G, ctx, card)
             break
         case CardLifeGuardFloat.Name:
         case CardSwimmingFin.Name:

@@ -304,7 +304,7 @@ describe('SurfKingGame executeCardAction', () => {
                 cards: [],
                 energy: MAX_ENERGY,
             })
-            expect(G.discardedCards).toEqual([CardCoconut])
+            expect(G.discardedCards).toEqual([card])
         })
 
         it('player energy is zero', () => {
@@ -317,13 +317,14 @@ describe('SurfKingGame executeCardAction', () => {
 
             const hasBeenUsed = executeCardAction(G, ctx, cardPos, args)
 
-            expect(hasBeenUsed).toBeFalsy()
+            expect(hasBeenUsed).toBeTruthy()
             expect(player1).toEqual({
                 ...player1,
                 activeCard: [],
-                cards: [card],
+                cards: [],
+                energy: MAX_ENERGY,
             })
-            expect(G.discardedCards).toHaveLength(0)
+            expect(G.discardedCards).toEqual([card])
         })
 
         it('player fell of the board', () => {
@@ -336,13 +337,14 @@ describe('SurfKingGame executeCardAction', () => {
 
             const hasBeenUsed = executeCardAction(G, ctx, cardPos, args)
 
-            expect(hasBeenUsed).toBeFalsy()
+            expect(hasBeenUsed).toBeTruthy()
             expect(player1).toEqual({
                 ...player1,
                 activeCard: [],
-                cards: [card],
+                cards: [],
+                energy: MAX_ENERGY,
             })
-            expect(G.discardedCards).toHaveLength(0)
+            expect(G.discardedCards).toEqual([card])
         })
     })
 
