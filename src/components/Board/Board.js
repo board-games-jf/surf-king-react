@@ -26,16 +26,44 @@ import {
 import EnergyImage from '../../assets/energy.png'
 import { MOVE_DROP_IN, MOVE_MANEUVER } from '../../game/SurfKingGame'
 
+// TODO: Move to another file
+const useKeyPress = function (targetKey) {
+    const [keyPressed, setKeyPressed] = useState(false)
+
+    function downHandler({ key }) {
+        if (key === targetKey) {
+            setKeyPressed(true)
+        }
+    }
+
+    const upHandler = ({ key }) => {
+        if (key === targetKey) {
+            setKeyPressed(false)
+        }
+    }
+
+    React.useEffect(() => {
+        window.addEventListener('keydown', downHandler)
+        window.addEventListener('keyup', upHandler)
+
+        return () => {
+            window.removeEventListener('keydown', downHandler)
+            window.removeEventListener('keyup', upHandler)
+        }
+    })
+
+    return keyPressed
+}
+
 const Board = ({ G, ctx, moves }) => {
     const gameMode = 1
+
     const [placingObstacle, setPlacingObstacle] = useState(null)
     const [removingObstacle, setRemovingObstacle] = useState(null)
     const [selectPlayerTarget, setSelectPlayerTarget] = useState(null)
     const [selectTsunami, setSelectTsunami] = useState(null)
 
-    useEffect(() => {
-        console.log('Board::useEffect G', G)
-    }, [G])
+    const skipPress = useKeyPress('s')
 
     const cellProps = (position) => {
         const cell = G.cells[position]
@@ -53,8 +81,8 @@ const Board = ({ G, ctx, moves }) => {
         return { style: { fill: seaColor } }
     }
 
-    const renderCell = (position) => {
-        const cell = G.cells[position]
+    const renderCell = (cellPosition) => {
+        const cell = G.cells[cellPosition]
 
         if (cell.player) {
             return (
@@ -69,7 +97,7 @@ const Board = ({ G, ctx, moves }) => {
                 let elem = null
                 Object.values(G.players).forEach((p) =>
                     p.activeCard.forEach((card) => {
-                        if (card.Name === cell.obstacle.Name && card.CellPosition === cell.obstacle.CellPosition) {
+                        if (card.Name === cell.obstacle.Name && card.CellPosition === cellPosition) {
                             elem = (
                                 <text
                                     x="50%"
@@ -91,7 +119,7 @@ const Board = ({ G, ctx, moves }) => {
 
         return (
             <text x="50%" y="50%" fontSize={80} style={{ fill: 'white' }} textAnchor="middle">
-                {position}
+                {cellPosition}
             </text>
         )
     }
@@ -217,6 +245,16 @@ const Board = ({ G, ctx, moves }) => {
             )
         )
     }
+
+    useEffect(() => {
+        if (skipPress) {
+            onSkipHandle()
+        }
+    }, [skipPress])
+
+    useEffect(() => {
+        console.log('Board::useEffect G', G)
+    }, [G])
 
     return (
         <div>
