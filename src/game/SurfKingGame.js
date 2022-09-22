@@ -706,14 +706,15 @@ export const pass = (G, ctx) => {
         case MOVE_MANEUVER:
             if (ctx.phase === 'phaseA') {
                 currentPlayer.played = true
+
+                const nextPlayerPosition = (currentPlayer.position + 1) % ctx.numPlayers
+
+                // NOTE: This is the way to erase moved flag.
+                G.players[nextPlayerPosition].moved = false
+
                 return
             }
 
-            console.log('MOVE_MANEUVER', {
-                isFallOfTheBoard: isFallOfTheBoard(getTurn(G, ctx), currentPlayer),
-                blocked: currentPlayer.blocked,
-                moved: currentPlayer.moved,
-            })
             if (!isFallOfTheBoard(getTurn(G, ctx), currentPlayer) && !currentPlayer.blocked && !currentPlayer.moved) {
                 currentPlayer.energy = Math.min(currentPlayer.energy + 1, MAX_ENERGY)
             }
@@ -729,10 +730,12 @@ export const pass = (G, ctx) => {
             }
             ctx.events.endTurn()
 
-            // NOTE: This is the way to decrease the remaining turn of active cards for the next player before he plays a card.
             const nextPlayerPosition = (currentPlayer.position + 1) % ctx.numPlayers
+
+            // NOTE: This is the way to decrease the remaining turn of active cards for the next player before he plays a card.
             decreaseRemainingTurnForActiveCards(G, ctx, nextPlayerPosition)
 
+            // NOTE: This is the way to erase moved flag.
             G.players[nextPlayerPosition].moved = false
 
             break

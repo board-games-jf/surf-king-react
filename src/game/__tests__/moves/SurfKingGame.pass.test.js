@@ -106,12 +106,13 @@ describe('SurfKingGame pass', () => {
                 currentMove: MOVE_MANEUVER,
                 deck: [CardEnergy, CardEnergy],
             }
-            const ctx = { phase: 'phaseA', currentPlayer: '0' }
+            const ctx = { phase: 'phaseA', numPlayers: 2, currentPlayer: '0' }
 
             pass(G, ctx)
 
             expect(G).toEqual({ ...G, currentMove: MOVE_MANEUVER, turn: 2 })
-            expect(player1.played).toBeTruthy()
+            expect(player1).toEqual({ ...player1, played: true, moved: false })
+            expect(player2).toEqual({ ...player2, played: false, moved: false })
         })
 
         describe('phaseB', () => {

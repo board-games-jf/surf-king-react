@@ -24,7 +24,7 @@ describe('SurfKingGame maneuver', () => {
                     currentMove: MOVE_MANEUVER,
                     deck: [CardEnergy, CardEnergy],
                 }
-                const ctx = { phase: 'phaseA', currentPlayer: '0' }
+                const ctx = { phase: 'phaseA', numPlayers: 2, currentPlayer: '0' }
                 const from = player1.cellPosition
                 const to = from + MOVE_FORWARD
 
