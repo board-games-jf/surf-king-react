@@ -774,7 +774,7 @@ export const setup = (ctx) => {
 
     const players = {}
     for (let i = 0; i < ctx.numPlayers; ++i) {
-        const initialCards = [CardStone, CardJumping] //[deck.pop(), deck.pop()]
+        const initialCards = [deck.pop(), deck.pop()]
         players[i] = createPlayer(i, initialCards)
     }
 
