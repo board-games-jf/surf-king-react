@@ -260,7 +260,7 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
     let hasBeenUsed = true
     let mustBeDiscarded = true
     switch (card.Name) {
-        case CardStone.Name:
+        case CardStone.Name: {
             const cellPosition = args[0]
             const hasCardBeenUsedBefore = currentPlayer.activeCard.find(
                 (ac) => ac.Name === card.Name && ac.RemaningTurn > 0
@@ -268,7 +268,7 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
             if (hasCardBeenUsedBefore) {
                 hasBeenUsed = false
             } else {
-                const obstacle = { ...card, OwnerPosition: currentPlayer.position }
+                const obstacle = { ...card, CellPosition: cellPosition, OwnerPosition: currentPlayer.position }
                 hasBeenUsed = placeObstacle(G, ctx, cellPosition, obstacle)
                 if (hasBeenUsed) {
                     card.CellPosition = cellPosition
@@ -277,13 +277,16 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
             }
             mustBeDiscarded = false
             break
+        }
         case CardCyclone.Name:
         case CardIsland.Name:
         case CardStorm.Name:
-        case CardShark.Name:
-            const obstacle = { ...card, OwnerPosition: currentPlayer.position }
-            hasBeenUsed = placeObstacle(G, ctx, args[0], obstacle)
+        case CardShark.Name: {
+            const cellPosition = args[0]
+            const obstacle = { ...card, CellPosition: cellPosition, OwnerPosition: currentPlayer.position }
+            hasBeenUsed = placeObstacle(G, ctx, cellPosition, obstacle)
             break
+        }
         case CardBigWave.Name:
         case CardSunburn.Name:
             hasBeenUsed = decreasePlayerEnergyByCard(G, ctx, args[0], card)
@@ -768,7 +771,7 @@ export const setup = (ctx) => {
 
     const players = {}
     for (let i = 0; i < ctx.numPlayers; ++i) {
-        const initialCards = [deck.pop(), deck.pop()]
+        const initialCards = [CardStone, CardJumping] //[deck.pop(), deck.pop()]
         players[i] = createPlayer(i, initialCards)
     }
 

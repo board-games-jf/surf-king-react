@@ -530,9 +530,9 @@ describe('SurfKingGame executeCardAction', () => {
 
         it('when obstacle is a Stone', () => {
             const targetCellPosition = 10
-            const player1 = {
-                ...createPlayer(0, [
-                    card,
+            const player1 = createPlayer(0, [card])
+            const player2 = {
+                ...createPlayer(1, [
                     { ...CardStone, CellPosition: targetCellPosition },
                     { ...CardStone, CellPosition: 20 },
                 ]),
@@ -542,7 +542,6 @@ describe('SurfKingGame executeCardAction', () => {
                     { ...CardStone, CellPosition: 20, RemaningTurn: 1 },
                 ],
             }
-            const player2 = createPlayer(1, [])
             const cells = [
                 ...Array.from({ length: GRID_SIZE }, (_, i) => {
                     if (i === 0) return createCell(i, undefined, player1)
@@ -551,10 +550,10 @@ describe('SurfKingGame executeCardAction', () => {
                         return createCell(i, {
                             ...CardStone,
                             CellPosition: targetCellPosition,
-                            OwnerPosition: player1.position,
+                            OwnerPosition: player2.position,
                         })
                     if (i === 20)
-                        return createCell(i, { ...CardStone, CellPosition: 20, OwnerPosition: player1.position })
+                        return createCell(i, { ...CardStone, CellPosition: 20, OwnerPosition: player2.position })
                     return createCell(i, undefined, undefined)
                 }),
             ]
@@ -568,8 +567,9 @@ describe('SurfKingGame executeCardAction', () => {
             expect(hasBeenUsed).toBeTruthy()
             expect(G.cells[targetCellPosition]).toEqual(createCell(targetCellPosition, undefined, undefined))
             expect(G.discardedCards).toEqual([card])
-            expect(player1).toEqual({
-                ...player1,
+            expect(player1).toEqual({ ...player1, cards: [] })
+            expect(player2).toEqual({
+                ...player2,
                 cards: [{ ...CardStone, CellPosition: 20 }],
                 activeCard: [CardAmulet, { ...CardStone, CellPosition: 20, RemaningTurn: 1 }],
             })
