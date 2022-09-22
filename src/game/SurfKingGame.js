@@ -214,16 +214,26 @@ export const decreaseRemainingTurnForActiveCards = (G, ctx, playerPosition) => {
     const player = G.players[playerPosition]
 
     player.activeCard.forEach((card) => --card.RemaningTurn)
+    player.activeCard.forEach((card) => {
+        if (G.cells?.[card.CellPosition]?.obstacle) {
+            if (card.RemaningTurn === 0) {
+                G.cells[card.CellPosition].obstacle = undefined
+            } else {
+                G.cells[card.CellPosition].obstacle = {
+                    ...G.cells[card.CellPosition].obstacle,
+                    RemaningTurn: card.RemaningTurn,
+                }
+            }
+        }
+    })
     player.activeCard
         .filter((card) => card.RemaningTurn === 0)
         .forEach((card) => {
-            const cardPos = player.cards.findIndex((c) => c.Name === card.Name)
+            const cardPos = player.cards.findIndex((c) => c.Name === card.Name && c.CellPosition === card.CellPosition)
             if (cardPos >= 0) {
                 const card = player.cards[cardPos]
                 if (card.Category !== CardCategoryObstacle) {
                     G.discardedCards.push(card)
-                } else {
-                    G.cells[card.CellPosition].obstacle = undefined
                 }
                 player.cards.splice(cardPos, 1)
             }
@@ -261,7 +271,8 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
             if (hasCardBeenUsedBefore) {
                 hasBeenUsed = false
             } else {
-                hasBeenUsed = placeObstacle(G, ctx, cellPosition, card)
+                const obstacle = { ...card, OwnerPosition: currentPlayer.position }
+                hasBeenUsed = placeObstacle(G, ctx, cellPosition, obstacle)
                 if (hasBeenUsed) {
                     card.CellPosition = cellPosition
                     currentPlayer.activeCard.push({ ...card, RemaningTurn: 3 })
@@ -273,7 +284,8 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
         case CardIsland.Name:
         case CardStorm.Name:
         case CardShark.Name:
-            hasBeenUsed = placeObstacle(G, ctx, args[0], card)
+            const obstacle = { ...card, OwnerPosition: currentPlayer.position }
+            hasBeenUsed = placeObstacle(G, ctx, args[0], obstacle)
             break
         case CardBigWave.Name:
         case CardSunburn.Name:
@@ -303,7 +315,7 @@ export const executeCardAction = (G, ctx, cardPos, args) => {
             hasBeenUsed = changePlayer(G, ctx, args[0], card)
             break
         case CardJumping.Name:
-            hasBeenUsed = removeObstacle(G, ctx, args[0], card)
+            hasBeenUsed = removeObstacle(G, ctx, args[0])
             break
         case CardTsunami.Name:
             hasBeenUsed = tsunami(G, ctx, args[0])
@@ -438,19 +450,33 @@ export const moveToNextHexUnoccupiedByTsunami = (G, ctx, playerPos, from, to) =>
     return true
 }
 
-const placeObstacle = (G, ctx, position, obstacle) => {
-    if (!G.cells[position].player && !G.cells[position].obstacle) {
-        G.cells[position].obstacle = obstacle
+const placeObstacle = (G, ctx, cellPosition, obstacle) => {
+    if (!G.cells[cellPosition].player && !G.cells[cellPosition].obstacle) {
+        G.cells[cellPosition].obstacle = obstacle
         return true
     }
     return false
 }
 
-const removeObstacle = (G, ctx, position, obstacle) => {
-    if (G.cells[position].obstacle) {
-        G.cells[position].obstacle = undefined
+const removeObstacle = (G, ctx, cellPosition) => {
+    const obstacle = G.cells[cellPosition].obstacle
+    if (obstacle) {
+        G.players[obstacle.OwnerPosition].activeCard = G.players[obstacle.OwnerPosition].activeCard.filter(
+            (card) =>
+                card.Name !== CardStone.Name ||
+                (card.Name === CardStone.Name && card.CellPosition !== obstacle.CellPosition)
+        )
+
+        G.players[obstacle.OwnerPosition].cards = G.players[obstacle.OwnerPosition].cards.filter(
+            (card) =>
+                card.Name !== CardStone.Name ||
+                (card.Name === CardStone.Name && card.CellPosition !== obstacle.CellPosition)
+        )
+
+        G.cells[cellPosition].obstacle = undefined
         return true
     }
+
     return false
 }
 

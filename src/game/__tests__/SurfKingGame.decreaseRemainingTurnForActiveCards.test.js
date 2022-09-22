@@ -36,8 +36,10 @@ describe('SurfKingGame decreaseRemainingTurnForActiveCards', () => {
             ...Array.from({ length: GRID_SIZE }, (_, i) => {
                 if (i === 0) return createCell(i, undefined, player1)
                 if (i === 1) return createCell(i, undefined, player2)
-                if (i === stone1.CellPosition) return createCell(i, stone1, undefined)
-                if (i === stone2.CellPosition) return createCell(i, stone2, undefined)
+                if (i === stone1.CellPosition)
+                    return createCell(i, { ...stone1, OwnerPosition: player1.position }, undefined)
+                if (i === stone2.CellPosition)
+                    return createCell(i, { ...stone2, OwnerPosition: player1.position }, undefined)
                 return createCell(i, undefined, undefined)
             }),
         ]
@@ -47,19 +49,19 @@ describe('SurfKingGame decreaseRemainingTurnForActiveCards', () => {
 
         decreaseRemainingTurnForActiveCards(G, ctx, playerPosition)
 
-        expect(player1.activeCard).toEqual([])
+        expect(player1).toEqual({ ...player1, activeCard: [], cards: [] })
         expect(G.discardedCards).toHaveLength(0)
         expect(G.cells[stone1.CellPosition].obstacle).toBeUndefined()
         expect(G.cells[stone2.CellPosition].obstacle).toBeUndefined()
     })
 
     it('when card has 2 or more remaining turns, should be decreased in 1 unit', () => {
-        const stone1 = { ...CardStone, RemaningTurn: 1, CellPosition: 10 }
-        const stone2 = { ...CardStone, RemaningTurn: 2, CellPosition: 11 }
+        const stone1 = { ...CardStone, RemaningTurn: 2, CellPosition: 10 }
+        const stone2 = { ...CardStone, RemaningTurn: 1, CellPosition: 11 }
         const player1 = {
             ...createPlayer(0, []),
             cellPosition: 0,
-            cards: [stone1, stone2],
+            cards: [CardStone, stone1, stone2],
             activeCard: [stone1, stone2],
         }
         const player2 = { ...createPlayer(1, []), cellPosition: 1 }
@@ -67,8 +69,10 @@ describe('SurfKingGame decreaseRemainingTurnForActiveCards', () => {
             ...Array.from({ length: GRID_SIZE }, (_, i) => {
                 if (i === 0) return createCell(i, undefined, player1)
                 if (i === 1) return createCell(i, undefined, player2)
-                if (i === stone1.CellPosition) return createCell(i, stone1, undefined)
-                if (i === stone2.CellPosition) return createCell(i, stone2, undefined)
+                if (i === stone1.CellPosition)
+                    return createCell(i, { ...stone1, OwnerPosition: player1.position }, undefined)
+                if (i === stone2.CellPosition)
+                    return createCell(i, { ...stone2, OwnerPosition: player1.position }, undefined)
                 return createCell(i, undefined, undefined)
             }),
         ]
@@ -78,10 +82,18 @@ describe('SurfKingGame decreaseRemainingTurnForActiveCards', () => {
 
         decreaseRemainingTurnForActiveCards(G, ctx, playerPosition)
 
-        expect(player1.activeCard).toEqual([{ ...stone2, RemaningTurn: 1 }])
+        expect(player1).toEqual({
+            ...player1,
+            activeCard: [{ ...stone1, RemaningTurn: 1 }],
+            cards: [CardStone, stone1],
+        })
         expect(G.discardedCards).toHaveLength(0)
-        expect(G.cells[stone1.CellPosition].obstacle).toBeUndefined()
-        expect(G.cells[stone2.CellPosition].obstacle).toEqual({ ...stone2, RemaningTurn: 1 })
+        expect(G.cells[stone2.CellPosition].obstacle).toBeUndefined()
+        expect(G.cells[stone1.CellPosition].obstacle).toEqual({
+            ...stone1,
+            RemaningTurn: 1,
+            OwnerPosition: player1.position,
+        })
     })
 
     it('when card has 1 remaining turn and card is not an obstacle, should be removed', () => {

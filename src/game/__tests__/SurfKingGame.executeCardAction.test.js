@@ -491,14 +491,23 @@ describe('SurfKingGame executeCardAction', () => {
         const card = CardJumping
 
         it('happy path', () => {
-            const player1 = createPlayer(0, [card])
-            const player2 = createPlayer(1, [])
             const targetCellPosition = 10
+            const player1 = createPlayer(0, [card])
+            const player2 = {
+                ...createPlayer(1, [{ ...CardStone, CellPosition: targetCellPosition }]),
+                activeCard: [{ ...CardStone, CellPosition: targetCellPosition, RemaningTurn: 3 }],
+            }
             const cells = [
                 ...Array.from({ length: GRID_SIZE }, (_, i) => {
                     if (i === 0) return createCell(i, undefined, player1)
                     if (i === 1) return createCell(i, undefined, player2)
-                    if (i === targetCellPosition) return createCell(i, CardStone)
+                    if (i === targetCellPosition)
+                        return createCell(i, {
+                            ...CardStone,
+                            CellPosition: targetCellPosition,
+                            RemaningTurn: 3,
+                            OwnerPosition: 1,
+                        })
                     return createCell(i, undefined, undefined)
                 }),
             ]
@@ -512,6 +521,58 @@ describe('SurfKingGame executeCardAction', () => {
             expect(hasBeenUsed).toBeTruthy()
             expect(G.cells[targetCellPosition]).toEqual(createCell(targetCellPosition, undefined, undefined))
             expect(G.discardedCards).toEqual([card])
+            expect(player2).toEqual({
+                ...player2,
+                cards: [],
+                activeCard: [],
+            })
+        })
+
+        it('when obstacle is a Stone', () => {
+            const targetCellPosition = 10
+            const player1 = {
+                ...createPlayer(0, [
+                    card,
+                    { ...CardStone, CellPosition: targetCellPosition },
+                    { ...CardStone, CellPosition: 20 },
+                ]),
+                activeCard: [
+                    CardAmulet,
+                    { ...CardStone, CellPosition: targetCellPosition, RemaningTurn: 3 },
+                    { ...CardStone, CellPosition: 20, RemaningTurn: 1 },
+                ],
+            }
+            const player2 = createPlayer(1, [])
+            const cells = [
+                ...Array.from({ length: GRID_SIZE }, (_, i) => {
+                    if (i === 0) return createCell(i, undefined, player1)
+                    if (i === 1) return createCell(i, undefined, player2)
+                    if (i === targetCellPosition)
+                        return createCell(i, {
+                            ...CardStone,
+                            CellPosition: targetCellPosition,
+                            OwnerPosition: player1.position,
+                        })
+                    if (i === 20)
+                        return createCell(i, { ...CardStone, CellPosition: 20, OwnerPosition: player1.position })
+                    return createCell(i, undefined, undefined)
+                }),
+            ]
+            const G = { players: [player1, player2], discardedCards: [], cells }
+            const ctx = { currentPlayer: '0' }
+            const cardPos = 0
+            const args = [targetCellPosition]
+
+            const hasBeenUsed = executeCardAction(G, ctx, cardPos, args)
+
+            expect(hasBeenUsed).toBeTruthy()
+            expect(G.cells[targetCellPosition]).toEqual(createCell(targetCellPosition, undefined, undefined))
+            expect(G.discardedCards).toEqual([card])
+            expect(player1).toEqual({
+                ...player1,
+                cards: [{ ...CardStone, CellPosition: 20 }],
+                activeCard: [CardAmulet, { ...CardStone, CellPosition: 20, RemaningTurn: 1 }],
+            })
         })
 
         it('cannot be used', () => {
