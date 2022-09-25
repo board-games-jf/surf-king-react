@@ -1,7 +1,7 @@
 import { INVALID_MOVE } from 'boardgame.io/core'
 import MockedEvents, { mockedEndTurnFn } from '../../../helpers/tests'
 import { MOVE_FORWARD } from '../../Board'
-import { CardBottledWater, CardEnergy, CardStone } from '../../Cards'
+import { CardBottledWater, CardCyclone, CardEnergy, CardStone } from '../../Cards'
 import { createCell, createPlayer, GRID_SIZE, maneuver, MOVE_MANEUVER, MOVE_USE_CARD } from '../../SurfKingGame'
 
 describe('SurfKingGame maneuver', () => {
@@ -167,6 +167,45 @@ describe('SurfKingGame maneuver', () => {
                     moved: true,
                     activeCard: [],
                     cellPosition: to,
+                })
+            })
+
+            describe('when target cell is one of the last positions occupied with a Cyclone, and the player is pushed to front', () => {
+                beforeEach(() => {
+                    const diceMoveForward = 0
+                    jest.spyOn(global.Math, 'random').mockReturnValue(diceMoveForward)
+                })
+
+                afterEach(() => {
+                    jest.spyOn(global.Math, 'random').mockRestore()
+                })
+
+                it('the current player should be moved', () => {
+                    const currentPlayer = { ...createPlayer(0, []), cellPosition: 42 }
+                    const nextPlayer = { ...createPlayer(1, []), cellPosition: 43 }
+                    const cells = [
+                        ...Array.from({ length: GRID_SIZE }, (_, i) => {
+                            if (i === 42) return createCell(i, undefined, currentPlayer)
+                            if (i === 43) return createCell(i, undefined, nextPlayer)
+                            if (i === 49) return createCell(i, CardCyclone)
+                            return createCell(i, undefined, undefined)
+                        }),
+                    ]
+                    const G = {
+                        players: [currentPlayer, nextPlayer],
+                        turn: 10,
+                        cells,
+                        currentMove: MOVE_MANEUVER,
+                        deck: [CardEnergy],
+                    }
+                    const ctx = { numPlayers: 2, currentPlayer: '0', events: new MockedEvents() }
+                    const from = currentPlayer.cellPosition
+                    const to = from + MOVE_FORWARD
+
+                    const result = maneuver(G, ctx, from, to)
+
+                    expect(mockedEndTurnFn.mock.calls.length).toEqual(1)
+                    expect(result).toBeUndefined()
                 })
             })
         })

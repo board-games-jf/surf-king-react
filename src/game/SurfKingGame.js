@@ -74,63 +74,6 @@ const changePlayer = (G, ctx, targetCellPosition, card) => {
     return true
 }
 
-const nextCellUnoccupied = (G, cellPosition, playerIndex) => {
-    let nextUnoccupiedPosition = cellPosition
-    const dice = rollDice()
-    const newPos = [
-        MOVE_FORWARD,
-        MOVE_FORWARD_RIGHT,
-        MOVE_BACKWARD_LEFT,
-        MOVE_BACKWARD,
-        MOVE_BACKWARD_RIGHT,
-        MOVE_FORWARD_LEFT,
-    ]
-    let occupied = true
-    while (occupied) {
-        // TODO: Check when "To" is negative.
-        // while (to - newPos[dice] < 0) {
-        //     dice = Math.floor(Math.random() * 6);
-        // }
-        nextUnoccupiedPosition += newPos[dice]
-        const hasAnotherPlayer =
-            G.cells[nextUnoccupiedPosition].player &&
-            G.cells[nextUnoccupiedPosition].player.position !== G.players[playerIndex].position
-        const hasStone = G.cells[nextUnoccupiedPosition].obstacle?.Name === CardStone.Name
-        occupied = hasAnotherPlayer || hasStone
-    }
-
-    return nextUnoccupiedPosition
-}
-
-export const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
-    switch (G.cells[to].obstacle?.Name) {
-        case CardCyclone.Name:
-            // TODO: Check when "To" is negative.
-            to = nextCellUnoccupied(G, to, ctx.currentPlayer)
-            return checkAndProcessAnyObstacle(G, ctx, to, energyToLose)
-        case CardIsland.Name:
-            energyToLose -= 2
-            break
-        case CardStorm.Name:
-            ++energyToLose
-            break
-        case CardShark.Name:
-            energyToLose += 2
-            break
-        default:
-            break
-    }
-
-    return { newTo: to, newEnergyToLose: energyToLose }
-}
-
-const shuffleArray = (array) => {
-    for (let i = array.length - 1; i > 0; --i) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[array[i], array[j]] = [array[j], array[i]]
-    }
-}
-
 export const createDeck = () => {
     const deck = []
 
@@ -169,6 +112,31 @@ export const createDeck = () => {
     shuffleArray(deck)
 
     return deck
+}
+
+export const checkAndProcessAnyObstacle = (G, ctx, to, energyToLose) => {
+    switch (G.cells[to].obstacle?.Name) {
+        case CardCyclone.Name:
+            // TODO: Check when "To" is negative.
+            to = nextCellUnoccupied(G, to, ctx.currentPlayer)
+            if (!oneOfTheLastEndCell(to)) {
+                return checkAndProcessAnyObstacle(G, ctx, to, energyToLose)
+            }
+            break
+        case CardIsland.Name:
+            energyToLose -= 2
+            break
+        case CardStorm.Name:
+            ++energyToLose
+            break
+        case CardShark.Name:
+            energyToLose += 2
+            break
+        default:
+            break
+    }
+
+    return { newTo: to, newEnergyToLose: energyToLose }
 }
 
 export const createCell = (position, obstacle, player) => ({ position, obstacle, player })
@@ -450,6 +418,39 @@ export const moveToNextHexUnoccupiedByTsunami = (G, ctx, playerPos, from, to) =>
     return true
 }
 
+const nextCellUnoccupied = (G, cellPosition, playerIndex) => {
+    let nextUnoccupiedPosition = cellPosition
+    const dice = rollDice()
+    const newPos = [
+        MOVE_FORWARD,
+        MOVE_FORWARD_RIGHT,
+        MOVE_BACKWARD_LEFT,
+        MOVE_BACKWARD,
+        MOVE_BACKWARD_RIGHT,
+        MOVE_FORWARD_LEFT,
+    ]
+    let occupied = true
+    while (occupied) {
+        // TODO: Check when "To" is negative.
+        // while (to - newPos[dice] < 0) {
+        //     dice = Math.floor(Math.random() * 6);
+        // }
+        if (oneOfTheLastEndCell(nextUnoccupiedPosition)) {
+            break
+        }
+        nextUnoccupiedPosition += newPos[dice]
+        const hasAnotherPlayer =
+            G.cells[nextUnoccupiedPosition].player &&
+            G.cells[nextUnoccupiedPosition].player.position !== G.players[playerIndex].position
+        const hasStone = G.cells[nextUnoccupiedPosition].obstacle?.Name === CardStone.Name
+        occupied = hasAnotherPlayer || hasStone
+    }
+
+    return nextUnoccupiedPosition
+}
+
+const oneOfTheLastEndCell = (cellPosition) => GRID_SIZE - 4 <= cellPosition && cellPosition < GRID_SIZE
+
 const placeObstacle = (G, ctx, cellPosition, obstacle) => {
     if (!G.cells[cellPosition].player && !G.cells[cellPosition].obstacle) {
         G.cells[cellPosition].obstacle = obstacle
@@ -504,6 +505,13 @@ export const transferRandomCardFromPlayerToOtherOne = (fromPlayer, toPlayer) => 
         if (!_.isEmpty(card)) {
             toPlayer.cards.push(card)
         }
+    }
+}
+
+const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; --i) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[array[i], array[j]] = [array[j], array[i]]
     }
 }
 
