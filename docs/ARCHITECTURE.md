@@ -1,6 +1,6 @@
 # Architecture
 
-**Verified code baseline:** `main` at `76f1a673219cbc8be28fd97dc76c1ecabf3394f3`, inspected 2026-11-14. This is not evidence of running production services.
+**Verified code baseline:** application code at `76f1a673219cbc8be28fd97dc76c1ecabf3394f3`; governance-only merge advanced `main` to `aff1274b687ead0b595007960962133b7a4ce31a` on 2026-11-14. This is not evidence of running production services.
 
 ## Existing structure (C4-style container view, L2)
 
@@ -46,6 +46,10 @@ flowchart LR
 ```
 
 Options being investigated: Three.js/React Three Fiber, continued `boardgame.io` or Nakama, and Vercel/Render/Supabase. Selection and integration are not established by this diagram.
+
+## Proposed interchangeable map views
+
+Players should be able to switch between the existing 2D renderer and an independently developed 3D renderer without resetting the match or invoking game rules inside the view. See [MAP_RENDERING.md](MAP_RENDERING.md) for the proposed view-model interface, cell-ID mapping, mock preview, and asset integration requirements. This design is **not implemented**.
 
 ## Risks
 

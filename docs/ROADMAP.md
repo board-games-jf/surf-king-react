@@ -8,7 +8,7 @@
 | 1. Baseline health | Reproducible dependency installation, test suite and build evidence | High | Compatible isolated environment |
 | 2. Gameplay validation | Compare rules against the canonical approved rulebook; create scoped issues | High | Verified rulebook and MVP criteria |
 | 3. Architecture boundaries | Assess minimal rule-engine decoupling and network contracts | Medium | Tests protect existing behavior |
-| 4. Hybrid 3D prototype | 53 mapped hex cells, camera, interaction, basic water | Medium | Performance and coordinate contracts |
+| 4. Hybrid 3D and view choice | Validate canonical 53-cell mapping; independently preview 3D scene; integrate 2D/3D selection | Medium | [Proposed map contract](MAP_RENDERING.md), baseline tests, rendering performance |
 | 5. Multiplayer validation | Compare existing boardgame.io server with Nakama, authority/reconnect/persistence | Medium | Technical evidence and owner decision |
 | 6. Hosted testing | Evaluate free tiers with reliability constraints | Later | Explicit infrastructure and deployment authorization |
 

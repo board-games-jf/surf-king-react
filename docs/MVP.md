@@ -8,6 +8,7 @@
 
 - Surf King is a turn-based board game with **53 logical hexagonal cells**.
 - A **hybrid 3D board** is desired: clear hex boundaries with ocean, waves, and 3D characters.
+- Players should be able to choose between 2D and 3D representations of the same match without restarting it.
 - Initial deployment research prioritizes **free-tier-first** development and small-scale testing, subject to platform restrictions and verification.
 - The official recovery repository is `board-games-jf/surf-king-react`.
 
@@ -19,6 +20,7 @@
 | Accurate rules engine | `src/game/SurfKingGame.js` | Canonical rulebook and disputed edge cases |
 | Interactive hex board | `src/components/HexGrid/HexGrid.js` | Exact 53-cell mapping and labeling |
 | Hybrid 3D scene | Not present | Camera, responsiveness, performance targets |
+| Switchable 2D/3D views | Not present | View switching, accessibility and fallback acceptance criteria |
 | Accounts, lobby, rooms, multiplayer | Server entry exists, online route disabled | Identity, authority, matchmaking, persistence |
 | Cards, obstacles, attacks, victory | Game logic exists | Verified completeness and acceptance tests |
 
