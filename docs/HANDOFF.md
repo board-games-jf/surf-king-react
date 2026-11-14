@@ -2,7 +2,7 @@
 
 **Last verified:** 2026-11-14
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Baseline `main` commit:** `76f1a673219cbc8be28fd97dc76c1ecabf3394f3` (2022-09-25)
+**Verified `main` commit:** `aff1274b687ead0b595007960962133b7a4ce31a` (2026-11-14; governance PR #4 merged)
 
 This is a static recovery snapshot. Check GitHub for new commits, open Issues, Pull Requests, and deployed systems at the start of every task.
 
@@ -17,15 +17,16 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 
 ## Latest relevant main commits
 
+- `aff1274b` (2026-11-14): governance PR #4 merged; no application runtime changes.
 - `76f1a673` (2022-09-25): cyclone-related win condition.
 - `e712de158` (2022-09-22): card replenishment fix.
 
 ## Active work
 
-- [Issue #3](https://github.com/board-games-jf/surf-king-react/issues/3): documentation governance and recovery baseline.
-- Working branch: `docs/3-recovery-baseline`. Refer to the live GitHub [Pull Requests page](https://github.com/board-games-jf/surf-king-react/pulls) for the review/merge state; this branch must not be merged without explicit owner authorization.
-- Historical Issues #1 and #2 are closed. No open PRs existed when the recovery task began.
-- Root `AGENTS.md` and `docs/` did not exist before this issue.
+- [Issue #5](https://github.com/board-games-jf/surf-king-react/issues/5): define interchangeable 2D and independent 3D map contract.
+- Working branch: `docs/5-map-view-contract`; [draft PR #6](https://github.com/board-games-jf/surf-king-react/pull/6) is open for review and must not be merged without explicit owner authorization.
+- [Issue #3](https://github.com/board-games-jf/surf-king-react/issues/3) was completed by merged [PR #4](https://github.com/board-games-jf/surf-king-react/pull/4).
+- No application code, runtime tests or deployment changes have been made as part of Issue #5.
 
 ## Blockers and validation gaps
 
@@ -39,6 +40,6 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 
 ## Next smallest action
 
-1. Review and obtain explicit merge authorization for Issue #3's documentation PR; do not deploy.
-2. After authorization and merge, open a separate Issue to reproduce dependency installation, existing tests, and build from the lockfile in an isolated environment.
-3. Compare implemented rules against the approved canonical rulebook before refactoring or implementing the hybrid 3D renderer.
+1. Review the [map view contract](MAP_RENDERING.md) in Issue #5's PR; merge only with explicit owner approval.
+2. Separately reproduce baseline dependency installation, tests and build.
+3. Validate the 53 logical cell IDs against the existing 2D geometry before implementing the view switch or importing 3D assets.

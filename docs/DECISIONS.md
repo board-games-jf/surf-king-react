@@ -11,6 +11,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 | SK-DEC-005 | Proposed | Compare Nakama against retaining `boardgame.io` for authoritative online matches. | Existing server/game code may reduce migration work. | Future multiplayer Issue |
 | SK-DEC-006 | Proposed | Evaluate Vercel (frontend), Render (server), and Supabase (database). | Desired hosting model requires compatibility and cost checks. | Future hosting Issue |
 | SK-DEC-007 | Proposed | Separate game-state logic from presentation and transport adapters. | Limit coupling and preserve testability. | Future architecture Issue |
+| SK-DEC-008 | Accepted | Players can switch between 2D and 3D views of a single match without changing game state. | Both map styles must show the same turn, positions and interactions. | [#5](https://github.com/board-games-jf/surf-king-react/issues/5) |
+| SK-DEC-009 | Proposed | Connect independently developed 3D rendering through a renderer-neutral map contract and public view-model adapter. | Allow standalone art/scene development without gameplay coupling. | [#5](https://github.com/board-games-jf/surf-king-react/issues/5) |
 
 ## Safeguards
 
