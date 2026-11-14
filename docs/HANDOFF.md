@@ -24,7 +24,7 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 ## Active work
 
 - [Issue #5](https://github.com/board-games-jf/surf-king-react/issues/5): define interchangeable 2D and independent 3D map contract.
-- Working branch: `docs/5-map-view-contract`; check [live Pull Requests](https://github.com/board-games-jf/surf-king-react/pulls) for its review status.
+- Working branch: `docs/5-map-view-contract`; [draft PR #6](https://github.com/board-games-jf/surf-king-react/pull/6) is open for review and must not be merged without explicit owner authorization.
 - [Issue #3](https://github.com/board-games-jf/surf-king-react/issues/3) was completed by merged [PR #4](https://github.com/board-games-jf/surf-king-react/pull/4).
 - No application code, runtime tests or deployment changes have been made as part of Issue #5.
 
