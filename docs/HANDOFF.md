@@ -2,7 +2,7 @@
 
 **Last verified:** 2026-11-14
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Verified `main` commit:** `aff1274b687ead0b595007960962133b7a4ce31a` (2026-11-14; governance PR #4 merged)
+**Verified `main` commit:** `53dc315cca254a7bd7f8741c6bc3e0a374f34733` (2026-11-14; map contract PR #6 merged)
 
 This is a static recovery snapshot. Check GitHub for new commits, open Issues, Pull Requests, and deployed systems at the start of every task.
 
@@ -17,20 +17,22 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 
 ## Latest relevant main commits
 
+- `53dc315c` (2026-11-14): map rendering contract PR #6 merged; no runtime changes.
 - `aff1274b` (2026-11-14): governance PR #4 merged; no application runtime changes.
 - `76f1a673` (2022-09-25): cyclone-related win condition.
 - `e712de158` (2022-09-22): card replenishment fix.
 
 ## Active work
 
-- [Issue #5](https://github.com/board-games-jf/surf-king-react/issues/5): define interchangeable 2D and independent 3D map contract.
-- Working branch: `docs/5-map-view-contract`; [draft PR #6](https://github.com/board-games-jf/surf-king-react/pull/6) is open for review and must not be merged without explicit owner authorization.
-- [Issue #3](https://github.com/board-games-jf/surf-king-react/issues/3) was completed by merged [PR #4](https://github.com/board-games-jf/surf-king-react/pull/4).
-- No application code, runtime tests or deployment changes have been made as part of Issue #5.
+- [Issue #7](https://github.com/board-games-jf/surf-king-react/issues/7): integrate the user's 3D visual preview with the live game state.
+- Working branch: `feat/7-live-3d-board`; first step is a **provisional** 53-cell engine-to-3D manifest and validation tests.
+- [Issue #5](https://github.com/board-games-jf/surf-king-react/issues/5) closed via merged [PR #6](https://github.com/board-games-jf/surf-king-react/pull/6).
+- No runtime renderer, 2D/3D toggle or multiplayer changes have been implemented in this initial step.
 
 ## Blockers and validation gaps
 
 - The canonical rulebook and original Figma source have not been verified against this repository.
+- The standalone Three.js visual ZIP uses provisional cell numbering and fixture-based obstacle placements; its layout is not an authoritative game-state mapping.
 - `package.json` names `loadsh` while the engine imports `lodash`; actual dependency failure is untested.
 - Docker uses Node 16.17 and starts the client only. Server connectivity and hosting are not validated.
 - Stone card initial `RemaningTurn` value is 3; reconcile with the approved four-round rule before changing behavior.
@@ -40,6 +42,6 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 
 ## Next smallest action
 
-1. Review the [map view contract](MAP_RENDERING.md) in Issue #5's PR; merge only with explicit owner approval.
-2. Separately reproduce baseline dependency installation, tests and build.
-3. Validate the 53 logical cell IDs against the existing 2D geometry before implementing the view switch or importing 3D assets.
+1. Review the provisional [layout manifest](../src/map/layout/board-layout.json) and its tests against the approved board reference, then confirm actual numeric cell mapping.
+2. Reproduce the full application tests and build in a compatible environment; the isolated layout checks are not a full app validation.
+3. Under the same Issue #7 in a subsequent scoped PR, adapt the independent Three.js scene to the live public game snapshot and existing move callbacks, preserving the 2D view.

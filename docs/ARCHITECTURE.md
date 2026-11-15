@@ -51,6 +51,10 @@ Options being investigated: Three.js/React Three Fiber, continued `boardgame.io`
 
 Players should be able to switch between the existing 2D renderer and an independently developed 3D renderer without resetting the match or invoking game rules inside the view. See [MAP_RENDERING.md](MAP_RENDERING.md) for the proposed view-model interface, cell-ID mapping, mock preview, and asset integration requirements. This design is **not implemented**.
 
+## Candidate cell mapping for 3D (Issue #7)
+
+A provisional `src/map/layout/board-layout.json` manifest and pure lookup helpers map existing game indices 0–52 to world-space X/Z centers with 15 rows alternating four and three cells, sea to beach. They preserve the game's initial indices 0–6, the four shark positions 28–31 and the final winning indices 49–52. These are data-only integration scaffolding; **neither renderer is wired to the manifest yet**, and geometry is pending visual verification. No gameplay rule has been changed.
+
 ## Risks
 
 - Dependency age, Node 16.17 Docker base, and `loadsh` versus `lodash` import discrepancy.
