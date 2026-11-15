@@ -6,11 +6,13 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable }) {
     const scene = useRef(null)
     const latestClick = useRef(onCellSelect)
     const latestSnapshot = useRef(snapshot)
+    const latestIds = useRef(false)
     const latestError = useRef(onUnavailable)
     const [error, setError] = useState(null)
     const [showIds, setShowIds] = useState(false)
     latestClick.current = onCellSelect
     latestSnapshot.current = snapshot
+    latestIds.current = showIds
     latestError.current = onUnavailable
 
     useEffect(() => {
@@ -28,7 +30,7 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable }) {
             )
             scene.current = instance
             instance.update(latestSnapshot.current)
-            instance.toggleIds(showIds)
+            instance.toggleIds(latestIds.current)
         }).catch((cause) => {
             if (cancelled) return
             const message = 'The 3D board could not be loaded: ' + (cause?.message || 'Unknown error')
