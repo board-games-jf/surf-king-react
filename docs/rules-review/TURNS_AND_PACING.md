@@ -37,6 +37,22 @@ From `src/game/SurfKingGame.js`:
 
 **Trade-off:** Mandatory movement can force an undesirable move (backward, onto a hazard) and does not prevent intentionally alternating between two cells. A later review should assess a finite round cap or another end-of-game fallback rather than assuming P-01 solves *all* stalls.
 
+## Revision after owner feedback: do not offer a voluntary Rest action (P-02, not approved)
+
+**Owner concern:** Is even an optional rest mechanic needed? Could stopping be restricted to card effects, or removed entirely? Would it help the pace?
+
+**Assistant recommendation:** **Do not expose Rest / voluntary passing as a selectable movement-stage action.**
+
+- With energy and a valid edge-sharing maneuver: **must move**. Playing cards and drop-in attacks remain optional.
+- At **zero energy**: allow **automatic recovery**, not a player-chosen rest. Otherwise, the existing one-energy-per-movement cost and four-energy maximum can strand a surfer after a few moves, particularly if no usable energy card is available. The exact amount and timing of recovery are **pending separate balancing review**.
+- If a temporary card/status effect **prevents movement**, apply its status automatically; the player does not choose to stop and does **not automatically earn an extra energy reward** for being immobilized.
+- If every neighboring destination is blocked by occupancy, stones, or another rule, the game must not require an illegal move. Whether this is a temporary auto-skipped maneuver or demands an escape rule is **still open**. Do not pretend P-02 alone solves positional deadlocks.
+- **Do not award +1 energy merely for declining a legal maneuver.** That behavior is part of the present implementation but should not define the proposed system.
+
+**Trade-off:** Preserves forced pacing while recognizing that energy exhaustion and involuntary immobilization still need recovery paths. Mandatory movement in six directions can still produce deliberate back-and-forth loops. Review a round cap / objective pressure later.
+
+**Status:** P-01's optional rest is **superseded as a recommendation by P-02**, not by an owner-approved rule. The next decision is whether to remove voluntary movement-stage passing altogether.
+
 ## Deferred questions
 
 - Should there also be a maximum number of rounds with a fallback winner if players avoid victory?
@@ -45,9 +61,9 @@ From `src/game/SurfKingGame.js`:
 
 ## One next question
 
-**Does the owner want to approve Proposal P-01: mandatory normal movement whenever the surfer has energy and at least one legal destination, with resting only when movement is impossible?**
+**Does the owner agree with assistant Proposal P-02: no voluntary Rest/skip during the movement stage; automatically recover when energy is zero; automatically respect card-imposed immobilization without bonus energy?**
 
-**Status:** Awaiting owner response.
+**Status:** Awaiting owner response. Automatic recovery amount/timing, physically blocked destinations and eventual time limit remain separate unresolved topics.
 
 ## Implementation boundary
 
