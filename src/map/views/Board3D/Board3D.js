@@ -1,19 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 // The heavy Three.js scene is imported only after the 3D view is selected.
-export default function Board3D({ snapshot, onCellSelect, onUnavailable }) {
+export default function Board3D({ snapshot, onCellSelect, onUnavailable, focusCellId = null }) {
     const container = useRef(null)
     const scene = useRef(null)
     const latestClick = useRef(onCellSelect)
     const latestSnapshot = useRef(snapshot)
     const latestIds = useRef(true)
     const latestError = useRef(onUnavailable)
+    const latestFocus = useRef(focusCellId)
     const [error, setError] = useState(null)
     const [showIds, setShowIds] = useState(true)
     latestClick.current = onCellSelect
     latestSnapshot.current = snapshot
     latestIds.current = showIds
     latestError.current = onUnavailable
+    latestFocus.current = focusCellId
 
     useEffect(() => {
         let cancelled = false
@@ -31,6 +33,7 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable }) {
             scene.current = instance
             instance.update(latestSnapshot.current)
             instance.toggleIds(latestIds.current)
+            if (Number.isInteger(latestFocus.current)) instance.focusCell(latestFocus.current)
         }).catch((cause) => {
             if (cancelled) return
             const message = 'The 3D board could not be loaded: ' + (cause?.message || 'Unknown error')
@@ -53,6 +56,10 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable }) {
     useEffect(() => {
         if (scene.current) scene.current.toggleIds(showIds)
     }, [showIds])
+
+    useEffect(() => {
+        if (Number.isInteger(focusCellId)) scene.current?.focusCell(focusCellId)
+    }, [focusCellId])
 
     return (
         <div className="surf-scene">

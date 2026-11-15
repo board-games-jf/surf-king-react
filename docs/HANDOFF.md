@@ -20,6 +20,14 @@
 - These are approximate 3D interpretations of approved illustration concepts; no generated image or external 3D file is embedded.
 - [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) / [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12) contain a separate rules review. Keep its decisions separate from visual work.
 
+## Pending showroom prototype (Issue #15)
+
+- Branch `feat/15-interactive-board-catalog`: standalone `/#/catalog` page under review, **not merged or deployed**.
+- Reuses the exact live `Board3D` component, 53 hex geometry, surf models, five obstacle constructors and coastal scenery.
+- Fixture starts with one of each obstacle and two surfers in **illustrative** positions; tools inspect, place, replace and erase without touching `boardgame.io` gameplay state.
+- Selected hex can be focused with the existing 3D camera controls; original game view remains unchanged when no focus prop is supplied.
+- Unit tests added for fixture placement and invariants. Pure fixture operations passed an independent V8 smoke check with a 53-item layout stub. Jest/build/real browser tests were **not executed** in this session.
+
 ## Validation
 
 - Modified non-JSX JavaScript syntax was checked successfully.
@@ -30,7 +38,7 @@
 
 ## Next action
 
-1. Install dependencies and run Jest and the production build on the current main.
-2. Open `/#/obstacles`, inspect the five models in real WebGL and play a local match in 3D to verify obstacle placement, expiry, overlays and the 2D fallback.
-3. Resolve any rendering defects in a focused follow-up issue/PR; keep Issue #13 open until its runtime acceptance checks are verified.
+1. Install dependencies, run Jest/build for Issue #15, and test the `/#/catalog` showroom in a real WebGL browser.
+2. Verify showroom placement, cell focus, reset/clear and mobile controls, then inspect a live local 3D match, obstacle expiry and the 2D fallback.
+3. Review the Issue #15 draft PR. Keep Issues #13 and #15 open until their respective browser and functional acceptance checks are verified.
 4. **The owner authorized merging PR #14 on 2026-11-15; no deployment authorization was granted.**

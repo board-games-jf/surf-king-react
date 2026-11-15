@@ -42,6 +42,21 @@ flowchart LR
 - The `/obstacles` route previews exactly these factories in a separate WebGL scene without modifying game state.
 - Player models and coastal scenery continue using the existing `surfModels.js` and `createCoastalScenery.js` code.
 
+## Interactive 3D board catalog (Issue #15, draft)
+
+The standalone `/#/catalog` route uses the existing `Board3D` component rather than an independent renderer. A pure `catalogState.js` fixture creates 53 cells, model placements, surfer positions and a public snapshot matching the renderer contract. Its click tools operate only on local React state, not the real `boardgame.io` match.
+
+```mermaid
+flowchart LR
+  Tools[Catalog palette and fixture] --> Snapshot[Renderer-compatible snapshot]
+  Snapshot --> Board3D[Existing Board3D]
+  Board3D --> Scene[Existing createScene]
+  Scene --> Models[Shared obstacle, surfer and scenery models]
+  Scene --> Camera[Optional focusCell camera API]
+```
+
+This is a visual design sandbox with illustrative placements, not an alternate rules engine or authoritative gameplay state. Actual browser validation is pending and the feature is not yet merged or deployed.
+
 ## Limits and validation
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.

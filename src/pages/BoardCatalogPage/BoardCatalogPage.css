@@ -1,0 +1,130 @@
+.board-catalog {
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding: 14px;
+  background: #deeeeb;
+  color: #173f42;
+  font-family: inherit;
+}
+.board-catalog * { box-sizing: border-box; }
+.board-catalog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 auto 12px;
+  max-width: 1540px;
+}
+.board-catalog-header a { color: #175d61; font-weight: 650; }
+.board-catalog-header h1 { font-size: clamp(21px, 3vw, 30px); margin: 3px 0; }
+.board-catalog-header p { font-size: 13px; margin: 2px 0; }
+.board-catalog-header-links { display: flex; gap: 14px; font-size: 13px; }
+.board-catalog-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 12px;
+  max-width: 1540px;
+  margin: auto;
+}
+.board-catalog-stage {
+  height: min(78dvh, 880px);
+  min-height: 440px;
+  overflow: hidden;
+  border-radius: 16px;
+  position: relative;
+  background: #c8e8e5;
+  border: 1px solid #98c9be;
+}
+.board-catalog-stage .surf-scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.board-catalog-stage .surf-map-controls {
+  position: absolute;
+  z-index: 2;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 5px;
+  background: #f4f8e9eb;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px #173d3633;
+}
+.board-catalog-stage .surf-orbit-controls { top: 55px; }
+.board-catalog button { font: inherit; cursor: pointer; }
+.board-catalog-stage .surf-map-controls button {
+  background: none;
+  color: #215948;
+  border: 0;
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+.board-catalog-stage .surf-map-controls button[aria-pressed="true"] {
+  background: #215948;
+  color: white;
+}
+.board-catalog-panel {
+  padding: 15px;
+  border-radius: 16px;
+  background: #f6faf4;
+  border: 1px solid #b5d8cf;
+  overflow-y: auto;
+  max-height: min(78dvh, 880px);
+  font-size: 13px;
+}
+.board-catalog-panel h2 { font-size: 17px; margin: 0 0 5px; }
+.board-catalog-panel h3 { font-size: 15px; margin: 8px 0; }
+.board-catalog-panel p { margin: 0 0 12px; line-height: 1.4; }
+.board-catalog-tools { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+.board-catalog-tools button,
+.board-catalog-actions button,
+.board-catalog-location button {
+  border: 1px solid #a6c8bd;
+  border-radius: 9px;
+  padding: 9px;
+  background: #fff;
+  color: #1f5353;
+}
+.board-catalog-tools button[aria-pressed="true"] { background: #1d615e; border-color: #1d615e; color: #fff; }
+.board-catalog-surfer { display: grid; gap: 5px; margin-top: 11px; }
+.board-catalog-surfer select { min-height: 38px; border-radius: 8px; padding: 6px; border: 1px solid #a6c8bd; background: #fff; color: #173f42; }
+.board-catalog-selected { margin: 12px 0; padding: 10px; background: #e0f1ea; border-radius: 8px; font-weight: 600; }
+.board-catalog-actions { display: flex; gap: 7px; }
+.board-catalog-actions button { flex: 1; padding: 8px 5px; }
+.board-catalog-divider { height: 1px; background: #cadbd4; margin: 14px 0; }
+.board-catalog-help { font-size: 12px; color: #446760; }
+.board-catalog-locations { display: grid; gap: 5px; }
+.board-catalog-location { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.board-catalog-location button { padding: 6px 9px; }
+.board-catalog-muted { color: #71857e; }
+.board-catalog-disclaimer { margin-top: 14px !important; font-size: 11px; color: #5b756e; }
+.board-catalog-error {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  background: #fff2ef;
+  color: #9b3125;
+  border-radius: 8px;
+  padding: 10px;
+  z-index: 4;
+}
+@media (max-width: 820px) {
+  .board-catalog { padding: 9px; }
+  .board-catalog-layout { grid-template-columns: 1fr; }
+  .board-catalog-stage { height: min(56dvh, 620px); min-height: 320px; }
+  .board-catalog-panel { max-height: none; }
+  .board-catalog-tools { grid-template-columns: repeat(4, minmax(0,1fr)); }
+  .board-catalog-stage .surf-map-controls { gap: 2px; }
+}
+@media (max-width: 480px) {
+  .board-catalog-tools { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .board-catalog-stage .surf-map-controls button { padding: 5px; font-size: 11px; }
+  .board-catalog-stage .surf-orbit-controls { top: 51px; }
+}

@@ -33,5 +33,6 @@
     "player_controls.player": "Player",
     "player_controls.player_stats": "{playerCellsCount} from {allCellsCount} occupied",
     "player_controls.roll_dices": "Roll Dices",
-    "player_controls.skip_turn": "Skip Turn"
+    "player_controls.skip_turn": "Skip Turn",
+    "home.catalog": "Catálogo do Tabuleiro 3D"
 }
