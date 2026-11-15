@@ -39,11 +39,11 @@
 - Displayed hex **18 → 15 is not a legal normal maneuver** in the current layout; they do not share an edge. Owner confirmed this example on 2026-11-15.
 - **Normal drop-in attack range is edge adjacency only:** the defender must occupy a hexagon sharing an edge with the attacker. Owner confirmed on 2026-11-15; dice and other attack conditions remain pending.
 - The collaboration process is progressive: one subject/question at a time, brief conversations, visuals as needed, no code implementation during rules review.
-- **Owner goal (2026-11-15):** rules should produce a fast, simple, fun game without indefinite stalls; the owner reports all players can skip repeatedly. **Assistant recommendation P-01**, not owner-approved: require a normal maneuver if one is legal, otherwise allow resting. See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
+- **Owner goal (2026-11-15):** game must be fast and avoid stalls; all players can currently skip. **Assistant recommendation P-02 (unapproved):** no voluntary Rest/skip during the maneuver stage; movement is mandatory when legal; at zero energy, recover automatically (amount/timing TBD); card-imposed immobility does not award rest energy. Supersedes P-01 as a proposal, not an owner decision. See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
 
 ## Next question
 
-**Should normal movement be mandatory whenever the player has energy and at least one legal destination, allowing rest only if no legal maneuver is possible?** This is assistant Proposal P-01, **not yet approved**. [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
+**Do we remove voluntary Rest/skip during the movement stage entirely?** Proposal P-02 (not yet approved): if movement is legal, movement is compulsory; if energy is zero, recover automatically; if a card makes movement impossible, apply the card effect without bonus rest energy. See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
 
 **Deferred:** The drop-in dice tie decision remains pending until we address the all-pass stalemate.
 
@@ -59,3 +59,4 @@ No gameplay code, production deployment, tests, or merger is authorized by this 
 - **2026-11-15:** Owner approved normal movement in any of the six directions, provided the two cells share an edge. Next topic: drop-in attack range.
 - **2026-11-15:** Owner approved drop-in only against an edge-adjacent opponent. Next topic: dice ties.
 - **2026-11-15:** Owner requested design guidance rather than repeated owner-only questions and raised an all-pass stalemate. Dice tie review deferred; assistant proposed compulsory maneuver when possible, not approved.
+- **2026-11-15:** Owner questioned whether optional Rest is needed at all. Assistant recommended removing selectable Rest (P-02), with automatic recovery at zero energy and automatic immobilization for card effects. Not approved; details remain open.
