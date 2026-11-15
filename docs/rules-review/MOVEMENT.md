@@ -10,7 +10,7 @@ The owner explicitly confirmed on 2026-11-15:
 
 > A normal move from **displayed hex 18 to displayed hex 15 is forbidden**.
 
-The cells do not share an edge on the current honeycomb. This example was later supplemented by an explicit owner decision on six-direction normal movement. It does **not** settle attack range, energy, obstacles, other restrictions, or special card-driven movement.
+The cells do not share an edge on the current honeycomb. This example was later supplemented by an explicit owner decision on six-direction normal movement. The attack-range question was subsequently confirmed separately: drop-in is also restricted to edge-sharing adjacent cells (see [ATTACK.md](ATTACK.md)). This still does **not** settle energy, obstacles, other restrictions, or special card-driven movement.
 
 The board shown to players is **1-based (1–53)**. The internal engine is **0-based (0–52)**. Thus the reported move corresponds to internal IDs **17 → 14**.
 
@@ -29,7 +29,7 @@ At the reviewed `main` baseline `6daa1705ff11d958a10cffd951eca9f5f2a1084c`:
 
 **Confirmed on 2026-11-15:** A surfer's **normal maneuver** may move **in any of the six directions**, including backward, **provided the destination shares an entire edge with the origin hex**. Edge and corner hexes have fewer than six adjacent cells.
 
-This approval covers **normal movement direction and geometric adjacency only**. Energy cost, occupancy, special card-driven movement, obstacles, and the range of **drop-in** attacks remain separate decisions. The corresponding range semantics for tsunami, cyclone, and cards must be decided separately.
+This approval covers **normal movement direction and geometric adjacency only**. Energy cost, occupancy, special card-driven movement and obstacles remain separate decisions. The range of **drop-in** was independently confirmed as edge adjacency; see [ATTACK.md](ATTACK.md). The range semantics for tsunami, cyclone, and cards must be decided separately.
 
 ## 4. Examples and status
 
@@ -38,23 +38,23 @@ This approval covers **normal movement direction and geometric adjacency only**.
 | **18 → 15** | **Owner-confirmed: forbidden** | Not edge-adjacent |
 | **18 → 21** | Direction and geometry permitted by owner-approved rule | Overall legality still depends on energy, occupancy, obstacles, and other conditions |
 
-## 5. Next question (new topic: drop-in attack range)
+## 5. Follow-up: attack range confirmed
 
-**Must a drop-in attack target an opponent in an edge-sharing neighboring hexagon, or can its range differ from normal movement?**
+**Confirmed on 2026-11-15:** Drop-in attacks, like normal movement, require the defender to be on an edge-sharing neighboring cell. This was explicitly confirmed in a separate interaction. See [ATTACK.md](ATTACK.md).
 
-**Status:** Pending owner response. Do not infer attack range from approved movement.
+**Next question:** Should equal attack and defense dice results favor the defender? Track this in [ATTACK.md](ATTACK.md).
 
 ## 6. Future implementation validation — only after rule approval
 
 Suggested checks, not actions authorized now:
 - Enumerate true edge neighbors for every one of the 53 cells.
 - Protect boundary/row transitions (including 18 → 15).
-- Validate normal movement and discuss attack adjacency separately.
+- Validate normal movement and attack adjacency against the separately confirmed edge-neighbor rule.
 - Add regression tests for approved legal and illegal moves.
 - Preserve UI display labels and internal ID distinctions.
 
 ## 7. Conversation checkpoint — 2026-11-15
 
-Owner explicitly confirmed: "Normal movement may occur in all six directions, provided the hexagons share an edge." Recorded in Issue #11. No additional movement or attack restrictions were approved in this answer.
+Owner explicitly confirmed: "Normal movement may occur in all six directions, provided the hexagons share an edge." Recorded in Issue #11. The next owner answer separately confirmed drop-in range as edge adjacency; attack resolution remains open.
 
 **No gameplay code modified or tests run as part of this rules-review document.**
