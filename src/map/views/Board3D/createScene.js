@@ -29,16 +29,46 @@ export function createScene(container,onCellSelect,onError) {
   Object.assign(renderer.domElement.style, { display: 'block', width: '100%', height: '100%' })
   container.appendChild(renderer.domElement)
   const controls = new OrbitControls(camera,renderer.domElement)
-  Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:false,zoomToCursor:true,minDistance:9,maxDistance:105})
+  Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
   controls.mouseButtons.LEFT = THREE.MOUSE.PAN
+  controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE
   controls.touches.ONE = THREE.TOUCH.PAN
-  controls.touches.TWO = THREE.TOUCH.DOLLY_PAN
-  const resetCamera = () => {
-    controls.target.set(0, 0, -2)
-    camera.position.set(10, 26, 34).multiplyScalar(Math.min(2.4, Math.max(1, .85 / camera.aspect))).add(controls.target)
-    controls.update()
+  controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE
+  const defaultTarget = new THREE.Vector3(0, 0, -2)
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+  let cameraTransition = null
+  const cameraOffset = () => new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target))
+  const defaultOffset = () => new THREE.Spherical().setFromVector3(
+    new THREE.Vector3(10, 26, 34).multiplyScalar(Math.min(2.4, Math.max(1, .85 / camera.aspect)))
+  )
+  function moveCamera(offset, target = controls.target) {
+    if (reducedMotion.matches) {
+      cameraTransition = null
+      controls.target.copy(target)
+      camera.position.setFromSpherical(offset).add(controls.target)
+      controls.update()
+      return
+    }
+    const from = cameraOffset()
+    const angle = offset.theta - from.theta
+    offset.theta = from.theta + Math.atan2(Math.sin(angle), Math.cos(angle))
+    cameraTransition = { from, offset, fromTarget: controls.target.clone(), target: target.clone(), start: performance.now() }
   }
-  resetCamera()
+  function animateCamera(now) {
+    if (!cameraTransition) return
+    const { from, offset, fromTarget, target, start } = cameraTransition
+    const t = THREE.MathUtils.clamp((now - start) / 300, 0, 1)
+    const eased = t * t * (3 - 2 * t)
+    controls.target.lerpVectors(fromTarget, target, eased)
+    camera.position.setFromSphericalCoords(
+      THREE.MathUtils.lerp(from.radius, offset.radius, eased),
+      THREE.MathUtils.lerp(from.phi, offset.phi, eased),
+      THREE.MathUtils.lerp(from.theta, offset.theta, eased)
+    ).add(controls.target)
+    if (t === 1) cameraTransition = null
+  }
+  controls.addEventListener('start', () => { cameraTransition = null })
+  const resetCamera = () => moveCamera(defaultOffset(), defaultTarget)
   const animateScenery = createCoastalScenery(scene)
   const materials=new Map()
   function mat(color,opts={}){const key=color+JSON.stringify(opts);if(!materials.has(key))materials.set(key,new THREE.MeshStandardMaterial({color,roughness:.76,...opts}));return materials.get(key)}
@@ -104,14 +134,36 @@ export function createScene(container,onCellSelect,onError) {
   function positionRing(ring,id){const cell=Number.isInteger(id)?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2()
   function pick(event){const box=renderer.domElement.getBoundingClientRect();if(!box.width||!box.height)return null;pointer.set((event.clientX-box.left)/box.width*2-1,-(event.clientY-box.top)/box.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets,false)[0]?.object.userData.cellId??null}
-  let start=null
-  function move(e){const id=pick(e);positionRing(hovered,id);renderer.domElement.style.cursor=id===null?'grab':'pointer'}
-  function down(e){start={x:e.clientX,y:e.clientY}}
-  function up(e){if(start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)<6){const id=pick(e);if(id!==null)onCellSelect(id)}start=null}
+  let start = null
+  const pressedPointers = new Set()
+  function move(e) {
+    if (start && e.pointerId === start.id && Math.hypot(e.clientX - start.x, e.clientY - start.y) >= 6) start = null
+    const id = pick(e)
+    positionRing(hovered, id)
+    renderer.domElement.style.cursor = id === null ? 'grab' : 'pointer'
+  }
+  function down(e) {
+    pressedPointers.add(e.pointerId)
+    start = pressedPointers.size === 1 && e.button === 0 && !e.shiftKey && !e.ctrlKey && !e.metaKey
+      ? { id: e.pointerId, x: e.clientX, y: e.clientY } : null
+  }
+  function cancel(e) {
+    pressedPointers.delete(e.pointerId)
+    start = null
+  }
+  function up(e) {
+    const isTap = start?.id === e.pointerId && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6
+    cancel(e)
+    if (isTap) {
+      const id = pick(e)
+      if (id !== null) onCellSelect(id)
+    }
+  }
   function leave(){positionRing(hovered,null)}
   renderer.domElement.addEventListener('pointermove',move)
   renderer.domElement.addEventListener('pointerdown',down)
   renderer.domElement.addEventListener('pointerup',up)
+  renderer.domElement.addEventListener('pointercancel',cancel)
   renderer.domElement.addEventListener('pointerleave',leave)
   const playerColors=[colors.orange,colors.coral,colors.teal,colors.blue,'#e4c45a','#b17bb6','#83c16e']
   const actors=new Map(),obstacles=new Map()
@@ -174,6 +226,7 @@ export function createScene(container,onCellSelect,onError) {
     animateScenery(elapsed)
     for(const a of actors.values()){if(a.from&&a.to){a.t=Math.min(1,a.t+dt*2);const t=a.t*a.t*(3-2*a.t);a.g.position.lerpVectors(a.from,a.to,t);if(a.t===1){a.from=null;a.to=null}}a.g.position.y=.13+Math.sin(elapsed*1.6+Number(a.id))*.015;const bank=Math.sin(elapsed*1.2+Number(a.id))*.045;a.g.rotation.z=bank;a.animate(elapsed,Number(a.id),bank)}
     for(const g of obstacles.values())g.userData.animate?.(elapsed)
+    animateCamera(now)
     controls.update();renderer.render(scene,camera);raf=requestAnimationFrame(frame)
   }
   function resize(){const width=Math.max(container.clientWidth,1),height=Math.max(container.clientHeight,1);camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setSize(width,height,false)}
@@ -181,12 +234,24 @@ export function createScene(container,onCellSelect,onError) {
   if(typeof ResizeObserver!=='undefined'){observer=new ResizeObserver(resize);observer.observe(container)}else window.addEventListener('resize',resize)
   function contextLost(e){e.preventDefault();if(onError)onError('WebGL context lost. Switch back to 2D.')}
   renderer.domElement.addEventListener('webglcontextlost',contextLost)
-  resize();resetCamera();raf=requestAnimationFrame(frame)
+  resize()
+  controls.target.copy(defaultTarget)
+  camera.position.setFromSpherical(defaultOffset()).add(controls.target)
+  controls.update()
+  raf = requestAnimationFrame(frame)
+
   function zoom(scale) {
-    const offset = camera.position.clone().sub(controls.target)
-    offset.setLength(THREE.MathUtils.clamp(offset.length() * scale, controls.minDistance, controls.maxDistance))
-    camera.position.copy(controls.target).add(offset)
-    controls.update()
+    const offset = cameraTransition?.offset.clone() ?? cameraOffset()
+    offset.radius = THREE.MathUtils.clamp(offset.radius * scale, controls.minDistance, controls.maxDistance)
+    moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();const geometries=new Set(),mats=new Set();scene.traverse(o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))});geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});wakeMaterial.dispose();renderer.dispose();renderer.domElement.remove()}}
+  function orbit(azimuth, inclination) {
+    const offset = cameraTransition?.offset.clone() ?? cameraOffset()
+    offset.theta += azimuth
+    offset.phi = THREE.MathUtils.clamp(
+      offset.phi + inclination, controls.minPolarAngle, controls.maxPolarAngle
+    )
+    moveCamera(offset, cameraTransition?.target)
+  }
+  return {update,resetCamera,zoom,orbit,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();const geometries=new Set(),mats=new Set();scene.traverse(o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))});geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});wakeMaterial.dispose();renderer.dispose();renderer.domElement.remove()}}
 }

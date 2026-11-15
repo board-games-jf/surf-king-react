@@ -52,6 +52,7 @@
 
 .surf-map-toolbar { left: 8px; }
 .surf-map-controls { right: 8px; }
+.surf-orbit-controls { top: 54px; }
 
 .surf-match button {
     font: inherit;

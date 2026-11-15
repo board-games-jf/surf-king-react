@@ -63,6 +63,12 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable }) {
                 <button type="button" aria-label="Zoom out" onClick={() => scene.current?.zoom(1.25)}>−</button>
                 <button type="button" aria-pressed={showIds} onClick={() => setShowIds(!showIds)}>Numbers</button>
             </div>
+            <div className="surf-map-controls surf-orbit-controls" role="group" aria-label="3D camera orientation">
+                <button type="button" aria-label="Rotate left" title="Rotate left" onClick={() => scene.current?.orbit(-Math.PI / 8, 0)}>↶</button>
+                <button type="button" aria-label="Rotate right" title="Rotate right" onClick={() => scene.current?.orbit(Math.PI / 8, 0)}>↷</button>
+                <button type="button" aria-label="Tilt toward horizon" title="Tilt toward horizon" onClick={() => scene.current?.orbit(0, Math.PI / 12)}>↑</button>
+                <button type="button" aria-label="Tilt toward overhead" title="Tilt toward overhead" onClick={() => scene.current?.orbit(0, -Math.PI / 12)}>↓</button>
+            </div>
             {error && <div role="alert" style={{ position: 'absolute', bottom: 12, background: 'white' }}>{error}</div>}
         </div>
     )
