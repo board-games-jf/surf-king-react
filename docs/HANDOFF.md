@@ -26,7 +26,7 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 ## Active work
 
 - [Issue #7](https://github.com/board-games-jf/surf-king-react/issues/7): integrate the owner's visual 3D direction into the existing local boardgame.io match.
-- Branch `feat/7-live-3d-gameplay`: experimental 2D/3D selector, public state adapter, Three.js scene with camera controls, dynamic surfer/obstacle state, cell picking, and 2D fallback.
+- Branch `feat/7-live-3d-gameplay`: [draft PR #9](https://github.com/board-games-jf/surf-king-react/pull/9) proposes an experimental 2D/3D selector, public state adapter, Three.js scene with camera controls, dynamic surfer/obstacle state, cell picking, and 2D fallback.
 - [PR #8](https://github.com/board-games-jf/surf-king-react/pull/8) was merged into `main` at `4aed2822`. The new gameplay branch is unmerged and is not a deployed release.
 - No application Jest suite, full build, or live WebGL gameplay session has been verified. Keep these as review gates, not completed work.
 
