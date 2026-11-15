@@ -125,7 +125,7 @@ const Board = ({ G, ctx, moves }) => {
 
         return (
             <text x="50%" y="50%" fontSize={80} style={{ fill: 'white' }} textAnchor="middle">
-                {cellPosition}
+                {cellPosition + 1}
             </text>
         )
     }

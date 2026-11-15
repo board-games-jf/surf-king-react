@@ -649,24 +649,25 @@ export const dropIn = (G, ctx, targetCellPosition) => {
     currentPlayer.shouldReceiveCard = true
 }
 
+export const canManeuver = (G, ctx, from, to) => {
+    const player = G.players?.[ctx?.currentPlayer]
+    const destination = G.cells[to]
+
+    return G.currentMove === MOVE_MANEUVER &&
+        !!player && !!destination &&
+        !player.blocked && player.energy > 0 &&
+        !isFallOfTheBoard(getTurn(G, ctx), player) &&
+        (!destination.player || isFallOfTheBoard(getTurn(G, ctx), G.players[destination.player.position])) &&
+        destination.obstacle?.Name !== CardStone.Name &&
+        isCloseTo(to, from)
+}
+
 export const maneuver = (G, ctx, from, to) => {
-    if (G.currentMove !== MOVE_MANEUVER) {
+    if (!canManeuver(G, ctx, from, to)) {
         return INVALID_MOVE
     }
 
     const currentPlayer = G.players[ctx.currentPlayer]
-
-    if (
-        currentPlayer.blocked ||
-        currentPlayer.energy === 0 ||
-        isFallOfTheBoard(getTurn(G, ctx), currentPlayer) ||
-        (G.cells[to].player && !isFallOfTheBoard(getTurn(G, ctx), G.players[G.cells[to].player.position])) ||
-        G.cells[to].obstacle?.Name === CardStone.Name ||
-        !isCloseTo(to, from)
-    ) {
-        return INVALID_MOVE
-    }
-
     const hasCardBottledWater = currentPlayer.activeCard.find((card) => card.Name === CardBottledWater.Name)
 
     if (G.cells[to].player && isFallOfTheBoard(getTurn(G, ctx), G.players[G.cells[to].player.position])) {

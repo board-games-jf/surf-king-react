@@ -32,7 +32,8 @@ describe('Surf King engine cell to 3D layout mapping', () => {
     test('preserves representative engine index offsets without redefining legal moves', () => {
         for (let id = 0; id + 7 < 53; id++) {
             expect(getBoardCellById(id + 7).x).toBe(getBoardCellById(id).x)
-            expect(getBoardCellById(id + 7).z).toBeLessThan(getBoardCellById(id).z)
+            expect(getBoardCellById(id).z - getBoardCellById(id + 7).z)
+                .toBeCloseTo(Math.sqrt(3) * manifest.hexRadius, 8)
         }
         ;[[0, 4], [1, 4], [4, 7], [4, 8]].forEach(([from, to]) => {
             expect(getBoardCellById(to).z).toBeLessThan(getBoardCellById(from).z)

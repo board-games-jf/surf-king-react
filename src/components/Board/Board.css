@@ -26,16 +26,9 @@
     container-type: size;
 }
 
-.surf-map-2d > div {
-    padding: 0;
-}
-
-.surf-map-2d > div > div > svg {
-    width: min(94px, 11.5cqw, 13cqh);
-}
-
-.surf-map-2d > div > div:nth-child(n+2) {
-    margin-top: calc(min(94px, 11.5cqw, 13cqh) * -.29);
+.surf-map-2d > svg {
+    width: 96%;
+    height: 96%;
 }
 
 .surf-map-toolbar, .surf-map-controls {

@@ -12,7 +12,7 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 - A local `boardgame.io` client in `src/pages/LocalPage/index.js`. Online and AI routes are commented out.
 - A separate `boardgame.io` server entry point at `src/server/index.js`; its production readiness and use by the frontend are not established.
 - Game state and rules in `src/game/SurfKingGame.js`, including 53 logical cells, cards, turns, energy, moves, attacks, obstacles, and win conditions.
-- SVG hex board and interactions in `src/components/Board/` and `src/components/HexGrid/`. The visual grid uses 56 placeholder items; verify its mapping to 53 logical cells.
+- The local 2D and 3D views use the same 53 cell IDs and centers. Flat-top hexes share an edge along the straight maneuver direction. Browser verification of the updated 2D view is pending.
 - 21 test files exist (20 game-focused and one app test). None has been executed in this recovery effort.
 
 ## Latest relevant main commits

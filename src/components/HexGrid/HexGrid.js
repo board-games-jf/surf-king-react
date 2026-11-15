@@ -1,65 +1,51 @@
-import React, { useState } from 'react'
-import { strokeWidth, Hex } from '../Hex'
-import { Wrapper, Row, defaultGridWidth, hexWidth } from './HexGrid.style'
+import React, { useId } from 'react'
+import { BOARD_LAYOUT } from '../../map/layout/boardLayout'
+import manifest from '../../map/layout/board-layout.json'
+import { seaColor } from '../../constants/Colors'
 
-// TODO: Move to a helper file
-// const positionToHexCoords = () => {
-//   const coords = [];
-//   const n = [0, 2, 4, 6, 1, 3, 5];
-//   let j = 0;
-//   for (let i = 0; i < 53; i++) {
-//     coords.push(n[i % 7] + "," + j)
-//     if ((i + 1) % 7 === 0) {
-//       j++
-//     }
-//   }
-//   return coords
-// }
+const radius = manifest.hexRadius
+const halfHeight = Math.sqrt(3) * radius / 2
+const points = [
+    [radius, 0], [radius / 2, halfHeight], [-radius / 2, halfHeight],
+    [-radius, 0], [-radius / 2, -halfHeight], [radius / 2, -halfHeight],
+].map((point) => point.join(',')).join(' ')
+const halfWidth = Math.max(...BOARD_LAYOUT.map(({ x }) => Math.abs(x))) + radius + .06
+const halfDepth = Math.max(...BOARD_LAYOUT.map(({ z }) => Math.abs(z))) + halfHeight + .06
 
-// TODO: Move to a helper file
-const hexCoordToPosition = (coord) => {
-    const n = [0, 2, 4, 6, 1, 3, 5]
-    const i = n.indexOf(parseInt(coord.split(',')[0]))
-    const j = parseInt(coord.split(',')[1])
-    return i + j * 7
-}
-
-const HexGrid = (props) => {
-    const [gridWidth] = useState(defaultGridWidth)
-
-    const buildRow = (hexesPerRow, index) => {
-        const even = (index / hexesPerRow) % 2 === 0
-        const sliceEnd = even ? hexesPerRow : hexesPerRow - 1
-        return hexes.slice(index, index + sliceEnd)
-    }
-
-    const getRows = (hexes) => {
-        const hexesPerRow = Math.floor(gridWidth / (hexWidth + strokeWidth))
-        const rows = hexes.map((_, index) => (index % hexesPerRow === 0 ? buildRow(hexesPerRow, index) : null))
-        return rows.filter((item) => item)
-    }
-
-    const hexes = new Array(56).fill(0)
-    const rows = getRows(hexes)
+const HexGrid = ({ cellProps, renderCell, onHexClick, getRef }) => {
+    const gridId = useId()
 
     return (
-        <Wrapper innerRef={(elem) => props.getRef?.(elem)}>
-            {rows.map((row, rowIndex) => (
-                <Row key={rowIndex}>
-                    {row.map((_, colIndex) => (
-                        <Hex
-                            key={colIndex}
-                            onClick={() =>
-                                props.onHexClick({ position: hexCoordToPosition(`${rowIndex},${colIndex}`) })
-                            }
-                            {...props.cellProps(hexCoordToPosition(`${rowIndex},${colIndex}`))}
-                        >
-                            {props.renderCell(hexCoordToPosition(`${rowIndex},${colIndex}`))}
-                        </Hex>
-                    ))}
-                </Row>
-            ))}
-        </Wrapper>
+        <svg ref={getRef} viewBox={[-halfWidth, -halfDepth, 2 * halfWidth, 2 * halfDepth].join(' ')}>
+            {BOARD_LAYOUT.map(({ id, x, z }) => {
+                const { backgroundImage, style } = cellProps(id)
+                const patternId = `${gridId}-cell-${id}`
+
+                return (
+                    <g key={id} transform={`translate(${x} ${z})`}>
+                        {backgroundImage && (
+                            <defs>
+                                <pattern id={patternId} width="1" height="1" patternContentUnits="objectBoundingBox">
+                                    <image href={backgroundImage} width="1" height="1" />
+                                </pattern>
+                            </defs>
+                        )}
+                        <polygon
+                            points={points}
+                            fill={backgroundImage ? `url(#${patternId})` : seaColor}
+                            stroke="#d4f1eb"
+                            strokeWidth=".045"
+                            style={style}
+                            onClick={() => onHexClick({ position: id })}
+                        />
+                        <svg x={-radius} y={-halfHeight} width={2 * radius} height={2 * halfHeight}
+                            viewBox="0 0 400 340" style={{ pointerEvents: 'none' }}>
+                            {renderCell(id)}
+                        </svg>
+                    </g>
+                )
+            })}
+        </svg>
     )
 }
 
