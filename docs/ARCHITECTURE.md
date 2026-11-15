@@ -1,6 +1,6 @@
 # Architecture
 
-**Verified main baseline:** `6daa1705` (2026-11-15). Descriptions of PR #14 below refer to an **unmerged branch**, not the deployed app.
+**Reference main baseline before PR #14:** `6daa1705` (2026-11-15). Deployment status is not established by merge state.
 
 ## Existing browser architecture (C4-style L2)
 
@@ -23,7 +23,7 @@ flowchart TB
 - `src/map/views/Board3D/createScene.js` controls camera, cell raycast, scene updates, animation, cleanup and live obstacle groups.
 - Gameplay rules and scoring remain inside `src/game/SurfKingGame.js`, not Three.js.
 
-## New obstacle component in draft PR #14 (L3)
+## 3D obstacle model component (PR #14, L3)
 
 ```mermaid
 flowchart LR
