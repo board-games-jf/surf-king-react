@@ -28,6 +28,11 @@ const HomePage = () => (
                 <DetachedText>{intl.get('home.local')}</DetachedText>
             </DetachedFab>
         </Item>
+        <Item>
+            <DetachedFab variant="extended" component={Link} to="/obstacles">
+                <DetachedText>{intl.get('home.obstacles')}</DetachedText>
+            </DetachedFab>
+        </Item>
     </Container>
 )
 

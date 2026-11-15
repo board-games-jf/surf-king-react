@@ -1,56 +1,36 @@
 # Project Handoff
 
-**Last verified:** 2026-11-15
-**Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Verified `main` commit:** `4aed28226bed07477ee92377174373600aee47a4` (2026-11-15; provisional layout PR #8 merged)
+**Verified on GitHub:** 2026-11-15
+**Official repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
+**Pre-PR #14 `main` commit:** `6daa1705ff11d958a10cffd951eca9f5f2a1084c` (shared 2D/3D hex adjacency, PR #10).
 
-This is a static recovery snapshot. Check GitHub for new commits, open Issues, Pull Requests, and deployed systems at the start of every task.
+## Existing gameplay and 3D baseline
 
-## Implemented code (runtime not yet verified)
+- React 18 / CRA 5 and local `boardgame.io` client; online and AI routes are disabled.
+- The game engine in `src/game/SurfKingGame.js` manages 53 cells, turns, cards, obstacles, and victory.
+- The shared 2D/3D layout uses 53 cell IDs and a provisional coordinate manifest.
+- The live Three.js board and 2D/3D switching entered `main` in PR #9. 3D shows actual players and obstacles from a public snapshot, without changing rules.
+- Application Jest tests, production build, and WebGL browser behavior have not been reverified in this session.
 
-- React 18 / Create React App 5 with JavaScript and routing in `src/Routes.js`.
-- A local `boardgame.io` client in `src/pages/LocalPage/index.js`. Online and AI routes are commented out.
-- A separate `boardgame.io` server entry point at `src/server/index.js`; its production readiness and use by the frontend are not established.
-- Game state and rules in `src/game/SurfKingGame.js`, including 53 logical cells, cards, turns, energy, moves, attacks, obstacles, and win conditions.
-- The local 2D and 3D views use the same 53 cell IDs and centers. Flat-top hexes share an edge along the straight maneuver direction. Browser verification of the updated 2D view is pending.
-- 21 test files exist (20 game-focused and one app test). None has been executed in this recovery effort.
+## Obstacle refinement (PR #14)
 
-## Latest relevant main commits
+- [Issue #13](https://github.com/board-games-jf/surf-king-react/issues/13) / [PR #14](https://github.com/board-games-jf/surf-king-react/pull/14), refines the five live Three.js obstacles with procedural meshes. Check the PR for its current merge status.
+- The live Three.js scene uses `obstacleModels.js` for Shark, Stone, Island, Storm and Cyclone.
+- An in-app `/obstacles` gallery reuses those same models for rotation, zoom and per-type review without creating a match.
+- These are approximate 3D interpretations of approved illustration concepts; no generated image or external 3D file is embedded.
+- [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) / [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12) contain a separate rules review. Keep its decisions separate from visual work.
 
-- `4aed2822` (2026-11-15): provisional 53-cell mapping PR #8 merged; no game runtime changes.
-- `53dc315c` (2026-11-14): map rendering contract PR #6 merged; no runtime changes.
-- `aff1274b` (2026-11-14): governance PR #4 merged; no application runtime changes.
-- `76f1a673` (2022-09-25): cyclone-related win condition.
-- `e712de158` (2022-09-22): card replenishment fix.
+## Validation
 
-## Active work
+- Modified non-JSX JavaScript syntax was checked successfully.
+- Mocked-Three.js obstacle factory construction and update checks passed for all five types.
+- Jest geometry/bounds checks were added but **not executed**; there are no installed application dependencies available for a full test/build here.
+- Real WebGL appearance, performance, mobile scaling, gallery interaction and in-game obstacle effects are **not yet verified**.
+- Legacy `loadsh` dependency typo, original rulebook and canonical board layout are unresolved and outside this visual-only PR.
 
-- [Issue #7](https://github.com/board-games-jf/surf-king-react/issues/7): integrate the owner's visual 3D direction into the existing local boardgame.io match.
-- Branch `feat/7-live-3d-gameplay`: [draft PR #9](https://github.com/board-games-jf/surf-king-react/pull/9) proposes an experimental 2D/3D selector, public state adapter, Three.js scene with camera controls, dynamic surfer/obstacle state, cell picking, and 2D fallback.
-- [PR #8](https://github.com/board-games-jf/surf-king-react/pull/8) was merged into `main` at `4aed2822`. The new gameplay branch is unmerged and is not a deployed release.
-- No application Jest suite, full build, or live WebGL gameplay session has been verified. Keep these as review gates, not completed work.
+## Next action
 
-## Blockers and validation gaps
-
-- The canonical rulebook and original Figma source have not been verified against this repository.
-- The standalone Three.js visual ZIP uses provisional cell numbering and fixture-based obstacle placements; its layout is not an authoritative game-state mapping.
-- `package.json` names `loadsh` while the engine imports `lodash`; actual dependency failure is untested.
-- Docker uses Node 16.17 and starts the client only. Server connectivity and hosting are not validated.
-- Stone card initial `RemaningTurn` value is 3; reconcile with the approved four-round rule before changing behavior.
-- No GitHub Actions workflows, shipped 3D models, or verified online hosting were found in the repository tree.
-- Authentication, persistence, reconnection, and multiplayer authority are not established.
-- MVP acceptance criteria and exclusions still require product-owner approval.
-
-## Integration validation still required
-
-- Run the CRA/Jest suite and production build after installing the pinned Three.js dependency, and test WebGL in actual desktop/mobile browsers.
-- Verify the provisional engine-ID-to-layout mapping against the approved original board, including clickable hex positions.
-- Check visual accuracy against the uploaded ZIP. This first gameplay-focused port reuses its coastal art direction but does not reproduce every visual detail or animation.
-- Review gameplay flows for movement, drop-in, all card targets, obstacle timers and winning moves before requesting a merge.
-- The server, lobby, online multiplayer and deployment remain unchanged.
-
-## Next smallest action
-
-1. Install dependencies in a compatible React 18 / CRA environment and run the full Jest suite and production build.
-2. Manually verify the selected game cell matches the approved 2D/3D layout, then play movement, drop-in, each card target, and victory flows.
-3. Review the open gameplay integration PR, fix regressions, and request separate explicit owner authorization before any merge. Do not deploy.
+1. Install dependencies and run Jest and the production build on the current main.
+2. Open `/#/obstacles`, inspect the five models in real WebGL and play a local match in 3D to verify obstacle placement, expiry, overlays and the 2D fallback.
+3. Resolve any rendering defects in a focused follow-up issue/PR; keep Issue #13 open until its runtime acceptance checks are verified.
+4. **The owner authorized merging PR #14 on 2026-11-15; no deployment authorization was granted.**

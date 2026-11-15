@@ -1,68 +1,50 @@
 # Architecture
 
-**Verified code baseline:** application code at `76f1a673219cbc8be28fd97dc76c1ecabf3394f3`; governance-only merge advanced `main` to `aff1274b687ead0b595007960962133b7a4ce31a` on 2026-11-14. This is not evidence of running production services.
+**Reference main baseline before PR #14:** `6daa1705` (2026-11-15). Deployment status is not established by merge state.
 
-## Existing structure (C4-style container view, L2)
+## Existing browser architecture (C4-style L2)
 
 ```mermaid
 flowchart TB
-  User[Local player] --> Browser[React SPA - CRA 5]
-  Browser --> Router[React Router]
-  Router --> Local[Local boardgame.io client]
-  Local --> UI[SVG hex board and card UI]
-  Local --> Engine[SurfKingGame rules]
-  Server[Separate boardgame.io server entry point] --> Engine
+  Player[Local player] --> SPA[React SPA and HashRouter]
+  SPA --> Game[Local boardgame.io client]
+  Game --> Controller[Board controller]
+  Game --> Engine[SurfKingGame engine]
+  Controller --> SVG[2D SVG HexGrid]
+  Controller --> Snapshot[Public map snapshot adapter]
+  Snapshot --> Three[3D Three.js board]
+  Server[Separate server entry] --> Engine
 ```
 
-The local client does not connect to the server in the inspected source. The home page contains links for online and AI play, but their routes in `src/Routes.js` are disabled.
+- The local game client and standalone server entry do not establish live online multiplayer.
+- `src/components/Board/Board.js` owns UI actions, the selected 2D/3D view, and card handling.
+- `src/map/contract/createPublicMapSnapshot.js` exposes cell/obstacle positions, players and turn metadata to rendering, not private card/deck data.
+- Both 2D and 3D share `src/map/layout/board-layout.json` (53 cells); authoritative geometry remains provisional.
+- `src/map/views/Board3D/createScene.js` controls camera, cell raycast, scene updates, animation, cleanup and live obstacle groups.
+- Gameplay rules and scoring remain inside `src/game/SurfKingGame.js`, not Three.js.
 
-## Existing components (L3 code boundaries)
-
-| Component | Location | State |
-| --- | --- | --- |
-| Routing | `src/Routes.js` | Home/local routes enabled |
-| Local client | `src/pages/LocalPage/index.js` | Instantiates `boardgame.io/react` client |
-| Game rules | `src/game/SurfKingGame.js`, `Board.js`, `Cards.js` | State, move, card and turn logic implemented, untested in recovery |
-| Board UI | `src/components/Board/`, `HexGrid/`, `Hex/` | SVG hexagons, clicks, card interactions |
-| Server | `src/server/index.js` | Standalone `boardgame.io` server and lobby configuration |
-| Tests | `src/game/__tests__/`, `src/App.test.js` | 21 files present; results unknown |
-
-## Current contracts
-
-- Game state (`G`) includes `cells`, `players`, `deck`, `discardedCards`, `turn` and `currentMove`.
-- `boardgame.io` context (`ctx`) and moves include `maneuver`, `dropIn`, `useCard`, and `pass`.
-- Logical positions are indices 0 through 52 (`GRID_SIZE = 53`). The grid UI currently creates 56 placeholder elements, and its cell mapping needs validation.
-- The current rules engine is coupled to `boardgame.io` APIs.
-
-## Target concept — proposed, not implemented (L2)
+## 3D obstacle model component (PR #14, L3)
 
 ```mermaid
 flowchart LR
-  Player[Browser players] --> Web[React frontend and proposed 3D map]
-  Web <--> Multiplayer[Authoritative multiplayer server - TBD]
-  Multiplayer --> Rules[Shared game rules/state transitions]
-  Multiplayer <--> Persistence[(Persistence service - TBD)]
-  Web --> View[3D ocean, 53 hexes, waves, characters]
+  Snapshot[Public snapshot] --> Scene[Live 3D scene]
+  Scene --> Factory[createObstacleModel]
+  Gallery[Optional in-app model gallery] --> Factory
+  Factory --> Shark[Shark fin + water]
+  Factory --> Stone[Layered stone]
+  Factory --> Island[Sandy island + palm]
+  Factory --> Storm[Storm cloud + rain]
+  Factory --> Cyclone[Animated waterspout]
 ```
 
-Options being investigated: Three.js/React Three Fiber, continued `boardgame.io` or Nakama, and Vercel/Render/Supabase. Selection and integration are not established by this diagram.
+- `obstacleModels.js` builds Three.js meshes for the five existing obstacle identifiers; `sharkModel.js` remains the dedicated dorsal-fin component.
+- `createScene.js` instantiates the same factory from the authoritative public snapshot; no mock placements or image sprites are used in a match.
+- The `/obstacles` route previews exactly these factories in a separate WebGL scene without modifying game state.
+- Player models and coastal scenery continue using the existing `surfModels.js` and `createCoastalScenery.js` code.
 
-## Proposed interchangeable map views
+## Limits and validation
 
-Players should be able to switch between the existing 2D renderer and an independently developed 3D renderer without resetting the match or invoking game rules inside the view. See [MAP_RENDERING.md](MAP_RENDERING.md) for the proposed view-model interface, cell-ID mapping, mock preview, and asset integration requirements. This design is **not implemented**.
-
-## Candidate cell mapping for 3D (Issue #7)
-
-A provisional `src/map/layout/board-layout.json` manifest and pure lookup helpers map existing game indices 0–52 to world-space X/Z centers with 15 rows alternating four and three cells, sea to beach. They preserve the game's initial indices 0–6, the four shark positions 28–31 and the final winning indices 49–52. These are data-only integration scaffolding; **neither renderer is wired to the manifest yet**, and geometry is pending visual verification. No gameplay rule has been changed.
-
-## Experimental game-connected 3D renderer (Issue #7, unmerged branch)
-
-The candidate `src/map/contract/createPublicMapSnapshot.js` projects public data from `G` and `ctx` into a 53-cell snapshot without exposing decks or cards. The existing `Board.js` controller stays mounted while switching renderers, and both views forward cell picks to `onHexClickedHandle`. A standalone Three.js scene in `src/map/views/Board3D/` displays surfers and obstacles from live snapshots and provides orbit, pan, zoom and a fallback to the 2D grid. The renderer never calls `moves.*` directly. This feature remains unmerged and requires application/browser tests and canonical layout verification.
-
-## Risks
-
-- Dependency age, Node 16.17 Docker base, and `loadsh` versus `lodash` import discrepancy.
-- Cell indexing and rendering contract not yet reconciled for the 3D scene.
-- Authentication, persistence, server authority, reconnect behavior and deployment are unverified.
-
-See [DECISIONS.md](DECISIONS.md) for approval status.
+- Static concept illustrations guided the visual direction but are **not exact exported 3D models**.
+- No imported 3D assets or new external services are required.
+- Full browser, WebGL, Jest and build validation remain pending; see [HANDOFF.md](HANDOFF.md).
+- No changes to authoritative turn logic, 2D fallback, backend architecture or hosting.
