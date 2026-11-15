@@ -25,7 +25,7 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 ## Active work
 
 - [Issue #7](https://github.com/board-games-jf/surf-king-react/issues/7): integrate the user's 3D visual preview with the live game state.
-- Working branch: `feat/7-live-3d-board`; first step is a **provisional** 53-cell engine-to-3D manifest and validation tests.
+- Working branch: `feat/7-live-3d-board`; [draft PR #8](https://github.com/board-games-jf/surf-king-react/pull/8) provides a **provisional** 53-cell engine-to-3D manifest and validation tests (partial implementation of Issue #7; not authorized for merge).
 - [Issue #5](https://github.com/board-games-jf/surf-king-react/issues/5) closed via merged [PR #6](https://github.com/board-games-jf/surf-king-react/pull/6).
 - No runtime renderer, 2D/3D toggle or multiplayer changes have been implemented in this initial step.
 
