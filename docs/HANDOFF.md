@@ -2,7 +2,7 @@
 
 **Last verified:** 2026-11-14
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Verified `main` commit:** `53dc315cca254a7bd7f8741c6bc3e0a374f34733` (2026-11-14; map contract PR #6 merged)
+**Verified `main` commit:** `4aed28226bed07477ee92377174373600aee47a4` (2026-11-15; provisional layout PR #8 merged)
 
 This is a static recovery snapshot. Check GitHub for new commits, open Issues, Pull Requests, and deployed systems at the start of every task.
 
@@ -24,6 +24,10 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 
 ## Active work
 
+- [Issue #7](https://github.com/board-games-jf/surf-king-react/issues/7): candidate local 2D/3D gameplay integration in `feat/7-live-3d-gameplay`.
+- [PR #8](https://github.com/board-games-jf/surf-king-react/pull/8) was merged into `main` at `4aed2822` (2026-11-15).
+- This branch adds an experimental selectable Three.js view wired to the existing game controller, not a verified production release. No merge or deployment is authorized for this new branch.
+
 - [Issue #7](https://github.com/board-games-jf/surf-king-react/issues/7): integrate the user's 3D visual preview with the live game state.
 - Working branch: `feat/7-live-3d-board`; [draft PR #8](https://github.com/board-games-jf/surf-king-react/pull/8) provides a **provisional** 53-cell engine-to-3D manifest and validation tests (partial implementation of Issue #7; not authorized for merge).
 - [Issue #5](https://github.com/board-games-jf/surf-king-react/issues/5) closed via merged [PR #6](https://github.com/board-games-jf/surf-king-react/pull/6).
@@ -39,6 +43,14 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 - No GitHub Actions workflows, shipped 3D models, or verified online hosting were found in the repository tree.
 - Authentication, persistence, reconnection, and multiplayer authority are not established.
 - MVP acceptance criteria and exclusions still require product-owner approval.
+
+## Integration validation still required
+
+- Run the CRA/Jest suite and production build after installing the pinned Three.js dependency, and test WebGL in actual desktop/mobile browsers.
+- Verify the provisional engine-ID-to-layout mapping against the approved original board, including clickable hex positions.
+- Check visual accuracy against the uploaded ZIP. This first gameplay-focused port reuses its coastal art direction but does not reproduce every visual detail or animation.
+- Review gameplay flows for movement, drop-in, all card targets, obstacle timers and winning moves before requesting a merge.
+- The server, lobby, online multiplayer and deployment remain unchanged.
 
 ## Next smallest action
 

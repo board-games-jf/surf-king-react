@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { HexGrid } from '../HexGrid'
+import Board3D from '../../map/views/Board3D/Board3D'
+import { createPublicMapSnapshot } from '../../map/contract/createPublicMapSnapshot'
 import { seaColor } from '../../constants/Colors'
 import {
     CardAmulet,
@@ -57,6 +59,9 @@ const useKeyPress = function (targetKey) {
 
 const Board = ({ G, ctx, moves }) => {
     const gameMode = 1
+    const [viewMode, setViewMode] = useState('2d')
+    const [selectedCellId, setSelectedCellId] = useState(null)
+    const [viewError, setViewError] = useState(null)
 
     const [placingObstacle, setPlacingObstacle] = useState(null)
     const [removingObstacle, setRemovingObstacle] = useState(null)
@@ -258,7 +263,25 @@ const Board = ({ G, ctx, moves }) => {
 
     return (
         <div>
-            <HexGrid cellProps={cellProps} renderCell={renderCell} onHexClick={onHexClickedHandle} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 12 }}>
+                <span>Board view:</span>
+                <button type="button" aria-pressed={viewMode === '2d'} onClick={() => setViewMode('2d')}>2D</button>
+                <button type="button" aria-pressed={viewMode === '3d'} onClick={() => { setViewError(null); setViewMode('3d') }}>3D</button>
+                {viewError && <span role="alert">{viewError}</span>}
+            </div>
+            {viewMode === '3d' ? (
+                <Board3D
+                    snapshot={createPublicMapSnapshot(G, ctx, selectedCellId)}
+                    onCellSelect={(cellId) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }) }}
+                    onUnavailable={(message) => { setViewError(message); setViewMode('2d') }}
+                />
+            ) : (
+                <HexGrid
+                    cellProps={cellProps}
+                    renderCell={renderCell}
+                    onHexClick={(cell) => { setSelectedCellId(cell.position); onHexClickedHandle(cell) }}
+                />
+            )}
             <div>
                 <h3>{`[${G.turn}] - ${G.currentMove}: player ${parseInt(ctx.currentPlayer) + 1}'s turn`}</h3>
                 {!placingObstacle && !removingObstacle && !selectPlayerTarget && !selectTsunami ? (

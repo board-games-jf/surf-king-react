@@ -101,6 +101,10 @@ public/maps/surf-king/          # Versioned glTF/GLB models and textures
 
 **An exported `.glb` alone does not implement gameplay clicks.** The integrator still needs the 3D scene adapter, consistent cell anchors and the `onCellSelect` callback. Conversely, a standalone interactive scene must not reimplement Surf King turns or attacks.
 
+## Local gameplay candidate (Issue #7)
+
+A follow-up branch proposes a direct Three.js scene adapter under `src/map/views/Board3D` and a public snapshot projection under `src/map/contract`. It reuses the user's ZIP coastal art direction, not its mock surfer or obstacle placements. The existing `Board` owns the renderer selector and all card/move callbacks; selecting 3D must never create a second match. The 53-cell layout is still provisional. Runtime/browser verification is outstanding; this does not represent an accepted renderer technology or a deployed feature.
+
 ## Planned implementation sequence (separate Issues)
 
 1. Reproduce baseline tests and build; validate the 53-cell mapping and layout against authoritative references.

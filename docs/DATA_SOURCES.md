@@ -9,6 +9,11 @@
 | `src/assets/` and `public/` | Existing image/application assets | Paths visible in repository; individual provenance not audited | External rights/attribution unverified |
 | `LICENSE` | Repository license | File exists in repository | May not cover imported assets |
 
+## New visual integration inputs
+
+- The game owner supplied `1-surf-king-preview-toolkit.zip` as a standalone 3D visual prototype. The Issue #7 rendering candidate reproduces its coastal art direction with source-defined procedural geometry; external model/textures from the ZIP were not imported.
+- Three.js `0.170.0` is specified as a new dependency (MIT), with package metadata from the supplied prototype lockfile. Dependency installation and browser compatibility remain to be verified.
+
 ## Unverified inputs
 
 - No canonical source version of the Surf King rulebook has been confirmed in the repository.
