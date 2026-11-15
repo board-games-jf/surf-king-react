@@ -25,7 +25,7 @@
 | Topic | Status | Detail |
 | --- | --- | --- |
 | Movement and hex adjacency | **In discussion** | [MOVEMENT.md](MOVEMENT.md) |
-| Movement direction (forward/backward) | **Pending** | [MOVEMENT.md](MOVEMENT.md) |
+| Movement direction (forward/backward) | **Owner-confirmed** | [MOVEMENT.md](MOVEMENT.md) |
 | Attack / drop-in adjacency and resolution | Not started | — |
 | Energy and recovery | Not started | — |
 | Turns, action order and replenishment | Not started | — |
@@ -35,12 +35,13 @@
 
 ## Confirmed so far
 
+- **Normal movement is allowed in all six directions**, including backward, **only between hexagons sharing an edge**. Owner confirmed on 2026-11-15. Energy, occupancy, obstacles and other limitations remain to be reviewed separately.
 - Displayed hex **18 → 15 is not a legal normal maneuver** in the current layout; they do not share an edge. Owner confirmed this example on 2026-11-15.
 - The collaboration process is progressive: one subject/question at a time, brief conversations, visuals as needed, no code implementation during rules review.
 
 ## Next question
 
-**Should a surfer be allowed to move backward as well as forward, in any of the six edge-sharing directions?** This remains **unanswered**.
+**Should a drop-in attack be possible only against a surfer in a hexagon that shares an edge with the attacker's hexagon?** This is **pending**; normal movement adjacency does not automatically establish attack range.
 
 ## Implementation boundary
 
@@ -51,3 +52,4 @@ No gameplay code, production deployment, tests, or merger is authorized by this 
 - **2026-11-15:** Owner confirmed displayed 18 → 15 is forbidden; engine adjacency still needs review.
 - **2026-11-15:** Owner requested no implementation until rules are agreed.
 - **2026-11-15:** Owner requested short, progressive, visual-when-useful interactions and durable GitHub issue + draft-PR Markdown documentation.
+- **2026-11-15:** Owner approved normal movement in any of the six directions, provided the two cells share an edge. Next topic: drop-in attack range.
