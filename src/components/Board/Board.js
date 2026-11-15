@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { HexGrid } from '../HexGrid'
+import './Board.css'
 import Board3D from '../../map/views/Board3D/Board3D'
 import { createPublicMapSnapshot } from '../../map/contract/createPublicMapSnapshot'
 import { seaColor } from '../../constants/Colors'
@@ -200,7 +201,7 @@ const Board = ({ G, ctx, moves }) => {
         for (let i = 0; i < quantity; ++i) {
             energies.push(<img key={`energy_${playerPosition}_${i}`} alt="" src={EnergyImage} width={24} />)
         }
-        return <div style={{ height: 24 }}>{energies}</div>
+        return <div className="surf-energy" aria-label={quantity + " energy"}>{energies}</div>
     }
 
     const renderCardByName = (card, index, activeCards) => {
@@ -210,15 +211,11 @@ const Board = ({ G, ctx, moves }) => {
         const opacity = activeCard ? 0.5 : 1
         const remaningTurn = activeCard ? activeCard.RemaningTurn : 0
         return (
-            <div style={{ position: 'relative', textAlign: 'center' }}>
-                <img
-                    key={`${name}_${index}`}
-                    style={{ opacity }}
-                    alt=""
-                    src={src}
-                    width="100"
-                    onClick={() => onCardClickHandle(G, ctx, moves, gameMode, card, index)}
-                />
+            <div className="surf-card" key={index}>
+                <button type="button" aria-label={card.Name} title={card.Name}
+                    onClick={() => onCardClickHandle(G, ctx, moves, gameMode, card, index)}>
+                    <img style={{ opacity }} alt="" src={src} />
+                </button>
                 {remaningTurn > 0 && (
                     <div
                         style={{
@@ -261,78 +258,51 @@ const Board = ({ G, ctx, moves }) => {
         console.log('Board::useEffect G', G)
     }, [G])
 
+    const choosingTarget = placingObstacle || removingObstacle || selectPlayerTarget || selectTsunami
     return (
-        <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 12 }}>
-                <span>Board view:</span>
+        <div className="surf-match">
+            <div className="surf-map-toolbar" aria-label="Board view">
                 <button type="button" aria-pressed={viewMode === '2d'} onClick={() => setViewMode('2d')}>2D</button>
                 <button type="button" aria-pressed={viewMode === '3d'} onClick={() => { setViewError(null); setViewMode('3d') }}>3D</button>
                 {viewError && <span role="alert">{viewError}</span>}
             </div>
-            {viewMode === '3d' ? (
-                <Board3D
-                    snapshot={createPublicMapSnapshot(G, ctx, selectedCellId)}
-                    onCellSelect={(cellId) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }) }}
-                    onUnavailable={(message) => { setViewError(message); setViewMode('2d') }}
-                />
-            ) : (
-                <HexGrid
-                    cellProps={cellProps}
-                    renderCell={renderCell}
-                    onHexClick={(cell) => { setSelectedCellId(cell.position); onHexClickedHandle(cell) }}
-                />
-            )}
-            <div>
-                <h3>{`[${G.turn}] - ${G.currentMove}: player ${parseInt(ctx.currentPlayer) + 1}'s turn`}</h3>
-                {!placingObstacle && !removingObstacle && !selectPlayerTarget && !selectTsunami ? (
-                    <>
-                        <div
-                            style={{
-                                marginBottom: 20,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <button style={{ width: 100, height: 30 }} onClick={onSkipHandle}>
-                                skip
-                            </button>
-                            <div>{renderDices(G)}</div>
-                        </div>
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                justifyContent: 'space-evenly',
-                                alignItems: 'center',
-                            }}
-                        >
-                            {Object.values(G.players).map((p, index) => (
-                                <div key={index} style={{ border: '1px solid black' }}>
-                                    <div style={{ marginTop: 8 }}>
-                                        {p.position === parseInt(ctx.currentPlayer) ? (
-                                            <b>player {p.position + 1} cards</b>
-                                        ) : (
-                                            <>player {p.position + 1} cards</>
-                                        )}
-                                    </div>
-                                    {renderPlayerEnergy(G.players[p.position].energy, p.position)}
-                                    <div style={{ display: 'flex' }}>
-                                        {G.players[p.position].cards.map((card, index) =>
-                                            renderCardByName(card, index, G.players[p.position].activeCard)
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
+            <div className={'surf-map surf-map-' + viewMode}>
+                {viewMode === '3d' ? (
+                    <Board3D
+                        snapshot={createPublicMapSnapshot(G, ctx, selectedCellId)}
+                        onCellSelect={(cellId) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }) }}
+                        onUnavailable={(message) => { setViewError(message); setViewMode('2d') }}
+                    />
                 ) : (
-                    <>
-                        <div>Click in one hex to choose one...</div>
-                    </>
+                    <HexGrid cellProps={cellProps} renderCell={renderCell}
+                        onHexClick={(cell) => { setSelectedCellId(cell.position); onHexClickedHandle(cell) }}
+                    />
                 )}
             </div>
+            <section className="surf-hud" aria-label="Match controls">
+                <div className="surf-turn">
+                    <strong aria-live="polite">{'Turn ' + G.turn + ' · Player ' + (Number(ctx.currentPlayer) + 1) + ' · ' + G.currentMove.replace(/_/g, ' ')}</strong>
+                    {choosingTarget ? <span>Choose a hex</span> : (
+                        <>
+                            {renderDices(G)}
+                            <button type="button" onClick={onSkipHandle}>Skip</button>
+                        </>
+                    )}
+                </div>
+                {!choosingTarget && <div className="surf-hands">
+                    {Object.values(G.players).map((player) => (
+                        <div key={player.position} className="surf-hand" data-current={String(player.position) === ctx.currentPlayer}>
+                            <div className="surf-hand-heading">
+                                <strong>{'Player ' + (player.position + 1)}</strong>
+                                {renderPlayerEnergy(player.energy, player.position)}
+                            </div>
+                            <div className="surf-cards">
+                                {player.cards.map((card, index) => renderCardByName(card, index, player.activeCard))}
+                            </div>
+                        </div>
+                    ))}
+                </div>}
+            </section>
         </div>
     )
 }

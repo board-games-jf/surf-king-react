@@ -12,7 +12,7 @@ const LocalPage = () => {
             game: SurfKingGame,
             numPlayers: numPlayers,
             board: Board,
-            debug: true,
+            debug: false,
         })
         return <>{<SKClient />}</>
     }

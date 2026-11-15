@@ -6,10 +6,10 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable }) {
     const scene = useRef(null)
     const latestClick = useRef(onCellSelect)
     const latestSnapshot = useRef(snapshot)
-    const latestIds = useRef(false)
+    const latestIds = useRef(true)
     const latestError = useRef(onUnavailable)
     const [error, setError] = useState(null)
-    const [showIds, setShowIds] = useState(false)
+    const [showIds, setShowIds] = useState(true)
     latestClick.current = onCellSelect
     latestSnapshot.current = snapshot
     latestIds.current = showIds
@@ -55,22 +55,15 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable }) {
     }, [showIds])
 
     return (
-        <div style={{ position: 'relative', width: '100%', height: 'min(72vh, 760px)', minHeight: 360, background: '#137b82' }}>
+        <div className="surf-scene">
             <div ref={container} style={{ position: 'absolute', inset: 0 }} />
-            <button
-                type="button"
-                onClick={() => scene.current?.resetCamera()}
-                style={{ position: 'absolute', top: 12, right: 12, zIndex: 1 }}
-            >
-                Reset 3D camera
-            </button>
-            <label style={{ position: 'absolute', top: 12, left: 12, zIndex: 1, color: 'white', background: '#143e49bf', padding: 6 }}>
-                <input type="checkbox" checked={showIds} onChange={(event) => setShowIds(event.target.checked)} /> Show cell IDs
-            </label>
-            {error && <div role="alert" style={{ position: 'absolute', bottom: 12, background: 'white' }}>{error}</div>}
-            <div style={{ position: 'absolute', bottom: 12, left: 12, pointerEvents: 'none', color: 'white', background: '#103c46ba', padding: '6px 9px' }}>
-                Drag to rotate/pan · Scroll to zoom · Click a hex to play
+            <div className="surf-map-controls">
+                <button type="button" onClick={() => scene.current?.resetCamera()}>Reset view</button>
+                <button type="button" aria-label="Zoom in" onClick={() => scene.current?.zoom(1 / 1.25)}>+</button>
+                <button type="button" aria-label="Zoom out" onClick={() => scene.current?.zoom(1.25)}>−</button>
+                <button type="button" aria-pressed={showIds} onClick={() => setShowIds(!showIds)}>Numbers</button>
             </div>
+            {error && <div role="alert" style={{ position: 'absolute', bottom: 12, background: 'white' }}>{error}</div>}
         </div>
     )
 }
