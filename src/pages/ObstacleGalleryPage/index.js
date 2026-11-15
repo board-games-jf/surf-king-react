@@ -124,6 +124,7 @@ export default function ObstacleGalleryPage() {
     <main className="obstacle-gallery">
       <header className="obstacle-gallery-header">
         <Link to="/">← Home</Link>
+        <span style={{ marginLeft: 16 }}><Link to="/catalog">View on full board</Link></span>
         <h1>Surf King · 3D obstacles</h1>
         <p>Live Three.js models — select an obstacle, then drag to rotate or scroll to zoom.</p>
       </header>
