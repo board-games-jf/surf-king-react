@@ -55,6 +55,10 @@ Players should be able to switch between the existing 2D renderer and an indepen
 
 A provisional `src/map/layout/board-layout.json` manifest and pure lookup helpers map existing game indices 0–52 to world-space X/Z centers with 15 rows alternating four and three cells, sea to beach. They preserve the game's initial indices 0–6, the four shark positions 28–31 and the final winning indices 49–52. These are data-only integration scaffolding; **neither renderer is wired to the manifest yet**, and geometry is pending visual verification. No gameplay rule has been changed.
 
+## Experimental game-connected 3D renderer (Issue #7, unmerged branch)
+
+The candidate `src/map/contract/createPublicMapSnapshot.js` projects public data from `G` and `ctx` into a 53-cell snapshot without exposing decks or cards. The existing `Board.js` controller stays mounted while switching renderers, and both views forward cell picks to `onHexClickedHandle`. A standalone Three.js scene in `src/map/views/Board3D/` displays surfers and obstacles from live snapshots and provides orbit, pan, zoom and a fallback to the 2D grid. The renderer never calls `moves.*` directly. This feature remains unmerged and requires application/browser tests and canonical layout verification.
+
 ## Risks
 
 - Dependency age, Node 16.17 Docker base, and `loadsh` versus `lodash` import discrepancy.

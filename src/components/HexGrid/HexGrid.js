@@ -43,7 +43,7 @@ const HexGrid = (props) => {
     const rows = getRows(hexes)
 
     return (
-        <Wrapper innerRef={(elem) => props.getRef(elem)}>
+        <Wrapper innerRef={(elem) => props.getRef?.(elem)}>
             {rows.map((row, rowIndex) => (
                 <Row key={rowIndex}>
                     {row.map((_, colIndex) => (
