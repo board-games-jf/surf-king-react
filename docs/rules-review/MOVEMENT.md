@@ -1,7 +1,7 @@
 # Rule Review — Movement and Adjacency
 
-**Status:** In discussion  
-**Owner confirmation:** One concrete invalid move (18 → 15) only.  
+**Status:** Movement direction and edge-adjacency approved; other movement constraints still under review  
+**Owner confirmation:** Six directions are allowed only when cells share an edge. The 18 → 15 exception remains confirmed.  
 **Tracking:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) and its comments.
 
 ## 1. Confirmed example
@@ -10,7 +10,7 @@ The owner explicitly confirmed on 2026-11-15:
 
 > A normal move from **displayed hex 18 to displayed hex 15 is forbidden**.
 
-The cells do not share an edge on the current honeycomb. This does **not**, by itself, settle movement direction, all other adjacency cases, attack range, or unusual card-driven movement.
+The cells do not share an edge on the current honeycomb. This example was later supplemented by an explicit owner decision on six-direction normal movement. It does **not** settle attack range, energy, obstacles, other restrictions, or special card-driven movement.
 
 The board shown to players is **1-based (1–53)**. The internal engine is **0-based (0–52)**. Thus the reported move corresponds to internal IDs **17 → 14**.
 
@@ -25,24 +25,24 @@ At the reviewed `main` baseline `6daa1705ff11d958a10cffd951eca9f5f2a1084c`:
 
 **Risk:** Index-offset adjacency alone can incorrectly connect cells at row transitions and board boundaries. This is a source-code observation, not a runtime test result.
 
-## 3. Candidate design principle — not yet fully approved
+## 3. Owner-approved rule — normal movement
 
-**Proposal:** A normal maneuver may target only a physically **edge-sharing** hex, within all other valid energy, occupancy and obstacle constraints. A cell can have **up to six** actual neighbors; edge cells have fewer.
+**Confirmed on 2026-11-15:** A surfer's **normal maneuver** may move **in any of the six directions**, including backward, **provided the destination shares an entire edge with the origin hex**. Edge and corner hexes have fewer than six adjacent cells.
 
-The corresponding range semantics for **drop-in**, tsunami, cyclone, and cards must be decided separately. Do not infer those rules from this example.
+This approval covers **normal movement direction and geometric adjacency only**. Energy cost, occupancy, special card-driven movement, obstacles, and the range of **drop-in** attacks remain separate decisions. The corresponding range semantics for tsunami, cyclone, and cards must be decided separately.
 
 ## 4. Examples and status
 
 | Displayed move | Status | Explanation |
 | --- | --- | --- |
 | **18 → 15** | **Owner-confirmed: forbidden** | Not edge-adjacent |
-| **18 → 21** | Geometrically edge-adjacent, but overall move legality not yet owner-confirmed | Other constraints and permitted directions still need review |
+| **18 → 21** | Direction and geometry permitted by owner-approved rule | Overall legality still depends on energy, occupancy, obstacles, and other conditions |
 
-## 5. One open question (next interaction)
+## 5. Next question (new topic: drop-in attack range)
 
-**Can a surfer move in any of the six edge-sharing directions, including backward, or must some directions be restricted?**
+**Must a drop-in attack target an opponent in an edge-sharing neighboring hexagon, or can its range differ from normal movement?**
 
-**Status:** Pending owner response.
+**Status:** Pending owner response. Do not infer attack range from approved movement.
 
 ## 6. Future implementation validation — only after rule approval
 
@@ -53,4 +53,8 @@ Suggested checks, not actions authorized now:
 - Add regression tests for approved legal and illegal moves.
 - Preserve UI display labels and internal ID distinctions.
 
-**No code modified or tests run as part of this rules-review document.**
+## 7. Conversation checkpoint — 2026-11-15
+
+Owner explicitly confirmed: "Normal movement may occur in all six directions, provided the hexagons share an edge." Recorded in Issue #11. No additional movement or attack restrictions were approved in this answer.
+
+**No gameplay code modified or tests run as part of this rules-review document.**
