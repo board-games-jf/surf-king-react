@@ -128,9 +128,19 @@ export function createScene(container,onCellSelect,onError) {
       case 'Storm':case 'Cyclone':{const m=mesh(new THREE.TorusGeometry(.28,.085,7,32),cell.obstacleType==='Storm'?'#708ba2':'#c8f4f5',g);m.rotation.x=Math.PI/2;m.position.y=.35;for(const x of [-.2,0,.2])ball(g,'#e0eaf0',[x,.55,0],[.23,.15,.21]);break}
       default:ball(g,colors.orange,[0,.25,0],[.3,.37,.30])
     }
+    if(cell.remainingTurns !== null && Number.isFinite(cell.remainingTurns)) {
+      const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128
+      const context=canvas.getContext('2d')
+      context.fillStyle='#173c45';context.fillRect(19,16,90,90)
+      context.font='bold 74px sans-serif';context.textAlign='center';context.fillStyle='#fff'
+      context.fillText(String(cell.remainingTurns),64,90)
+      const texture=new THREE.CanvasTexture(canvas)
+      const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthTest:false}))
+      sprite.position.set(0,.9,0);sprite.scale.set(.48,.48,1);g.add(sprite)
+    }
     return g
   }
-  function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
+  function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
   function update(snapshot){positionRing(selected,snapshot.selectedCellId)
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
@@ -142,14 +152,14 @@ export function createScene(container,onCellSelect,onError) {
     }
     for(const [id,a] of actors)if(!live.has(id)){removeGroup(a.g);actors.delete(id)}
     const keys=new Set()
-    for(const c of snapshot.cells)if(c.obstacleType){const key=c.id+':'+c.obstacleType;keys.add(key);if(!obstacles.has(key))obstacles.set(key,createObstacle(c))}
+    for(const c of snapshot.cells)if(c.obstacleType){const key=c.id+':'+c.obstacleType+':'+(c.remainingTurns??'');keys.add(key);if(!obstacles.has(key))obstacles.set(key,createObstacle(c))}
     for(const [key,g] of obstacles)if(!keys.has(key)){removeGroup(g);obstacles.delete(key)}
   }
   let elapsed=0,last=performance.now(),raf=0,disposed=false
   function frame(now){if(disposed)return;const dt=Math.min((now-last)/1000,.1);last=now;elapsed+=dt;time.value=elapsed
     for(const p of palms)p.crown.rotation.z=Math.sin(elapsed*.8+p.phase)*.028
     for(const a of actors.values()){if(a.from&&a.to){a.t=Math.min(1,a.t+dt*2);const t=a.t*a.t*(3-2*a.t);a.g.position.lerpVectors(a.from,a.to,t);if(a.t===1){a.from=null;a.to=null}}a.g.position.y=.13+Math.sin(elapsed*1.6+Number(a.id))*.015;a.g.rotation.z=Math.sin(elapsed*1.2+Number(a.id))*.02}
-    for(const [key,g] of obstacles)if(key.endsWith(':Shark'))g.rotation.z=Math.sin(elapsed*.7+g.position.x)*.06
+    for(const [key,g] of obstacles)if(key.includes(':Shark:'))g.rotation.z=Math.sin(elapsed*.7+g.position.x)*.06
     controls.update();renderer.render(scene,camera);raf=requestAnimationFrame(frame)
   }
   function resize(){const width=Math.max(container.clientWidth,1),height=Math.max(container.clientHeight,1);camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setSize(width,height,false)}
