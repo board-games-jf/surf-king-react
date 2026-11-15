@@ -71,6 +71,10 @@ Before integrating either view:
 4. Decide a 3D coordinate convention as part of that validation. **Proposed:** Y-up for glTF, world-space centers per cell, and a consistent hex size. No geometric dimensions are approved yet.
 5. Keep the layout version independent from art revisions so that changing water, materials or surfer models cannot silently renumber cells.
 
+## Provisional engine-to-world layout (Issue #7)
+
+`src/map/layout/board-layout.json` contains a **candidate**, not yet Figma-verified, mapping from engine cell IDs 0–52 to 3D coordinates. `boardLayout.js` supplies lookups by ID and by row/column. Its 15 alternating rows run from sea (IDs 0–6 in rows 0–1) to beach (winning IDs 49–52 in row 14), with four initial shark cells 28–31 on row 8. The uploaded visual preview's separate display numbering and reversed Z orientation must not be used as game IDs. Review the mapping with the approved original board and existing 2D rendering before turning this into the final single source of truth. Engine move legality stays in `SurfKingGame.js`.
+
 ## Build the 3D map independently
 
 The 3D artist/developer should be able to run an isolated preview without `boardgame.io`, auth, multiplayer or a backend. A **separate workspace/module inside this repository** is the lowest-maintenance default proposal; a second repository can be considered later if needed. No new repository or service is created by this Issue.
