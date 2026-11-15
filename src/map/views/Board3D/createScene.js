@@ -5,7 +5,7 @@ import { BOARD_LAYOUT } from '../../layout/boardLayout'
 import { createCoastalScenery } from './createCoastalScenery'
 import { createScenePrimitives, palette } from './scenePrimitives'
 import { createSurferModel } from './surfModels'
-import sharkModel from './sharkModel'
+import { createObstacleModel } from './obstacleModels'
 import { createHexDepth } from './hexDepth'
 
 // This renderer receives public state and never validates moves or changes rules.
@@ -71,12 +71,7 @@ export function createScene(container,onCellSelect,onError) {
   controls.addEventListener('start', () => { cameraTransition = null })
   const resetCamera = () => moveCamera(defaultOffset(), defaultTarget)
   const animateScenery = createCoastalScenery(scene)
-  const materials=new Map()
-  function mat(color,opts={}){const key=color+JSON.stringify(opts);if(!materials.has(key))materials.set(key,new THREE.MeshStandardMaterial({color,roughness:.76,...opts}));return materials.get(key)}
-  function mesh(geo,color,parent=scene,opts={}){const m=new THREE.Mesh(geo,mat(color,opts));m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
-  function ball(parent,color,pos,size){const m=mesh(new THREE.IcosahedronGeometry(1,2),color,parent);m.position.set(...pos);m.scale.set(...size);return m}
   const modelHelpers = createScenePrimitives(scene)
-  const wakeMaterial = new THREE.MeshBasicMaterial({ color: '#d1fff4', transparent: true, opacity: .48, depthWrite: false })
   const hex=new THREE.Shape(),outline=[]
   for(let i=0;i<=6;i++){const a=i*Math.PI/3,x=Math.cos(a)*R,z=Math.sin(a)*R;if(!i)hex.moveTo(x,z);else hex.lineTo(x,z);outline.push(new THREE.Vector3(x,0,z))}
   const shapeGeo=new THREE.ShapeGeometry(hex)
@@ -175,38 +170,34 @@ export function createScene(container,onCellSelect,onError) {
       index % 2 ? palette.skin : palette.skinLight, index % 2 ? '#724c35' : '#e8b449', index % 2 === 1)
     return { g: model.group, animate: model.animate, id, cellId: null, from: null, to: null, t: 1 }
   }
-  function createObstacle(cell){const g=new THREE.Group();scene.add(g);const position=BOARD_LAYOUT[cell.id];g.position.set(position.x,.1,position.z)
-    switch(cell.obstacleType){
-      case 'Shark': {
-        const shark = sharkModel.create({
-          settings: sharkModel.defaults,
-          helpers: { mesh, ripple(parent, radius) {
-            const wake = new THREE.Mesh(new THREE.RingGeometry(radius, radius + .03, 40), wakeMaterial)
-            wake.rotation.x = -Math.PI / 2
-            parent.add(wake)
-            return wake
-          } }
-        })
-        g.add(shark.object)
-        g.userData.animate = (elapsed) => shark.update(elapsed, cell.id)
-        break
-      }
-      case 'Stone':ball(g,colors.rock,[0,.23,0],[.46,.35,.45]);break
-      case 'Island':ball(g,colors.sand,[0,.15,0],[.48,.30,.45]);ball(g,colors.green,[0,.34,0],[.36,.13,.35]);break
-      case 'Storm':case 'Cyclone':{const m=mesh(new THREE.TorusGeometry(.28,.085,7,32),cell.obstacleType==='Storm'?'#708ba2':'#c8f4f5',g);m.rotation.x=Math.PI/2;m.position.y=.35;for(const x of [-.2,0,.2])ball(g,'#e0eaf0',[x,.55,0],[.23,.15,.21]);break}
-      default:ball(g,colors.orange,[0,.25,0],[.3,.37,.30])
+  function createObstacle(cell) {
+    const group = new THREE.Group()
+    scene.add(group)
+    const position = BOARD_LAYOUT[cell.id]
+    group.position.set(position.x, .1, position.z)
+
+    const model = createObstacleModel(cell.obstacleType, modelHelpers)
+    group.add(model.object)
+    group.userData.animate = elapsed => model.update(elapsed, cell.id)
+
+    if (cell.remainingTurns !== null && Number.isFinite(cell.remainingTurns)) {
+      const canvas = document.createElement('canvas')
+      canvas.width = 128
+      canvas.height = 128
+      const context = canvas.getContext('2d')
+      context.fillStyle = '#173c45'
+      context.fillRect(19, 16, 90, 90)
+      context.font = 'bold 74px sans-serif'
+      context.textAlign = 'center'
+      context.fillStyle = '#fff'
+      context.fillText(String(cell.remainingTurns), 64, 90)
+      const texture = new THREE.CanvasTexture(canvas)
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }))
+      sprite.position.set(0, 1.37, 0)
+      sprite.scale.set(.48, .48, 1)
+      group.add(sprite)
     }
-    if(cell.remainingTurns !== null && Number.isFinite(cell.remainingTurns)) {
-      const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128
-      const context=canvas.getContext('2d')
-      context.fillStyle='#173c45';context.fillRect(19,16,90,90)
-      context.font='bold 74px sans-serif';context.textAlign='center';context.fillStyle='#fff'
-      context.fillText(String(cell.remainingTurns),64,90)
-      const texture=new THREE.CanvasTexture(canvas)
-      const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthTest:false}))
-      sprite.position.set(0,.9,0);sprite.scale.set(.48,.48,1);g.add(sprite)
-    }
-    return g
+    return group
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
   function update(snapshot){positionRing(selected,snapshot.selectedCellId);hexDepth.select(snapshot.selectedCellId)
@@ -258,5 +249,5 @@ export function createScene(container,onCellSelect,onError) {
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();const geometries=new Set(),mats=new Set();scene.traverse(o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))});geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});wakeMaterial.dispose();renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();const geometries=new Set(),mats=new Set();scene.traverse(o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))});geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }
