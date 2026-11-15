@@ -1,6 +1,6 @@
 # Project Handoff
 
-**Last verified:** 2026-11-14
+**Last verified:** 2026-11-15
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
 **Verified `main` commit:** `4aed28226bed07477ee92377174373600aee47a4` (2026-11-15; provisional layout PR #8 merged)
 
@@ -17,6 +17,7 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 
 ## Latest relevant main commits
 
+- `4aed2822` (2026-11-15): provisional 53-cell mapping PR #8 merged; no game runtime changes.
 - `53dc315c` (2026-11-14): map rendering contract PR #6 merged; no runtime changes.
 - `aff1274b` (2026-11-14): governance PR #4 merged; no application runtime changes.
 - `76f1a673` (2022-09-25): cyclone-related win condition.
@@ -24,14 +25,10 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 
 ## Active work
 
-- [Issue #7](https://github.com/board-games-jf/surf-king-react/issues/7): candidate local 2D/3D gameplay integration in `feat/7-live-3d-gameplay`.
-- [PR #8](https://github.com/board-games-jf/surf-king-react/pull/8) was merged into `main` at `4aed2822` (2026-11-15).
-- This branch adds an experimental selectable Three.js view wired to the existing game controller, not a verified production release. No merge or deployment is authorized for this new branch.
-
-- [Issue #7](https://github.com/board-games-jf/surf-king-react/issues/7): integrate the user's 3D visual preview with the live game state.
-- Working branch: `feat/7-live-3d-board`; [draft PR #8](https://github.com/board-games-jf/surf-king-react/pull/8) provides a **provisional** 53-cell engine-to-3D manifest and validation tests (partial implementation of Issue #7; not authorized for merge).
-- [Issue #5](https://github.com/board-games-jf/surf-king-react/issues/5) closed via merged [PR #6](https://github.com/board-games-jf/surf-king-react/pull/6).
-- No runtime renderer, 2D/3D toggle or multiplayer changes have been implemented in this initial step.
+- [Issue #7](https://github.com/board-games-jf/surf-king-react/issues/7): integrate the owner's visual 3D direction into the existing local boardgame.io match.
+- Branch `feat/7-live-3d-gameplay`: experimental 2D/3D selector, public state adapter, Three.js scene with camera controls, dynamic surfer/obstacle state, cell picking, and 2D fallback.
+- [PR #8](https://github.com/board-games-jf/surf-king-react/pull/8) was merged into `main` at `4aed2822`. The new gameplay branch is unmerged and is not a deployed release.
+- No application Jest suite, full build, or live WebGL gameplay session has been verified. Keep these as review gates, not completed work.
 
 ## Blockers and validation gaps
 
@@ -54,6 +51,6 @@ This is a static recovery snapshot. Check GitHub for new commits, open Issues, P
 
 ## Next smallest action
 
-1. Review the provisional [layout manifest](../src/map/layout/board-layout.json) and its tests against the approved board reference, then confirm actual numeric cell mapping.
-2. Reproduce the full application tests and build in a compatible environment; the isolated layout checks are not a full app validation.
-3. Under the same Issue #7 in a subsequent scoped PR, adapt the independent Three.js scene to the live public game snapshot and existing move callbacks, preserving the 2D view.
+1. Install dependencies in a compatible React 18 / CRA environment and run the full Jest suite and production build.
+2. Manually verify the selected game cell matches the approved 2D/3D layout, then play movement, drop-in, each card target, and victory flows.
+3. Review the open gameplay integration PR, fix regressions, and request separate explicit owner authorization before any merge. Do not deploy.
