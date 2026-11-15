@@ -8,7 +8,7 @@ export function createHexDepth(cells, radius) {
   for (const cell of cells) {
     for (let side = 0; side < 6; side++) {
       const endpoints = [side, side + 1].map(index => {
-        const angle = Math.PI / 6 + index * Math.PI / 3;
+        const angle = index * Math.PI / 3;
         return { x: cell.x + Math.cos(angle) * radius, z: cell.z + Math.sin(angle) * radius };
       });
       const key = endpoints.map(p => `${Math.round(p.x * 1e6)},${Math.round(p.z * 1e6)}`).sort().join(':');
@@ -28,7 +28,7 @@ export function createHexDepth(cells, radius) {
   group.add(sides);
   const shape = new THREE.Shape();
   for (let side = 0; side <= 6; side++) {
-    const angle = Math.PI / 6 + side * Math.PI / 3;
+    const angle = side * Math.PI / 3;
     const x = Math.cos(angle) * radius * .985, z = Math.sin(angle) * radius * .985;
     if (side === 0) shape.moveTo(x, z); else shape.lineTo(x, z);
   }

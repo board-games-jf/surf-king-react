@@ -1,3 +1,5 @@
+import { canManeuver } from '../../game/SurfKingGame'
+
 // Expose only the information required to draw the map: no cards or deck contents.
 export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
     if (!G || !Array.isArray(G.cells) || G.cells.length !== 53) {
@@ -11,7 +13,11 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
             }
         })
     })
+    const activeCellId = G.players?.[ctx?.currentPlayer]?.cellPosition
     return {
+        maneuverDestinations: G.cells.flatMap((_, id) =>
+            G.cells[activeCellId] && canManeuver(G, ctx, activeCellId, id) ? [id] : []
+        ),
         cells: G.cells.map((cell, id) => ({
             id,
             obstacleType: cell?.obstacle?.Name || null,

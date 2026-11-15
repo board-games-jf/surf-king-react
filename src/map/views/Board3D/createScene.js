@@ -1,3 +1,4 @@
+import layoutManifest from '../../layout/board-layout.json'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { BOARD_LAYOUT } from '../../layout/boardLayout'
@@ -8,7 +9,7 @@ import sharkModel from './sharkModel'
 import { createHexDepth } from './hexDepth'
 
 // This renderer receives public state and never validates moves or changes rules.
-const R = 0.765
+const R = layoutManifest.hexRadius
 const colors = { sand:'#f4d49b', rock:'#a6aaa0', trunk:'#b5804f', green:'#4c9755', leaf:'#91be5e',
   cream:'#fff3cb', orange:'#ffbb41', coral:'#f27763', teal:'#38b4ae', blue:'#337a91',
   skin:'#c8824b', dark:'#294b46' }
@@ -77,7 +78,7 @@ export function createScene(container,onCellSelect,onError) {
   const modelHelpers = createScenePrimitives(scene)
   const wakeMaterial = new THREE.MeshBasicMaterial({ color: '#d1fff4', transparent: true, opacity: .48, depthWrite: false })
   const hex=new THREE.Shape(),outline=[]
-  for(let i=0;i<=6;i++){const a=Math.PI/6+i*Math.PI/3,x=Math.cos(a)*R,z=Math.sin(a)*R;if(!i)hex.moveTo(x,z);else hex.lineTo(x,z);outline.push(new THREE.Vector3(x,0,z))}
+  for(let i=0;i<=6;i++){const a=i*Math.PI/3,x=Math.cos(a)*R,z=Math.sin(a)*R;if(!i)hex.moveTo(x,z);else hex.lineTo(x,z);outline.push(new THREE.Vector3(x,0,z))}
   const shapeGeo=new THREE.ShapeGeometry(hex)
   const hitMat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide})
   const outlineGeo=new THREE.BufferGeometry().setFromPoints(outline)
@@ -131,6 +132,7 @@ export function createScene(container,onCellSelect,onError) {
   }
   function ring(color){const o=new THREE.LineLoop(outlineGeo,new THREE.LineBasicMaterial({color}));o.position.y=.22;o.visible=false;scene.add(o);return o}
   const hovered=ring('#f8ffff'),selected=ring('#ffda57')
+  const maneuverRings = Array.from({ length: 6 }, () => ring('#ffda57'))
   function positionRing(ring,id){const cell=Number.isInteger(id)?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2()
   function pick(event){const box=renderer.domElement.getBoundingClientRect();if(!box.width||!box.height)return null;pointer.set((event.clientX-box.left)/box.width*2-1,-(event.clientY-box.top)/box.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets,false)[0]?.object.userData.cellId??null}
@@ -208,6 +210,9 @@ export function createScene(container,onCellSelect,onError) {
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
   function update(snapshot){positionRing(selected,snapshot.selectedCellId);hexDepth.select(snapshot.selectedCellId)
+    maneuverRings.forEach((marker, index) => {
+      positionRing(marker, snapshot.maneuverDestinations?.[index])
+    })
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
       const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell;if(!cell){a.cellId=null;continue}

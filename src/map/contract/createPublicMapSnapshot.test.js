@@ -1,3 +1,4 @@
+import { MOVE_MANEUVER, MOVE_DROP_IN } from '../../game/SurfKingGame'
 import { createPublicMapSnapshot } from './createPublicMapSnapshot'
 const game = () => ({
     cells: Array.from({ length: 53 }, (_, position) => ({ position })),
@@ -39,4 +40,15 @@ describe('public map snapshot', () => {
     test('rejects wrong board size', () => {
         expect(() => createPublicMapSnapshot({ cells: [] }, {})).toThrow('exactly 53')
     })
+})
+
+test('marks the direct first-to-eighth move only during a maneuver', () => {
+    const G = game()
+    const ctx = { currentPlayer: '0' }
+    G.players[0].energy = 4
+    G.cells[4].obstacle = { Name: 'Stone' }
+    G.currentMove = MOVE_MANEUVER
+    expect(createPublicMapSnapshot(G, ctx).maneuverDestinations).toEqual([3, 7])
+    G.currentMove = MOVE_DROP_IN
+    expect(createPublicMapSnapshot(G, ctx).maneuverDestinations).toEqual([])
 })
