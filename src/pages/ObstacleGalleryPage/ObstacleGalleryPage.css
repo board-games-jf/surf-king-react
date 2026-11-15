@@ -1,0 +1,66 @@
+.obstacle-gallery {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #e2f0ed;
+  color: #174e55;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  padding: 20px 16px;
+  box-sizing: border-box;
+}
+.obstacle-gallery-header {
+  text-align: center;
+  max-width: 760px;
+}
+.obstacle-gallery-header a {
+  color: #175c69;
+  font-weight: bold;
+}
+.obstacle-gallery-header h1 {
+  margin: 8px 0;
+  font-size: clamp(24px, 4vw, 36px);
+}
+.obstacle-gallery-header p {
+  margin: 0;
+  font-size: 14px;
+}
+.obstacle-gallery-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.obstacle-gallery-tabs button {
+  border: 1px solid #6aa9a6;
+  border-radius: 999px;
+  background: #fff;
+  padding: 9px 15px;
+  color: #174e55;
+  font: inherit;
+  cursor: pointer;
+}
+.obstacle-gallery-tabs button[aria-pressed="true"] {
+  background: #215d62;
+  border-color: #215d62;
+  color: #fff;
+}
+.obstacle-gallery-viewport {
+  width: min(100%, 820px);
+  height: clamp(320px, 60dvh, 680px);
+  border: 1px solid #afd5d1;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.obstacle-gallery-label {
+  margin: 0;
+  font-size: 13px;
+  text-align: center;
+}
+.obstacle-gallery-error {
+  color: #8a1e20;
+  background: #fff4f4;
+  padding: 10px;
+  border-radius: 8px;
+}
