@@ -28,7 +28,7 @@
 | Movement direction (forward/backward) | **Owner-confirmed** | [MOVEMENT.md](MOVEMENT.md) |
 | Attack / drop-in adjacency and resolution | **Range owner-confirmed; dice pending** | [ATTACK.md](ATTACK.md) |
 | Energy and recovery | Not started | — |
-| Turns, action order and replenishment | Not started | — |
+| Turns, action order and replenishment | **Stalemate confirmed from code; anti-stall proposal pending** | [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
 | Card effects and durations | Not started | — |
 | Forced movement, obstacles and boundary cases | Not started | — |
 | Victory and game balance | Not started | — |
@@ -39,10 +39,13 @@
 - Displayed hex **18 → 15 is not a legal normal maneuver** in the current layout; they do not share an edge. Owner confirmed this example on 2026-11-15.
 - **Normal drop-in attack range is edge adjacency only:** the defender must occupy a hexagon sharing an edge with the attacker. Owner confirmed on 2026-11-15; dice and other attack conditions remain pending.
 - The collaboration process is progressive: one subject/question at a time, brief conversations, visuals as needed, no code implementation during rules review.
+- **Owner goal (2026-11-15):** rules should produce a fast, simple, fun game without indefinite stalls; the owner reports all players can skip repeatedly. **Assistant recommendation P-01**, not owner-approved: require a normal maneuver if one is legal, otherwise allow resting. See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
 
 ## Next question
 
-**When the attacker and defender roll equal dice values during a drop-in, should the defender win that tie (as current code does), or should ties resolve differently?** Pending owner confirmation.
+**Should normal movement be mandatory whenever the player has energy and at least one legal destination, allowing rest only if no legal maneuver is possible?** This is assistant Proposal P-01, **not yet approved**. [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
+
+**Deferred:** The drop-in dice tie decision remains pending until we address the all-pass stalemate.
 
 ## Implementation boundary
 
@@ -55,3 +58,4 @@ No gameplay code, production deployment, tests, or merger is authorized by this 
 - **2026-11-15:** Owner requested short, progressive, visual-when-useful interactions and durable GitHub issue + draft-PR Markdown documentation.
 - **2026-11-15:** Owner approved normal movement in any of the six directions, provided the two cells share an edge. Next topic: drop-in attack range.
 - **2026-11-15:** Owner approved drop-in only against an edge-adjacent opponent. Next topic: dice ties.
+- **2026-11-15:** Owner requested design guidance rather than repeated owner-only questions and raised an all-pass stalemate. Dice tie review deferred; assistant proposed compulsory maneuver when possible, not approved.
