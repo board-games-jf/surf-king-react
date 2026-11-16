@@ -60,8 +60,16 @@ This **does not establish** which option is most balanced, how long it takes to 
 6. If all adjacent destinations are blocked by stones and players, an involuntary skipped maneuver needs an explicit exit or recovery rule. No Rest mechanic should be reintroduced.
 7. The fastest current board route is approximately seven edge-adjacent maneuvers; the exact optimal distance for every starting player requires board validation. Variant C could drastically shorten matches.
 
+## Possible shared combat rebalance — P-08 (not approved)
+
+The owner subsequently suggested expanding the energy cap to **5 or 6** while limiting attack and defense dice to **2**. This newer question applies to **all three** A/B/C play styles; it is not a vote for any one of them.
+
+**Assistant test recommendation:** use **5 max energy** and **up to 2 dice per side**, with 1 die at energy 1 and 2 dice at energy 2–5, comparing the highest result and applying at most 1 damage. This is different from the earlier provisional max-energy-4, energy-sized dice pool above; **neither version was approved**. See [ATTACK.md](ATTACK.md) and [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md).
+
+**Effect on full-game balance:** A 5-energy surfer becomes harder to knock off but has the same two-dice odds as a 2-energy surfer. This reduces dice-based runaway leads but risks making high-energy surfers slow to eliminate. In the B variant, selecting repeated +1 energy actions could make prolonged defensive accumulation too easy; card healing, drop-in rewards, Shark/Big Wave damage, and round cap therefore require simultaneous review.
+
 ## Next discussion
 
-**Owner choice:** Which **whole-game feel** should be explored first — **A (card race)**, **B (tactical move + one action)**, or **C (fast sprint/risk)**? The assistant recommends **B** as the first prototype to balance. The owner has not yet approved any complete variant.
+**Current focus:** Owner is now examining the energy-cap vs dice-count balance within the whole game. Review the P-08 candidate (5 energy cap, up to 2 dice) without treating this or any A/B/C option as approved. Later choose the preferred A/B/C gameplay loop. The assistant continues to recommend **B** as the initial whole-game variant to test.
 
 **Change boundary:** Only draft rules-review Markdown and Issue #11 may change under this review. Do **not** change application/game code, run or claim tests, merge, or deploy.
