@@ -61,6 +61,25 @@ This is a visual design sandbox with illustrative placements, not an alternate r
 
 `obstacleModels.js` keeps a single model factory for match, gallery and catalog. Stone and Island procedural meshes match the silhouettes/palette of the repository card images; Shark, Storm and Cyclone use foam/wakes directly above the scene ocean without opaque blue water cylinders. Storm flashes select among prebuilt branched lightning geometries; Cyclone and Shark use bounded deterministic multi-frequency motion. No per-frame meshes are allocated. All visual effects remain outside the game-state and rule engine.
 
+## Surfer gallery and cosmetic creator (Issue #20, draft PR #21)
+
+The existing `createSurferModel()` procedural Three.js model now accepts optional normalized cosmetic choices while preserving its original six-argument game rendering contract. The same constructor is used in live play and `SurferViewer`; no gameplay state enters the studio.
+
+- `/#/surfers` selects four sample outfits and boards using a reusable WebGL preview.
+- `/#/customize` adjusts presentation, hairstyle, hair/skin/surfwear colors, board silhouette and board color; changes rebuild actual geometry. `surferStyle.js` validates options.
+- The preview uses shared scene primitives with OrbitControls. The UI contains CSS-drawn tropical scenery and an **approximation** of the approved wooden/crown logo rather than the exact screenshot asset.
+- `Guardar visual` stores a versioned cosmetic object in the current browser's localStorage. **Selections are not associated with a player ID or match snapshot yet**, and have no gameplay effects.
+- WebGL, mobile presentation, live-game style transfer and production build remain unverified.
+
+```mermaid
+flowchart LR
+  Creator[Surfer gallery / creator] --> Choices[surferStyle cosmetic options]
+  Choices --> Preview[SurferViewer]
+  Preview --> Factory[createSurferModel]
+  Match[Live 3D match] --> Factory
+  Factory --> Three[Three.js meshes]
+  Creator --> Store[Browser-local preview save]
+```
 ## Limits and validation
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.
