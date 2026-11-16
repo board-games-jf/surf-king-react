@@ -29,6 +29,18 @@ describe('authored-GLB rig pose presets', () => {
     }
   })
 
+  test('surfing balances an asymmetric front and trailing leg without changing rest poses', () => {
+    const stance = sampleSurferPose('surfing', 0, true)
+    const still = sampleSurferPose('surfing', 16, true)
+    expect(stance).toEqual(still)
+    expect(stance.thigh_l[0]).toBeGreaterThan(stance.thigh_r[0])
+    expect(stance.calf_l[0]).toBeLessThan(stance.calf_r[0])
+    expect(stance.upperarm_l[2]).not.toBeCloseTo(-stance.upperarm_r[2])
+    expect(stance.spine_02[1]).not.toBe(0)
+    expect(stance.pelvis[1]).not.toBe(0)
+    expect(sampleSurferPose('standing', 0, true).thigh_l).toEqual([0, 0, 0])
+  })
+
   test('surfing has bounded breathing/balance changes without posing drift', () => {
     const first = sampleSurferPose('surfing', 0)
     const later = sampleSurferPose('surfing', 1.6)
