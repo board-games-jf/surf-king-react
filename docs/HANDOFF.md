@@ -24,7 +24,7 @@
 
 ## Validation and next action
 
-- The `riggedSurferArt.js` source passed a JavaScript syntax parse. Added targeted art geometry/cleanup tests and updated React studio tests; these test files have **not been executed in Jest**.
+- `riggedSurferArt.js` source passed JavaScript syntax parsing. Executed the actual production styling module against a lightweight Three.js API mock for **9 hair/board combinations**: all constructed, animated and restored the skinned rig/materials/geometry after disposal. Added targeted Jest art/cleanup tests and updated React studio tests, but these **have not been executed in Jest**.
 - CRA build, Jest, actual GLTFLoader/WebGL rendering, mobile presentation and visual quality still need validation in the application.
 - Next: run `npm test -- --watchAll=false` and `npm run build`, then open `/#/surfers` and `/#/customize` at desktop and mobile sizes to review the new model.
 - The branch requires separate explicit merge approval. **No deployment is authorized.** Issue #24 stays open pending visual and technical review.
