@@ -68,8 +68,22 @@ The owner subsequently suggested expanding the energy cap to **5 or 6** while li
 
 **Effect on full-game balance:** A 5-energy surfer becomes harder to knock off but has the same two-dice odds as a 2-energy surfer. This reduces dice-based runaway leads but risks making high-energy surfers slow to eliminate. In the B variant, selecting repeated +1 energy actions could make prolonged defensive accumulation too easy; card healing, drop-in rewards, Shark/Big Wave damage, and round cap therefore require simultaneous review.
 
+## Trial direction after owner feedback — 2026-11-16
+
+The owner **agreed to experiment with P-08 (5 energy maximum, up to 2 dice per side)**, explicitly warning that energy, cards, attacks, obstacles, pacing and comeback must be balanced together. **No full-match variant A/B/C is approved, and the combat settings are not final rules.**
+
+### Assistant's proposed first integrated test (P-09, not approved)
+
+Prefer the **short, tactical turn spirit of B**, but **suspend B's repeatable free +1 energy action** for this paper-playtest. Otherwise every surfer could reach energy 5 by their third +1 action, before the central Shark crossing. With only one damage per lost fight, the energy economy could become too defensive.
+
+Test a single active turn as: **optional 1 card OR 1 adjacent Drop In → mandatory legal one-hex move without energy cost → draw 1 card** (to hand cap). At energy 1 roll 1 die; at energy 2–5 roll 2; compare highest; only a strict loser loses 1 energy; **ties without damage** is a *new provisional* option. At 0, the surfer falls. Initial hazard/card candidates: Shark -1, Big Wave -1; test whether Energy x3 and Coconut should be capped to +2 rather than full restoration. Fallen recovery and a full-round cutoff remain pending, with temporary values from P-07 for tabletop scenarios.
+
+**Why this package:** Keeps turns moving and combats short without allowing effortless repeated healing. Card luck remains a risk; do not claim this variant balanced without testing. Track whether successful Drop In should eventually have a **positional reward** to make attacks more important than conserving energy.
+
+See [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md) and [ATTACK.md](ATTACK.md) for the linked reasoning and exact two-dice probabilities.
+
 ## Next discussion
 
-**Current focus:** Owner is now examining the energy-cap vs dice-count balance within the whole game. Review the P-08 candidate (5 energy cap, up to 2 dice) without treating this or any A/B/C option as approved. Later choose the preferred A/B/C gameplay loop. The assistant continues to recommend **B** as the initial whole-game variant to test.
+**Evaluate the entire P-09 tabletop trial together** (especially card restoration, Shark crossing and comeback) before confirming any unapproved mechanics or picking a final A/B/C version. No gameplay code changes, tests, merges or deployment.
 
 **Change boundary:** Only draft rules-review Markdown and Issue #11 may change under this review. Do **not** change application/game code, run or claim tests, merge, or deploy.
