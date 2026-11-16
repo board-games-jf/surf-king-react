@@ -24,6 +24,24 @@
 
 **Immediate next step:** Freeze **this design target** and compare one full 3-player race using the same hazards/cards under **quick recovery** versus **old skipped-turn recovery**; identify whether the sole blocker was time lost or accumulated movement/energy costs. Then assess 2-, 4- and 7-player cases. **No code is authorized**, so this remains a written design exercise.
 
+## P-19 — Owner proposes staying on the Shark, no positional retreat (NOT yet ratified)
+
+**Owner feedback, 2026-11-16:** "eu acho que podemos tirar essa questão de mover-se de volta para outra casa e apenas manter a questão de voltar com 1 energia." The owner proposes **removing the entire backward-placement/blocked-hex complication**. This is a new design preference, not yet an unambiguous ratification superseding previously accepted SK-DEC-018. The Shark's **−2 energy** is separately **approved (SK-DEC-019)**.
+
+**Simple candidate rule (P-19, not yet approved):**
+
+1. On **entering** a Shark, apply its approved **−2 energy** once. If energy becomes 0, the surfer **falls and stays on the Shark hex**, visibly marking the surfer as fallen. That tile is temporarily associated with the fallen surfer until their next personal turn; exact interaction with attacks/other surfers during this period remains open.
+2. **Start of next personal turn:** The surfer automatically **stands up on the same Shark hex with 1 energy**; no retreat, no teleport, no missed next turn. The Shark does not trigger again on standing up; only a future **new entry** causes damage.
+3. The surfer can take their ordinary movement that turn; no extra movement/action/draw is granted solely by the fall. **The drawback is low energy/vulnerability, not lost distance.**
+4. **Owner's preceding timing preference:** Recovery cards, when chosen, are played **on the player's next own turn**, not as interrupts in other players' turns. The exact normal-action slot cost is still being reviewed.
+5. **Important card-design collision:** Under existing behavior, Swimming Fin restores only **1 energy** and Lifeguard Float only **2**. If automatic recovery already restores 1 on the same tile, playing Swimming Fin for the same outcome is **strictly wasteful** and Float gains only 1 relative to no card. The assistant recommends (not approved) the return-energy table **no card = 1; Fin = 2; Float = 3**, by treating each rescue as a bonus of +1/+2 **on top of the baseline 1**. Alternatively keep printed restore values and add some other card-only benefit, but **do not silently leave Fin worthless**.
+6. **Falling is not an additional action available at will.** Deliberately choosing a hazardous shortcut may still be sensible, but entry damage remains real and no one receives more than the defined baseline without spending a scarce card. The possibility of a strategically free shortcut while temporarily fallen is a risk to quantify: with 2 initial energy and Shark −2, the player falls at the Shark, then next own turn stands up **on the advanced tile** at 1 energy and can advance again. The Shark **no longer delays board progress** if the player accepts vulnerability. This may dilute risk and rescue value in a 7–8-maneuver race.
+7. **Crowding remains unresolved:** If a fallen surfer continues to occupy/reserve the Shark cell, attacks, crossing, other players' tile entries and a 7-player bottleneck require a single clear short rule. Do not place two live surfers in one cell.
+
+**Assistant's balancing assessment:** This is more elegant and faster than all prior knockback proposals. It **trades positional cost for future vulnerability**. However, if a surfer recovers automatically at the same location and still moves normally, there may be **no immediate movement penalty**, and a Fin merely restores energy already available from other cards. Validate whether **1 energy** alone is enough threat in the short route, and whether card bonus values should be adjusted, before locking P-19 as a superseding accepted decision.
+
+**Governance:** Preserve accepted SK-DEC-018's earlier Shark return-to-sea rule as the last ratified version **until the owner explicitly confirms P-19**. SK-DEC-019 Shark −2 remains accepted and unchanged. No gameplay code changed.
+
 ## P-18 — Next-personal-turn rescue timing, owner clarification (PROPOSED AMENDMENT)
 
 **Owner follow-up, 2026-11-16:** After explicitly confirming that Shark damage should **remain −2 energy** (accepted in **SK-DEC-019**), the owner asked whether a recovery card would be played **only on the surfer's next own turn**, rather than immediately upon falling. The assistant recommends **yes** for simplicity. This is an **owner-raised timing preference and assistant recommendation**, NOT yet an explicitly ratified amendment of existing SK-DEC-018, which currently specifies **immediate rescue**.
