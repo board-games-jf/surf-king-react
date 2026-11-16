@@ -194,7 +194,7 @@ export function decorateRiggedSurfer(loadedScene, choices) {
         colors[i * 3 + 2] = c.b
       }
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-      replacement = material('#ffffff', .88, { vertexColors: true, skinning: true })
+      replacement = material('#ffffff', .88, { vertexColors: true })
     }
     materials.push(replacement)
     node.material = replacement
@@ -217,7 +217,7 @@ export function decorateRiggedSurfer(loadedScene, choices) {
   const rest = {}
   for (const name of ['spine_02', 'spine_03', 'upperarm_l', 'upperarm_r']) {
     const bone = loadedScene.getObjectByName(name)
-    if (bone?.isBone) rest[name] = { bone, rotation: bone.rotation.clone() }
+    if (bone?.isBone) rest[name] = { bone, rotation: bone.rotation.clone(), quaternion: bone.quaternion.clone() }
   }
   const animate = (seconds, reduceMotion = false) => {
     const t = reduceMotion ? 0 : seconds
@@ -235,15 +235,19 @@ export function decorateRiggedSurfer(loadedScene, choices) {
     // down from T-pose shoulder height to a relaxed, readable idle position.
     for (const [name, swing] of [['upperarm_l', -1.18], ['upperarm_r', 1.18]]) {
       const joint = rest[name]
-      if (joint) joint.bone.rotation.set(
-        joint.rotation.x, joint.rotation.y,
-        joint.rotation.z + swing + Math.sin(t * .81 + swing) * .018
+      if (joint) joint.bone.quaternion.copy(joint.quaternion).multiply(
+        new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(0, 0, 1),
+          swing + Math.sin(t * .81 + swing) * .018
+        )
       )
     }
   }
   return {
     display, surfboard, animate,
     dispose() {
+      // A comparison mode must restore the untouched GLB reference pose.
+      Object.values(rest).forEach(({ bone, quaternion }) => bone.quaternion.copy(quaternion))
       swapped.forEach(({ node, originalMaterial, originalGeometry }) => {
         if (node.geometry !== originalGeometry) node.geometry.dispose()
         node.material = originalMaterial
