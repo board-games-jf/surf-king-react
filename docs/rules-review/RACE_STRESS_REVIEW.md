@@ -66,10 +66,50 @@ At one energy versus a two-dice defender, the attacker's strict win drops to **5
 | **Fallen comeback** | Returning after a lost turn may be too slow | Exchange can give an underdog a way to gain space after recovery | Falling recovery and card rescues not finalized |
 | **Deliberate backward loop** | Mandatory movement alone cannot guarantee a finish | Exchange increases interaction but still cannot guarantee progress | Finite endgame and blocked-turn handling need agreement |
 
-## 6. Recommendation and review boundary
+## 6. P-11 — Swap, obstacles, falls and re-entry: integrated edge-case review (NOT approved)
+
+**Goal:** Keep the P-10 exchange intuitively explained and prevent inconsistent occupancy, obstacle bypass or repeated forced falls. Only the owner-confirmed **0-energy fall** and **trial no-damage tie** are accepted. P-10/P-11 are assistant proposals.
+
+### Recommended resolution order (P-11, not approved)
+
+1. **Check adjacent attack eligibility, then roll the two-dice-cap fight.** Compare the highest result only (candidate rule). A tie causes **zero energy damage** and **no exchange**, as agreed for the trial.
+2. **Resolve combat energy damage first:** candidate **−1 to the strictly losing surfer**. If the **attacker** reaches zero, they fall and cannot move or exchange. If the **defender** reaches zero, they fall and vacate their cell immediately; there is no longer a live opponent with whom to exchange.
+3. **Strict attacker win and defender still afloat:** attacker can **decline** exchange and later make their normal legal one-hex maneuver, or **choose** to exchange their two adjacent occupied cells. Exchange consumes the attacker's one normal maneuver.
+4. **Defender fell:** attacker may use that turn's **one legal normal maneuver** to occupy the just-vacated neighboring hex, including its terrain effects. This is entering an empty destination, **not a swap** and not a bonus second movement.
+5. **Resolve terrain for every character entering a cell due to an exchange**, including the involuntarily displaced defender. Both surfers exchange positions simultaneously, then each receives the destination effect once. If terrain drops either to zero, the fallen surfer vacates their new cell. **No effect repeats for a player merely remaining in the same hex.**
+6. **After a nonlethal failed attack or tie**, the attacker may still take a legal normal maneuver; if they fell at zero, their turn's movement ends.
+
+**Illustrative hazards and reward cases:**
+
+| Current/target geometry | Candidate P-11 outcome | Why it matters |
+| --- | --- | --- |
+| A at **21**, B at **28** (initial Shark), B survives an attack and A elects swap | A enters Shark 28, takes proposed Shark −1; B moves to 21. If A had only 1 energy, A now falls despite winning the dice. | Attacker can decline swap; no free Shark immunity |
+| A on a Shark cell, B in ordinary adjacent sea, A strictly wins and elects swap | B takes candidate attack −1 and Shark −1 upon being moved onto A's old cell. This **can cause a fall even from 2 starting energy**. | Forced terrain plus attack is a **potentially severe double hit** and needs explicit owner judgment before acceptance |
+| Either new cell holds a **Storm** | Entering surfer takes Storm's existing −1 (provisionally keep); if zero, they fall and vacate. | Same entry rule as normal movement |
+| Either new cell holds an **Island** | Entering surfer receives its current +2 (subject to separate rebalance); repeated swaps/moves could farm healing | The entry rule is consistent, but Island's effect/economy may need a **single-use or smaller benefit** |
+| A attacks B at energy **1**, wins strictly, B reaches **0** from proposed −1 | B falls, vacates the target hex. A may maneuver into that empty adjacent hex, receiving its terrain effect; cannot also move a second time. | Avoid placing a fallen defender in two occupied cells |
+| Defender wins / ties | No exchange; attacker loses proposed −1 only on strict loss; ordinary maneuver remains if afloat | Keeps the trial no-damage tie |
+| **Stone or Cyclone** in the exchange endpoint | Current `placeObstacle` refuses occupied cells, and a surfer entering Cyclone is displaced rather than remaining there. They are **not normally occupiable endpoints** in the existing engine | Do not invent a complex special-case chain for a swap whose target is an occupied live surfer |
+
+**Counter-swap and anti-stall risk:** The new trade-off may generate alternating A↔B exchanges if adjacent players repeatedly attack. The probability of an equally matched attack strictly succeeding on a single attempt is 38.97%, and exchanges consume the attacker's movement, but that **does not mathematically prevent recurring stall**. A finite match end or other simple race-pressure rule remains necessary; do **not** force a novel anti-attack cooldown yet.
+
+### What does a fall mean for board occupancy?
+
+A fallen surfer is **off their board** (owner-confirmed) and should not remain a permanent solid blocker. Recommend **remove the active occupant from the hex while keeping a private fall-location checkpoint**. At their next personal turn, propose a **guaranteed short return with 2 energy and no normal maneuver that turn**, placing them at the previous hex if vacant, otherwise **at the closest vacant non-Stone hex toward the sea**. The selection and treatment of an occupied or hazardous checkpoint must be deterministic; treat it as an **implementation-independent design open issue** rather than a rule already specified and accepted. Never give a fallen surfer a free step toward the beach. A visual fallen marker could remain, but must not block another surfer's legal movement.
+
+**Re-entry risks:** A return on Shark/Storm may cause an instant repeat fall if damage applies to re-entry; granting hazard immunity on re-entry is a new special rule; Island healing on re-entry could create a free refill. The preferred next refinement is to define **a safe water re-entry tile no closer to the beach than the fall checkpoint**, with 2 energy and a missed movement, then test its effects on cards such as Lifeguard Float/Swimming Fin. Do not pretend that the exact placement algorithm or card exceptions are settled yet.
+
+### What we learned and what still needs decision
+
+- **Prefer consistent entry triggers** for a positional exchange to avoid gamey Shark shortcuts, but flag **combined attack + hazard damage** as the highest-risk corner case for 2-energy starters.
+- **Prefer a single maneuver budget** for movement/exchange, and handle pre-exchange knockouts by vacating the cell first.
+- **Do not finalize return from fall** before testing available cells, terrain on return, occupied return points and rescue cards.
+- This desk analysis uses **existing code/geometry, deterministic rule walkthroughs and exact dice enumeration**, not a run of the actual game engine, a match simulation or a proven balance test.
+
+## 7. Recommendation and review boundary
 
 **Preferred next single candidate:** P-10 optional position exchange **only on a strict attacker win**, and **it consumes the player's normal maneuver**. This preserves the owner's no-damage-tie trial; keeps the max-two-dice confrontation quick; and makes a contested cell meaningfully valuable without damage inflation or new progress counters.
 
-**Conditions before endorsing:** Decide whether exchange into a Shark/Storm/Island triggers obstacles, define the fall/occupied-cell interaction, and validate counter-swaps and the 10-round fallback. Compare card effects and one tactical action per turn as a whole. None is approved.
+**P-11 addition (NOT approved):** Proposed a consistent order: strict-loss damage first; fallen defenders vacate rather than swapping; an attacker may step into the vacated cell as their one normal maneuver; live-surfer exchanges are simultaneous and apply destination terrain once for **both** entrants; anyone reduced to zero vacates. This eliminates bypasses but **can combine attack and forced Shark/Storm damage**. Re-entry remains open: favor a nonblocking fallen marker and a short safe return near the fall site without a forward teleport. Next evaluate this combined damage risk and the return-cell rule before owner approval.
 
 **Implementation status:** Source inspected and routes/dice probabilities checked by deterministic arithmetic. No executable game simulation, match playtest, Jest or production code change. No merge or deployment.
