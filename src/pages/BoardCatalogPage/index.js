@@ -60,6 +60,8 @@ export default function BoardCatalogPage() {
         </div>
         <div className="board-catalog-header-links">
           <Link to="/obstacles">Individual models</Link>
+          <Link to="/surfers">Surfer gallery</Link>
+          <Link to="/customize">Customize surfer</Link>
           <Link to="/local">Local game</Link>
         </div>
       </header>

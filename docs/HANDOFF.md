@@ -1,35 +1,34 @@
 # Project Handoff
 
-**Last direct GitHub verification:** 2026-11-16
+**Verified on GitHub:** 2026-11-16
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Original feature base commit:** `6c80c80b28b6d115b3d2267e9462c2cc91fc6311` (interactive board catalog PR #16 merged). A newer `main` includes local startup work (PR #19).
+**Source main baseline:** `e4e083f9035e314eb2107bd1cca448292cc4629e` (obstacle PR #17).
 
-## Existing game
+## Integrated baseline
 
-- React 18 / CRA 5 local `boardgame.io` game with 53 hexagon IDs and selectable 2D/Three.js views. Card actions and game turns stay in the game engine.
-- The 3D board uses shared procedural models and an ocean/beach scene; the public map snapshot supplies real in-game obstacles and players.
-- The `/#/obstacles` individual viewer and `/#/catalog` interactive full-board showroom reuse the same 3D constructors. The showroom has illustrative placements, not an authoritative match.
-- PR #14 merged the first version of the five 3D obstacles; PR #16 merged the board showroom. Both still require real browser/Jest/build verification.
+- Local boardgame.io gameplay, 53-cell 2D/3D views and public map snapshot are integrated. No online multiplayer is active.
+- The obstacle meshes/animations are visually approved and merged (PRs #14, #17). The standalone board catalog is merged (PR #16). The old Jest/build/WebGL browser checks remain pending.
+- Issue #11 / draft PR #12 are for a separate game-rules review. Do not mix them into visual work.
 
-## Active visual refinement — Issue #13
+## Active surfer and board studio (Issue #20 / draft PR #21)
 
-- Branch `feat/13-card-faithful-obstacle-effects` / [draft PR #17](https://github.com/board-games-jf/surf-king-react/pull/17) implements the owner-approved visual direction (SK-DEC-010) and is authorized for merge by the project owner on 2026-11-16. Confirm its actual merged status on GitHub; deployment was not authorized.
-- Stone is now a mint-green faceted twin crag following `src/assets/cards/stone.png`; Island is orange sand with two leaning palms following `src/assets/cards/island.png`.
-- Removed opaque blue disk meshes beneath Shark, Storm and Cyclone; the shared scene ocean remains the water surface, with only local foam and wakes.
-- Storm uses five prebuilt jagged/branched lightning shapes with deterministic but irregular flash timing; Cyclone is taller and drifts smoothly within a bounded hex-center radius; Shark has a bounded moving fin and foam trail.
-- No game rules, matchmaking, server code, cards, textures, or external services changed.
+- The latest `feat/20-refine-3d-surfers` branch / PR #21 received **explicit owner merge authorization on 2026-11-16**. Check GitHub for actual merged status after integration; **deployment remains unauthorized**.
+- The existing `createSurferModel()` remains compatible with the live match and now accepts a seventh optional cosmetic style argument. Its scene uses actual Three.js geometry: expressive face, alternative hair, male/female body presentation, colored surfwear and three distinct board hulls (shortboard, fish, longboard). These are procedural approximations and **not** a rigged GLB conversion of the owner's polished 2D character concept.
+- `/#/surfers` is a dedicated gallery of four selectable presets with a real draggable/zoomable Three.js viewer and route links from Home/Obstacles/Catalog.
+- `/#/customize` is a responsive tropical creator with character, hairstyle, hair/skin/surfwear colors, board silhouette/color and same live reusable model. The action **Guardar visual** persists only an isolated draft in browser localStorage; it is not connected to player creation or a real match.
+- Approved decisions: SK-DEC-011 (boards cosmetic-only) and SK-DEC-012 (wood/crown logo and tropical beach visual direction). Current logo/background are **CSS interpretations**, not imported exact source artwork.
 
-## Evidence and open validations
+## Validation and risks
 
-- Relevant code and original card images were read directly from GitHub.
-- Actual production code was evaluated in a lightweight Three.js geometry mock; all five constructors and animation callbacks passed. Pure drift sampling stayed within a radius of 0.319 units. This **does not** verify WebGL rendering.
-- New Jest tests cover silhouettes, removal of opaque bases, bounded drift, irregular lightning, and finite animated transforms. **Jest suite and build were not run** because the project dependencies are not present here.
-- Browser evaluation of shaders, animation quality, performance and touch controls remains pending. The older issue #15 catalog checks also remain pending.
-- Separate issue #11 and draft PR #12 discuss game rules; do not merge rules work as part of the visual refinement.
+- Existing tests were extended and new tests added for cosmetic normalization and the route UI interactions.
+- JavaScript syntax checks passed for the model, option module and relevant non-JSX files. On 2026-11-16 the four actual production model presets were recreated and animated against a lightweight Three.js mock (40, 44, 47, 48 meshes; all finite).
+- Executed the actual production model source against a lightweight Three.js mock with four presets and animation samples; geometry parts existed and transforms stayed finite. **This is not a Jest result or WebGL rendering proof.**
+- **Jest, production CRA build, actual WebGL gallery and responsive browser checks were not executed**; a browser with the project dependencies is required before claiming a working user-facing release.
+- Artistic fidelity to the owner's 2D image needs dedicated 3D asset creation and validation. The current procedural models are an interactive foundation, not a promise of pixel-perfect likeness.
 
-## Next actions
+## Next action
 
-1. Confirm GitHub PR #17 merge status and run Jest/build in a full project environment.
-2. Inspect `/#/catalog` and `/#/obstacles` in a real WebGL browser, confirm card resemblance and adjust individual models if needed.
-3. Test a live local 3D match, multiple same-type obstacles, hover and turn badges, and the 2D fallback.
-4. Merge was explicitly authorized on 2026-11-16. **Deployment still requires separate explicit authorization.**
+1. Install dependencies and run `npm test -- --watchAll=false` plus `npm run build`, correcting failures.
+2. Start the branch locally and check `/#/surfers`, `/#/customize` and `/#/catalog` on desktop and mobile: shader compatibility, eyes facing camera, all swaps, form input, touch/zoom, geometry disposal.
+3. Review the actual 3D avatar look against the owner's image and refine or import professionally modelled 3D assets before final art approval.
+4. PR #21 merge was **explicitly authorized by the owner on 2026-11-16** despite pending real Jest/build/WebGL checks. Confirm merged status and keep issue #20 open for unfinished validations and styling. **Deploy still requires separate authorization.**
