@@ -31,11 +31,11 @@ Keep one coherent whole-match candidate visible while considering one focused ch
 
 The trial has not yet been playtested or proved balanced. Approval to **try** these does not authorize implementing or merging anything.
 
-## 3. Current coherent working package — P-09 + positional P-10, **assistant proposals only**
+## 3. Current coherent working package — P-09 / P-10 / P-11, **assistant proposals only**
 
 - Start at 2 energy, trial cap 5, edge-adjacent geometry, no Rest, fall at 0.
 - Per active turn, **optionally play one card OR attempt one adjacent Drop In**, then make one legal **free normal maneuver** when possible; draw a card after moving. No separate free repeatable +1-energy choice (it would produce 2 → 5 in only three personal turns).
-- Experimental Drop In: up to two d6 per surfer, compare the highest results; **tie without energy loss** (owner accepted for trial); a strictly lower result loses **1 energy** (damage value still an assistant proposal). **P-10 candidate:** when the attacker strictly wins, they may exchange hexagons with the defender; if used, this consumes the attacker's regular maneuver, avoiding a double step (not approved).
+- Experimental Drop In: up to two d6 per surfer, compare the highest results; **tie without energy loss** (owner accepted for trial); a strictly lower result loses **1 energy** (damage value still an assistant proposal). **P-10 candidate:** when the attacker strictly wins, they may exchange hexagons with the defender; if used, this consumes the attacker's regular maneuver, avoiding a double step (not approved). **P-11 candidate:** resolve combat damage before exchanging, apply terrain once for **both entering surfers**, and remove any fallen surfer's solid board occupancy; if the defender falls from the attack, the attacker can instead move into the freed adjacent cell as their one maneuver (not approved).
 - Proposed first-pass obstacle/card retune: **Shark -1**, **Big Wave -1** instead of their currently implemented -2; review energy-restoration cards (+3 and full refill), Island +2 and Bottled Water's now-obsolete waiver.
 - Proposed fall return: rejoin on next own turn at 2 energy, without maneuver that turn. Proposed victory safety: first to beach wins, with a **10-round** positional fallback. **Neither re-entry nor round limit has been approved.**
 
@@ -61,13 +61,17 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 
 ## 5. Completed desk analysis and next design action
 
-**Source-verified route contrast:** Same starting cell 0 to goal 49: **7 legal maneuvers via Shark 28** vs **8 legal maneuvers avoiding all four initial Sharks**. Actual geometry creates a meaningful risk-versus-speed choice without a new counter or rule. These are geometric checks, not gameplay playtests.
+**Verified race routes (provisional layout):** From engine cell 0 to beach 49, **7 valid moves through Shark 28** versus **8 valid moves avoiding all initial Sharks**. This creates a genuine speed-versus-resilience choice without any extra progress counters.
 
-**Exact combat maths, energy 2 vs 5:** each uses two dice under the agreed trial. Strict attacker win **38.97%**, strict loss **38.97%**, tied/no damage **22.07%**. If only 1 energy is lost on a strict win, the defender drops from 5 to 4 with unchanged dice and board position — likely too little impact to alter a seven-move race.
+**Exact trial combat odds (2 dice vs 2 dice):** Strict attacker win **38.97%**, strict defender win **38.97%**, owner-trial **no-damage tie 22.07%**. A win that only removes 1 energy leaves a 5-energy leader at 4 in the same leading cell; P-10's **optional occupied-cell exchange consuming the attacker's maneuver** offers a meaningful positional payoff.
 
-**Assistant recommendation P-10 (NOT owner approved):** On a strict attacker victory, optionally **swap the two surfers' cells** in addition to the candidate −1 damage to the defender, with swap **counting as the attacker's single normal movement** for that turn. A late-race challenger at cell 35 can attempt to take a leader's occupied cell 42 (next to the beach at 49); the winner gains position while pushing the defender back. No second free movement. On tie or failure, normal legal movement still occurs if able. The reward creates strategy without extra dice, repeated health grinding or an empty-cell push algorithm.
+**P-11 desk review (NOT approved):** Combat resolves **before** any exchange. If a defender drops to 0, they vacate, and the attacker may enter the freed adjacent hex as their single maneuver. If both remain afloat, optional exchange occurs simultaneously, using the attacker's maneuver; **both** displaced surfers resolve destination terrain **once**. Any surfer reduced to zero leaves the active board rather than remaining as a solid obstacle. No damage on dice ties and no exchange on ties.
 
-**Risks to settle before approval:** Whether moving into a Shark during exchange triggers damage; fall/occupancy rules; a defender counter-swapping next turn; card interactions and hand economy; crowded 7-player turns; and fair round-limit handling. **Next focused step:** Evaluate obstacle triggering and fall safety for this proposed exchange, then decide whether the tactic is preferable to damage-only combat. Full analysis in [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
+**Important newly discovered risk:** An opponent forcibly relocated to Shark or Storm might suffer **−1 from losing combat plus −1 from hazardous entry**, falling even from 2 starting energy. This may be fun positional strategy or too punitive; it needs explicit balancing. Forced-entry hazards, falling occupancy and the exact return-cell rule are **assistant proposals**, not owner approvals.
+
+**Recommended next analysis:** Compare a two-energy surfer suffering a two-point swap+Shark fall against the comeback rule (return next personal turn near the fall location), rescue cards and a race ending around seven to ten moves. Check whether this creates a fair penalty or an unrecoverable loss, including at seven players. Do **not** lock down an exception for forced movement until this is checked.
+
+**Full desk evidence:** [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md), [ATTACK.md](ATTACK.md) and [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md). No match simulation, production change, game tests, merge or deploy.
 
 ## 6. How to resume in a new conversation
 
