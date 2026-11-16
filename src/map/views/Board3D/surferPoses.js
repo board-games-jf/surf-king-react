@@ -19,13 +19,15 @@ const REST_POSES = Object.freeze({
   surfing: {
     // A low, staggered stance: the front knee drives forward while the
     // trailing leg and opposing arms counterbalance the board's direction.
-    spine_01: [.12, -.08, -.035], spine_02: [.19, -.16, .09],
-    spine_03: [.035, .12, -.045], pelvis: [.10, .11, -.03],
-    upperarm_l: [-.21, -.12, -.64], upperarm_r: [.18, .16, .46],
-    lowerarm_l: [-.12, .08, -.46], lowerarm_r: [-.06, -.10, .65],
-    thigh_l: [.43, -.06, -.17], thigh_r: [.29, .07, .13],
-    calf_l: [-.63, .02, .08], calf_r: [-.39, -.02, -.06],
-    foot_l: [.18, 0, .035], foot_r: [.08, 0, -.035]
+    spine_01: [.055, -.07, -.025], spine_02: [.085, -.12, .055],
+    spine_03: [-.035, .10, -.025], pelvis: [.115, .11, -.025],
+    // Keep arms raised for balance rather than hanging beside the body.
+    upperarm_l: [-.36, -.24, -.24], upperarm_r: [.28, .22, .26],
+    lowerarm_l: [-.16, .08, -.22], lowerarm_r: [-.12, -.08, .29],
+    // A lower, staggered stance needs visibly flexed hips and knees.
+    thigh_l: [.62, -.06, -.15], thigh_r: [.46, .08, .12],
+    calf_l: [-.86, .02, .06], calf_r: [-.67, -.02, -.06],
+    foot_l: [.22, 0, .03], foot_r: [.14, 0, -.03]
   }
 })
 
