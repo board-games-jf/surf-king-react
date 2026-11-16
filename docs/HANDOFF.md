@@ -2,7 +2,7 @@
 
 **Last GitHub verification:** 2026-11-16
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Current baseline `main`:** `ea8c4d3a3c7d62525fbf14aab0e711a4e1c0ce2e` (PR #29 merged with explicit authorization; no deployment).
+**Current baseline `main`:** `f8c93ea06fa213e54192c8a98574f1f1404817cb` (PR #31 merged with explicit authorization; no deployment).
 
 ## Integrated baseline
 
@@ -37,10 +37,18 @@
 - Remaining acceptance risks: bone directions/standing-arm appearance, natural surfing knee/foot-to-board contact for both authored bodies, rapid gender toggling under delayed loads, safe studio fallback when an invalid GLB is received, and mobile readability.
 - **Next concrete action:** run `CI=true npm test -- --watchAll=false` and `npm run build` on an updated checkout with dependencies, then visually inspect `/#/customize` and `/#/catalog`/live board on desktop/mobile. PR #29 is merged; Issue #28 retains unverified checks. Deployment remains unauthorized.
 
-## Active visual follow-up — Issue #30 (unmerged)
+## Integrated visual polish — Issue #30 (PR #31 merged)
 
 - Owner reviewed the integrated GLB and reported an unnatural surfing stance and poor tubular hair. [Issue #30](https://github.com/board-games-jf/surf-king-react/issues/30), branch `fix/30-surf-stance-hair-polish`, scopes a shared visual-only refinement.
 - `surferPoses.js`: adjusted surfing to a lower asymmetric front/trailing knee stance with opposing shoulder and pelvis/torso rotations, plus bounded counterbalance movement. No state or gameplay changes.
 - `riggedSurferArt.js`: replaced fixed-radius tubular hair locks with broad tapered, owned BufferGeometry locks for short, wavy and ponytail styles. Original style IDs, materials, GLB assets, body rigs and board presentation preserved.
 - Added targeted source tests for asymmetric/static pose parameters and tapered hair geometry/disposal. **These Jest tests have not been executed**: isolated container has Node/npm but GitHub DNS is unavailable, and no project checkout or installed dependencies exist there. No CRA build or actual WebGL/mobile review was possible.
 - **Next:** run Jest/build on the issue branch, inspect masculine/feminine hair and foot/board alignment in all 3 poses and on the board, fix visual issues, then review its draft PR. No merge or deploy without owner authorization.
+
+## Active correction — screenshot-proven surf pose and hair defect (#30)
+
+- The owner provided a real studio screenshot on 2026-11-16 showing a forward-leaning surf rider with arms hanging down and a detached ponytail. Earlier PR #31 did **not** solve these visible defects; source-only assertions were insufficient.
+- On branch `fix/30-anchor-hair-align-board`, the surfing preset now uses deeper staggered leg/knee flexion, less excessive upper-spine lean and higher opposing arms.
+- In shared `riggedSurferArt.js`, the authored hair group now attaches to the active `head`/ `Head` bone preserving its bind-position and tracks head/neck/spine movement, with explicit detachment/disposal. Test added for head attachment, motion and cleanup.
+- **Unverified:** actual GLB bone naming, joints' physical axes, hair placement, surfboard/foot contact and both genders in WebGL. Jest/build unavailable in this connector-only environment; do not claim visual acceptance or passing tests.
+- **Next:** on the new draft PR, run Jest/build and compare a full-body side and three-quarter screenshot from `/#/customize` with the owner's screenshot. Adjust actual authored rig transforms and board contact until realistic, then evaluate on `/#/catalog` and mobile. No merge or deployment authorized for this correction.
