@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { normalizeSurferStyle } from '../../map/views/Board3D/surferStyle'
+import { getRiggedSurferAsset } from '../../map/views/Board3D/riggedSurferAssets'
 
 // Uses the real local, rigged Quaternius GLB. Neither this component nor its
 // experimental artwork is used in a live match.
-export default function RiggedBaseViewer({ style, styled = false }) {
+export default function RiggedBaseViewer({ style, styled = false, pose = 'relaxed' }) {
   const holder = useRef(null)
   const live = useRef(null)
-  const latest = useRef({ style, styled })
+  const latest = useRef({ style, styled, pose })
   const [error, setError] = useState(null)
   const [ready, setReady] = useState(false)
-  latest.current = { style, styled }
+  latest.current = { style, styled, pose }
 
   useEffect(() => {
     let cancelled = false
@@ -67,9 +68,9 @@ export default function RiggedBaseViewer({ style, styled = false }) {
       let currentGroup = null
       let currentArt = null
       let fingerprint = ''
-      const updateLook = (options, renderStyled) => {
+      const updateLook = (options, renderStyled, selectedPose) => {
         if (!loadedScene) return
-        const next = JSON.stringify({ renderStyled, style: renderStyled ? normalizeSurferStyle(options) : null })
+        const next = JSON.stringify({ renderStyled, pose: renderStyled ? selectedPose : null, style: renderStyled ? normalizeSurferStyle(options) : null })
         if (next === fingerprint) return
         fingerprint = next
         if (currentArt) {
@@ -81,7 +82,7 @@ export default function RiggedBaseViewer({ style, styled = false }) {
 
         currentGroup = new THREE.Group()
         if (renderStyled) {
-          currentArt = decorateRiggedSurfer(loadedScene, options)
+          currentArt = decorateRiggedSurfer(loadedScene, options, { pose: selectedPose })
           currentGroup.add(currentArt.display)
         } else {
           currentGroup.add(loadedScene)
@@ -90,7 +91,10 @@ export default function RiggedBaseViewer({ style, styled = false }) {
         currentGroup.name = renderStyled ? 'styled-surfer-review' : 'rigged-base-review'
         scene.add(currentGroup)
       }
-      const assetPath = (process.env.PUBLIC_URL || '') + '/assets/surfers/quaternius-male-base.glb'
+      // Parent uses a gender key to remount when anatomy changes; a stale
+      // in-flight loader is ignored by the existing cancellation guard.
+      const asset = getRiggedSurferAsset(style.character)
+      const assetPath = (process.env.PUBLIC_URL || '') + asset.path
       new GLTFLoader().load(assetPath, loaded => {
         if (cancelled) {
           loaded.scene.traverse(node => {
@@ -102,17 +106,15 @@ export default function RiggedBaseViewer({ style, styled = false }) {
           })
           return
         }
-        let hasSkin = false
-        loaded.scene.traverse(node => {
-          if (node.isSkinnedMesh && node.skeleton?.bones.length) hasSkin = true
-        })
+        const body = loaded.scene.getObjectByName(asset.body)
         const bounds = new THREE.Box3().setFromObject(loaded.scene)
-        if (!hasSkin || bounds.isEmpty() || !Number.isFinite(bounds.max.y)) {
+        if (!body?.isSkinnedMesh || !body.skeleton?.bones.length ||
+          bounds.isEmpty() || !Number.isFinite(bounds.max.y)) {
           setError('O GLB não tem malha articulada e dimensões válidas.')
           return
         }
         loadedScene = loaded.scene
-        updateLook(latest.current.style, latest.current.styled)
+        updateLook(latest.current.style, latest.current.styled, latest.current.pose)
         live.current = { updateLook }
         setReady(true)
       }, undefined, cause => {
@@ -158,7 +160,7 @@ export default function RiggedBaseViewer({ style, styled = false }) {
     }
   }, [])
 
-  useEffect(() => { live.current?.updateLook(style, styled) }, [style, styled])
+  useEffect(() => { live.current?.updateLook(style, styled, pose) }, [style, styled, pose])
 
   return (
     <div className="surfer-viewer" ref={holder} role="img"
@@ -166,7 +168,7 @@ export default function RiggedBaseViewer({ style, styled = false }) {
       {error && <div className="surfer-viewer-error" role="alert">{error}</div>}
       {!error && !ready && <div className="surfer-viewer-error" role="status">A carregar o surfista 3D...</div>}
       <span className="surfer-viewer-hint" aria-hidden="true">
-        ↻ Rodar · Scroll para zoom · {styled ? 'Visual Surf King experimental' : 'Base GLB original'}
+        ↻ Rodar · Scroll para zoom · {styled ? 'Visual Surf King · ' + pose : 'Base GLB original'}
       </span>
     </div>
   )

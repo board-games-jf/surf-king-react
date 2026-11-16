@@ -20,6 +20,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-014 | Accepted | Extend the already accepted styled rigged-GLB surfer art direction to the shared 3D board and board catalog, keeping each of the seven players visually identifiable by their original board color. Board models remain cosmetic, with the prior procedural rider as a safety fallback. | The owner approved the studio character look and requested seeing that same character on the board rather than a new model; preserve playable clarity. | [#26](https://github.com/board-games-jf/surf-king-react/issues/26), [#24](https://github.com/board-games-jf/surf-king-react/issues/24) |
 
+| SK-DEC-015 | Accepted | Distinguish male and female Surf King surfers using actual separately authored skinned bodies/facial geometry, and offer standing, relaxed and surfing poses driven by the existing humanoid skeleton. These are visual states only; surfing remains the shared board pose. | The owner wants noticeable facial/silhouette differences and no permanently outstretched T-pose, without changing gameplay balance or abandoning the existing rigged GLB art direction. | [#28](https://github.com/board-games-jf/surf-king-react/issues/28), [#26](https://github.com/board-games-jf/surf-king-react/issues/26) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.

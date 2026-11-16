@@ -111,7 +111,7 @@ flowchart LR
 ```
 
 The imported body is male-only. No final female GLB, retargeted surfing animation or player-profile persistence exists. Issue #26 adds the same styled preview to board actors without connecting saved player profiles. This preview does not affect game rules or board-identity colors. Real WebGL validation remains pending.
-## Shared 3D board GLB surfers (Issue #26, draft)
+## Shared 3D board GLB surfers (Issue #26, merged PR #27)
 
 The existing `createScene.js` public-snapshot renderer now uses the same styled GLB art as the studio. `riggedSurferArt.js` is located in `src/map/views/Board3D/` and is shared by `RiggedBaseViewer` and the board. For board mode, the cosmetic board sits flat under the rider's feet, the figure has a side-on stance, and the whole actor is scaled to an ordinary 53-cell hex.
 
@@ -132,6 +132,26 @@ flowchart TD
 On successful loading, clones attach to the **existing actor groups**, retaining cell movement, camera focus and object identity. The procedural meshes are hidden but remain as fallback; if loading/validation fails, gameplay continues with the old models. Async completion checks scene disposal; individual actor removal destroys only owned accessory geometry/materials and the independent procedural geometry, **never shared source GLB geometry or pooled materials**. No changes to rules, movement, player snapshots, obstacles or the 2D renderer.
 
 **Pending:** Jest/build/WebGL/mobile checks, final surf stance review, genuine female rig, performance measurement. The GLB preview is not a full player-customization-to-match integration.
+## Distinct gender models and stance controller (Issue #28, unmerged)
+
+The character studio and shared `Board3D` renderer retain the same skinned-model pipeline but now select **different locally bundled Quaternius male and female assets**. `riggedBoardSurfers.js` loads one GLB of each gender per scene, upgrades eligible actor groups after each load, and independently clones each rig with `SkeletonUtils.clone`. Missing/invalid models continue to use the existing procedural fallback for that character, without altering other players or game state.
+
+`RiggedBaseViewer` loads the selected gender asset, remounting on gender changes to ignore stale asynchronous callbacks. `surferPoses.js` supplies pure, deterministic bone-offset samples for **standing**, **relaxed** and **surfing** poses. `riggedSurferArt.js` applies offsets relative to each asset's bind-pose quaternions, keeping the underlying skinned body and facial geometry; disposal restores the original skeleton. The studio pose selector is local preview state, **not saved with a cosmetic profile**. Board riders always use the surfing preset.
+
+```mermaid
+flowchart LR
+  Choice[Gender and preview pose] --> Studio[Character studio]
+  Studio --> Gender[Local male or female GLB]
+  Gender --> Decorator[Shared riggedSurferArt]
+  Poses[surferPoses standing / relaxed / surfing] --> Decorator
+  Snapshot[Game/catalog snapshot] --> Board[Shared Board3D renderer]
+  Board --> Templates[Male + female GLB loader]
+  Templates --> Clones[Independent skinned skeletons]
+  Clones --> Decorator
+  Board --> Fallback[Existing procedural fallback]
+```
+
+The female GLB is separately authored from the same CC0 pack; source and texture-free packaging are documented in `DATA_SOURCES.md`. This is **not** a validated motion-capture animation set, final facial-expression system or gameplay ability mechanic. Browser/WebGL bone-axis and foot-to-board alignment remain pending.
 ## Limits and validation
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.
