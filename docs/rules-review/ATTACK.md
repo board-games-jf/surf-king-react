@@ -1,6 +1,6 @@
 # Rule Review — Drop-in Attack
 
-**Status:** Attack range confirmed; dice resolution and other attack conditions pending.  
+**Status:** Attack adjacency owner-confirmed; **ties causing no energy damage accepted for design trial** (2026-11-16). Five-energy cap, up-to-two-dice combat, strict-win 1 damage are being tested as a bundle, not finalized rules.  
 **Tracking:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) and [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12).
 
 ## Confirmed rule — attack range (2026-11-15)
@@ -55,9 +55,24 @@ The owner asked whether the game should allow **5 or 6 maximum energy** and use 
 
 **Full-game dependence:** At 5 energy, single-damage exchanges can require several clashes to trigger a fall. Reassess the B variant's free +1 energy action, card restorations, Sharks and the damage cards at the **same time**, rather than deciding dice independently. See [OPTIONS.md](OPTIONS.md).
 
+## Owner-confirmed experimental tie rule — 2026-11-16
+
+The owner said **"vamos tentar empate sem dano"** — **try ties without damage**. Treat this as an **accepted rule for the ongoing tabletop/gameplay design trial**, **not** final rulebook approval or code authorization.
+
+In the P-08 experimental combat model (maximum 5 energy, up to 2 dice per participant, compare the highest roll):
+- Higher attack roll: defender loses **1 energy** (assistant's linked damage proposal, not yet separately finalized).
+- Higher defense roll: attacker loses **1 energy** (same pending damage proposal).
+- **Same highest result: neither loses any energy.** This is the precise owner-approved **trial condition**.
+
+Do **not** infer that a tied combat also moves, pushes, swaps or awards cards: those outcomes have **not** been decided. The engine currently damages the attacker on ties, so this remains **documented design only**, not implemented.
+
+The tie-without-damage proposal prevents the old approximately **61% attack-energy-loss probability** at equally matched two-die combat; each side instead has **505/1296 ≈ 38.97%** of a strictly higher roll and the remaining **286/1296 ≈ 22.07%** are no-damage ties. Mathematical enumeration only, not a gameplay test.
+
+**Important gameplay risk:** A non-damaging tie and at most one damage for a decisive combat can make combat less consequential in a quick seven-step race. Test whether successful Drop In needs a tactical positional effect later, without inventing that effect now.
+
 ## Next question — one at a time
 
-**Owner agreed to explore a trial of max 5 energy and up to 2 dice, while insisting on a complete linked balance review.** Next: assess tie treatment, energy generation, damage cards, Shark crossing, fall return and round duration as one package. No permanent approval of the 5-energy/two-dice rule or dice ties.
+**Tie without energy damage has now been explicitly accepted for the design trial.** Continue the linked balance review: if battles are too low-impact over a seven-step race, evaluate combat's tactical value alongside cards, sharks, recovery and the race end. The max-5 / up-to-two-dice framework remains experimental, not final.
 
 **Status:** Pending owner decision.
 
