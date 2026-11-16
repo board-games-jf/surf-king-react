@@ -44,7 +44,7 @@ describe('shared real rigged surfer integration for the 3D board', () => {
       expect(mesh.isSkinnedMesh).toBe(true)
       expect(mesh).not.toBe(body)
       expect(hull.material.color.equals(new THREE.Color(color))).toBe(true)
-      expect(art.display.getObjectByName('surfer-preview-stage')).toBeNull()
+      expect(art.display.getObjectByName('surfer-preview-stage')).toBeUndefined()
       expect(art.display.getObjectByName('rigged-sculpted-hair')).toBeTruthy()
       return art
     })
