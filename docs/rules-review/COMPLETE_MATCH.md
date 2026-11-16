@@ -1,6 +1,6 @@
 # Surf King — End-to-End Prototype Match (P-06)
 
-**Status:** **Entirely an assistant playtest hypothesis, NOT owner-approved.** The owner asked to see the complete game experience from opening through victory and evaluate whether all mechanics function together before choosing another isolated rule.
+**Status:** **Earlier single-package assistant playtest hypothesis (P-06), NOT owner-approved.** The owner later requested concrete alternatives, so the **current comparative design proposal is [OPTIONS.md](OPTIONS.md) (P-07)**. This P-06 remains as historical analysis only.
 **Tracking:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) and [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12).
 **Source check:** `main` `e4e083f9035e314eb2107bd1cca448292cc4629e` (2026-11-16); `src/game/SurfKingGame.js`, `src/game/Cards.js`, `src/map/layout/board-layout.json`, and pass tests. **No executable or automated playtest was run.**
 
