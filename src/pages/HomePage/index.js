@@ -34,6 +34,16 @@ const HomePage = () => (
             </DetachedFab>
         </Item>
         <Item>
+            <DetachedFab variant="extended" component={Link} to="/surfers">
+                <DetachedText>Galeria de surfistas 3D</DetachedText>
+            </DetachedFab>
+        </Item>
+        <Item>
+            <DetachedFab variant="extended" component={Link} to="/customize">
+                <DetachedText>Criar o meu surfista</DetachedText>
+            </DetachedFab>
+        </Item>
+        <Item>
             <DetachedFab variant="extended" component={Link} to="/catalog">
                 <DetachedText>{intl.get('home.catalog')}</DetachedText>
             </DetachedFab>
