@@ -14,7 +14,7 @@
 
 ## Active board integration — Issue #26
 
-- Branch `feat/26-rigged-surfer-board` is **not merged or deployed**.
+- [Draft PR #27](https://github.com/board-games-jf/surf-king-react/pull/27) / branch `feat/26-rigged-surfer-board` is **not merged or deployed**.
 - The styled GLB decorator was moved to the shared `src/map/views/Board3D/riggedSurferArt.js` so studio and board use the same mesh and materials.
 - Board presentation lays the cosmetic surfboard under the rider's feet, angles the figure sideways and scales the full model to fit the existing hex footprint.
 - `riggedBoardSurfers.js` loads the local GLB once per 3D scene and uses `SkeletonUtils.clone` for independent skinned riders. All seven original player colors remain identifiable on their boards; outfits/hairstyles use fixed preview presets, not a live-player profile.
