@@ -172,6 +172,19 @@ describe('styled rigged avatar preview — cosmetic geometry only', () => {
     material.dispose()
   })
 
+  test('disposes each hairstyle geometry only once without a named head bone', () => {
+    const { root, geometry, material } = makeMockRig()
+    const art = decorateRiggedSurfer(root, { ...baseStyle, hairstyle: 'ponytail' })
+    const hair = art.display.getObjectByName('surfer-hair-root')
+    const lock = hair.getObjectByName('rigged-hair-strand')
+    const disposeLock = jest.spyOn(lock.geometry, 'dispose')
+    art.dispose()
+    expect(disposeLock).toHaveBeenCalledTimes(1)
+    expect(hair.parent).toBeNull()
+    geometry.dispose()
+    material.dispose()
+  })
+
   test('aligns hair with the smaller female face without modifying the shared body', () => {
     const male = makeMockRig(), female = makeMockRig()
     const maleArt = decorateRiggedSurfer(male.root, { ...baseStyle, character: 'male' })
