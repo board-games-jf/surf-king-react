@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { decorateRiggedSurfer, resolveRiggedPalette } from '../../map/views/Board3D/riggedSurferArt'
+import { SURFER_POSES } from '../../map/views/Board3D/surferPoses'
 
 const baseStyle = {
   character: 'male', hairstyle: 'short', hairColor: 'brown',
@@ -18,7 +19,8 @@ function makeMockRig() {
   const model = new THREE.SkinnedMesh(geometry, material)
   model.name = 'SuperHero_Male'
   root.add(model)
-  for (const name of ['spine_02', 'spine_03', 'upperarm_l', 'upperarm_r']) {
+  for (const name of ['spine_01', 'spine_02', 'spine_03', 'upperarm_l', 'upperarm_r',
+    'lowerarm_l', 'lowerarm_r', 'pelvis', 'thigh_l', 'thigh_r', 'calf_l', 'calf_r', 'foot_l', 'foot_r']) {
     const bone = new THREE.Bone()
     bone.name = name
     root.add(bone)
@@ -94,6 +96,47 @@ describe('styled rigged avatar preview — cosmetic geometry only', () => {
     second.geometry.dispose()
     first.material.dispose()
     second.material.dispose()
+  })
+
+  test.each(SURFER_POSES)('uses authored bone pose %s and restores the original bind pose', pose => {
+    const { root, model, geometry, material } = makeMockRig()
+    const arm = root.getObjectByName('upperarm_l')
+    const leg = root.getObjectByName('calf_l')
+    const restArm = arm.quaternion.clone(), restLeg = leg.quaternion.clone()
+    const art = decorateRiggedSurfer(root, baseStyle, { pose })
+    art.animate(2.6)
+    expect(arm.quaternion.equals(restArm)).toBe(false)
+    if (pose === 'surfing') {
+      expect(leg.quaternion.equals(restLeg)).toBe(false)
+      expect(art.display.getObjectByName('cosmetic-surfboard').rotation.x)
+        .toBeCloseTo(-Math.PI / 2)
+      expect(art.display.getObjectByName('surfer-preview-stage')).toBeUndefined()
+    } else {
+      expect(art.display.getObjectByName('surfer-preview-stage')).toBeTruthy()
+    }
+    art.dispose()
+    expect(arm.quaternion.equals(restArm)).toBe(true)
+    expect(leg.quaternion.equals(restLeg)).toBe(true)
+    expect(model.geometry).toBe(geometry)
+    material.dispose()
+    geometry.dispose()
+  })
+
+  test('aligns hair with the smaller female face without modifying the shared body', () => {
+    const male = makeMockRig(), female = makeMockRig()
+    const maleArt = decorateRiggedSurfer(male.root, { ...baseStyle, character: 'male' })
+    const femaleArt = decorateRiggedSurfer(female.root, { ...baseStyle, character: 'female' })
+    const maleHair = maleArt.display.getObjectByName('surfer-hair-root')
+    const femaleHair = femaleArt.display.getObjectByName('surfer-hair-root')
+    expect(maleHair.position.y).toBe(0)
+    expect(femaleHair.position.y).toBeLessThan(-.05)
+    expect(femaleHair.scale.x).toBeLessThan(maleHair.scale.x)
+    maleArt.dispose()
+    femaleArt.dispose()
+    for (const model of [male, female]) {
+      model.material.dispose()
+      model.geometry.dispose()
+    }
   })
 
 })
