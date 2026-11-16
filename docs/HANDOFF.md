@@ -28,7 +28,7 @@
 
 ## Rigged character asset evaluation (Issue #22)
 
-- **Open draft work:** branch `feat/22-rigged-glb-surfer-base`. Starting `main`: `df81076781a7a70845dbe079f7a8ca21a79d35e6` (PR #21 merged). This is a visual exploration **not merged or deployed**.
+- **Open draft work:** [PR #23](https://github.com/board-games-jf/surf-king-react/pull/23) / branch `feat/22-rigged-glb-surfer-base`. Starting `main`: `df81076781a7a70845dbe079f7a8ca21a79d35e6` (PR #21 merged). This is a visual exploration **not merged or deployed**.
 - The first licensed rigged male GLB base (Quaternius Universal Base Characters, CC0) and source license are bundled in `public/assets/surfers/`, with provenance recorded in `DATA_SOURCES.md`.
 - `/#/surfers` gallery can now opt into a separate `RiggedBaseViewer` to inspect the imported model, or revert to the original procedural viewer. The existing `/#/customize` interface and real match avatars remain unchanged.
 - The candidate has 65 skeletal joints and skinned meshes, but deliberately **does not yet have surfwear, selectable hair, finished surfboard, or animation**. The owner has *not* approved its final artistic fidelity.
