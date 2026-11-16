@@ -280,6 +280,14 @@ export function decorateRiggedSurfer(loadedScene, choices, presentation = {}) {
   cap.name = 'rigged-sculpted-hair'
   hairGroup.add(cap)
   hairLocks(hairGroup, style, hairMat)
+  // A static head-height offset cannot follow the spine and neck in a surf
+  // crouch. Preserve the model-space fit while attaching to the animated head.
+  const headBone = loadedScene.getObjectByName('head') ||
+    loadedScene.getObjectByName('Head')
+  if (headBone?.isBone) {
+    display.updateMatrixWorld(true)
+    headBone.attach(hairGroup)
+  }
   const surfboard = buildBoard(style.boardType, presentation.playerColor || board)
   if (boardMode) {
     // Keep the same skinned avatar and accessory hair, but place the
@@ -327,11 +335,16 @@ export function decorateRiggedSurfer(loadedScene, choices, presentation = {}) {
         node.geometry = originalGeometry
       })
       materials.forEach(m => m.dispose())
-      const accessories = boardMode ? [owner, surfboard] : [owner]
-      accessories.forEach(accessory => accessory.traverse(node => {
-        if (node.geometry) node.geometry.dispose()
-        if (node.material && !materials.includes(node.material)) node.material.dispose()
-      }))
+      const accessories = boardMode ? [owner, hairGroup, surfboard] : [owner, hairGroup]
+      // Hair can be parented to the skeleton, outside the accessory group.
+      // Dispose it exactly once, then detach from the (possibly reused) rig.
+      accessories.forEach(accessory => {
+        accessory.traverse(node => {
+          if (node.geometry) node.geometry.dispose()
+          if (node.material && !materials.includes(node.material)) node.material.dispose()
+        })
+      })
+      hairGroup.removeFromParent()
     }
   }
 }
