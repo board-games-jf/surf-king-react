@@ -125,8 +125,8 @@ describe('shared real rigged surfer integration for the 3D board', () => {
     loadRiggedBoardTemplates(success, failure, loader)
     expect(loader.load).toHaveBeenCalledTimes(2)
     expect(loader.load.mock.calls.map(call => call[0])).toEqual([
-      expect.stringMatching(/quaternius-male-base\\.glb$/),
-      expect.stringMatching(/quaternius-female-base\\.glb$/)
+      expect.stringMatching(/quaternius-male-base\.glb$/),
+      expect.stringMatching(/quaternius-female-base\.glb$/)
     ])
     expect(success).toHaveBeenCalledWith('male', male.root)
     expect(success).toHaveBeenCalledWith('female', female.root)
