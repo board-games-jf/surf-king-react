@@ -57,31 +57,81 @@ function smoothScalp() {
   return geometry
 }
 
+// Broad, tapered strips read as sculpted hair rather than round pipe strands.
+// Geometry is owned by the accessory group and cleaned up by art.dispose().
+function createTaperedLock(points, widths, depth = .014) {
+  const curve = new THREE.CatmullRomCurve3(points.map(point => new THREE.Vector3(...point)))
+  const segments = 14
+  const vertices = [], indices = []
+  const up = new THREE.Vector3(0, 0, 1)
+  const side = new THREE.Vector3()
+  const tangent = new THREE.Vector3()
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments
+    const center = curve.getPoint(t)
+    curve.getTangent(t, tangent)
+    side.crossVectors(tangent, up).normalize()
+    if (side.lengthSq() < .00001) side.set(1, 0, 0)
+    const scaled = t * (widths.length - 1)
+    const index = Math.min(Math.floor(scaled), widths.length - 2)
+    const fraction = scaled - index
+    const width = widths[index] * (1 - fraction) + widths[index + 1] * fraction
+    // Two double-sided faces give volume and a sharp, natural end.
+    for (const sign of [-1, 1]) {
+      vertices.push(center.x + sign * side.x * width,
+        center.y + sign * side.y * width,
+        center.z + sign * side.z * width + depth * Math.sin(Math.PI * t))
+    }
+    if (i) {
+      const prev = (i - 1) * 2, curr = i * 2
+      indices.push(prev, curr, prev + 1, prev + 1, curr, curr + 1)
+    }
+  }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+  geometry.setIndex(indices)
+  geometry.computeVertexNormals()
+  return geometry
+}
+
 function hairLocks(group, style, hairMaterial) {
-  const addLock = (points, thickness) => {
-    const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)))
-    const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 12, thickness, 6, false), hairMaterial)
-    mesh.name = 'rigged-hair-strand'
-    group.add(mesh)
+  const lock = (points, widths) => {
+    const strand = new THREE.Mesh(createTaperedLock(points, widths), hairMaterial)
+    strand.name = 'rigged-hair-strand'
+    group.add(strand)
   }
   if (style.hairstyle === 'short') {
-    for (const x of [-.098, -.032, .037, .106]) {
-      addLock([[x, 1.828, .055], [x - .019, 1.813, .116], [x - .033, 1.763, .137]], .020)
+    // Short overlapping front sections with gently tapered tips.
+    for (const x of [-.105, -.035, .035, .105]) {
+      lock([[x, 1.848, .012], [x * .96, 1.825, .086],
+        [x - .012, 1.788, .127], [x - .019, 1.765, .133]],
+      [.036, .034, .022, .001])
     }
   } else if (style.hairstyle === 'wavy') {
+    // Layered side panels; wide near the crown, pointed below the ears.
     for (const side of [-1, 1]) {
-      for (let i = 0; i < 3; i++) {
-        const x = side * (.126 + i * .018)
-        addLock([[x, 1.79, .025], [x + side * .023, 1.69, .02],
-          [x - side * .016, 1.60, .035], [x + side * .016, 1.53 - i * .03, -.014]], .025)
+      for (let layer = 0; layer < 3; layer++) {
+        const x = side * (.115 + layer * .014)
+        lock([[x, 1.814, -.03], [x + side * .017, 1.724, .012],
+          [x + side * (.008 + layer * .007), 1.625, -.008],
+          [x + side * .014, 1.52 - layer * .04, -.04]],
+        [.038 - layer * .004, .043 - layer * .005, .027, .001])
       }
     }
   } else {
-    addLock([[.065, 1.816, -.077], [.19, 1.775, -.15],
-      [.217, 1.675, -.19], [.169, 1.575, -.205]], .049)
-    const band = new THREE.Mesh(new THREE.TorusGeometry(.053, .014, 6, 24), material('#f4d76e'))
+    // Tied-back hair: a gathered sweep and a small tapered ponytail fan.
+    for (const offset of [-.028, 0, .028]) {
+      lock([[.065 + offset, 1.829, -.064], [.13 + offset, 1.792, -.12],
+        [.19 + offset * .5, 1.722, -.16], [.19 + offset, 1.635, -.20],
+        [.16 + offset * 1.2, 1.50, -.23]],
+      [.032, .035, .032, .022, .001])
+    }
+    const band = new THREE.Mesh(
+      new THREE.TorusGeometry(.041, .009, 6, 20),
+      material('#e8c86b')
+    )
     band.rotation.x = Math.PI / 2
-    band.position.set(.195, 1.75, -.17)
+    band.position.set(.19, 1.705, -.17)
     band.name = 'rigged-hair-band'
     group.add(band)
   }
