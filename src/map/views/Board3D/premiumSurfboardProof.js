@@ -9,8 +9,6 @@ const SHAPES = Object.freeze({
   longboard: { length: 2.12, halfWidth: .25, tail: .96 }
 })
 
-const lerp = (a, b, t) => a + (b - a) * t
-
 function widthAt(t, shape) {
   const shoulder = Math.pow(Math.sin(Math.PI * t), .68)
   // Keep the center broad, with a rounder rear and a finer nose.
@@ -82,7 +80,7 @@ function makeDeckStripeGeometry(shape) {
     }
     if (i) {
       const a = 2 * (i - 1), b = 2 * i
-      indices.push(a, b, a + 1, a + 1, b, b + 1)
+      indices.push(a, a + 1, b, a + 1, b + 1, b)
     }
   }
   const geometry = new THREE.BufferGeometry()
