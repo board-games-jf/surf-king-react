@@ -2,13 +2,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { PRESET_SURFERS } from './surferStyle'
 import { decorateRiggedSurfer } from './riggedSurferArt'
+import { RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
 
-// Both actual male and female meshes come from the same Quaternius CC0 pack.
-// Never substitute the male mesh for a selected female player silently.
-export const RIGGED_SURFER_ASSETS = Object.freeze({
-  male: { path: '/assets/surfers/quaternius-male-base.glb', body: 'SuperHero_Male' },
-  female: { path: '/assets/surfers/quaternius-female-base.glb', body: 'Superhero_Female' }
-})
+// Both bodies use the same licensed asset registry as the character studio.
+export { RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
 
 // Keep seven established player identities separate from appearance presets.
 export const PLAYER_BOARD_COLORS = Object.freeze([
