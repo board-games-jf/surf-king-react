@@ -45,7 +45,7 @@
 
 ## Next question
 
-**Next design step:** compare free normal movement versus movement costing 1 energy in the context of falling at 0, combat dice, cards, obstacles and the time to reach victory. Propose a compact core turn loop, then seek owner confirmation of its first rule. **P-03 is not approved.** See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
+**Integrated finding (2026-11-16):** a seven-maneuver geometric route exists from start to goal, but starting energy is 4 and each normal maneuver costs 1, so an unassisted surfer falls before reaching the goal (the central Shark row increases risk). Free movement would avoid travel attrition but make the current Bottled Water effect redundant and change energy-card and drop-in balance. **Next:** compare coherent movement/energy/combat/card packages and recommend one compact turn loop. **No movement-cost rule has been approved.** See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
 
 **Deferred:** The drop-in dice tie decision remains pending until we address the all-pass stalemate.
 
@@ -63,3 +63,4 @@ No gameplay code, production deployment, tests, or merger is authorized by this 
 - **2026-11-15:** Owner requested design guidance rather than repeated owner-only questions and raised an all-pass stalemate. Dice tie review deferred; assistant proposed compulsory maneuver when possible, not approved.
 - **2026-11-15:** Owner questioned whether optional Rest is needed at all; P-02 was proposed and then superseded, not approved.
 - **2026-11-16:** Owner clarified 0 energy causes a fall and explicitly removed Rest as a mechanic. Owner requested holistic balance for fast, portable, fun, replayable and strategic games. Next: review movement/energy/combat/card economy as a complete loop; free movement is only an assistant proposal.
+- **2026-11-16:** Assistant verified a seven-step start-to-goal geometric path and key interactions: only four starting energy, shark bottleneck, and current Bottled Water card losing its purpose if ordinary movement becomes free. Holistic balance analysis recorded; no new rule approved.
