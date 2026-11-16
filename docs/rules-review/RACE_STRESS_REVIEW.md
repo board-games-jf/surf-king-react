@@ -132,7 +132,19 @@ A fallen surfer is **off their board** (owner-confirmed) and should not remain a
 
 **Recommendation:** Prefer **P-12** to P-09's "return at 2 but skip the entire turn" because a positional Drop In and hazardous entry already provide a setback. This proposal still requires owner discussion and full-match validation; it is **not** a final gameplay decision.
 
-## 8. Recommendation and review boundary
+## 8. P-13 owner insight: falling is strategic when a rescue card is held
+
+The owner correctly identified a missing payoff: a player should sometimes **choose a risky Shark shortcut or Drop In** because they hold a real **fall-recovery card**. The owner has not accepted detailed mechanics. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
+
+**Assistant improvement over P-12 alone (NOT approved):** A rescue is an **optional immediate reaction** when a legitimate damage event first reduces energy to zero. The existing **Lifeguard float (+2)** or **Swimming fin (+1)** is discarded; the surfer **keeps the position reached by the triggering event**, with no bonus maneuver, additional draw or immunity to subsequent independent damage. Without/declining a card, use P-12's safe seaward return with 2 energy on the next personal turn plus its normal movement.
+
+**Important ordering issue:** Combat damage may cause a defender to reach zero **before** the attacker's optional exchange. If the defender spends a rescue in response, the defender remains active and **may still be displaced by a successful attack**; the card cannot retrospectively cancel the exchange. On a later Shark forced-entry fall, the resolved final cell is the position that may be preserved by a different eligible rescue. Avoid implementing reaction timing until the state transitions are explicitly resolved and protect against multiple card use within one damage event.
+
+**Design reason:** Card + fall should be a planned *risk shield*, **not** a move to intentionally knock oneself out to receive more energy than an ordinary card. The old P-12 return already limits damage to a position setback; P-13 makes keeping that hard-won position a distinct, meaningful card advantage. The rescue card is currently scarce enough for opportunistic decisions (8 copies in a 64-card deck). It should not be mandatory for continued participation.
+
+**Next:** Compare one Shark shortcut with no rescue/Fin/Float and one attack+swap+Shark double hit under the same P-09/P-10/P-11 combat candidate. No match simulation or gameplay code changes.
+
+## 9. Recommendation and review boundary
 
 **Preferred next single candidate:** P-10 optional position exchange **only on a strict attacker win**, and **it consumes the player's normal maneuver**. This preserves the owner's no-damage-tie trial; keeps the max-two-dice confrontation quick; and makes a contested cell meaningfully valuable without damage inflation or new progress counters.
 
