@@ -95,9 +95,9 @@ At one energy versus a two-dice defender, the attacker's strict win drops to **5
 
 ### What does a fall mean for board occupancy?
 
-A fallen surfer is **off their board** (owner-confirmed) and should not remain a permanent solid blocker. Recommend **remove the active occupant from the hex while keeping a private fall-location checkpoint**. At their next personal turn, propose a **guaranteed short return with 2 energy and no normal maneuver that turn**, placing them at the previous hex if vacant, otherwise **at the closest vacant non-Stone hex toward the sea**. The selection and treatment of an occupied or hazardous checkpoint must be deterministic; treat it as an **implementation-independent design open issue** rather than a rule already specified and accepted. Never give a fallen surfer a free step toward the beach. A visual fallen marker could remain, but must not block another surfer's legal movement.
+A fallen surfer is **off their board** (owner-confirmed) and should not remain a permanent solid blocker. Recommend **remove the active occupant from the hex while keeping a private fall-location checkpoint**. An earlier P-09 proposal returned the surfer at 2 energy but skipped their normal maneuver; **P-12 below now recommends a less punitive return** based on the combined positional-loss analysis. The selection and treatment of an occupied or hazardous checkpoint must be deterministic; treat it as an **implementation-independent design open issue** rather than a rule already specified and accepted. Never give a fallen surfer a free step toward the beach. A visual fallen marker could remain, but must not block another surfer's legal movement.
 
-**Re-entry risks:** A return on Shark/Storm may cause an instant repeat fall if damage applies to re-entry; granting hazard immunity on re-entry is a new special rule; Island healing on re-entry could create a free refill. The preferred next refinement is to define **a safe water re-entry tile no closer to the beach than the fall checkpoint**, with 2 energy and a missed movement, then test its effects on cards such as Lifeguard Float/Swimming Fin. Do not pretend that the exact placement algorithm or card exceptions are settled yet.
+**Re-entry risks:** A return on Shark/Storm may cause an instant repeat fall if damage applies to re-entry; granting hazard immunity on re-entry is a new special rule; Island healing on re-entry could create a free refill. The preferred next refinement is a **safe water return one step toward the ocean followed by the normal action/movement** (P-12 below), rather than both a positional setback and an entire skipped turn. The exact tile-selection algorithm, blocked fallback and rescue-card effects remain unapproved.
 
 ### What we learned and what still needs decision
 
@@ -106,10 +106,36 @@ A fallen surfer is **off their board** (owner-confirmed) and should not remain a
 - **Do not finalize return from fall** before testing available cells, terrain on return, occupied return points and rescue cards.
 - This desk analysis uses **existing code/geometry, deterministic rule walkthroughs and exact dice enumeration**, not a run of the actual game engine, a match simulation or a proven balance test.
 
-## 7. Recommendation and review boundary
+## 7. P-12 — Fall penalty should cost **position**, not a whole extra turn (NOT approved)
+
+**New concrete Shark duel:** A has **1 energy at Shark cell 28**, B has **2 energy at adjacent normal cell 35**. In the trial 1d6 vs 2d6 highest-result combat: attacker strict win **55/216 = 25.46%**, strict loss **125/216 = 57.87%**, no-damage tie **36/216 = 16.67%**.
+
+- **A wins:** under P-10/P-11, A may exchange and move to 35. B takes the candidate −1 combat damage, then is forced into Shark 28 and takes candidate −1 Shark damage: B falls at zero. The rare attacker victory creates a dramatic comeback; whether a forced defender should take both damage sources remains pending.
+- **A loses:** A takes candidate −1, falls at zero at cell 28 and vacates; B remains at 35.
+- **Tie:** neither loses energy, no exchange; A may choose another legal normal movement if available.
+- **Race consequence:** If the loser also **misses the entire following turn** as earlier P-09 proposed, the combined setback (forced backward exchange, fall location, missed maneuver) may render a short 7–8-maneuver race effectively unwinnable.
+
+**Preferred P-12 recovery experiment (assistant proposal, not owner-approved):**
+
+> **Fall:** Immediately leave the occupied board hex and remember the fall location. **At the start of the surfer's next turn**, return at **2 energy** on the **nearest empty, hazard-free hex strictly closer to the sea** than the fall location (prefer an immediately adjacent safe hex; if blocked, search farther sea-side cells deterministically). Then the surfer **may take their normal legal maneuver during that same turn**. Do not appear closer to the beach than the fall location. Do not trigger a new Shark/Island/Storm effect simply by materializing on a recovery hex (the chosen hex is hazard-free).
+
+**Why this is simpler and more fun to play:** On the player's screen: *"You fell? Return one safe hex toward the sea on your next turn with 2 energy, and continue surfing."* The setback costs at least one unit of position/progress, but players avoid spending a full turn inactive. The system can choose the safe destination without user-facing bookkeeping. A player falling in a simple free-water cell can recover the lost position by moving back into it on return, effectively spending the next turn regaining momentum rather than advancing, which is a penalty.
+
+**Boundary cases needing design:**
+
+- **Ocean-edge fall:** From starting row 0 there may be no more seaward hex. A fallback may respawn the surfer in a free starting-row cell with 2 energy; this is a rare exception but could make early deliberate falling beneficial. Need an anti-exploit rule if tests show it matters.
+- **Crowding:** Choose the nearest valid vacant sea-side hex, prioritizing **one edge-adjacent step** to avoid huge backward teleports; select deterministic tie-break by distance, sea-side row and cell ID. With seven surfers and Stones, no safe cell might be immediately adjacent.
+- **Rescue cards:** Lifeguard Float and Swimming Fin currently revive/recharge a fallen surfer. They should remain distinctly useful under immediate-next-turn recovery, perhaps as **same-turn rescue** or preventing the backward relocation. Neither effect is approved.
+- **Player order:** A fallen surfer cannot be attacked or occupy a solid cell until their next turn. Respawn before their standard turn; all game actions remain subject to ordinary limits.
+- **Multiple fall damage in one tactical action:** Resolve the single fight, then entered-cell terrain **once each**; never recursively trigger the same hex effect on an already fallen surfer.
+- **Endgame:** Falling in the last one or two rounds of a provisional round-cap race may still effectively lose the game. Compare the comeback margin with leader distance before approving a cap.
+
+**Recommendation:** Prefer **P-12** to P-09's "return at 2 but skip the entire turn" because a positional Drop In and hazardous entry already provide a setback. This proposal still requires owner discussion and full-match validation; it is **not** a final gameplay decision.
+
+## 8. Recommendation and review boundary
 
 **Preferred next single candidate:** P-10 optional position exchange **only on a strict attacker win**, and **it consumes the player's normal maneuver**. This preserves the owner's no-damage-tie trial; keeps the max-two-dice confrontation quick; and makes a contested cell meaningfully valuable without damage inflation or new progress counters.
 
-**P-11 addition (NOT approved):** Proposed a consistent order: strict-loss damage first; fallen defenders vacate rather than swapping; an attacker may step into the vacated cell as their one normal maneuver; live-surfer exchanges are simultaneous and apply destination terrain once for **both** entrants; anyone reduced to zero vacates. This eliminates bypasses but **can combine attack and forced Shark/Storm damage**. Re-entry remains open: favor a nonblocking fallen marker and a short safe return near the fall site without a forward teleport. Next evaluate this combined damage risk and the return-cell rule before owner approval.
+**P-11/P-12 addition (NOT approved):** Combat damage first, vacate fallen occupants, optional simultaneous exchange of still-active surfers with destination terrain applied once each. Combined forced Shark/Storm damage can knock a two-energy defender off in one attack. The 1-energy Shark attacker scenario gives **25.46%** strict win / **57.87%** strict loss / **16.67%** tie. To avoid a triple punishment, P-12 now proposes **return next own turn at a safe sea-ward cell with 2 energy and the normal maneuver available**, rather than losing the following turn as well. Next evaluate rescue cards, re-entry selection and late-game recovery before asking the owner to approve.
 
 **Implementation status:** Source inspected and routes/dice probabilities checked by deterministic arithmetic. No executable game simulation, match playtest, Jest or production code change. No merge or deployment.
