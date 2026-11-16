@@ -23,7 +23,8 @@
 
 - **Source:** stylized female surfer/board concept render generated within the owner's Surf King ChatGPT conversation, and explicitly approved by the owner on 2026-11-16 as the **minimum visual quality target for both real 3D character and surfboard**. The owner also supplied screenshots of failed live 3D poses/hair as negative comparison evidence.
 - **Contents:** athletic low surfing stance with staggered bent knees, planted feet and active balance arms; expressive styled face, integrated updo hairstyle, green surfwear; finished turquoise board with clean white longitudinal stripe, rails, nose/tail and fin.
-- **Availability:** the exact raster image is present in the conversation, but is **not yet verified as a permanent repository asset or GitHub issue attachment**. The stable reference must be attached to Issue #33 before actual model fidelity review can be considered complete.
+- **Raster fingerprint:** `dynamic_surfing_stance_on_aqua_board.png`, 1122×1402 pixels, SHA-256 `6f35b83a3d9101d1ed93572e0942d4fbfa9513163e77fdadd14490073ed617e9` (verified from the exact conversation image file on 2026-11-16).
+- **Availability:** the exact raster image is present in the conversation, but is **not yet verified as a permanent repository asset or GitHub issue attachment**. The stable reference must be attached to Issue #33 and matched against the fingerprint before actual model fidelity review can be considered complete.
 - **Status / rights:** design reference, not a real GLB, source texture, licensed third-party model, final exported image asset or proof of WebGL quality. A replacement production GLB, 3D board mesh, rigged animation and any external source must each have documented provenance and rights before packaging.
 
 ## Rigged surfer evaluation asset (Issue #22)
