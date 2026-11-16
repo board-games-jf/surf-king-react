@@ -15,7 +15,7 @@
 
 ## Active visual work — Issue #24
 
-- Branch `feat/24-styled-rigged-surfer` is **not merged or deployed**.
+- Branch `feat/24-styled-rigged-surfer` / [draft PR #25](https://github.com/board-games-jf/surf-king-react/pull/25) is **not merged or deployed**.
 - New `riggedSurferArt.js` decorates the same skinned GLB body/skeleton with surfwear/skin color zones, smoothly shaped hair, a cosmetic board and a relaxed arm pose.
 - `RiggedBaseViewer` reuses the loaded local GLB for styled and original modes. The gallery offers styled GLB / original GLB / procedural comparisons.
 - `/#/customize` defaults to the styled GLB; the existing hairstyle, skin, outfit and board controls change this preview without re-downloading the asset. Previous procedural models remain available as fallback.
