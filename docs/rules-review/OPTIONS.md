@@ -1,5 +1,7 @@
 # Surf King — Three Complete Gameplay Options (P-07)
 
+> **Historical exploration only:** The current recommended integrated v0.1 complete-match proposal is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md) (P-15, NOT approved). Earlier energy cap 4, 10-round deadline, and turn-skip recovery in the A/B/C comparison are superseded *as candidate recommendations*, not owner-approved rules.
+
 **Status:** Assistant-designed complete **playtest alternatives**, NOT approved or implemented.
 **Purpose:** The owner explicitly requested **concrete, comparable options**, no gameplay code changes, and a focus on the **start-to-finish playing experience** rather than isolated questions.
 **Tracking:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) / [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12).
