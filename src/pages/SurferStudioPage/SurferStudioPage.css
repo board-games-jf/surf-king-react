@@ -124,6 +124,17 @@
   box-shadow: 0 8px 22px #1d586044;
   background: radial-gradient(ellipse at 50% 42%,#f9fff4a3 0%,#e1f6ed66 45%,#38b5bb33 100%);
 }
+.surfer-preview-controls {
+  position: absolute; z-index: 3; top: 49px; left: 14px; right: 14px;
+  justify-content: flex-start; pointer-events: auto; margin: 0;
+}
+.surfer-preview-controls button {
+  flex: 0 1 auto; background: #fffaedee; backdrop-filter: blur(6px);
+  border-color: #c9d7cd; box-shadow: 0 2px 7px #24525f30;
+}
+.surfer-preview-controls button[aria-pressed="true"] {
+  background: #fff6cb; border-color: #e6ab37;
+}
 .surfer-studio-stage-label {
   position: absolute; z-index: 2; top: 15px; left: 15px;
   display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
@@ -183,6 +194,9 @@
   .surfer-studio-board { grid-column: 1 / -1; }
 }
 @media (max-width: 730px) {
+  .surfer-preview-controls { top: 58px; left: 9px; right: 9px; }
+  .surfer-preview-controls button { font-size: 11px; padding: 7px 6px; }
+  .surfer-studio-stage-label { top: 10px; left: 10px; }
   .surfer-studio { padding: 12px; }
   .surfer-studio-header { justify-content: center; }
   .surfer-wordmark { width: 132px; height: 85px; }
