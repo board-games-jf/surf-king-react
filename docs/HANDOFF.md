@@ -27,3 +27,12 @@
 - Added Jest tests for female/male GLB provenance, three poses/reduced-motion behavior, board skeleton independence, gender-specific loader paths and preview switching. **Jest suite, CRA build and actual WebGL/browser/mobile QA are not yet run.**
 - Next: run `npm test -- --watchAll=false` and `npm run build` in a dependency-enabled environment; visually review both faces and standing/relaxed/surfing poses in `/#/customize`, then check the local 3D board and `/#/catalog` under real WebGL.
 - Do not merge without fresh explicit owner authorization. Do not deploy without separate explicit authorization. Remain open until visual and technical acceptance criteria are verified.
+
+## Validation checkpoint — 2026-11-16 (PR #29)
+
+- Rechecked `AGENTS.md`, main `668d2f2`, open issues/PRs and PR head `a146999`; PR #29 remains open/draft and unmerged. A review comment is recorded; a stale anatomical comment was corrected in commit `a146999`.
+- Inspected the actual branch's pose sampler, asset registry, studio loader, shared skinned art decorator, board loader, and relevant test sources. These code paths select distinct gender GLBs, keep local preview pose outside persisted styling, and provide procedural board fallback. **This is source review, not WebGL verification.**
+- Browser tab `http://localhost:3003/#/catalog` was readable as page text, but its running git branch and actual WebGL pixels were not verifiable through the available browser interface. Do not consider this a successful visual check.
+- The isolated execution container has Node/npm but GitHub DNS resolution fails, with no checked-out application or installed project dependencies. **No Jest run, CRA build, GLTFLoader render, browser/mobile QA or screenshots were produced in this checkpoint.** No GitHub Actions PR workflow runs are recorded.
+- Remaining acceptance risks: bone directions/standing-arm appearance, natural surfing knee/foot-to-board contact for both authored bodies, rapid gender toggling under delayed loads, safe studio fallback when an invalid GLB is received, and mobile readability.
+- **Next concrete action:** run `CI=true npm test -- --watchAll=false` and `npm run build` on a checkout of `feat/28-female-surfer-and-poses` with dependencies, then visually inspect `/#/customize` and `/#/catalog`/live board on desktop and mobile; correct identified issues on this same branch with regression coverage. Keep PR #29 draft and Issue #28 open until verified. Merge and deploy remain unauthorized.
