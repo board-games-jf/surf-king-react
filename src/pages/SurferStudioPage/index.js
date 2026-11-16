@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import SurferViewer from './SurferViewer'
+import RiggedBaseViewer from './RiggedBaseViewer'
 import {
   DEFAULT_SURFER_STYLE, PRESET_SURFERS, normalizeSurferStyle,
   CHARACTER_TYPES, HAIRSTYLES, HAIR_COLORS, SKIN_TONES,
@@ -72,11 +73,13 @@ export default function SurferStudioPage() {
     location.state?.style || readSavedStyle() || PRESET_SURFERS[0]
   ))
   const [saved, setSaved] = useState(false)
+  const [showRiggedBase, setShowRiggedBase] = useState(false)
   const change = (name, value) => {
     setStyle(current => normalizeSurferStyle({ ...current, [name]: value }))
     setSaved(false)
   }
   const choosePreset = preset => {
+    setShowRiggedBase(false)
     setStyle(normalizeSurferStyle(preset))
     setSaved(false)
   }
@@ -156,11 +159,21 @@ export default function SurferStudioPage() {
         <section className="surfer-studio-stage" aria-label="3D surfer visualization">
           <div className="surfer-studio-stage-label">
             <span className="surfer-studio-live">● LIVE 3D</span>
-            <span>{labels[style.character]} · {labels[style.boardType]}</span>
+            <span>{gallery && showRiggedBase ? 'Base GLB importada · teste' : labels[style.character] + ' · ' + labels[style.boardType]}</span>
           </div>
-          <SurferViewer style={style} />
+          {gallery && (
+            <div className="surfer-choices" role="group" aria-label="Modo de pré-visualização">
+              <button type="button" aria-pressed={!showRiggedBase}
+                onClick={() => setShowRiggedBase(false)}>Modelo atual</button>
+              <button type="button" aria-pressed={showRiggedBase}
+                onClick={() => setShowRiggedBase(true)}>Base 3D importada (GLB)</button>
+            </div>
+          )}
+          {gallery && showRiggedBase ? <RiggedBaseViewer /> : <SurferViewer style={style} />}
           <p className="surfer-studio-stage-caption">
-            Pré-visualização do modelo 3D do jogo. A arte final ainda está em desenvolvimento.
+            {gallery && showRiggedBase
+              ? 'Modelo-base com esqueleto real, sem roupa de surf ou animação final. Apenas para avaliar a nova abordagem; ainda não é usado nas partidas.'
+              : 'Pré-visualização do modelo 3D do jogo. A arte final ainda está em desenvolvimento.'}
           </p>
         </section>
 

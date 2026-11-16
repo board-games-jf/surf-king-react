@@ -7,6 +7,10 @@ jest.mock('./SurferViewer', () => function MockSurferViewer({ style }) {
   return <div data-testid="surfer-style">{JSON.stringify(style)}</div>
 })
 
+jest.mock('./RiggedBaseViewer', () => function MockRiggedBaseViewer() {
+  return <div data-testid="rigged-base-viewer">Imported GLB candidate</div>
+})
+
 function open(path = '/customize') {
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -53,4 +57,21 @@ describe('surfer gallery and cosmetic creator', () => {
     expect(saved).not.toHaveProperty('energy')
     expect(screen.getByRole('status').textContent).toMatch(/neste navegador/)
   })
+  test('gallery can inspect a GLB candidate without changing the game or creator', () => {
+    open('/surfers')
+    expect(screen.queryByTestId('rigged-base-viewer')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Base 3D importada (GLB)' }))
+    expect(screen.getByTestId('rigged-base-viewer')).toBeTruthy()
+    expect(screen.getByText(/sem roupa de surf ou animação final/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Modelo atual' }))
+    expect(screen.queryByTestId('rigged-base-viewer')).toBeNull()
+    expect(screen.getByTestId('surfer-style')).toBeTruthy()
+  })
+
+  test('character creator does not expose an unapproved GLB replacement', () => {
+    open('/customize')
+    expect(screen.queryByRole('button', { name: 'Base 3D importada (GLB)' })).toBeNull()
+    expect(screen.getByTestId('surfer-style')).toBeTruthy()
+  })
+
 })

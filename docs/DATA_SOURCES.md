@@ -19,6 +19,21 @@
 - The user selected the Surf King wooden/crown logo and sunny tropical beach character-creator concept in the conversation on 2026-11-16. These supplied/generated images are **visual references**, not mesh files or packaged repository assets.
 - The experimental `/#/surfers` and `/#/customize` pages use procedural Three.js geometry and CSS-drawn scenery; they do not embed the exact supplied raster logo, create a rigged character from a screenshot, or claim its fidelity.
 - For final production artwork, integrate reviewed binary assets and document their provenance and rights.
+## Rigged surfer evaluation asset (Issue #22)
+
+| Item | Provenance and validation |
+| --- | --- |
+| Original author | Quaternius, **Universal Base Characters — Standard**, Superhero Male FullBody |
+| Official pack | https://quaternius.com/packs/universalbasecharacters.html |
+| Licence | CC0 1.0 Universal; exact original pack licence copied to `public/assets/surfers/QUATERNIUS-CC0-LICENSE.txt` |
+| Source GLB conversion | `programasweights/avatar`, `public/assets/character.glb` at Git blob `b3fd79533fdb9fcedd077744f7e120920eb6cc97` |
+| Converter provenance | https://github.com/programasweights/avatar/blob/main/ASSETS.md (source ZIP downloaded 2026-09-09; SHA-256 `fdbf1804c90dfc1ea03e992bff7da2dfd1a79318e13270a660180f9308455f40`) |
+| Local package | `public/assets/surfers/quaternius-male-base.glb` (~741 KB), exact Git blob SHA matches the source conversion |
+| Structure checked | glTF 2.0 GLB, one skinned skeleton of 65 joints, three skinned meshes, all binary buffer data embedded, no texture or external file URLs; static reference pose and jade material |
+| Limitations | This is a rigged **neutral base mannequin**, not final Surf King surfer art or supplied/generated concept likeness. No surf clothing, hair customization or animations. Evaluate in the gallery before approval or any gameplay replacement. |
+
+The upstream pack is publicly labelled CC0; any later additions need their own provenance and licence review. The application loads this copied asset locally at runtime, not from an external service.
+
 ## Unverified inputs
 
 - No canonical source version of the Surf King rulebook has been confirmed in the repository.
