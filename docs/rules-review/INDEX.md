@@ -31,7 +31,7 @@
 | Turns, action order and replenishment | **Rest removed; core-loop redesign pending** | [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
 | Card effects and durations | Not started | — |
 | Forced movement, obstacles and boundary cases | Not started | — |
-| Victory and game balance | Not started | — |
+| Victory and game balance | **End-to-end P-06 playtest draft; not approved** | [COMPLETE_MATCH.md](COMPLETE_MATCH.md) |
 
 ## Confirmed so far
 
@@ -46,7 +46,7 @@
 
 ## Next question
 
-**Next focused decision:** Owner rejected the proposal to count personal progress milestones as too complex. Assistant **P-05 (NOT approved):** normal movement neither spends nor grants energy; playing energy cards is the primary energy-gain mechanism. Discuss this simple principle first. Card supply, obsolete Bottled Water effect, Island's current bonus, Shark's -2 damage, and recovery from falling require later balancing. **2 starting energy remains approved.** See [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md).
+**New owner priority (2026-11-16):** The individual P-05 energy question is premature. The owner cannot yet see a complete beginning-to-end game or understand whether it plays well. Review a **whole-match prototype P-06 (NOT approved)** in [COMPLETE_MATCH.md](COMPLETE_MATCH.md): opening, turn flow, energy/cards/drop-in, central Shark crossing, falling and re-entry, beach victory, and a finite-round fallback. Identify real balance breakdowns from the complete loop before approving more individual numbers. **Only already accepted rules remain accepted.**
 
 **Deferred:** The drop-in dice tie decision remains pending until we address the all-pass stalemate.
 
@@ -68,3 +68,4 @@ No gameplay code, production deployment, tests, or merger is authorized by this 
 - **2026-11-16:** Owner proposed WAR/Risk-like energy representing combat force and considered a one-energy start with growth via progress or cards. Assistant recommended two.
 - **2026-11-16:** **Owner approved 2 starting energy.** All other energy mechanics remained pending.
 - **2026-11-16:** Owner called the proposed two-progress-milestone energy gain too complex. Assistant withdrew it and proposed a simpler P-05: ordinary moves cost/give no energy; cards are the main energy source. **Not approved;** energy/hazard/card balance still pending.
+- **2026-11-16:** Owner remained unsatisfied by isolated rule questions and requested a clear global beginning-to-end match and evidence that the dynamics work. Assistant drafted integrated P-06 in [COMPLETE_MATCH.md](COMPLETE_MATCH.md), with an illustrative 3-player sequence and adversarial failure cases. The entire package is provisional and **has not been playtested**.
