@@ -1,7 +1,7 @@
 # Rule Review — Energy, Cards, Obstacles and Comeback
 
 **Epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) | **Rules hub:** [INDEX.md](INDEX.md) | **Draft PR:** [#12](https://github.com/board-games-jf/surf-king-react/pull/12)
-**Status:** Initial energy **2 is accepted** (`SK-DEC-013`, draft DECISIONS). Cap **5**, up to **2 combat dice** and no-damage ties are **owner-accepted experiments**, not finalized game rules.
+**Status:** Initial energy **2 is accepted** (`SK-DEC-014`, draft DECISIONS). Cap **5**, up to **2 combat dice** and no-damage ties are **owner-accepted experiments**, not finalized game rules.
 
 ## Confirmed design foundations
 
@@ -74,8 +74,18 @@ The owner explicitly wants **sometimes accepting a fall to be worthwhile when ho
 
 **The current engine does not implement the reaction mechanic**: cards are used in the card phase only once the player is marked fallen, and `pass()` includes an unrelated fall-recovery path. Treat both as code facts, not approvals. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
 
+## P-14 game-level correction — do not remove the falling experience
+
+**Owner clarification (2026-11-16):** The original game was deliberately built to produce **frequent falls**; the problem was **stalled play**, not the presence of falls. The owner likes the newer tactical direction but wants the design led back toward that original experience. This is an **accepted design goal**, not approval of new numeric rules.
+
+**Implication for the proposed energy economy:** The provisional combined package of **free movement, Shark/Big Wave reduced to −1, cap 5, only 1 damage per combat, and tie without damage** might reduce fall frequency far below the intended feel. **Do not equate lower damage with faster gameplay.** Keep the owner's accepted trial cap/dice/ties as experimental baselines while evaluating actual **falls per match** against **time inactive after falling** separately. Do not lock Shark −1 or Big Wave −1 yet; some stronger hazards may be appropriate once recovery is light and predictable.
+
+**Preferred guiding loop:** The surfer should actively make tactical decisions every personal turn (except any unresolved truly blocked turn); if a real attack or hazard causes a fall, the immediate consequence is **loss of progress**, with a rare rescue card proposed as insurance to preserve an advanced cell. At most one core fall penalty for each event; do not compound a missed entire turn and extra backward penalties on top of the fall. Without cards, returning must remain possible and useful. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) P-14.
+
+**Next evaluation:** Paper-test the same 3-player complete race with at least a few falls under the old full-turn skip versus the proposed next-turn active recovery. Inspect match pacing and how much a rescue card saves before asking for any damage-number approvals.
+
 ## Next integrated action
 
-The owner's new direction is **calculated fall risk with rescue in hand**. The recommended next paper scenario compares **no card**, **Swimming Fin (+1)** and **Lifeguard Float (+2)** for the same Shark shortcut or a P-10 forced position exchange. Reactions must make the card valuable but not create an extra move or free teleport. Also check the already identified combined Shark/combat hit (potential immediate fall from 2 energy), a 25.46% underdog attack win at 1d6 vs 2d6, safe return and card scarcity. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) and [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
+**P-14 priority:** Preserve **frequent falls without inactive turns**, not merely fewer falls. Compare an entire 3-player match under old turn-skipping recovery versus P-12/P-13 positional recovery with rescue insurance. Defer permanent adjustments to Shark damage, Big Wave, movement energy and combat damage until the complete loop is judged fun and fast. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) and [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
 
 **No gameplay code edits, gameplay tests, merge or deployment.**
