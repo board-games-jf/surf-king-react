@@ -132,7 +132,7 @@ function palm(parent, helpers, x, z, height, lean, angleOffset) {
       const t = j / 8
       const width = Math.pow(Math.sin(t * Math.PI), .85) * (.075 + (i % 3) * .009)
       const dip = .095 * Math.sin(t * Math.PI) - t * t * .28
-      const reach = t * (.38 + (i % 3) * .045)
+      const reach = t * (.32 + (i % 3) * .03)
       positions.push(-width, dip, reach, 0, dip + .026, reach, width, dip, reach)
       if (j < 8) {
         const k = j * 3
