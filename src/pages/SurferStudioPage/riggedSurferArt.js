@@ -24,8 +24,8 @@ function smoothScalp() {
   // Rounded, asymmetrical hairline with continuous surface instead of a pile of spheres.
   const segments = 36
   const rings = [
-    { y: 1.678, rx: .151, rz: .116 },
-    { y: 1.732, rx: .168, rz: .144 },
+    { y: 1.725, rx: .151, rz: .116 },
+    { y: 1.757, rx: .168, rz: .144 },
     { y: 1.791, rx: .154, rz: .132 },
     { y: 1.832, rx: .115, rz: .095 },
     { y: 1.857, rx: .012, rz: .011 }
@@ -231,6 +231,15 @@ export function decorateRiggedSurfer(loadedScene, choices) {
       rest.spine_03.rotation.y,
       rest.spine_03.rotation.z
     )
+    // Verified against the source skeleton hierarchy: z rotation brings hands
+    // down from T-pose shoulder height to a relaxed, readable idle position.
+    for (const [name, swing] of [['upperarm_l', -1.18], ['upperarm_r', 1.18]]) {
+      const joint = rest[name]
+      if (joint) joint.bone.rotation.set(
+        joint.rotation.x, joint.rotation.y,
+        joint.rotation.z + swing + Math.sin(t * .81 + swing) * .018
+      )
+    }
   }
   return {
     display, surfboard, animate,
