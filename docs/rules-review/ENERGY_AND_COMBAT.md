@@ -1,7 +1,7 @@
 # Rule Review — Energy, Cards, Obstacles and Comeback
 
 **Epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) | **Rules hub:** [INDEX.md](INDEX.md) | **Draft PR:** [#12](https://github.com/board-games-jf/surf-king-react/pull/12)
-**Status:** Initial energy **2 accepted** (`SK-DEC-016`); **Shark-specific fall/rescue/re-entry defined** (`SK-DEC-018`), both in the draft DECISIONS. Cap **5**, up to **2 combat dice** and no-damage ties remain **owner-accepted experiments**, not finalized combat rules.
+**Status:** **2 starting energy SK-DEC-016**, **Shark −2 SK-DEC-019**, and **same-tile next-own-turn Shark recovery SK-DEC-020** are Accepted design decisions on draft PR #12. Prior SK-DEC-018 return-to-sea rule is Superseded. Cap **5**, up to **2 dice** and no-damage ties remain **owner-accepted experiments**, not finalized combat rules.
 
 ## Confirmed design foundations
 
@@ -52,7 +52,7 @@
 
 The provisional layout does **not** force everyone to cross a Shark. From internal start 0 to beach 49, the **7-maneuver route** `0→7→14→21→28→35→42→49` visits a Shark at 28; an **8-maneuver fully edge-adjacent detour** `0→7→14→21→25→32→35→42→49` avoids all four preplaced Sharks. The additional move is the price of avoiding risk. Both were checked by cell-center distances in `board-layout.json`. Occupancy and card-placed obstacles can change practical availability. See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
 
-The owner's confirmed **Shark −2** makes the direct seven-move Shark shortcut a **guaranteed fall from the approved 2-energy starting point** unless energy was raised first. The longer safe eight-move bypass remains possible. Owner-proposed P-19 (not yet accepted) would allow standing on the Shark at 1 energy on the next own turn without losing position, changing how much the fall costs.
+The owner's confirmed **Shark −2** makes the direct seven-move Shark shortcut a **guaranteed fall from the approved 2-energy starting point** unless energy was raised first. The longer safe eight-move bypass remains possible. Accepted **SK-DEC-020** allows standing on the Shark at 1 energy on the next own turn **without positional loss**, or at 2/3 with Fin/Float, changing the fall's cost from distance to vulnerability.
 
 The assistant's new **P-10 (NOT approved)** aims to make Drop In worth using: on a strict attacker win, allow an **optional attacker/defender hex exchange that counts as the attacker's single normal maneuver**, along with the candidate 1 damage to the defender. A challenger at energy 2 and leader at 5 still roll two dice each; winning only 1 energy damage would not affect the leader's odds or distance, whereas exchange can change who is ahead. Exchanging onto hazard cells cannot be treated as a free Shark bypass; resolve obstacle triggering before approving.
 
@@ -84,15 +84,11 @@ The owner explicitly wants **sometimes accepting a fall to be worthwhile when ho
 
 **Next evaluation:** Paper-test the same 3-player complete race with at least a few falls under the old full-turn skip versus the proposed next-turn active recovery. Inspect match pacing and how much a rescue card saves before asking for any damage-number approvals.
 
-## Accepted Shark-specific fall resolution — SK-DEC-018 (design only)
+## Accepted Shark recovery — SK-DEC-020 (supersedes SK-DEC-018)
 
-If entering a Shark reduces energy to 0, a surfer can **immediately discard Lifeguard Float to remain on the Shark at 2 energy, or Swimming Fin to remain there at 1 energy**, without triggering the same entry effect again or earning extra movement. Otherwise the surfer vacates the Shark cell; **at the beginning of the next own turn**, return at **2 energy** to an unoccupied obstacle-free adjacent tile **toward the sea** (`28 → 21` if safe), or the nearest safe vacant oceanward tile without moving closer to the beach if directly blocked. The player can **move normally that same turn**, without a skipped inactive turn. Exact re-entry selection and fall marker handling are recorded in [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
+At Shark entry, lose **2 energy** (SK-DEC-019). At 0, **fall on the Shark tile and remain there**. On the **next own turn**, recover **on that same tile** to **1 energy without a card**, **2 if Swimming Fin is discarded**, or **3 if Lifeguard Float is discarded**. A recovery card is used on that next own turn, not as an interruption on another player's turn. The surfer may **maneuver normally** after recovery, with no extra movement; getting up does not re-trigger the same Shark. Do not require a sea-ward return or a skipped whole turn. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
 
-**Only falls caused by Sharks are covered by the currently accepted SK-DEC-018 recovery rule.** The owner's new P-19 preference (stay fallen at Shark, stand there with 1 next own turn; no retreat) still needs explicit approval to replace that earlier rule. **Shark damage −2 is separately finalized in SK-DEC-019.** Drop In, Big Wave, Storm and combined damage remain open. No engine changes.
-
-## P-19 no-retreat / one-energy recovery hypothesis (owner preference, not yet ratified)
-
-The owner now suggests avoiding all backward placement after a fall: **remain visibly fallen on the Shark**, then automatically stand up **on that same hex with 1 energy at the next own turn**, able to move normally. **Shark −2 is accepted and unchanged (SK-DEC-019).** A held recovery card could be played at the start of that turn, but a **free 1-energy return makes the existing Swimming Fin +1 redundant** unless it adds energy to the free baseline: suggested values **no card 1 / Fin 2 / Float 3** (not approved). This favors match speed but makes an unsaved fall cost **energy, not distance or movement**: assess the seven-move direct Shark route and rescue value before codifying. Temporary fallen-cell occupancy also needs a fair rule at 7 players. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
+**Open:** Whether card recovery consumes the usual tactical action, whether a fallen surfer reserves a cell and can be attacked, whether Drop In and other hazards use the same system, and whether a full 5-energy surfer makes falls too rare. **Shark −2 and 1/2/3 next-own-turn energy totals are the accepted design**, not a gameplay implementation; old P-09/P-13/P-17/P-18 damage/recovery versions are historical.
 
 ## Next integrated action
 
