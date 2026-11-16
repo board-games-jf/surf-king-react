@@ -7,8 +7,10 @@ jest.mock('./SurferViewer', () => function MockSurferViewer({ style }) {
   return <div data-testid="surfer-style">{JSON.stringify(style)}</div>
 })
 
-jest.mock('./RiggedBaseViewer', () => function MockRiggedBaseViewer() {
-  return <div data-testid="rigged-base-viewer">Imported GLB candidate</div>
+jest.mock('./RiggedBaseViewer', () => function MockRiggedBaseViewer({ style, styled }) {
+  return <div data-testid="rigged-base-viewer">
+    {JSON.stringify({ style, styled })}
+  </div>
 })
 
 function open(path = '/customize') {
@@ -22,32 +24,49 @@ function open(path = '/customize') {
   )
 }
 
+const rigged = () => JSON.parse(screen.getByTestId('rigged-base-viewer').textContent)
+
 beforeEach(() => window.localStorage.clear())
 
-describe('surfer gallery and cosmetic creator', () => {
-  test('gallery uses the actual shared preview component with selectable presets', () => {
+describe('rigged surfer visual exploration', () => {
+  test('gallery defaults to the styled GLB and preserves the existing presets', () => {
     open('/surfers')
     expect(screen.getByRole('heading', { name: 'Galeria de surfistas' })).toBeTruthy()
+    expect(rigged().styled).toBe(true)
     fireEvent.click(screen.getByRole('button', { name: /Surfista 3/i }))
-    const preview = JSON.parse(screen.getByTestId('surfer-style').textContent)
-    expect(preview.character).toBe('male')
-    expect(preview.boardType).toBe('longboard')
-    expect(preview.boardColor).toBe('orange')
+    expect(rigged().style.character).toBe('male')
+    expect(rigged().style.boardType).toBe('longboard')
+    expect(rigged().style.boardColor).toBe('orange')
     expect(screen.getByRole('link', { name: 'Personalizar este surfista' })).toBeTruthy()
   })
 
-  test('customization updates character and board independently', () => {
+  test('gallery compares styled GLB, raw GLB and procedural model', () => {
+    open('/surfers')
+    fireEvent.click(screen.getByRole('button', { name: 'Base GLB' }))
+    expect(rigged().styled).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: 'Modelo antigo' }))
+    expect(screen.queryByTestId('rigged-base-viewer')).toBeNull()
+    expect(screen.getByTestId('surfer-style')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Novo visual 3D' }))
+    expect(rigged().styled).toBe(true)
+  })
+
+  test('creator changes appear on the real GLB without affecting gameplay', () => {
     open()
+    expect(rigged().styled).toBe(true)
     fireEvent.click(screen.getByRole('button', { name: 'Masculino' }))
     fireEvent.click(screen.getByRole('button', { name: 'Fish' }))
     fireEvent.click(screen.getByRole('button', { name: 'auburn' }))
-    const preview = JSON.parse(screen.getByTestId('surfer-style').textContent)
-    expect(preview.character).toBe('male')
-    expect(preview.boardType).toBe('fish')
-    expect(preview.hairColor).toBe('auburn')
+    const preview = rigged()
+    expect(preview.style.character).toBe('male')
+    expect(preview.style.boardType).toBe('fish')
+    expect(preview.style.hairColor).toBe('auburn')
+    expect(screen.queryByRole('button', { name: 'Base GLB' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Modelo antigo' }))
+    expect(screen.getByTestId('surfer-style')).toBeTruthy()
   })
 
-  test('saving is local only and does not create any game state', () => {
+  test('saving remains cosmetic-only and local to the browser', () => {
     open()
     fireEvent.click(screen.getByRole('button', { name: 'Longboard' }))
     fireEvent.click(screen.getByRole('button', { name: 'Guardar visual' }))
@@ -57,21 +76,4 @@ describe('surfer gallery and cosmetic creator', () => {
     expect(saved).not.toHaveProperty('energy')
     expect(screen.getByRole('status').textContent).toMatch(/neste navegador/)
   })
-  test('gallery can inspect a GLB candidate without changing the game or creator', () => {
-    open('/surfers')
-    expect(screen.queryByTestId('rigged-base-viewer')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Base 3D importada (GLB)' }))
-    expect(screen.getByTestId('rigged-base-viewer')).toBeTruthy()
-    expect(screen.getByText(/sem roupa de surf ou animação final/)).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Modelo atual' }))
-    expect(screen.queryByTestId('rigged-base-viewer')).toBeNull()
-    expect(screen.getByTestId('surfer-style')).toBeTruthy()
-  })
-
-  test('character creator does not expose an unapproved GLB replacement', () => {
-    open('/customize')
-    expect(screen.queryByRole('button', { name: 'Base 3D importada (GLB)' })).toBeNull()
-    expect(screen.getByTestId('surfer-style')).toBeTruthy()
-  })
-
 })

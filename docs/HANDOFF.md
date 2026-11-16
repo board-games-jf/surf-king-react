@@ -1,43 +1,30 @@
 # Project Handoff
 
-**Verified on GitHub:** 2026-11-16
+**Last direct GitHub review:** 2026-11-16
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Source main baseline:** `e4e083f9035e314eb2107bd1cca448292cc4629e` (obstacle PR #17).
+**Starting `main`:** `e79c02c8f008c70dc84b5273d3ce0b20e9c78410` (rigged GLB evaluation PR #23 merged).
 
-## Integrated baseline
+## Integrated state
 
-- Local boardgame.io gameplay, 53-cell 2D/3D views and public map snapshot are integrated. No online multiplayer is active.
-- The obstacle meshes/animations are visually approved and merged (PRs #14, #17). The standalone board catalog is merged (PR #16). The old Jest/build/WebGL browser checks remain pending.
-- Issue #11 / draft PR #12 are for a separate game-rules review. Do not mix them into visual work.
+- Local boardgame.io match, shared 53-cell 2D/3D board, catalogue and card-inspired animated obstacles are integrated.
+- Obstacles were visually approved in PR #17. Do not reopen obstacle art without a new request.
+- PR #21 integrated the procedural gallery and cosmetic creator; localStorage holds a preview-only draft, not a real player profile.
+- PR #23 integrated the local Quaternius CC0 skinned male GLB (65-joint rig) and original-base gallery comparison.
+- Surfboards remain cosmetic only (SK-DEC-011); direction for characters and visual identity is SK-DEC-012/013.
+- Rules issue #11 / draft PR #12 are separate; online multiplayer is not established.
 
-## Active surfer and board studio (Issue #20 / draft PR #21)
+## Active visual work — Issue #24
 
-- The latest `feat/20-refine-3d-surfers` branch / PR #21 received **explicit owner merge authorization on 2026-11-16**. Check GitHub for actual merged status after integration; **deployment remains unauthorized**.
-- The existing `createSurferModel()` remains compatible with the live match and now accepts a seventh optional cosmetic style argument. Its scene uses actual Three.js geometry: expressive face, alternative hair, male/female body presentation, colored surfwear and three distinct board hulls (shortboard, fish, longboard). These are procedural approximations and **not** a rigged GLB conversion of the owner's polished 2D character concept.
-- `/#/surfers` is a dedicated gallery of four selectable presets with a real draggable/zoomable Three.js viewer and route links from Home/Obstacles/Catalog.
-- `/#/customize` is a responsive tropical creator with character, hairstyle, hair/skin/surfwear colors, board silhouette/color and same live reusable model. The action **Guardar visual** persists only an isolated draft in browser localStorage; it is not connected to player creation or a real match.
-- Approved decisions: SK-DEC-011 (boards cosmetic-only) and SK-DEC-012 (wood/crown logo and tropical beach visual direction). Current logo/background are **CSS interpretations**, not imported exact source artwork.
+- Branch `feat/24-styled-rigged-surfer` / [PR #25](https://github.com/board-games-jf/surf-king-react/pull/25) received **explicit owner merge authorization on 2026-11-16**. Confirm actual merge status in GitHub. **No deployment is authorized.**
+- New `riggedSurferArt.js` decorates the same skinned GLB body/skeleton with surfwear/skin color zones, smoothly shaped hair, a cosmetic board and a relaxed arm pose.
+- `RiggedBaseViewer` reuses the loaded local GLB for styled and original modes. The gallery offers styled GLB / original GLB / procedural comparisons.
+- `/#/customize` defaults to the styled GLB; the existing hairstyle, skin, outfit and board controls change this preview without re-downloading the asset. Previous procedural models remain available as fallback.
+- **Art limitation:** the authored GLB is a male body. Female-presenting options are color/hairstyle experiments, **not** a dedicated female anatomical model. Final character art and surfing animation remain unfinished.
+- The active visual changes are isolated to studio previews. Real match actors, game rules, obstacle models and the map renderer remain unchanged.
 
-## Validation and risks
+## Validation and next action
 
-- Existing tests were extended and new tests added for cosmetic normalization and the route UI interactions.
-- JavaScript syntax checks passed for the model, option module and relevant non-JSX files. On 2026-11-16 the four actual production model presets were recreated and animated against a lightweight Three.js mock (40, 44, 47, 48 meshes; all finite).
-- Executed the actual production model source against a lightweight Three.js mock with four presets and animation samples; geometry parts existed and transforms stayed finite. **This is not a Jest result or WebGL rendering proof.**
-- **Jest, production CRA build, actual WebGL gallery and responsive browser checks were not executed**; a browser with the project dependencies is required before claiming a working user-facing release.
-- Artistic fidelity to the owner's 2D image needs dedicated 3D asset creation and validation. The current procedural models are an interactive foundation, not a promise of pixel-perfect likeness.
-
-## Rigged character asset evaluation (Issue #22)
-
-- **Feature work:** [PR #23](https://github.com/board-games-jf/surf-king-react/pull/23) / branch `feat/22-rigged-glb-surfer-base`, based on `df81076781a7a70845dbe079f7a8ca21a79d35e6`. **Owner explicitly authorized PR #23 merge on 2026-11-16; confirm actual merged status on GitHub. Deployment remains unauthorized.**
-- The first licensed rigged male GLB base (Quaternius Universal Base Characters, CC0) and source license are bundled in `public/assets/surfers/`, with provenance recorded in `DATA_SOURCES.md`.
-- `/#/surfers` gallery can now opt into a separate `RiggedBaseViewer` to inspect the imported model, or revert to the original procedural viewer. The existing `/#/customize` interface and real match avatars remain unchanged.
-- The candidate has 65 skeletal joints and skinned meshes, but deliberately **does not yet have surfwear, selectable hair, finished surfboard, or animation**. The owner has *not* approved its final artistic fidelity.
-- Source GLB header, glTF JSON, skin joints, mesh attributes, local embedded buffer and upstream CC0 licence were inspected. Dedicated tests were added for GLB content and studio mode switching. **Full Jest, build and WebGL/mobile visual QA remain to be executed**.
-- **Next action:** confirm PR #23 merge on `main`, then run Jest and production build and open the gallery in a real WebGL browser. Do not substitute this base in gameplay before visual approval.
-
-## Next action
-
-1. Install dependencies and run `npm test -- --watchAll=false` plus `npm run build`, correcting failures.
-2. Start the branch locally and check `/#/surfers`, `/#/customize` and `/#/catalog` on desktop and mobile: shader compatibility, eyes facing camera, all swaps, form input, touch/zoom, geometry disposal.
-3. Review the actual 3D avatar look against the owner's image and refine or import professionally modelled 3D assets before final art approval.
-4. PR #21 merge was **explicitly authorized by the owner on 2026-11-16** despite pending real Jest/build/WebGL checks. Confirm merged status and keep issue #20 open for unfinished validations and styling. **Deploy still requires separate authorization.**
+- `riggedSurferArt.js` source passed JavaScript syntax parsing. Executed the actual production styling module against a lightweight Three.js API mock for **9 hair/board combinations**: all constructed, animated and restored the skinned rig/materials/geometry after disposal. Added targeted Jest art/cleanup tests and updated React studio tests, but these **have not been executed in Jest**.
+- CRA build, Jest, actual GLTFLoader/WebGL rendering, mobile presentation and visual quality still need validation in the application.
+- Next: run `npm test -- --watchAll=false` and `npm run build`, then open `/#/surfers` and `/#/customize` at desktop and mobile sizes to review the new model.
+- The owner explicitly authorized PR #25 merge on 2026-11-16. **No deployment is authorized.** Issue #24 stays open pending Jest/build/WebGL and visual review.

@@ -73,13 +73,13 @@ export default function SurferStudioPage() {
     location.state?.style || readSavedStyle() || PRESET_SURFERS[0]
   ))
   const [saved, setSaved] = useState(false)
-  const [showRiggedBase, setShowRiggedBase] = useState(false)
+  const [previewMode, setPreviewMode] = useState('styled')
   const change = (name, value) => {
     setStyle(current => normalizeSurferStyle({ ...current, [name]: value }))
     setSaved(false)
   }
   const choosePreset = preset => {
-    setShowRiggedBase(false)
+    setPreviewMode('styled')
     setStyle(normalizeSurferStyle(preset))
     setSaved(false)
   }
@@ -159,21 +159,30 @@ export default function SurferStudioPage() {
         <section className="surfer-studio-stage" aria-label="3D surfer visualization">
           <div className="surfer-studio-stage-label">
             <span className="surfer-studio-live">● LIVE 3D</span>
-            <span>{gallery && showRiggedBase ? 'Base GLB importada · teste' : labels[style.character] + ' · ' + labels[style.boardType]}</span>
+            <span>{previewMode === 'styled'
+              ? 'Novo visual GLB · ' + labels[style.boardType]
+              : previewMode === 'base' ? 'GLB sem acabamento · Comparação'
+                : 'Modelo geométrico antigo · Comparação'}</span>
           </div>
-          {gallery && (
-            <div className="surfer-choices" role="group" aria-label="Modo de pré-visualização">
-              <button type="button" aria-pressed={!showRiggedBase}
-                onClick={() => setShowRiggedBase(false)}>Modelo atual</button>
-              <button type="button" aria-pressed={showRiggedBase}
-                onClick={() => setShowRiggedBase(true)}>Base 3D importada (GLB)</button>
-            </div>
-          )}
-          {gallery && showRiggedBase ? <RiggedBaseViewer /> : <SurferViewer style={style} />}
+          <div className="surfer-choices surfer-preview-controls" role="group" aria-label="Modo de pré-visualização">
+            <button type="button" aria-pressed={previewMode === 'styled'}
+              onClick={() => setPreviewMode('styled')}>Novo visual 3D</button>
+            {gallery && (
+              <button type="button" aria-pressed={previewMode === 'base'}
+                onClick={() => setPreviewMode('base')}>Base GLB</button>
+            )}
+            <button type="button" aria-pressed={previewMode === 'procedural'}
+              onClick={() => setPreviewMode('procedural')}>Modelo antigo</button>
+          </div>
+          {previewMode === 'procedural'
+            ? <SurferViewer style={style} />
+            : <RiggedBaseViewer style={style} styled={previewMode === 'styled'} />}
           <p className="surfer-studio-stage-caption">
-            {gallery && showRiggedBase
-              ? 'Modelo-base com esqueleto real, sem roupa de surf ou animação final. Apenas para avaliar a nova abordagem; ainda não é usado nas partidas.'
-              : 'Pré-visualização do modelo 3D do jogo. A arte final ainda está em desenvolvimento.'}
+            {previewMode === 'styled'
+              ? 'Primeiro visual real sobre o GLB articulado: roupa, cabelo e prancha cosmética. A base do corpo ainda é masculina; visual e animação finais por aprovar.'
+              : previewMode === 'base'
+                ? 'Modelo original com esqueleto, sem acabamento de surf. Serve apenas para comparação.'
+                : 'Modelo geométrico anterior. Mantido como comparação e fallback.'}
           </p>
         </section>
 

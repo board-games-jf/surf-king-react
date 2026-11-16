@@ -96,6 +96,21 @@ flowchart LR
 
 The GLB candidate is a static neutral base with rigging, **not a final animated or customizable surfer**. Browser/WebGL validation and art review are pending. Rollback is simple: remove the gallery comparison and asset without affecting local matches.
 
+## Styled GLB studio preview (Issue #24, unmerged)
+
+`riggedSurferArt.js` adds cosmetic materials and removable accessory meshes around the **existing skinned** Quaternius GLB. It retains the imported skeleton and humanoid geometry; changing a style replaces temporary materials/accessories, not the asset or game state. `RiggedBaseViewer` caches one loaded GLB and supports a styled view and untouched base view. The studio `/#/customize` now defaults to the styled GLB with an explicit procedural fallback; the gallery offers all three modes.
+
+```mermaid
+flowchart LR
+  Style[Existing cosmetic options] --> Studio[Surfer studio]
+  Studio --> Viewer[RiggedBaseViewer]
+  Viewer --> GLB[Local skinned GLB]
+  Viewer --> Art[removable styling + cosmetic board]
+  Studio --> Old[Original procedural SurferViewer]
+  Match[Local match] --> OriginalMatch[Unchanged procedural game actors]
+```
+
+The imported body is male-only; no final female GLB, animated surfing rig, player-profile persistence, or match integration exists. This preview does not affect game rules or board-identity colors. Real WebGL validation remains pending.
 ## Limits and validation
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.
