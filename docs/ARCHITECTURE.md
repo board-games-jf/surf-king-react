@@ -42,7 +42,7 @@ flowchart LR
 - The `/obstacles` route previews exactly these factories in a separate WebGL scene without modifying game state.
 - Player models and coastal scenery continue using the existing `surfModels.js` and `createCoastalScenery.js` code.
 
-## Interactive 3D board catalog (Issue #15, draft)
+## Interactive 3D board catalog (Issue #15, merged PR #16)
 
 The standalone `/#/catalog` route uses the existing `Board3D` component rather than an independent renderer. A pure `catalogState.js` fixture creates 53 cells, model placements, surfer positions and a public snapshot matching the renderer contract. Its click tools operate only on local React state, not the real `boardgame.io` match.
 
@@ -55,7 +55,11 @@ flowchart LR
   Scene --> Camera[Optional focusCell camera API]
 ```
 
-This is a visual design sandbox with illustrative placements, not an alternate rules engine or authoritative gameplay state. Actual browser validation is pending and the feature is not yet merged or deployed.
+This is a visual design sandbox with illustrative placements, not an alternate rules engine or authoritative gameplay state. PR #16 is merged into `main`; real browser validation is still pending. Merge does not establish deployment.
+
+## Current obstacle visual refinement (Issue #13, in review)
+
+`obstacleModels.js` keeps a single model factory for match, gallery and catalog. Stone and Island procedural meshes match the silhouettes/palette of the repository card images; Shark, Storm and Cyclone use foam/wakes directly above the scene ocean without opaque blue water cylinders. Storm flashes select among prebuilt branched lightning geometries; Cyclone and Shark use bounded deterministic multi-frequency motion. No per-frame meshes are allocated. All visual effects remain outside the game-state and rule engine.
 
 ## Limits and validation
 
