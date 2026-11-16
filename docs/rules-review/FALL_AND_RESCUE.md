@@ -24,6 +24,25 @@
 
 **Immediate next step:** Freeze **this design target** and compare one full 3-player race using the same hazards/cards under **quick recovery** versus **old skipped-turn recovery**; identify whether the sole blocker was time lost or accumulated movement/energy costs. Then assess 2-, 4- and 7-player cases. **No code is authorized**, so this remains a written design exercise.
 
+## P-18 — Next-personal-turn rescue timing, owner clarification (PROPOSED AMENDMENT)
+
+**Owner follow-up, 2026-11-16:** After explicitly confirming that Shark damage should **remain −2 energy** (accepted in **SK-DEC-019**), the owner asked whether a recovery card would be played **only on the surfer's next own turn**, rather than immediately upon falling. The assistant recommends **yes** for simplicity. This is an **owner-raised timing preference and assistant recommendation**, NOT yet an explicitly ratified amendment of existing SK-DEC-018, which currently specifies **immediate rescue**.
+
+**Recommended P-18 timing (NOT YET ACCEPTED):**
+
+1. **Entry:** Shark deals **−2 energy on entry** (accepted SK-DEC-019), capped at zero as normal. On reaching 0, show the surfer as **fallen on the Shark hex**. Their current movement ends. **Do not interrupt play to demand a rescue card on that event**, even when it is another player's turn.
+2. **Temporary cell reservation (candidate):** Until the start of that surfer's next personal turn, the fallen surfer remains **associated with and temporarily reserves the Shark hex**. Other surfers cannot occupy that same hex during that interval. A temporary obstacle to traffic is a short-lived consequence, not an indefinite knock-out; review especially 7-player congestion.
+3. **At the START of the next own turn, BEFORE ordinary tactical action or movement:** The surfer chooses **one** of:
+   - **Float:** Discard held **Lifeguard Float**, stand up **on the Shark** with **2 energy**, and continue that turn with their one normal maneuver. The card occupies the turn's normal **one card OR Drop In tactical-action slot**; no extra attack/card action.
+   - **Fin:** Discard **Swimming Fin**, stand up there with **1 energy**, same no-extra-action rule.
+   - **No rescue / decline:** The Shark attempt does not retain the advancement. **Move back** to the last safe free hex before the Shark if valid, otherwise the closest vacant obstacle-free oceanward hex (favor true edge adjacency, then prior lane, then lowest cell ID). Release the Shark cell reservation and carry on that normal turn. **P-17 suggests 1 energy on no-card return** to prevent voluntary energy farming, but **SK-DEC-018 currently says 2 energy**: do not treat P-17 value as approved yet.
+4. **No double Shark hit:** Standing on the Shark again after a successful rescue is **not a new entry**; it does not immediately deal another −2. A subsequent move **out and back in** is a new entry and does deal −2.
+5. **No invalid overlapping occupancy:** If the previous tile now has a player, Stone, Shark or any obstacle, do not overlap or displace them. Use another safe empty oceanward hex. If the entire oceanward region is blocked, the fallback requires a separate deterministic resolution before implementation; do not invent teleports or indefinitely skip turns.
+
+**The key experiential rule:** **"Fall now; decide rescue or retreat at the start of your next own turn; then play normally."** This creates a single predictable recovery checkpoint and avoids reactions interrupting opponents. It also changes the established card-action economy compared with earlier P-13 proposals, so the card's scarcity and use need a full-match review.
+
+**Status separation:** **Accepted**: SK-DEC-019 Shark **−2**, SK-DEC-017 high-fall/quick-rejoin direction, SK-DEC-016 starting 2 energy. **Current last accepted Shark-return rule:** SK-DEC-018 (immediate Float/Fin reaction, no-card next-own-turn return at 2 energy). **Unapproved amendment:** P-18 deferred Float/Fin to next own turn, temporarily reserves fallen Shark cell, and P-17 candidate immediate knockback / 1 energy may need reconciliation. If owner clearly confirms P-18, record a **new superseding decision**, preserving old IDs, and remove conflicting candidate descriptions. No gameplay code has changed.
+
 ## P-16 — Shark fall and return: owner-requested definitive design rule
 
 **Status: ACCEPTED AS A DESIGN RULE, NOT IMPLEMENTED — SK-DEC-018 (2026-11-16).** The owner explicitly asked to **settle now** whether a surfer knocked off by a Shark stays on its hex or moves backward. The following is the closed rule for **a fall caused by Shark terrain**; extending it verbatim to falls from attack, Big Wave and other terrain still requires its own review.
