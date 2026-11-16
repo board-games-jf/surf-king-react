@@ -1,39 +1,34 @@
 # Project Handoff
 
-**Last direct GitHub review:** 2026-11-16
+**Verified on GitHub:** 2026-11-16
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Current main at work start:** `e4e083f9035e314eb2107bd1cca448292cc4629e` (PR #17, card-faithful obstacle refinement).
+**Source main baseline:** `e4e083f9035e314eb2107bd1cca448292cc4629e` (obstacle PR #17).
 
-## Current integrated state
+## Integrated baseline
 
-- The local boardgame.io game has 53 hex cell IDs, both 2D and Three.js views, and a shared public rendering snapshot.
-- The Three.js map renders procedural surfers and obstacles from `src/map/views/Board3D/`. The `/#/catalog` route reuses these live game models as a design sandbox with illustrative placements.
-- Obstacle visual direction is approved and integrated via PRs #14 and #17; do not reopen obstacle art without a new owner request.
-- The online multiplayer and AI game flows are not active; changes to game rules are not in scope for the current visual work.
+- Local boardgame.io gameplay, 53-cell 2D/3D views and public map snapshot are integrated. No online multiplayer is active.
+- The obstacle meshes/animations are visually approved and merged (PRs #14, #17). The standalone board catalog is merged (PR #16). The old Jest/build/WebGL browser checks remain pending.
+- Issue #11 / draft PR #12 are for a separate game-rules review. Do not mix them into visual work.
 
-## Active work — Issue #20
+## Active surfer and board studio (Issue #20 / draft PR #21)
 
-- Branch `feat/20-refine-3d-surfers` / [draft PR #21](https://github.com/board-games-jf/surf-king-react/pull/21) is **not merged or deployed**. First reviewable iteration improves `surfModels.js` without changing the exported `createSurferModel()` contract.
-- Surfboards now use a bevelled, tapered procedural hull and shape-based deck stripe, rear grip and swept underside fin. Existing seven player colors are unchanged.
-- Riders have a deterministic multi-frequency balance pose: torso/head/arms/stance and slight board pitch. No model allocates new meshes per animation frame.
-- The existing real match and board catalog consume the same model factory; no separate fake assets were added.
-- **Approved product direction (SK-DEC-011):** choosing a different board is cosmetic-only for now and cannot change movement, speed, energy, cards or other rules. Board gameplay attributes may be explored later but are not approved. The owner also wants a minimal Sims-like character creator with male/female presentation; exact customization options remain to be scoped. PR #21 is still a geometry/animation baseline and does **not** provide character or surfboard selection yet.
+- The latest `feat/20-refine-3d-surfers` branch is **unmerged and undeployed**.
+- The existing `createSurferModel()` remains compatible with the live match and now accepts a seventh optional cosmetic style argument. Its scene uses actual Three.js geometry: expressive face, alternative hair, male/female body presentation, colored surfwear and three distinct board hulls (shortboard, fish, longboard). These are procedural approximations and **not** a rigged GLB conversion of the owner's polished 2D character concept.
+- `/#/surfers` is a dedicated gallery of four selectable presets with a real draggable/zoomable Three.js viewer and route links from Home/Obstacles/Catalog.
+- `/#/customize` is a responsive tropical creator with character, hairstyle, hair/skin/surfwear colors, board silhouette/color and same live reusable model. The action **Guardar visual** persists only an isolated draft in browser localStorage; it is not connected to player creation or a real match.
+- Approved decisions: SK-DEC-011 (boards cosmetic-only) and SK-DEC-012 (wood/crown logo and tropical beach visual direction). Current logo/background are **CSS interpretations**, not imported exact source artwork.
 
-## Validation
+## Validation and risks
 
-- The updated model source and new tests passed JavaScript syntax checks.
-- The **actual model source** was instantiated and animated in a lightweight mocked Three.js environment for seven player variants; hull color, expected named geometry and finite sample poses passed.
-- Added Jest tests for colored hulls, board geometry, footprint, smooth pose, seven variants and retention of the shark animation API. **Jest was not run**; npm dependencies, production build and real browser WebGL evaluation remain pending.
-- Before merging, verify front/back board direction, avatar leg/foot contact, camera-distance readability, mobile performance and no regression in the 2D/3D switch.
-
-## Other open work
-
-- Issues #7, #13 and #15 remain open for technical integration/validation checks; these are separate from artistic sign-off.
-- Issue #11 / draft PR #12 are reserved for rules review and should not be mixed into surfboard refinement.
-- The approved MVP, canonical board coordinates, complete rules acceptance and test/build baselines are not yet settled.
+- Existing tests were extended and new tests added for cosmetic normalization and the route UI interactions.
+- JavaScript syntax checks passed for the model, option module and relevant non-JSX files.
+- Executed the actual production model source against a lightweight Three.js mock with four presets and animation samples; geometry parts existed and transforms stayed finite. **This is not a Jest result or WebGL rendering proof.**
+- **Jest, production CRA build, actual WebGL gallery and responsive browser checks were not executed**; a browser with the project dependencies is required before claiming a working user-facing release.
+- Artistic fidelity to the owner's 2D image needs dedicated 3D asset creation and validation. The current procedural models are an interactive foundation, not a promise of pixel-perfect likeness.
 
 ## Next action
 
-1. Review the Issue #20 / PR #21 baseline shapes in `/#/catalog` and a local 3D game, then scope lightweight character and cosmetic surfboard selection separately.
-2. Run Jest, production build and WebGL smoke checks with the app dependencies installed; record failures and adjust the visual model.
-3. Request explicit approval before merging; **no deployment is authorized**.
+1. Install dependencies and run `npm test -- --watchAll=false` plus `npm run build`, correcting failures.
+2. Start the branch locally and check `/#/surfers`, `/#/customize` and `/#/catalog` on desktop and mobile: shader compatibility, eyes facing camera, all swaps, form input, touch/zoom, geometry disposal.
+3. Review the actual 3D avatar look against the owner's image and refine or import professionally modelled 3D assets before final art approval.
+4. Keep PR #21 as draft until tests and visual approval. **No merge or deploy without separate explicit authorizations.**
