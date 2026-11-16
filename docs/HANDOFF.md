@@ -28,12 +28,12 @@
 
 ## Rigged character asset evaluation (Issue #22)
 
-- **Open draft work:** [PR #23](https://github.com/board-games-jf/surf-king-react/pull/23) / branch `feat/22-rigged-glb-surfer-base`. Starting `main`: `df81076781a7a70845dbe079f7a8ca21a79d35e6` (PR #21 merged). This is a visual exploration **not merged or deployed**.
+- **Feature work:** [PR #23](https://github.com/board-games-jf/surf-king-react/pull/23) / branch `feat/22-rigged-glb-surfer-base`, based on `df81076781a7a70845dbe079f7a8ca21a79d35e6`. **Owner explicitly authorized PR #23 merge on 2026-11-16; confirm actual merged status on GitHub. Deployment remains unauthorized.**
 - The first licensed rigged male GLB base (Quaternius Universal Base Characters, CC0) and source license are bundled in `public/assets/surfers/`, with provenance recorded in `DATA_SOURCES.md`.
 - `/#/surfers` gallery can now opt into a separate `RiggedBaseViewer` to inspect the imported model, or revert to the original procedural viewer. The existing `/#/customize` interface and real match avatars remain unchanged.
 - The candidate has 65 skeletal joints and skinned meshes, but deliberately **does not yet have surfwear, selectable hair, finished surfboard, or animation**. The owner has *not* approved its final artistic fidelity.
 - Source GLB header, glTF JSON, skin joints, mesh attributes, local embedded buffer and upstream CC0 licence were inspected. Dedicated tests were added for GLB content and studio mode switching. **Full Jest, build and WebGL/mobile visual QA remain to be executed**.
-- **Next action:** run Jest and production build, open the gallery in a real browser to review the imported model, then decide whether to author a surfer-specific appearance/rig or evaluate another model. Do not substitute the model in gameplay before visual approval.
+- **Next action:** confirm PR #23 merge on `main`, then run Jest and production build and open the gallery in a real WebGL browser. Do not substitute this base in gameplay before visual approval.
 
 ## Next action
 
