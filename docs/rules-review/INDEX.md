@@ -31,13 +31,13 @@ Keep one coherent whole-match candidate visible while considering one focused ch
 
 The trial has not yet been playtested or proved balanced. Approval to **try** these does not authorize implementing or merging anything.
 
-## 3. Current coherent working package — P-09 / P-10 / P-11, **assistant proposals only**
+## 3. Current coherent working package — P-09 to P-12, **assistant proposals only**
 
 - Start at 2 energy, trial cap 5, edge-adjacent geometry, no Rest, fall at 0.
 - Per active turn, **optionally play one card OR attempt one adjacent Drop In**, then make one legal **free normal maneuver** when possible; draw a card after moving. No separate free repeatable +1-energy choice (it would produce 2 → 5 in only three personal turns).
 - Experimental Drop In: up to two d6 per surfer, compare the highest results; **tie without energy loss** (owner accepted for trial); a strictly lower result loses **1 energy** (damage value still an assistant proposal). **P-10 candidate:** when the attacker strictly wins, they may exchange hexagons with the defender; if used, this consumes the attacker's regular maneuver, avoiding a double step (not approved). **P-11 candidate:** resolve combat damage before exchanging, apply terrain once for **both entering surfers**, and remove any fallen surfer's solid board occupancy; if the defender falls from the attack, the attacker can instead move into the freed adjacent cell as their one maneuver (not approved).
 - Proposed first-pass obstacle/card retune: **Shark -1**, **Big Wave -1** instead of their currently implemented -2; review energy-restoration cards (+3 and full refill), Island +2 and Bottled Water's now-obsolete waiver.
-- Proposed fall return: rejoin on next own turn at 2 energy, without maneuver that turn. Proposed victory safety: first to beach wins, with a **10-round** positional fallback. **Neither re-entry nor round limit has been approved.**
+- **Updated P-12 fall-return proposal:** falling vacates the active hex. Rejoin on the next personal turn at **2 energy** in the closest **empty, hazard-free cell toward the sea**, then **take a normal maneuver that turn**. This replaces the earlier proposal to also skip the next entire turn; a positional setback already delays progress. Exact sea-edge and blocked-hex fallback remain open. Proposed victory safety: first to beach wins, with a **10-round** positional fallback. **Neither re-entry nor round limit has been approved.**
 
 ### Known linked failure modes
 
@@ -59,19 +59,21 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 | Complete-match design | A/B/C alternatives, P-09 core and P-10 positional stress review — [OPTIONS.md](OPTIONS.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md); earlier [COMPLETE_MATCH.md](COMPLETE_MATCH.md) |
 | Victory and comeback | Beach victory as implemented; final rule, rounds, tie-break and re-entry open — [OPTIONS.md](OPTIONS.md) |
 
-## 5. Completed desk analysis and next design action
+## 5. Verified desk findings and next design action
 
-**Verified race routes (provisional layout):** From engine cell 0 to beach 49, **7 valid moves through Shark 28** versus **8 valid moves avoiding all initial Sharks**. This creates a genuine speed-versus-resilience choice without any extra progress counters.
+**Board path trade-off:** From engine cell 0 to beach 49, **7 edge-adjacent moves via Shark 28** or **8 edge-adjacent moves avoiding all four initial Sharks**. Hazard risk versus a one-move detour is already an organic choice in the provisional board layout.
 
-**Exact trial combat odds (2 dice vs 2 dice):** Strict attacker win **38.97%**, strict defender win **38.97%**, owner-trial **no-damage tie 22.07%**. A win that only removes 1 energy leaves a 5-energy leader at 4 in the same leading cell; P-10's **optional occupied-cell exchange consuming the attacker's maneuver** offers a meaningful positional payoff.
+**Combat comparison:** With the owner-accepted **no-damage tie trial** and experimental 2-dice cap, energy 2 vs 5 combat produces a strict attacker win **38.97%**, strict loss **38.97%**, tie **22.07%**. A damage-only win from 5 to 4 energy would not change the leader's position or dice. P-10's **optional adjacent-cell exchange on strict attacker win, using that attacker's one maneuver** (NOT approved) can make attacking worthwhile.
 
-**P-11 desk review (NOT approved):** Combat resolves **before** any exchange. If a defender drops to 0, they vacate, and the attacker may enter the freed adjacent hex as their single maneuver. If both remain afloat, optional exchange occurs simultaneously, using the attacker's maneuver; **both** displaced surfers resolve destination terrain **once**. Any surfer reduced to zero leaves the active board rather than remaining as a solid obstacle. No damage on dice ties and no exchange on ties.
+**P-11 edge case (NOT approved):** On a winning exchange, the candidate combat damage happens first; if the defender reaches 0, they fall and vacate, and the attacker may enter the freed hex as their one movement. If both survive, exchange simultaneously and resolve terrain **once for both entering surfers**. If an involuntarily displaced defender enters Shark/Storm, proposed damage can combine: **−1 attack + −1 terrain**, possibly a fall from **2 energy**.
 
-**Important newly discovered risk:** An opponent forcibly relocated to Shark or Storm might suffer **−1 from losing combat plus −1 from hazardous entry**, falling even from 2 starting energy. This may be fun positional strategy or too punitive; it needs explicit balancing. Forced-entry hazards, falling occupancy and the exact return-cell rule are **assistant proposals**, not owner approvals.
+**P-12 scenario and revised recommendation (NOT approved):** With attacker **1 energy on Shark 28** versus defender **2 energy on adjacent 35**, the attacker rolls 1 die vs 2; strict win **55/216 = 25.46%**, loss/fall **125/216 = 57.87%**, tie **36/216 = 16.67%**. A rare win can cause the defender to fall from combined attack and Shark effects, while a failed attack likely knocks out the one-energy attacker. This is high risk/high reward, but **combining a backward displacement, fall and a missed next turn** could become unfairly punitive.
 
-**Recommended next analysis:** Compare a two-energy surfer suffering a two-point swap+Shark fall against the comeback rule (return next personal turn near the fall location), rescue cards and a race ending around seven to ten moves. Check whether this creates a fair penalty or an unrecoverable loss, including at seven players. Do **not** lock down an exception for forced movement until this is checked.
+**Assistant's preferred fall return:** a fallen surfer does **not** occupy/block a cell; on their next personal turn, return with **2 energy** to the nearest **empty hazard-free cell oceanward of the fall checkpoint** and **play the normal maneuver that turn**. This replaces the older candidate of losing an entire turn *in addition* to a positional setback. The exact deterministic return placement, ocean-edge exception and rescue-card rewards remain open.
 
-**Full desk evidence:** [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md), [ATTACK.md](ATTACK.md) and [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md). No match simulation, production change, game tests, merge or deploy.
+**Next evaluation:** Test a Shark-driven fall with P-12 return, contrasting a successful rescue card, a contested starting edge and a 7-player crowded board. Then decide whether double hazard+combat damage and the P-10 swap are acceptable as a **whole package**, rather than accepting their individual numbers. No implementation/playtest or new owner approvals.
+
+**Detailed evidence:** [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md), [ATTACK.md](ATTACK.md), [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md).
 
 ## 6. How to resume in a new conversation
 
