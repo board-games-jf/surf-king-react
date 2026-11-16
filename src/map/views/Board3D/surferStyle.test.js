@@ -17,6 +17,8 @@ describe('cosmetic surfer selections', () => {
     expect(style.boardType).toBe(boardType)
     const { boardType: ignored, ...rest } = style
     const { boardType: defaultBoard, ...baseline } = DEFAULT_SURFER_STYLE
+    expect(ignored).toBe(boardType)
+    expect(defaultBoard).toBe('shortboard')
     expect(rest).toEqual(baseline)
     expect(BOARD_COLORS[style.boardColor]).toBeDefined()
   })
