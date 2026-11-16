@@ -1,30 +1,29 @@
 # Project Handoff
 
-**Verified on GitHub:** 2026-11-16
+**Last GitHub verification:** 2026-11-16
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Source `main`:** `2e1dd3b4dad8faafffad9c3320eb9ab183790466` (styled GLB preview PR #25 merged).
+**Current baseline `main`:** `668d2f2bcd10e2d6516c0d4ef6819217a5df823b` (3D board surfer PR #27 merged).
 
 ## Integrated baseline
 
-- Local boardgame.io play, 53-cell shared 2D/3D board, interactive catalog and five 3D obstacles are integrated. No online multiplayer is active.
-- The owner approved the visual direction of the styled rigged GLB surfer after the merged studio PR #25. `/#/surfers` and `/#/customize` inspect that local CC0 asset, and store cosmetic choices only as a browser-local draft; no saved profile is applied to a match.
-- The authored Quaternius GLB is a male-bodied model with a 65-joint rig. Female presentation and finished surfing animation still need distinct artistic validation.
-- The existing player colors, 2D fallback and cosmetic-only surfboard rule (SK-DEC-011) remain authoritative. The owner requested this approved art direction on the board (SK-DEC-014).
-- Rules epic #11 / draft PR #12 are independent; do not modify game rules under visual issues.
+- Surf King has local boardgame.io play, one shared 53-cell 2D/3D board, interactive 3D catalog, and approved 3D obstacle visuals. No online multiplayer is active.
+- PR #25 merged the styled Quaternius male skinned GLB into `/#/surfers` and `/#/customize` with cosmetic clothing, hair and an upright board; PR #27 merged the same asset into the live 3D board and catalog via a shared decorator and procedural fallback.
+- The existing board identifies up to seven players by board color; surfboards have no gameplay effects (SK-DEC-011). Studio saves only a local cosmetic draft; it is **not** applied to match players.
+- Obstacle art, 2D/3D view choice and game rules are separate; gameplay-balance issue #11 and draft PR #12 remain outside character work.
 
-## Active board integration — Issue #26
+## Active work — Issue #28 (not merged, not deployed)
 
-- [PR #27](https://github.com/board-games-jf/surf-king-react/pull/27) / branch `feat/26-rigged-surfer-board` received **explicit owner merge authorization on 2026-11-16**. Confirm actual merged status in GitHub. **Deployment remains unauthorized.**
-- The styled GLB decorator was moved to the shared `src/map/views/Board3D/riggedSurferArt.js` so studio and board use the same mesh and materials.
-- Board presentation lays the cosmetic surfboard under the rider's feet, angles the figure sideways and scales the full model to fit the existing hex footprint.
-- `riggedBoardSurfers.js` loads the local GLB once per 3D scene and uses `SkeletonUtils.clone` for independent skinned riders. All seven original player colors remain identifiable on their boards; outfits/hairstyles use fixed preview presets, not a live-player profile.
-- `createScene.js` upgrades the same moving actor groups when the GLB is ready, preserving positions and focus; it keeps the previous procedural model as a loading/error fallback.
-- `/#/catalog` has a **Focus on the new 3D surfer** shortcut. Because game and catalog share `Board3D`, both display the new model. The logic/2D gameplay, obstacles, public snapshot and movement rules remain unchanged.
+- Branch: `feat/28-female-surfer-and-poses`. Owner requested a genuinely distinguishable female/male face and alternatives to permanently outstretched arms.
+- Imported **a distinct Quaternius Superhero Female skinned model** (65 joints) from the same CC0 *Universal Base Characters* pack as the male. Original `.gltf` geometry/bone binary was bundled into a self-contained GLB with neutral materials; see `docs/DATA_SOURCES.md` for source Git SHAs and conversion details.
+- `riggedBoardSurfers.js` selects gender-specific templates and loads both local GLBs once per 3D scene. Each active player gets an independent skeleton. Failure to load either model keeps its existing procedural board actor visible.
+- `surferPoses.js` provides deterministic **standing**, **relaxed** and **surfing** bone-offset poses. `riggedSurferArt.js` applies these relative to the original male/female bind poses and restores them on disposal; female hairstyle placement is adjusted to her separate head shape.
+- `/#/customize` / `/#/surfers` preview the selected real male/female GLB and offer pose buttons. Switching gender remounts the model preview so in-flight loader callbacks cannot show the wrong body. Pose is intentionally **not persisted** in the saved visual draft.
+- The catalog and local 3D match use the **surfing** stance automatically; game rules, positions, 2D rendering, obstacles and board colors are unaffected.
 
 ## Validation and next action
 
-- **Executed:** source-module syntax parsing for the shared art, GLB board adapter and scene; production decorator + board adapter were instantiated, animated and cleaned up for seven rider colors against a lightweight Three.js interface mock. All seven checks passed. This is **not** a Jest or browser result.
-- **Added but not executed:** Jest tests for independent rig clones, colors, board footprint and load/fallback, plus existing studio tests updated to import the shared file.
-- **Pending:** install actual dependencies, run Jest and CRA build, inspect the GLB on the real WebGL board/catalog and mobile view, and evaluate surfing stance/readability from board camera height.
-- **Review path:** open `/#/catalog`, choose **Focus on the new 3D surfer**, then check an actual local 3D match and `/#/customize`. If GLB loading fails, inspect console and verify the old procedural fallback.
-- **Next:** verify authorized PR #27 merge on `main`, then complete Jest/build and actual WebGL/browser/mobile checks, correcting visual or performance issues in a follow-up PR. Deployment remains separately unauthorized.
+- Verified the bundled female GLB header and structure directly: glTF 2.0, 1,012,592 bytes, 65 joints, original female body and face, embedded binary, no external textures. Source provenance verified on GitHub.
+- Executed production pose sampler/decorator logic with a lightweight Three.js API mock across **six combinations** (two authored body choices × three poses). Bone changes, pose restoration and flat surfing board mode passed; **these are not Jest/WebGL results**.
+- Added Jest tests for female/male GLB provenance, three poses/reduced-motion behavior, board skeleton independence, gender-specific loader paths and preview switching. **Jest suite, CRA build and actual WebGL/browser/mobile QA are not yet run.**
+- Next: run `npm test -- --watchAll=false` and `npm run build` in a dependency-enabled environment; visually review both faces and standing/relaxed/surfing poses in `/#/customize`, then check the local 3D board and `/#/catalog` under real WebGL.
+- Do not merge without fresh explicit owner authorization. Do not deploy without separate explicit authorization. Remain open until visual and technical acceptance criteria are verified.
