@@ -80,4 +80,6 @@ No probabilities were simulated and no gameplay tests were executed. These are d
 
 The owner suggested a **WAR/Risk-like energy economy** in which energy grows into attack/defense strength. See [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md) for the newer **P-04 (unapproved)** proposal: start at 2 energy rather than 1 (avoid instant opening falls), free normal movement, +1 on each newly reached personal furthest-forward row to max 4, and cards as recovery/strength boosts. This **refines P-03**, which was only a design hypothesis. Evaluate opening strength **first**, then gain-rate, combat snowballing, card relevance and fall return before approving a core loop.
 
+**Next dependency:** The owner requested a complete start-to-finish match instead of more isolated mechanic questions. See [COMPLETE_MATCH.md](COMPLETE_MATCH.md) (P-06, entire package **not approved**) for the candidate opening, optional tactics + mandatory move, energy and hazards, falls and return, victory and a provisional round cap. All unapproved choices remain open until a whole-game assessment.
+
 **Drop-in dice-tie resolution remains deferred.** No gameplay code, merge or deployment is authorized by this review.
