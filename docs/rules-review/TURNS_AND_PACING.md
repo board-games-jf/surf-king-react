@@ -78,6 +78,6 @@ No probabilities were simulated and no gameplay tests were executed. These are d
 
 ## Next small design step
 
-**Review the energy economy as a whole before approving compulsory movement:** compare routine movement at **0 energy cost** against the current **1 energy cost**, including typical travel time, combat dice, energy cards, falls and comeback opportunities. Then propose **one coherent minimal core loop** for owner approval.
+The owner suggested a **WAR/Risk-like energy economy** in which energy grows into attack/defense strength. See [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md) for the newer **P-04 (unapproved)** proposal: start at 2 energy rather than 1 (avoid instant opening falls), free normal movement, +1 on each newly reached personal furthest-forward row to max 4, and cards as recovery/strength boosts. This **refines P-03**, which was only a design hypothesis. Evaluate opening strength **first**, then gain-rate, combat snowballing, card relevance and fall return before approving a core loop.
 
 **Drop-in dice-tie resolution remains deferred.** No gameplay code, merge or deployment is authorized by this review.
