@@ -7,12 +7,14 @@ import {
   CHARACTER_TYPES, HAIRSTYLES, HAIR_COLORS, SKIN_TONES,
   SURFWEAR_COLORS, BOARD_TYPES, BOARD_COLORS
 } from '../../map/views/Board3D/surferStyle'
+import { SURFER_POSES } from '../../map/views/Board3D/surferPoses'
 import './SurferStudioPage.css'
 
 const labels = {
   male: 'Masculino', female: 'Feminino',
   short: 'Curto', wavy: 'Ondulado', ponytail: 'Rabo de cavalo',
-  shortboard: 'Shortboard', fish: 'Fish', longboard: 'Longboard'
+  shortboard: 'Shortboard', fish: 'Fish', longboard: 'Longboard',
+  standing: 'Em pé', relaxed: 'Relaxado', surfing: 'A surfar'
 }
 const SAVE_KEY = 'surf-king-surfer-preview-v1'
 const palettes = [
@@ -74,6 +76,7 @@ export default function SurferStudioPage() {
   ))
   const [saved, setSaved] = useState(false)
   const [previewMode, setPreviewMode] = useState('styled')
+  const [pose, setPose] = useState('relaxed')
   const change = (name, value) => {
     setStyle(current => normalizeSurferStyle({ ...current, [name]: value }))
     setSaved(false)
@@ -174,12 +177,21 @@ export default function SurferStudioPage() {
             <button type="button" aria-pressed={previewMode === 'procedural'}
               onClick={() => setPreviewMode('procedural')}>Modelo antigo</button>
           </div>
+          {previewMode === 'styled' && (
+            <div className="surfer-choices surfer-pose-controls" role="group" aria-label="Pose do surfista">
+              {SURFER_POSES.map(value => (
+                <button type="button" key={value} aria-pressed={pose === value}
+                  onClick={() => setPose(value)}>{labels[value]}</button>
+              ))}
+            </div>
+          )}
           {previewMode === 'procedural'
             ? <SurferViewer style={style} />
-            : <RiggedBaseViewer style={style} styled={previewMode === 'styled'} />}
+            : <RiggedBaseViewer key={style.character} style={style}
+                styled={previewMode === 'styled'} pose={pose} />}
           <p className="surfer-studio-stage-caption">
             {previewMode === 'styled'
-              ? 'Primeiro visual real sobre o GLB articulado: roupa, cabelo e prancha cosmética. A base do corpo ainda é masculina; visual e animação finais por aprovar.'
+              ? 'Modelos 3D masculinos e femininos reais com esqueleto. Alterna entre em pé, relaxado e a surfar; ainda são poses experimentais.'
               : previewMode === 'base'
                 ? 'Modelo original com esqueleto, sem acabamento de surf. Serve apenas para comparação.'
                 : 'Modelo geométrico anterior. Mantido como comparação e fallback.'}
