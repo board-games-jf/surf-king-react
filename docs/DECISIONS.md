@@ -20,6 +20,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-014 | Accepted | All surfers start a match with **2 energy**. Maximum energy, combat dice, energy gain, movement cost, and fall recovery remain under gameplay design review. | Preserve an initial energy buffer while developing fast, strategic and recoverable falls. | [#11](https://github.com/board-games-jf/surf-king-react/issues/11), [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12) |
 
+| SK-DEC-015 | Accepted | Surf King gameplay should **feature frequent, dramatic falls without lengthy inactivity**, in a **fast, simple, strategic and replayable race toward the beach**. Recovery cards should make calculated risks worthwhile; players without rescue cards must remain able to participate and recover. Specific fall/re-entry rules, damage amounts, card timing and victory pacing are **not** approved by this decision. | Preserve the original fall-heavy identity while solving matches stalled by prolonged recovery; optimize fall frequency and fall penalty separately. | [Gameplay epic #11](https://github.com/board-games-jf/surf-king-react/issues/11), [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
