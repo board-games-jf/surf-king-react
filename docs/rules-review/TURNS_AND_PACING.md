@@ -58,6 +58,24 @@ These are implementation observations, **not** approvals of the current rules.
 
 The previous P-01/P-02 optional/automatic Rest proposals are **discarded**, not accepted rules.
 
+## Integrated rule-interaction audit — 2026-11-16 (assistant analysis, not approved)
+
+A concrete geometric path from the first starting cell (engine ID 0) to the first winning cell (49) is `0 → 7 → 14 → 21 → 28 → 35 → 42 → 49`: **seven edge-adjacent normal maneuvers** in the provisional 53-cell layout. This demonstrates the board's relatively short fastest theoretical route; it is **not** a guaranteed seven-turn match because occupied cells, card effects, obstacle damage and interference matter. The route includes the initially placed **Shark** at internal cell 28.
+
+The currently implemented energy economy starts at 4 and spends 1 per normal maneuver. On that route, without energy cards or recovery, four maneuvers alone are enough to reach zero; the Shark damages energy as well (currently +2 energy loss on entry). **The player can fall simply by traveling, before the goal**. Making movement compulsory while retaining this economy would create repeated forced falls and downtime unless additional mechanisms are designed.
+
+Conversely, making ordinary movement **free** avoids automatic attrition but changes several other mechanics:
+
+- **Bottled Water** presently prevents exactly the ordinary maneuver's 1-energy cost. With free normal movement, its current effect would become **redundant** and the deck would need to remove or repurpose it.
+- **Energy restoration cards** (Energy, Energy x2/x3, Coconut, Lifeguard Float, Swimming Fin) would be used mostly to recover from combat, card attacks and hazards, instead of routine travel. Their frequency and power would need rebalancing; this is **not** a simple isolated cost change.
+- **Drop-in** uses energy to determine dice count and damage can cause a fall. Preserving energy until combat changes attack strength and target vulnerability. Combat incentives must be reviewed together with any movement change.
+- Four **Shark** cells are initially placed across a central row (IDs 28–31). They remain a meaningful high-risk bottleneck, with risk magnitude contingent on the energy rule.
+- A **mandatory but free** normal maneuver would remove voluntary all-pass stalemates but still permits back-and-forth motion, so a separate simple endgame pressure / round limit may ultimately be required.
+
+**Working hypothesis for further design, not approval:** ordinary edge-adjacent movement costs 0 energy; energy is a scarce survival/combat resource affected by hazards and attacks; cards are rebalanced to this economy; normal movement is required when legal, and an explicit falling/re-entry mechanic replaces any mistaken Rest state. The next design work should compare this complete package with a minimal alternative that retains movement cost, **before asking the owner to lock a single number**.
+
+No probabilities were simulated and no gameplay tests were executed. These are deductions from source and layout, not observed playtest results.
+
 ## Next small design step
 
 **Review the energy economy as a whole before approving compulsory movement:** compare routine movement at **0 energy cost** against the current **1 energy cost**, including typical travel time, combat dice, energy cards, falls and comeback opportunities. Then propose **one coherent minimal core loop** for owner approval.
