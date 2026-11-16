@@ -194,8 +194,8 @@ export function decorateRiggedSurfer(loadedScene, choices, presentation = {}) {
         // simulated with non-skinned cylinders that would break during posing.
         if (y > .82 && y < 1.07 && x < .35) c = shortsColor
         else if (style.character === 'female') {
-          // A cropped surf top is a presentation variant on the male base,
-          // NOT a claim that a dedicated female anatomical GLB exists.
+          // The cropped surf top colors the separately authored female skinned mesh.
+          // Clothing remains cosmetic and follows the original skin weights.
           if (y >= 1.22 && y < 1.49 && x < .31) c = fabricColor
           else if (y >= 1.20 && y < 1.23 && x < .31) c = cream
         } else {
