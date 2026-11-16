@@ -40,9 +40,24 @@ The owner asked whether the game should allow **5 or 6 maximum energy** and use 
 
 **Open:** Whether the owner means precisely two dice for every nonfallen surfer even at energy 1, versus the recommended **up to two dice**, should be confirmed as part of choosing the attack model. Do not infer the owner's answer.
 
+## Owner agreement to **design trial** — P-08, 2026-11-16
+
+**Owner said:** "Yes, let's try it; it looks promising; review the other elements together."
+
+**Trial baseline authorized for rules analysis, NOT finalized rules or code authorization:**
+- Maximum energy **5**; match starts at **2 energy** (previously accepted).
+- **Up to 2 six-sided dice for attack and defense**: 1 die at 1 energy, 2 dice at 2–5 energy. Compare **only the highest** of each player's dice; suggested 1 energy lost by the loser, at most once per combat.
+- **0 energy = fall** remains an approved rule.
+
+**New balance discovery (mathematical enumeration, no game simulation):** With two dice on both sides and the highest-of-two comparison, attack higher 505/1296 (**38.97%**), defense higher likewise 505/1296 (**38.97%**), tied 286/1296 (**22.07%**). Therefore making the *defender win ties and damage the attacker* would cause the attacker to lose energy in **61.03%** of evenly matched encounters. This may strongly discourage the very attacks that should make the race interactive.
+
+**Assistant suggestion for a holistic trial (P-09, NOT owner-approved):** An equal highest die produces **no damage**; a strictly higher highest die inflicts **1 damage** on the loser. This is not the current implementation; tie handling remains open. Keep combat to one quick throw each.
+
+**Full-game dependence:** At 5 energy, single-damage exchanges can require several clashes to trigger a fall. Reassess the B variant's free +1 energy action, card restorations, Sharks and the damage cards at the **same time**, rather than deciding dice independently. See [OPTIONS.md](OPTIONS.md).
+
 ## Next question — one at a time
 
-**First evaluate the owner's new whole-game suggestion: maximum energy 5 or 6, and a cap of 2 combat dice for each side. The assistant recommends 5 and up to 2 dice, with one energy damage per clash.** Dice ties remain pending, as do all new numbers.
+**Owner agreed to explore a trial of max 5 energy and up to 2 dice, while insisting on a complete linked balance review.** Next: assess tie treatment, energy generation, damage cards, Shark crossing, fall return and round duration as one package. No permanent approval of the 5-energy/two-dice rule or dice ties.
 
 **Status:** Pending owner decision.
 
