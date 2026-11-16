@@ -17,6 +17,7 @@
 - Surfboards now use a bevelled, tapered procedural hull and shape-based deck stripe, rear grip and swept underside fin. Existing seven player colors are unchanged.
 - Riders have a deterministic multi-frequency balance pose: torso/head/arms/stance and slight board pitch. No model allocates new meshes per animation frame.
 - The existing real match and board catalog consume the same model factory; no separate fake assets were added.
+- **Approved product direction (SK-DEC-011):** choosing a different board is cosmetic-only for now and cannot change movement, speed, energy, cards or other rules. Board gameplay attributes may be explored later but are not approved. The owner also wants a minimal Sims-like character creator with male/female presentation; exact customization options remain to be scoped. PR #21 is still a geometry/animation baseline and does **not** provide character or surfboard selection yet.
 
 ## Validation
 
@@ -33,6 +34,6 @@
 
 ## Next action
 
-1. Review the Issue #20 draft PR's real meshes in `/#/catalog` and a local 3D game.
+1. Review the Issue #20 / PR #21 baseline shapes in `/#/catalog` and a local 3D game, then scope lightweight character and cosmetic surfboard selection separately.
 2. Run Jest, production build and WebGL smoke checks with the app dependencies installed; record failures and adjust the visual model.
 3. Request explicit approval before merging; **no deployment is authorized**.
