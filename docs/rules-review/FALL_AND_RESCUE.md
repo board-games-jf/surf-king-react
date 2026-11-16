@@ -60,6 +60,22 @@
 
 **Shark intent clarification — assistant analysis, not a new rule (2026-11-16):** The owner asks why anyone would **deliberately land on a Shark**. Distinguish **deliberately risking a Shark shortcut** from **deliberately falling for its own sake**. The provisional board has a 7-edge-maneuver route `0→7→14→21→28→35→42→49` crossing Shark 28 versus an 8-maneuver safe detour `0→7→14→21→25→32→35→42→49`. With **proposed** Shark −1 damage: at 2 energy, entering Shark survives at 1 and saves one maneuver; at 1 energy **with** Float or Fin, the player may spend scarce insurance to keep the shortcut; at 1 energy **without** rescue, entry causes a deterministic fall and the attempt is strategically inferior to a safe route. **Falling itself is not a reward or an intended healing tactic.** The proposed P-17 1-energy bounce avoids a free 2-energy refill loop, but is not accepted. A single saved movement may be **too little payoff for consuming rare rescue**, especially early in the race, so do not assume the shortcut is compelling without comparative playtesting. If necessary, strengthen the *route reward* or change placement rather than grant resources for falling.
 
+### P-17 refinement — owner proposes falling *on* the Shark, rescue there, or retreat (NOT yet approved)
+
+**Owner (2026-11-16):** A surfer who enters the Shark should visibly **fall on that Shark cell**; **if holding a recovery card, use it and continue from the Shark**; **without a card, go back**. The owner asks the specific blocking question: **what if the previous cell already has a surfer or an obstacle?** This is a useful refinement to P-17, **not** unambiguous approval of the 1-energy penalty.
+
+**Proposed concise resolution, not ratified:**
+
+1. The Shark attack resolves once on **entry**; if the surfer reaches zero, **show the fall at the Shark cell**, then offer the immediate optional rescue in hand.
+2. **Float / Fin used:** discard one card, **stand back up on the Shark cell** with 2 / 1 energy; do not re-trigger this already resolved Shark entry. Do not grant an extra movement or action. This preserves the accepted card use intent of SK-DEC-018.
+3. **No rescue / declined:** the attempted move **fails**, the surfboard is knocked back to the **previous safe vacant hex** if still open (example `21 → 28 Shark → 21`); the player's current movement is over. Next own turn the surfer acts and maneuvers normally, with **1 energy** as a proposed anti-farming penalty (SK-DEC-018 currently says **2**, so this part requires explicit owner approval).
+4. **The previous hex is occupied, has Stone, or a hazardous obstacle:** choose the **nearest unoccupied obstacle-free water hex** **on the ocean side** of the Shark checkpoint. Prefer (i) a **true edge-adjacent** seaward hex, (ii) shortest hex-distance from Shark if direct neighbors blocked, (iii) lateral distance to the prior lane/column, and (iv) lowest cell ID as a deterministic tie-break. A return **never occupies another surfer's tile**, never teleports toward the beach, and never triggers another obstacle upon fallback.
+5. **An exceptional fully obstructed ocean side** remains to be specified before code; do not silently invent an occupied-overlap or indefinite lost-turn fallback. This is a boundary case for crowded 7-surfer playtests.
+
+**Clarify display vs occupancy:** The fall animation is visually **on the Shark**, but an unrecovered surfer's active board occupancy should move to the safe retreat cell. A surfer rescued immediately remains the occupying surfer at the Shark. This avoids permanently blocking Shark tile and eliminates the original description that the player must remain invisible until the next turn.
+
+**Why this is preferable:** A player's outcome is predictable: **“I tried the Shark; either spend a rescue and keep my progress, or get knocked backward with low energy and try something else next turn.”** The strategic decision is taking a shortcut, *not* falling to heal. This still needs owner sign-off to replace accepted SK-DEC-018's current delayed 2-energy respawn.
+
 **Decision boundary:** P-17 is an **assistant proposal prompted by owner feedback**, not a replacement approved rule. The existing SK-DEC-018 remains current until the owner confirms a revision.
 
 ## Owner's expressed gameplay direction (not yet specific rule approval)
