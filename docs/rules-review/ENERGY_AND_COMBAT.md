@@ -46,10 +46,18 @@
 2. **Too many falls early:** with 2 starting energy, current Big Wave −2 and Sharks −2 cause immediate falls; repeated setbacks may discourage replay.
 3. **Weak tactical attack:** 2 vs 2 dice gives 38.97% strict win, 38.97% strict loss and 22.07% no-damage tie. Positional incentives may be more important than grinding five energy to zero.
 4. **All-pass or backward oscillation:** no Rest is confirmed, but compulsory movement and a fair endgame fallback are not yet finalized.
-5. **Player count:** 2–7 players with shared choke points create different card, positioning and pace incentives; test representative scenarios.
+5. **Player count:** 2–7 players with hazardous central cells and possible crowding create different card, positioning and pace incentives; test representative scenarios.
+
+## Verified geometry correction and P-10 attack trade-off
+
+The provisional layout does **not** force everyone to cross a Shark. From internal start 0 to beach 49, the **7-maneuver route** `0→7→14→21→28→35→42→49` visits a Shark at 28; an **8-maneuver fully edge-adjacent detour** `0→7→14→21→25→32→35→42→49` avoids all four preplaced Sharks. The additional move is the price of avoiding risk. Both were checked by cell-center distances in `board-layout.json`. Occupancy and card-placed obstacles can change practical availability. See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
+
+This supports **Shark −1 as a provisional trade-off**: with the approved 2 starting energy, choose a shorter route with a risk of continuing at 1 energy, or spend an extra movement to preserve energy. It is not a compulsory attrition tax.
+
+The assistant's new **P-10 (NOT approved)** aims to make Drop In worth using: on a strict attacker win, allow an **optional attacker/defender hex exchange that counts as the attacker's single normal maneuver**, along with the candidate 1 damage to the defender. A challenger at energy 2 and leader at 5 still roll two dice each; winning only 1 energy damage would not affect the leader's odds or distance, whereas exchange can change who is ahead. Exchanging onto hazard cells cannot be treated as a free Shark bypass; resolve obstacle triggering before approving.
 
 ## Next integrated action
 
-Paper-review a full race at 2, 3, 4 and 7 players under these **clearly provisional** parameters. Pay special attention to a **2-energy challenger versus a 5-energy leader**, central Shark crossing and recovery after one fall. Recommend one compact positional incentive for Drop In **only if** damage alone cannot influence the race meaningfully.
+The first tabletop/geometric stress review now supports investigating **P-10 optional positional exchange**; see [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md). Next validate **hazards on exchanged positions**, fall occupancy/return, counter-exchange loops and 2–7-player turns before recommending approval. Keep all unapproved mechanics provisional.
 
 **No gameplay code edits, gameplay tests, merge or deployment.**
