@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { decorateRiggedSurfer, resolveRiggedPalette } from './riggedSurferArt'
+import { decorateRiggedSurfer, resolveRiggedPalette } from '../../map/views/Board3D/riggedSurferArt'
 
 const baseStyle = {
   character: 'male', hairstyle: 'short', hairColor: 'brown',
