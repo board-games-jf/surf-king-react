@@ -14,6 +14,11 @@
 - The game owner supplied `1-surf-king-preview-toolkit.zip` as a standalone 3D visual prototype. The Issue #7 rendering candidate reproduces its coastal art direction with source-defined procedural geometry; external model/textures from the ZIP were not imported.
 - Three.js `0.170.0` is specified as a new dependency (MIT), with package metadata from the supplied prototype lockfile. Dependency installation and browser compatibility remain to be verified.
 
+## User-approved visual reference
+
+- The user selected the Surf King wooden/crown logo and sunny tropical beach character-creator concept in the conversation on 2026-11-16. These supplied/generated images are **visual references**, not mesh files or packaged repository assets.
+- The experimental `/#/surfers` and `/#/customize` pages use procedural Three.js geometry and CSS-drawn scenery; they do not embed the exact supplied raster logo, create a rigged character from a screenshot, or claim its fidelity.
+- For final production artwork, integrate reviewed binary assets and document their provenance and rights.
 ## Unverified inputs
 
 - No canonical source version of the Surf King rulebook has been confirmed in the repository.
