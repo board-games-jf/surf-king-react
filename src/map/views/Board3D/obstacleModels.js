@@ -197,10 +197,21 @@ function lightningShape(parent, helpers, variant) {
     points.push([x, .77 - i * .09, z])
   }
   function stroke(path, width, color, glow = false) {
-    return tube(bolt, helpers, path, width, color,
-      { emissive: color, emissiveIntensity: glow ? 1.5 : .9,
+    // LineCurve3 segments preserve the sharp forks of lightning.
+    const curve = new THREE.CurvePath()
+    for (let i = 0; i < path.length - 1; i++) {
+      curve.add(new THREE.LineCurve3(
+        new THREE.Vector3(...path[i]), new THREE.Vector3(...path[i + 1])
+      ))
+    }
+    const mesh = helpers.mesh(
+      new THREE.TubeGeometry(curve, path.length * 6, width, 5, false),
+      color, bolt, { emissive: color, emissiveIntensity: glow ? 1.5 : .9,
         transparent: glow, opacity: glow ? .30 : 1,
-        depthWrite: !glow, roughness: .3 })
+        depthWrite: !glow, roughness: .3 }
+    )
+    mesh.castShadow = false
+    return mesh
   }
   stroke(points, .026, '#9de5ff', true)
   stroke(points, .011, '#fff6c7')
