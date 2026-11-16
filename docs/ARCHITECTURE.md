@@ -82,7 +82,7 @@ flowchart LR
 ```
 ## Isolated rigged GLB character evaluation (Issue #22)
 
-The existing `/#/surfers` studio gallery has an opt-in compare control between the merged procedural `SurferViewer` and a separate `RiggedBaseViewer`. The new component lazy-loads Three.js `GLTFLoader` and reads `/assets/surfers/quaternius-male-base.glb` **from this repository**, fitting the imported skinned mesh to a studio frame. The original procedural model and the `/#/customize` interface remain untouched. The `createScene.js` live gameplay integration, map snapshot and game rules are unchanged.
+The existing `/#/surfers` studio gallery has an opt-in compare control between the merged procedural `SurferViewer` and a separate `RiggedBaseViewer`. The new component lazy-loads Three.js `GLTFLoader` and reads `/assets/surfers/quaternius-male-base.glb` **from this repository**, fitting the imported skinned mesh to a studio frame. At the time of PR #23 this was a gallery-only experiment; PR #25 added the studio style, and Issue #26 now brings that shared style to `createScene.js`. The game rules and public map snapshot remain unchanged.
 
 ```mermaid
 flowchart LR
@@ -110,7 +110,7 @@ flowchart LR
   Match[Local match] --> OriginalMatch[Unchanged procedural game actors]
 ```
 
-The imported body is male-only; no final female GLB, animated surfing rig, player-profile persistence, or match integration exists. This preview does not affect game rules or board-identity colors. Real WebGL validation remains pending.
+The imported body is male-only. No final female GLB, retargeted surfing animation or player-profile persistence exists. Issue #26 adds the same styled preview to board actors without connecting saved player profiles. This preview does not affect game rules or board-identity colors. Real WebGL validation remains pending.
 ## Shared 3D board GLB surfers (Issue #26, draft)
 
 The existing `createScene.js` public-snapshot renderer now uses the same styled GLB art as the studio. `riggedSurferArt.js` is located in `src/map/views/Board3D/` and is shared by `RiggedBaseViewer` and the board. For board mode, the cosmetic board sits flat under the rider's feet, the figure has a side-on stance, and the whole actor is scaled to an ordinary 53-cell hex.
