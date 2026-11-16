@@ -5,6 +5,7 @@ import { BOARD_LAYOUT } from '../../layout/boardLayout'
 import { createCoastalScenery } from './createCoastalScenery'
 import { createScenePrimitives, palette } from './scenePrimitives'
 import { createSurferModel } from './surfModels'
+import { PLAYER_BOARD_COLORS, createRiggedBoardSurfer, loadRiggedBoardTemplate } from './riggedBoardSurfers'
 import { createObstacleModel } from './obstacleModels'
 import { createHexDepth } from './hexDepth'
 
@@ -162,13 +163,40 @@ export function createScene(container,onCellSelect,onError) {
   renderer.domElement.addEventListener('pointerup',up)
   renderer.domElement.addEventListener('pointercancel',cancel)
   renderer.domElement.addEventListener('pointerleave',leave)
-  const playerColors=[colors.orange,colors.coral,colors.teal,colors.blue,'#e4c45a','#b17bb6','#83c16e']
   const actors=new Map(),obstacles=new Map()
+  let riggedTemplate = null
+  function upgradeSurfer(actor) {
+    if (!riggedTemplate || actor.avatar) return
+    try {
+      // One independent bone hierarchy per rider; keep the existing procedural
+      // model invisible as a safe fallback if GLB parsing or styling fails.
+      const avatar = createRiggedBoardSurfer(riggedTemplate, actor.id)
+      actor.g.add(avatar.display)
+      actor.legacy.group.visible = false
+      actor.avatar = avatar
+    } catch (error) {
+      console.warn('Using the procedural surfer fallback:', error)
+    }
+  }
   function createSurfer(id) {
     const index = Number(id)
-    const model = createSurferModel(scene, modelHelpers, playerColors[index] || colors.orange,
+    const model = createSurferModel(scene, modelHelpers, PLAYER_BOARD_COLORS[index] || colors.orange,
       index % 2 ? palette.skin : palette.skinLight, index % 2 ? '#724c35' : '#e8b449', index % 2 === 1)
-    return { g: model.group, animate: model.animate, id, cellId: null, from: null, to: null, t: 1 }
+    const group = new THREE.Group()
+    group.name = 'player-surfer'
+    scene.remove(model.group)
+    group.add(model.group)
+    scene.add(group)
+    const actor = {
+      g: group, legacy: model, avatar: null, id,
+      cellId: null, from: null, to: null, t: 1,
+      animate(seconds, phase, bank) {
+        if (this.avatar) this.avatar.animate(seconds + phase * .37, reducedMotion.matches)
+        else this.legacy.animate(seconds, phase, bank)
+      }
+    }
+    upgradeSurfer(actor)
+    return actor
   }
   function createObstacle(cell) {
     const group = new THREE.Group()
@@ -199,6 +227,16 @@ export function createScene(container,onCellSelect,onError) {
     }
     return group
   }
+  function removeSurfer(actor) {
+    if (actor.avatar) {
+      actor.avatar.dispose()
+      actor.g.remove(actor.avatar.display)
+    }
+    // Scene primitives pool materials across riders: dispose only the
+    // procedural geometry here, never a shared GLB or pooled material.
+    actor.legacy.group.traverse(node => { if (node.geometry) node.geometry.dispose() })
+    scene.remove(actor.g)
+  }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
   function update(snapshot){positionRing(selected,snapshot.selectedCellId);hexDepth.select(snapshot.selectedCellId)
     maneuverRings.forEach((marker, index) => {
@@ -212,7 +250,7 @@ export function createScene(container,onCellSelect,onError) {
       else if(a.cellId!==p.cellId){a.from=a.g.position.clone();a.to=target;a.t=0}
       a.cellId=p.cellId
     }
-    for(const [id,a] of actors)if(!live.has(id)){removeGroup(a.g);actors.delete(id)}
+    for(const [id,a] of actors)if(!live.has(id)){removeSurfer(a);actors.delete(id)}
     const keys=new Set()
     for(const c of snapshot.cells)if(c.obstacleType){const key=c.id+':'+c.obstacleType+':'+(c.remainingTurns??'');keys.add(key);if(!obstacles.has(key))obstacles.set(key,createObstacle(c))}
     for(const [key,g] of obstacles)if(!keys.has(key)){removeGroup(g);obstacles.delete(key)}
@@ -235,6 +273,22 @@ export function createScene(container,onCellSelect,onError) {
   camera.position.setFromSpherical(defaultOffset()).add(controls.target)
   controls.update()
   raf = requestAnimationFrame(frame)
+  loadRiggedBoardTemplate(template => {
+    if (disposed) {
+      // The asynchronous asset must not resurrect a disposed 3D scene.
+      template.traverse(node => {
+        if (node.geometry) node.geometry.dispose()
+        if (node.material) (Array.isArray(node.material) ? node.material : [node.material])
+          .forEach(material => material.dispose())
+      })
+      return
+    }
+    riggedTemplate = template
+    actors.forEach(upgradeSurfer)
+  }, error => {
+    // An unavailable optional asset must never block a playable 3D/2D match.
+    if (!disposed) console.warn('Rigged surfers unavailable; retaining legacy models:', error)
+  })
 
   function zoom(scale) {
     const offset = cameraTransition?.offset.clone() ?? cameraOffset()
@@ -256,5 +310,5 @@ export function createScene(container,onCellSelect,onError) {
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();const geometries=new Set(),mats=new Set();scene.traverse(o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))});geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);if(riggedTemplate)riggedTemplate.traverse(collect);geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }

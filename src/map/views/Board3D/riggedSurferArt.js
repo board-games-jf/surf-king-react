@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import {
   BOARD_COLORS, HAIR_COLORS, SKIN_TONES, SURFWEAR_COLORS, normalizeSurferStyle
-} from '../../map/views/Board3D/surferStyle'
+} from './surferStyle'
 
 // This preview retains the imported skinned body and armature.
 // Only appearance materials and a handful of removable accessories are authored here.
@@ -153,14 +153,18 @@ function createShoreStage() {
   return stage
 }
 
-export function decorateRiggedSurfer(loadedScene, choices) {
+export function decorateRiggedSurfer(loadedScene, choices, presentation = {}) {
+  const boardMode = presentation.boardMode === true
   const { style, skin, hair, suit, board } = resolveRiggedPalette(choices)
   const display = new THREE.Group()
   display.name = 'styled-rigged-surfer'
-  display.add(loadedScene)
+  const figure = new THREE.Group()
+  figure.name = 'surfer-figure'
+  display.add(figure)
+  figure.add(loadedScene)
   const owner = new THREE.Group()
   owner.name = 'cosmetic-accessories'
-  display.add(owner)
+  figure.add(owner)
   const skinColor = new THREE.Color(skin)
   const fabricColor = new THREE.Color(suit)
   const shortsColor = fabricColor.clone().multiplyScalar(.67)
@@ -215,9 +219,20 @@ export function decorateRiggedSurfer(loadedScene, choices) {
   cap.name = 'rigged-sculpted-hair'
   owner.add(cap)
   hairLocks(owner, style, hairMat)
-  const surfboard = buildBoard(style.boardType, board)
-  owner.add(surfboard)
-  owner.add(createShoreStage())
+  const surfboard = buildBoard(style.boardType, presentation.playerColor || board)
+  if (boardMode) {
+    // Keep the same skinned avatar and accessory hair, but place the
+    // board flat under both feet inside a playable hex.
+    figure.position.y = .11
+    figure.rotation.y = Math.PI / 2
+    surfboard.position.set(0, .025, 0)
+    surfboard.rotation.set(-Math.PI / 2, 0, 0)
+    display.add(surfboard)
+    display.scale.setScalar(.68)
+  } else {
+    owner.add(surfboard)
+    owner.add(createShoreStage())
+  }
 
   // A subtle breathing movement keeps the preview alive without claiming a
   // finished retargeted animation. Bone hierarchy stays fully intact.
@@ -233,7 +248,7 @@ export function decorateRiggedSurfer(loadedScene, choices) {
     if (rest.spine_02) rest.spine_02.bone.rotation.set(
       rest.spine_02.rotation.x + Math.sin(t * 1.2) * .018,
       rest.spine_02.rotation.y,
-      rest.spine_02.rotation.z + Math.sin(t * .72) * .012
+      rest.spine_02.rotation.z + Math.sin(t * .72) * (boardMode ? .028 : .012)
     )
     if (rest.spine_03) rest.spine_03.bone.rotation.set(
       rest.spine_03.rotation.x + Math.sin(t * 1.07) * .012,
@@ -242,7 +257,7 @@ export function decorateRiggedSurfer(loadedScene, choices) {
     )
     // Verified against the source skeleton hierarchy: z rotation brings hands
     // down from T-pose shoulder height to a relaxed, readable idle position.
-    for (const [name, swing] of [['upperarm_l', -1.18], ['upperarm_r', 1.18]]) {
+    for (const [name, swing] of [['upperarm_l', boardMode ? -.78 : -1.18], ['upperarm_r', boardMode ? .78 : 1.18]]) {
       const joint = rest[name]
       if (joint) joint.bone.quaternion.copy(joint.quaternion).multiply(
         swingQuaternion.setFromAxisAngle(
@@ -262,10 +277,11 @@ export function decorateRiggedSurfer(loadedScene, choices) {
         node.geometry = originalGeometry
       })
       materials.forEach(m => m.dispose())
-      owner.traverse(node => {
+      const accessories = boardMode ? [owner, surfboard] : [owner]
+      accessories.forEach(accessory => accessory.traverse(node => {
         if (node.geometry) node.geometry.dispose()
         if (node.material && !materials.includes(node.material)) node.material.dispose()
-      })
+      }))
     }
   }
 }

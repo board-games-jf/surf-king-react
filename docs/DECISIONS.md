@@ -18,6 +18,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 | SK-DEC-012 | Accepted | Use the owner's selected Surf King crown-and-wood logo concept and bright tropical beach/ocean setting as visual references for the surfer creator and broader game identity. | Keep a consistent cheerful surf-game presentation. Exact source image assets and final production styling still require separate integration and visual verification. | [#20](https://github.com/board-games-jf/surf-king-react/issues/20) |
 | SK-DEC-013 | Accepted | Evaluate a genuine, licensed rigged GLB/glTF humanoid as the next surfer art foundation, beginning with one isolated model before replacing gameplay avatars. The chosen art asset itself is not yet approved. | Avoid continuing to approximate finished characters using primitive meshes while preserving a safe fallback and playable board. | [#22](https://github.com/board-games-jf/surf-king-react/issues/22), [#20](https://github.com/board-games-jf/surf-king-react/issues/20) |
 
+| SK-DEC-014 | Accepted | Extend the already accepted styled rigged-GLB surfer art direction to the shared 3D board and board catalog, keeping each of the seven players visually identifiable by their original board color. Board models remain cosmetic, with the prior procedural rider as a safety fallback. | The owner approved the studio character look and requested seeing that same character on the board rather than a new model; preserve playable clarity. | [#26](https://github.com/board-games-jf/surf-king-react/issues/26), [#24](https://github.com/board-games-jf/surf-king-react/issues/24) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.

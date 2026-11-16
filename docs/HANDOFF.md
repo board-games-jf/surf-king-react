@@ -1,30 +1,30 @@
 # Project Handoff
 
-**Last direct GitHub review:** 2026-11-16
+**Verified on GitHub:** 2026-11-16
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Starting `main`:** `e79c02c8f008c70dc84b5273d3ce0b20e9c78410` (rigged GLB evaluation PR #23 merged).
+**Source `main`:** `2e1dd3b4dad8faafffad9c3320eb9ab183790466` (styled GLB preview PR #25 merged).
 
-## Integrated state
+## Integrated baseline
 
-- Local boardgame.io match, shared 53-cell 2D/3D board, catalogue and card-inspired animated obstacles are integrated.
-- Obstacles were visually approved in PR #17. Do not reopen obstacle art without a new request.
-- PR #21 integrated the procedural gallery and cosmetic creator; localStorage holds a preview-only draft, not a real player profile.
-- PR #23 integrated the local Quaternius CC0 skinned male GLB (65-joint rig) and original-base gallery comparison.
-- Surfboards remain cosmetic only (SK-DEC-011); direction for characters and visual identity is SK-DEC-012/013.
-- Rules issue #11 / draft PR #12 are separate; online multiplayer is not established.
+- Local boardgame.io play, 53-cell shared 2D/3D board, interactive catalog and five 3D obstacles are integrated. No online multiplayer is active.
+- The owner approved the visual direction of the styled rigged GLB surfer after the merged studio PR #25. `/#/surfers` and `/#/customize` inspect that local CC0 asset, and store cosmetic choices only as a browser-local draft; no saved profile is applied to a match.
+- The authored Quaternius GLB is a male-bodied model with a 65-joint rig. Female presentation and finished surfing animation still need distinct artistic validation.
+- The existing player colors, 2D fallback and cosmetic-only surfboard rule (SK-DEC-011) remain authoritative. The owner requested this approved art direction on the board (SK-DEC-014).
+- Rules epic #11 / draft PR #12 are independent; do not modify game rules under visual issues.
 
-## Active visual work — Issue #24
+## Active board integration — Issue #26
 
-- Branch `feat/24-styled-rigged-surfer` / [PR #25](https://github.com/board-games-jf/surf-king-react/pull/25) received **explicit owner merge authorization on 2026-11-16**. Confirm actual merge status in GitHub. **No deployment is authorized.**
-- New `riggedSurferArt.js` decorates the same skinned GLB body/skeleton with surfwear/skin color zones, smoothly shaped hair, a cosmetic board and a relaxed arm pose.
-- `RiggedBaseViewer` reuses the loaded local GLB for styled and original modes. The gallery offers styled GLB / original GLB / procedural comparisons.
-- `/#/customize` defaults to the styled GLB; the existing hairstyle, skin, outfit and board controls change this preview without re-downloading the asset. Previous procedural models remain available as fallback.
-- **Art limitation:** the authored GLB is a male body. Female-presenting options are color/hairstyle experiments, **not** a dedicated female anatomical model. Final character art and surfing animation remain unfinished.
-- The active visual changes are isolated to studio previews. Real match actors, game rules, obstacle models and the map renderer remain unchanged.
+- [PR #27](https://github.com/board-games-jf/surf-king-react/pull/27) / branch `feat/26-rigged-surfer-board` received **explicit owner merge authorization on 2026-11-16**. Confirm actual merged status in GitHub. **Deployment remains unauthorized.**
+- The styled GLB decorator was moved to the shared `src/map/views/Board3D/riggedSurferArt.js` so studio and board use the same mesh and materials.
+- Board presentation lays the cosmetic surfboard under the rider's feet, angles the figure sideways and scales the full model to fit the existing hex footprint.
+- `riggedBoardSurfers.js` loads the local GLB once per 3D scene and uses `SkeletonUtils.clone` for independent skinned riders. All seven original player colors remain identifiable on their boards; outfits/hairstyles use fixed preview presets, not a live-player profile.
+- `createScene.js` upgrades the same moving actor groups when the GLB is ready, preserving positions and focus; it keeps the previous procedural model as a loading/error fallback.
+- `/#/catalog` has a **Focus on the new 3D surfer** shortcut. Because game and catalog share `Board3D`, both display the new model. The logic/2D gameplay, obstacles, public snapshot and movement rules remain unchanged.
 
 ## Validation and next action
 
-- `riggedSurferArt.js` source passed JavaScript syntax parsing. Executed the actual production styling module against a lightweight Three.js API mock for **9 hair/board combinations**: all constructed, animated and restored the skinned rig/materials/geometry after disposal. Added targeted Jest art/cleanup tests and updated React studio tests, but these **have not been executed in Jest**.
-- CRA build, Jest, actual GLTFLoader/WebGL rendering, mobile presentation and visual quality still need validation in the application.
-- Next: run `npm test -- --watchAll=false` and `npm run build`, then open `/#/surfers` and `/#/customize` at desktop and mobile sizes to review the new model.
-- The owner explicitly authorized PR #25 merge on 2026-11-16. **No deployment is authorized.** Issue #24 stays open pending Jest/build/WebGL and visual review.
+- **Executed:** source-module syntax parsing for the shared art, GLB board adapter and scene; production decorator + board adapter were instantiated, animated and cleaned up for seven rider colors against a lightweight Three.js interface mock. All seven checks passed. This is **not** a Jest or browser result.
+- **Added but not executed:** Jest tests for independent rig clones, colors, board footprint and load/fallback, plus existing studio tests updated to import the shared file.
+- **Pending:** install actual dependencies, run Jest and CRA build, inspect the GLB on the real WebGL board/catalog and mobile view, and evaluate surfing stance/readability from board camera height.
+- **Review path:** open `/#/catalog`, choose **Focus on the new 3D surfer**, then check an actual local 3D match and `/#/customize`. If GLB loading fails, inspect console and verify the old procedural fallback.
+- **Next:** verify authorized PR #27 merge on `main`, then complete Jest/build and actual WebGL/browser/mobile checks, correcting visual or performance issues in a follow-up PR. Deployment remains separately unauthorized.

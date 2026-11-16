@@ -82,7 +82,7 @@ flowchart LR
 ```
 ## Isolated rigged GLB character evaluation (Issue #22)
 
-The existing `/#/surfers` studio gallery has an opt-in compare control between the merged procedural `SurferViewer` and a separate `RiggedBaseViewer`. The new component lazy-loads Three.js `GLTFLoader` and reads `/assets/surfers/quaternius-male-base.glb` **from this repository**, fitting the imported skinned mesh to a studio frame. The original procedural model and the `/#/customize` interface remain untouched. The `createScene.js` live gameplay integration, map snapshot and game rules are unchanged.
+The existing `/#/surfers` studio gallery has an opt-in compare control between the merged procedural `SurferViewer` and a separate `RiggedBaseViewer`. The new component lazy-loads Three.js `GLTFLoader` and reads `/assets/surfers/quaternius-male-base.glb` **from this repository**, fitting the imported skinned mesh to a studio frame. At the time of PR #23 this was a gallery-only experiment; PR #25 added the studio style, and Issue #26 now brings that shared style to `createScene.js`. The game rules and public map snapshot remain unchanged.
 
 ```mermaid
 flowchart LR
@@ -96,7 +96,7 @@ flowchart LR
 
 The GLB candidate is a static neutral base with rigging, **not a final animated or customizable surfer**. Browser/WebGL validation and art review are pending. Rollback is simple: remove the gallery comparison and asset without affecting local matches.
 
-## Styled GLB studio preview (Issue #24, unmerged)
+## Styled GLB studio preview (Issue #24, merged PR #25)
 
 `riggedSurferArt.js` adds cosmetic materials and removable accessory meshes around the **existing skinned** Quaternius GLB. It retains the imported skeleton and humanoid geometry; changing a style replaces temporary materials/accessories, not the asset or game state. `RiggedBaseViewer` caches one loaded GLB and supports a styled view and untouched base view. The studio `/#/customize` now defaults to the styled GLB with an explicit procedural fallback; the gallery offers all three modes.
 
@@ -110,10 +110,31 @@ flowchart LR
   Match[Local match] --> OriginalMatch[Unchanged procedural game actors]
 ```
 
-The imported body is male-only; no final female GLB, animated surfing rig, player-profile persistence, or match integration exists. This preview does not affect game rules or board-identity colors. Real WebGL validation remains pending.
+The imported body is male-only. No final female GLB, retargeted surfing animation or player-profile persistence exists. Issue #26 adds the same styled preview to board actors without connecting saved player profiles. This preview does not affect game rules or board-identity colors. Real WebGL validation remains pending.
+## Shared 3D board GLB surfers (Issue #26, draft)
+
+The existing `createScene.js` public-snapshot renderer now uses the same styled GLB art as the studio. `riggedSurferArt.js` is located in `src/map/views/Board3D/` and is shared by `RiggedBaseViewer` and the board. For board mode, the cosmetic board sits flat under the rider's feet, the figure has a side-on stance, and the whole actor is scaled to an ordinary 53-cell hex.
+
+`riggedBoardSurfers.js` loads the **local** CC0 GLB once per scene, then uses `SkeletonUtils.clone` to give every active surfer independent bones; source geometry stays shared. Seven established player colors are preserved on the boards, while the rider's hair/outfit use the existing preset styles. These presets are previews, **not** saved player profiles or gameplay attributes.
+
+```mermaid
+flowchart TD
+  Snapshot[Public game or catalog snapshot] --> Scene[Shared Board3D createScene]
+  Scene --> Fallback[Existing procedural surfer - immediately visible]
+  Scene --> Loader[One local GLTFLoader request]
+  Loader --> Template[Shared licensed GLB template]
+  Template --> Clone[SkeletonUtils independent rider clones]
+  Clone --> Art[Shared styled GLB decorator - board mode]
+  Art --> Scene
+  Studio[Surfer creator] --> Art
+```
+
+On successful loading, clones attach to the **existing actor groups**, retaining cell movement, camera focus and object identity. The procedural meshes are hidden but remain as fallback; if loading/validation fails, gameplay continues with the old models. Async completion checks scene disposal; individual actor removal destroys only owned accessory geometry/materials and the independent procedural geometry, **never shared source GLB geometry or pooled materials**. No changes to rules, movement, player snapshots, obstacles or the 2D renderer.
+
+**Pending:** Jest/build/WebGL/mobile checks, final surf stance review, genuine female rig, performance measurement. The GLB preview is not a full player-customization-to-match integration.
 ## Limits and validation
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.
-- No imported 3D assets or new external services are required.
+- One existing licensed local Quaternius GLB is reused in the scene; no new external runtime services or assets are required for Issue #26.
 - Full browser, WebGL, Jest and build validation remain pending; see [HANDOFF.md](HANDOFF.md).
 - No changes to authoritative turn logic, 2D fallback, backend architecture or hosting.
