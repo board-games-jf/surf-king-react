@@ -70,7 +70,12 @@ describe('styled rigged avatar preview — cosmetic geometry only', () => {
         surfwear: 'green', boardColor: 'orange'
       })
       expect(art.display.getObjectByName('cosmetic-accessories')).toBeTruthy()
-      expect(art.display.getObjectByName('rigged-hair-strand')).toBeTruthy()
+      const hair = art.display.getObjectByName('rigged-hair-strand')
+      expect(hair).toBeTruthy()
+      // Hair uses tapered sculpted meshes rather than constant-radius tubes.
+      expect(hair.geometry.type).toBe('BufferGeometry')
+      expect(hair.geometry.type).not.toBe('TubeGeometry')
+      expect(hair.geometry.getAttribute('position').count).toBeGreaterThan(20)
       expect(() => art.animate(0, true)).not.toThrow()
       expect(model.isSkinnedMesh).toBe(true)
       art.dispose()
@@ -120,6 +125,29 @@ describe('styled rigged avatar preview — cosmetic geometry only', () => {
     expect(model.geometry).toBe(geometry)
     material.dispose()
     geometry.dispose()
+  })
+
+  test('ponytail band and tapered locks dispose without touching the original rig', () => {
+    const { root, model, geometry, material } = makeMockRig()
+    const art = decorateRiggedSurfer(root, {
+      ...baseStyle, character: 'female', hairstyle: 'ponytail'
+    }, { pose: 'surfing' })
+    const hair = art.display.getObjectByName('rigged-hair-strand')
+    const band = art.display.getObjectByName('rigged-hair-band')
+    expect(hair).toBeTruthy()
+    expect(band).toBeTruthy()
+    const sculpt = hair.geometry
+    const bandGeometry = band.geometry
+    const disposeHair = jest.spyOn(sculpt, 'dispose')
+    const disposeBand = jest.spyOn(bandGeometry, 'dispose')
+    art.animate(3.4)
+    art.dispose()
+    expect(disposeHair).toHaveBeenCalledTimes(1)
+    expect(disposeBand).toHaveBeenCalledTimes(1)
+    expect(model.geometry).toBe(geometry)
+    expect(model.material).toBe(material)
+    geometry.dispose()
+    material.dispose()
   })
 
   test('aligns hair with the smaller female face without modifying the shared body', () => {
