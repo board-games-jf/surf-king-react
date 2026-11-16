@@ -1,74 +1,82 @@
-# Surf King — Progressive Rules Review
+# Surf King — Gameplay Design Epic / Rules Review Hub
 
-**Status:** In discussion — **not an approved consolidated rulebook**  
-**Tracking issue:** [#11](https://github.com/board-games-jf/surf-king-react/issues/11)  
-**Review branch:** `docs/11-progressive-rules-review`  
-**Purpose:** Retain the rule-by-rule decisions and open questions across chat threads. This draft PR is **documentation only** and **must not be merged without separate owner approval**.
+**Status:** Active game-design exploration; **not** a finalized rulebook or implementation authorization.
+**Single epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) — canonical status, chronological owner feedback and next action.
+**Living documentation:** [Draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12), branch `docs/11-progressive-rules-review` — Markdown only, **do not merge without explicit approval**.
+**Latest checked code:** `main` `df81076781a7a70845dbe079f7a8ca21a79d35e6` (2026-11-16). Game rules are not implemented from this draft.
 
-## How to continue in a new conversation
+## North star
 
-1. Read [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) and its chronological comments.
-2. Read this draft PR's Markdown files, starting with this index and [MOVEMENT.md](MOVEMENT.md).
-3. Recheck GitHub `main` and relevant code/tests before making technical claims; the original baseline was `6daa1705ff11d958a10cffd951eca9f5f2a1084c` on 2026-11-15.
-4. Resume from the **Next question** below. Ask **one question at a time**, in Portuguese, briefly; use diagrams or images only where useful.
-5. After each substantive interaction, add a succinct English comment to Issue #11 and update the relevant draft PR Markdown (accepted rule, pending question, proposal, or implementation observation). Do not merge or modify gameplay.
+**Fast, easy-to-learn, portable, genuinely strategic, fun and replayable.** The assistant should lead integrated game-system design: show a complete match, compare concrete alternatives, identify loops and unbalanced incentives, recommend a compact rule package, and explain trade-offs. **Never ask the owner to solve a collection of isolated mechanics.**
 
-## Review states
+Keep one coherent whole-match candidate visible while considering one focused choice at a time. Separate proven mechanics, owner's decisions, experiments and open design proposals. Changes in this draft are **documentation only**.
 
-- **Owner-confirmed:** explicitly accepted by the owner, including precisely scoped examples.
-- **Pending:** requires owner discussion or confirmation.
-- **Proposal:** suggested only; never accepted by inference.
-- **Observed in code:** reflects reviewed source, not necessarily the intended rule or a tested outcome.
+## 1. Owner-confirmed design rules
 
-## Topics
+| Rule | Scope |
+| --- | --- |
+| All surfers **start at 2 energy** | Accepted product rule; see `docs/DECISIONS.md` **SK-DEC-013** on this draft branch |
+| **0 energy means falling off the surfboard** | Not resting; timing and method of recovery unresolved |
+| **No Rest mechanic** | No voluntary or automatic Rest action; forced inability to move needs a separate safety rule |
+| Normal movement in **any of six edge-sharing directions**, backward included | Any adjacency, occupancy or obstacle limitations still need review; displayed 18 → 15 was confirmed illegal |
+| Normal **Drop In only against an edge-sharing adjacent opponent** | Dice resolution, card effects and other attack conditions are separate |
 
-| Topic | Status | Detail |
-| --- | --- | --- |
-| Movement and hex adjacency | **In discussion** | [MOVEMENT.md](MOVEMENT.md) |
-| Movement direction (forward/backward) | **Owner-confirmed** | [MOVEMENT.md](MOVEMENT.md) |
-| Attack / drop-in adjacency and resolution | **Range owner-confirmed; dice pending** | [ATTACK.md](ATTACK.md) |
-| Energy and recovery | **2 starting energy confirmed; growth pending** | [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md) |
-| Turns, action order and replenishment | **Rest removed; core-loop redesign pending** | [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
-| Card effects and durations | Not started | — |
-| Forced movement, obstacles and boundary cases | Not started | — |
-| Victory and game balance | **3 concrete whole-match options proposed, not approved** | [OPTIONS.md](OPTIONS.md), [COMPLETE_MATCH.md](COMPLETE_MATCH.md) |
+## 2. Owner-accepted **design experiments**, NOT finalized rules
 
-## Confirmed so far
+| Experiment | What has been agreed for testing |
+| --- | --- |
+| **Energy ceiling 5** | Try 5 rather than the currently implemented 4 |
+| **Up to 2 dice** for each attacker and defender | Experimental comparison: at energy 1, roll 1; at 2–5, roll 2. The highest-of-two resolution is the assistant's working method |
+| **Equal best dice: no energy damage to either player** | Explicitly accepted for experimentation on 2026-11-16; **not yet in the game engine** |
 
-- **Normal movement is allowed in all six directions**, including backward, **only between hexagons sharing an edge**. Owner confirmed on 2026-11-15. Energy, occupancy, obstacles and other limitations remain to be reviewed separately.
-- Displayed hex **18 → 15 is not a legal normal maneuver** in the current layout; they do not share an edge. Owner confirmed this example on 2026-11-15.
-- **Normal drop-in attack range is edge adjacency only:** the defender must occupy a hexagon sharing an edge with the attacker. Owner confirmed on 2026-11-15; dice and other attack conditions remain pending.
-- The collaboration process is progressive: one subject/question at a time, brief conversations, visuals as needed, no code implementation during rules review.
-- **Owner-confirmed (2026-11-16):** 0 energy means **falling off the surfboard**, not resting. The return-from-fall process remains pending.
-- **Owner-confirmed (2026-11-16):** every surfer **starts with 2 energy**. The 4-energy maximum is existing code, not separately reconfirmed; energy gain and ordinary movement cost remain unapproved.
-- **Owner-confirmed (2026-11-16):** **remove Rest as a game mechanic**; do not add voluntary or automatic Rest. This does not yet approve compulsory movement or energy-cost changes.
-- **Game design north star (owner direction):** fast, practical/portable, fun, replayable, strategic and simple; balance the complete movement-energy-card-combat-victory loop rather than isolated rules. See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
+The trial has not yet been playtested or proved balanced. Approval to **try** these does not authorize implementing or merging anything.
 
-## Next question
+## 3. Current coherent working package — P-09, **assistant proposal only**
 
-**Owner-confirmed design experiment (2026-11-16):** Try **5 maximum energy** and **up to 2 dice per attack/defense**, while reviewing all related mechanics together. **This is a trial, NOT a finalized approved rule or code authorization.** Assistant P-09 (NOT owner-approved) tests the complete package: 2 initial energy, free/mandatory legal movement, 1 optional card OR adjacent Drop In, draw after moving, two highest-dice compared, **tie without damage**, strict loss = -1, Shark/Big Wave reduced from -2 to provisional -1, upper limit on heal cards considered, fall at 0 with next-turn return and a round limit only as earlier trial options. Probability note: with 2 dice per side, the old defender-wins-ties rule would make equal-strength attackers lose energy in ~61% of fights. See [OPTIONS.md](OPTIONS.md), [ATTACK.md](ATTACK.md), [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md). **Next: evaluate the package's card/hazard and comeback interactions, not an isolated number.**
+- Start at 2 energy, trial cap 5, edge-adjacent geometry, no Rest, fall at 0.
+- Per active turn, **optionally play one card OR attempt one adjacent Drop In**, then make one legal **free normal maneuver** when possible; draw a card after moving. No separate free repeatable +1-energy choice (it would produce 2 → 5 in only three personal turns).
+- Experimental Drop In: up to two d6 per surfer, compare the highest results; **tie without energy loss** (owner accepted for trial); a strictly lower result loses **1 energy** (damage value still an assistant proposal).
+- Proposed first-pass obstacle/card retune: **Shark -1**, **Big Wave -1** instead of their currently implemented -2; review energy-restoration cards (+3 and full refill), Island +2 and Bottled Water's now-obsolete waiver.
+- Proposed fall return: rejoin on next own turn at 2 energy, without maneuver that turn. Proposed victory safety: first to beach wins, with a **10-round** positional fallback. **Neither re-entry nor round limit has been approved.**
 
-**Deferred:** The drop-in dice tie decision remains pending until we address the all-pass stalemate.
+### Known linked failure modes
 
-## Implementation boundary
+1. **Combat too weak:** tie ≈22% with equal two-die pools; a decisive combat under P-09 only takes 1 energy, possibly not enough to interrupt a race.
+2. **Healing snowball:** cards and any automatic growth can make an energy-5 surfer effectively immune to significant interruption, even though it does not roll more dice than a surfer at energy 2.
+3. **Shark chokepoint and early damage:** four central Sharks, plus current Big Wave -2, can drop a starting 2-energy surfer immediately.
+4. **Luck vs strategy:** free movement and card-draw dependency could turn tactics into card lottery; compulsory movement alone still allows backward-forward stalling.
+5. **Blocked turns / player count:** 2, 4 and 7 player congestion, Stones, fall occupancy, hand limits, 10-round cutoff and a winner tie-break need validation.
+6. **Fast finish vs tactical relevance:** a theoretical start-to-goal path is seven legal maneuvers; attacks must influence race outcome, not just slowly deplete health.
 
-No gameplay code, production deployment, tests, or merger is authorized by this review. Once rules are finalized, create separate implementation issues with acceptance criteria, tests, and PRs.
+## 4. Review workstreams (same epic, no duplicate issues)
 
-## Review log
+| Workstream | Status and detail |
+| --- | --- |
+| Board / movement | Direction and true adjacency accepted; other restrictions open — [MOVEMENT.md](MOVEMENT.md) |
+| Drop In / dice | Range accepted; cap/tie experimental; damage/reward open — [ATTACK.md](ATTACK.md) |
+| Energy / cards / hazards | Start 2 accepted; cap 5 experimental; economy/card balance pending — [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md) |
+| Turn structure / anti-stall | No Rest accepted; full loop, forced blocks and finite ending pending — [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
+| Complete-match design | A/B/C alternatives and current P-09 direction — [OPTIONS.md](OPTIONS.md); earlier [COMPLETE_MATCH.md](COMPLETE_MATCH.md) |
+| Victory and comeback | Beach victory as implemented; final rule, rounds, tie-break and re-entry open — [OPTIONS.md](OPTIONS.md) |
 
-- **2026-11-15:** Owner confirmed displayed 18 → 15 is forbidden; engine adjacency still needs review.
-- **2026-11-15:** Owner requested no implementation until rules are agreed.
-- **2026-11-15:** Owner requested short, progressive, visual-when-useful interactions and durable GitHub issue + draft-PR Markdown documentation.
-- **2026-11-15:** Owner approved normal movement in any of the six directions, provided the two cells share an edge. Next topic: drop-in attack range.
-- **2026-11-15:** Owner approved drop-in only against an edge-adjacent opponent. Next topic: dice ties.
-- **2026-11-15:** Owner requested design guidance rather than repeated owner-only questions and raised an all-pass stalemate. Dice tie review deferred; assistant proposed compulsory maneuver when possible, not approved.
-- **2026-11-15:** Owner questioned whether optional Rest is needed at all; P-02 was proposed and then superseded, not approved.
-- **2026-11-16:** Owner clarified 0 energy causes a fall and explicitly removed Rest as a mechanic. Owner requested holistic balance for fast, portable, fun, replayable and strategic games. Next: review movement/energy/combat/card economy as a complete loop; free movement is only an assistant proposal.
-- **2026-11-16:** Assistant verified a seven-step start-to-goal geometric path and key interactions: only four starting energy, shark bottleneck, and current Bottled Water card losing its purpose if ordinary movement becomes free. Holistic balance analysis recorded; no new rule approved.
-- **2026-11-16:** Owner proposed WAR/Risk-like energy representing combat force and considered a one-energy start with growth via progress or cards. Assistant recommended two.
-- **2026-11-16:** **Owner approved 2 starting energy.** All other energy mechanics remained pending.
-- **2026-11-16:** Owner called the proposed two-progress-milestone energy gain too complex. Assistant withdrew it and proposed a simpler P-05: ordinary moves cost/give no energy; cards are the main energy source. **Not approved;** energy/hazard/card balance still pending.
-- **2026-11-16:** Owner remained unsatisfied by isolated rule questions and requested a clear global beginning-to-end match and evidence that the dynamics work. Assistant drafted integrated P-06 in [COMPLETE_MATCH.md](COMPLETE_MATCH.md), with an illustrative 3-player sequence and adversarial failure cases. The entire package is provisional and **has not been playtested**.
-- **2026-11-16:** Owner reiterated no gameplay code edits and requested concrete options. Assistant compared three full-match variants in [OPTIONS.md](OPTIONS.md), with B recommended for its strategic trade-off of building energy vs using a card vs Drop In. All candidate mechanics remain unapproved and untested.
-- **2026-11-16:** Owner floated 5/6 as maximum energy with only 2 attack/defense dice. Assistant recommends testing 5 energy and at most 2 dice, separating survivability from dice count (P-08); neither value is accepted. Original engine uses 4 maximum energy and rolls as many dice as energy.
-- **2026-11-16:** Owner agreed to **experiment with** the 5-energy / up-to-2-dice design, conditional on holistic rebalancing. P-08 trial accepted for exploration, **not as final rule or implementation approval**. Assistant documented integrated P-09 linked turn/card/attack/hazard/fall proposal and the defender-tie incentive problem. No gameplay implementation or match playtest.
+## 5. Next action — holistic tabletop stress review
+
+Before any more permanent rule approvals, run **on-paper scenarios**, compare the outcomes and document the smallest necessary changes:
+
+1. A normal 3-player race with mixed energy cards and successful/failed Drop Ins.
+2. A 2-energy surfer crosses the central Shark row or receives Big Wave.
+3. A 5-energy leader is challenged by a 2-energy rival using 2 dice; count chances of actual interruption, not merely damage.
+4. A fallen surfer returns and has a realistic route to win.
+5. 2-player and 7-player crowding, consecutive tied combat and repeated backward moves; ensure a finite, fair outcome.
+
+**Immediate design question:** If two-dice, no-damage-tie combats scarcely affect who reaches the beach first, should a strictly won Drop In also have a **simple positional consequence**? **No effect is approved yet.** Present evidence and one best recommendation instead of a menu of arbitrary numbers.
+
+## 6. How to resume in a new conversation
+
+1. Read the latest [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11), including its chronological comments.
+2. Read this INDEX and [ATTACK.md](ATTACK.md), [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md), [OPTIONS.md](OPTIONS.md) on draft PR #12.
+3. Recheck GitHub `main`, `AGENTS.md`, mandatory docs, current issue/PR status and relevant code/tests before technical decisions.
+4. Continue from the **Next action** above; report owner decisions in Portuguese and update Issue #11 comments and affected English draft Markdown for each material interaction.
+5. Never modify gameplay, merge, deploy or publish under this design-review epic. A separate scoped implementation issue and explicit owner approval will be needed after game rules are settled.
+
+**Decision ID note:** Current `main` reserves SK-DEC-011 and SK-DEC-012 for cosmetic/visual choices. The confirmed **2 starting energy** rule is correctly recorded as **SK-DEC-013** in the draft `docs/DECISIONS.md`; never reuse old draft ID 011 for gameplay.
