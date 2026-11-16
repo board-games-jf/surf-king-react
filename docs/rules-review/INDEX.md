@@ -27,8 +27,8 @@
 | Movement and hex adjacency | **In discussion** | [MOVEMENT.md](MOVEMENT.md) |
 | Movement direction (forward/backward) | **Owner-confirmed** | [MOVEMENT.md](MOVEMENT.md) |
 | Attack / drop-in adjacency and resolution | **Range owner-confirmed; dice pending** | [ATTACK.md](ATTACK.md) |
-| Energy and recovery | Not started | — |
-| Turns, action order and replenishment | **Stalemate confirmed from code; anti-stall proposal pending** | [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
+| Energy and recovery | **0 energy = fall confirmed; economy under review** | [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
+| Turns, action order and replenishment | **Rest removed; core-loop redesign pending** | [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
 | Card effects and durations | Not started | — |
 | Forced movement, obstacles and boundary cases | Not started | — |
 | Victory and game balance | Not started | — |
@@ -39,11 +39,13 @@
 - Displayed hex **18 → 15 is not a legal normal maneuver** in the current layout; they do not share an edge. Owner confirmed this example on 2026-11-15.
 - **Normal drop-in attack range is edge adjacency only:** the defender must occupy a hexagon sharing an edge with the attacker. Owner confirmed on 2026-11-15; dice and other attack conditions remain pending.
 - The collaboration process is progressive: one subject/question at a time, brief conversations, visuals as needed, no code implementation during rules review.
-- **Owner goal (2026-11-15):** game must be fast and avoid stalls; all players can currently skip. **Assistant recommendation P-02 (unapproved):** no voluntary Rest/skip during the maneuver stage; movement is mandatory when legal; at zero energy, recover automatically (amount/timing TBD); card-imposed immobility does not award rest energy. Supersedes P-01 as a proposal, not an owner decision. See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
+- **Owner-confirmed (2026-11-16):** 0 energy means **falling off the surfboard**, not resting. The return-from-fall process remains pending.
+- **Owner-confirmed (2026-11-16):** **remove Rest as a game mechanic**; do not add voluntary or automatic Rest. This does not yet approve compulsory movement or energy-cost changes.
+- **Game design north star (owner direction):** fast, practical/portable, fun, replayable, strategic and simple; balance the complete movement-energy-card-combat-victory loop rather than isolated rules. See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
 
 ## Next question
 
-**Do we remove voluntary Rest/skip during the movement stage entirely?** Proposal P-02 (not yet approved): if movement is legal, movement is compulsory; if energy is zero, recover automatically; if a card makes movement impossible, apply the card effect without bonus rest energy. See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
+**Next design step:** compare free normal movement versus movement costing 1 energy in the context of falling at 0, combat dice, cards, obstacles and the time to reach victory. Propose a compact core turn loop, then seek owner confirmation of its first rule. **P-03 is not approved.** See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
 
 **Deferred:** The drop-in dice tie decision remains pending until we address the all-pass stalemate.
 
@@ -59,4 +61,5 @@ No gameplay code, production deployment, tests, or merger is authorized by this 
 - **2026-11-15:** Owner approved normal movement in any of the six directions, provided the two cells share an edge. Next topic: drop-in attack range.
 - **2026-11-15:** Owner approved drop-in only against an edge-adjacent opponent. Next topic: dice ties.
 - **2026-11-15:** Owner requested design guidance rather than repeated owner-only questions and raised an all-pass stalemate. Dice tie review deferred; assistant proposed compulsory maneuver when possible, not approved.
-- **2026-11-15:** Owner questioned whether optional Rest is needed at all. Assistant recommended removing selectable Rest (P-02), with automatic recovery at zero energy and automatic immobilization for card effects. Not approved; details remain open.
+- **2026-11-15:** Owner questioned whether optional Rest is needed at all; P-02 was proposed and then superseded, not approved.
+- **2026-11-16:** Owner clarified 0 energy causes a fall and explicitly removed Rest as a mechanic. Owner requested holistic balance for fast, portable, fun, replayable and strategic games. Next: review movement/energy/combat/card economy as a complete loop; free movement is only an assistant proposal.
