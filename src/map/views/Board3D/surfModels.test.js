@@ -83,3 +83,40 @@ describe('3D surfer and surfboard refinement', () => {
     }
   })
 })
+
+
+describe('real customizable 3D surfer geometry', () => {
+  const base = {
+    character: 'female', hairstyle: 'ponytail', hairColor: 'auburn',
+    skinTone: 'deep', surfwear: 'green', boardType: 'fish', boardColor: 'pink'
+  }
+  test.each(['male', 'female'])('builds an expressive %s face with cosmetic board', character => {
+    const { model } = (() => {
+      const scene = new THREE.Scene()
+      return { model: createSurferModel(scene, createScenePrimitives(scene),
+        '#ffbb41', '#e5a875', '#724c35', false, { ...base, character }) }
+    })()
+    const head = model.group.getObjectByName('surfer-head')
+    const hair = model.group.getObjectByName('surfer-hair')
+    const hull = model.group.getObjectByName('surfboard-hull')
+    expect(head).toBeTruthy()
+    expect(hair).toBeTruthy()
+    expect(hull).toBeTruthy()
+    expect(hull.material.color.getHexString()).toBe(new THREE.Color('#ef8290').getHexString())
+    expect(model.group.getObjectByName('surfer-shorts')).toBeTruthy()
+    if (character === 'female') expect(model.group.getObjectByName('surfer-top')).toBeTruthy()
+  })
+
+  test.each(['shortboard', 'fish', 'longboard'])('supports %s without gameplay dependencies', type => {
+    const scene = new THREE.Scene()
+    const model = createSurferModel(scene, createScenePrimitives(scene),
+      '#ffbb41', '#e5a875', '#724c35', false, { ...base, boardType: type })
+    expect(model.board.name).toBe('surfboard')
+    const mesh = model.group.getObjectByName('surfboard-hull')
+    expect(mesh.geometry.type).toBe('ExtrudeGeometry')
+    expect(() => model.animate(3.1, 0, .03)).not.toThrow()
+    model.group.traverse(node => {
+      expect(node.position.toArray().every(Number.isFinite)).toBe(true)
+    })
+  })
+})
