@@ -22,6 +22,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-015 | Accepted | Distinguish male and female Surf King surfers using actual separately authored skinned bodies/facial geometry, and offer standing, relaxed and surfing poses driven by the existing humanoid skeleton. These are visual states only; surfing remains the shared board pose. | The owner wants noticeable facial/silhouette differences and no permanently outstretched T-pose, without changing gameplay balance or abandoning the existing rigged GLB art direction. | [#28](https://github.com/board-games-jf/surf-king-react/issues/28), [#26](https://github.com/board-games-jf/surf-king-react/issues/26) |
 
+| SK-DEC-016 | Accepted | The owner-approved 2026-11-16 stylized surfing concept sets the **minimum visual fidelity** for both the genuine 3D surfer character and surfboard, including balanced crouched stance, planted feet, integrated sculpted hair, polished body/face/clothing and finished board silhouette, rails, stripe and fin. A 2D concept render is not an approved 3D mesh; approval requires actual rendered 3D assets in the running viewer before broad integration. | The owner explicitly rejected repeated low-fidelity pose/hair tweaks and requires the final in-app character **and** surfboard to be no worse than the approved visual concept. This sets the quality bar but does **not** approve a particular asset, vendor, workflow, new cost, merge or deployment. | [#33](https://github.com/board-games-jf/surf-king-react/issues/33), [#20](https://github.com/board-games-jf/surf-king-react/issues/20), [#30](https://github.com/board-games-jf/surf-king-react/issues/30) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
