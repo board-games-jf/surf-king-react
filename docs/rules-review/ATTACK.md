@@ -36,8 +36,20 @@ Roll the allowed number of six-sided dice on each side; compare **only the highe
 
 The code in `src/game/SurfKingGame.js` (rechecked from `main` on 2026-11-16) still uses `MAX_ENERGY = 4`, rolls a number of dice equal to each player's energy, compares **multiple ordered pairs**, and damages the attacker on equal pairs. A clash can therefore cause multiple energy losses. **None of the new trial settings has been implemented or tested in the game.**
 
+## P-10 positional consequence — recommended for on-paper testing (NOT approved)
+
+A **strict attacker win** could cause candidate **−1 energy** to the defender and give the attacker the **option to exchange the two occupied hexes**. If exchanged, it **uses up the attacker's one normal movement for the turn**. A declined exchange, a tie, or a strict defender win leaves the attacker able to make the ordinary legal maneuver **provided they did not fall**.
+
+- **Why optional:** An attacker already closer to the beach may wish to deal damage without moving backward.
+- **Why exchange:** Guaranteed legal adjacent target and no need for another empty destination even with many surfers.
+- **Why it counts as maneuver:** A successful attack must not automatically create an extra two-cell sprint in the short race.
+- **Concrete case:** A at cell **35** with energy **2** challenges B at cell **42** with energy **5**. A strict win has probability **505/1296 ≈ 38.97%**; the exchange lets A take the cell one normal maneuver from beach cell 49, sends B to 35, and takes B down to energy 4. Energy-only damage would leave B ahead with 4 energy and the same two dice.
+- **Important unknown:** Exchanging onto a Shark (e.g. 21 ↔ 28), Storm or Island must respect a consistent obstacle-entry rule. Falling during an exchange and a defender's forced relocation also need rules. Repeated counter-swaps need a pacing test.
+
+This recommendation is supported by **verified hex-layout examples and exact dice enumeration**, not an executed playtest. See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md) for the 7-step Shark route, 8-step Shark-free detour, and 2/3/4/7-player stress matrix.
+
 ## Next connected action
 
-Explore a complete race where a 2-energy surfer tries to stop a 5-energy leader **with no-damage ties**. Determine whether a successful Drop In needs a single intuitive **positional payoff**; weigh its effect on cards, falls, accessibility and match length. Recommend one integrated rule package, not another disconnected number.
+**Evaluate optional exchange on a strict attacker win as the preferred P-10 paper-playtest candidate.** Before owner approval, resolve obstacle triggers on exchanged tiles, fall occupancy, counter-swaps and full-race pacing. No other attack rewards have been accepted.
 
 **No game code edits, runtime tests, merge or deployment.**
