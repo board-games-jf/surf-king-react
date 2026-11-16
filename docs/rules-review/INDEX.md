@@ -40,7 +40,15 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 
 **Scope:** Shark-specific falling is now **accepted as a design rule**, and its precise timing/return cell is no longer an unresolved proposal. Applying the same rules to attacks, cards, other obstacles, simultaneous effects or positional swaps **still needs evaluation**. All game source remains unchanged. [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md).
 
-## 4. Recommended integrated whole-match v0.1 — **assistant proposal only**
+## 4. P-17 challenge — is the one-hex fall penalty meaningful?
+
+**Owner objection (2026-11-16):** "mas se volta pra onde tava qual o sentido?" The currently accepted **SK-DEC-018** Shark rule (fall at 28 → next own turn return at 21 with 2 energy → ordinary maneuver may re-enter 28) costs a forward move and re-triggers the Shark, but may **feel like negligible progress loss or reward an energy refill loop at 1 energy**. The owner has **not yet approved changing SK-DEC-018**.
+
+**Assistant P-17 revision to review, NOT approved:** On an unrecovered Shark fall, **immediately bounce back to the previously occupied safe tile** (28→21 if entering from 21), **end the current movement**, and **play normally on the next personal turn with 1 energy**. A rescue instead consumes Float/Fin and keeps the Shark tile at 2/1 energy, with no extra move. This maintains the real cost of the failed maneuver, prevents farming 2 energy by repeatedly falling, and still avoids multi-turn inactivity. Alternate safe oceanward tile if previous one is occupied/hazardous; forced displacement and re-entry edge cases remain open.
+
+**Current status:** Preserve **SK-DEC-018 Accepted** (return next own turn at 2) until the owner accepts a change. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) P-17 for the exact issue and proposal.
+
+## 5. Recommended integrated whole-match v0.1 — **assistant proposal only**
 
 The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md) (**P-15, not approved**). It is now the preferred end-to-end tabletop trial and takes precedence **as a proposal** over earlier isolated P-06 through P-13 draft variants. Do not treat earlier round-10 or all-damage-−1 candidates as accepted. The earlier individual research below remains context.
 
@@ -59,7 +67,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 5. **Blocked turns / player count:** 2, 4 and 7 player congestion, Stones, fall occupancy, hand limits, the current **12-round proposal** and tie-break need validation.
 6. **Fast finish vs tactical relevance:** a theoretical start-to-goal path is seven legal maneuvers; attacks must influence race outcome, not just slowly deplete health.
 
-## 5. Review workstreams (same epic, no duplicate issues)
+## 6. Review workstreams (same epic, no duplicate issues)
 
 | Workstream | Status and detail |
 | --- | --- |
@@ -70,7 +78,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 | Complete-match design | A/B/C alternatives, P-09 core and P-10 positional stress review — [OPTIONS.md](OPTIONS.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md); earlier [COMPLETE_MATCH.md](COMPLETE_MATCH.md) |
 | Victory and comeback | P-12 normal return vs P-13 reaction rescue under review; victory/round cap open — [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [OPTIONS.md](OPTIONS.md) |
 
-## 6. Full gameplay proposal prepared (P-15, NOT approved)
+## 7. Full gameplay proposal prepared (P-15, NOT approved)
 
 **Owner request:** No code; provide **clear definitions and the full picture** from start to end. See **[GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md)**, the current integrated design reference.
 
@@ -80,7 +88,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 
 **Next step:** Position-by-position three-player tabletop scenario comparing the full v0.1 prototype with the previous inactive-turn recovery; then stressed 2/4/7-player variants. The walkthrough in the blueprint is explicitly **illustrative, not an executed match**. Update only the affected design documents after actual owner feedback.
 
-## 7. Previously agreed design north star
+## 8. Previously agreed design north star
 
 **Owner clarification and explicit confirmation on 2026-11-16 (accepted direction SK-DEC-017, NOT individual rule approval):** The initial game deliberately made surfers **fall many times**, but recovery mechanisms created stalls. The owner is encouraged by the tactical direction yet has lost the overview after multiple local tweaks. Preserve **fall frequency, suspense and meaningful insurance**, while removing **long periods unable to play**. **Do not redesign Surf King into a no-fall race.**
 
@@ -94,7 +102,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 
 **Next decisive work:** The integrated v0.1 synthesis and schematic 3-player timeline are now in [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md). Next compare a **position-by-position complete 3-player race** (early start, central Sharks and cards, Drop In, 1–3 falls, late comeback and beach finish) under the old skip-turn penalty versus the candidate position-only penalty. Track **falls per player, missed turns, chances to catch up, rescue value, and length**, then test 2/4/7-player stress cases. These are **playtest goals**, not numerical claims or simulated measurements. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md) and [OPTIONS.md](OPTIONS.md).
 
-## 8. How to resume in a new conversation
+## 9. How to resume in a new conversation
 
 1. Read the latest [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11), including its chronological comments.
 2. Read this INDEX, **[GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md)**, then supporting [ATTACK.md](ATTACK.md), [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md), [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) on draft PR #12.
