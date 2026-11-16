@@ -17,13 +17,15 @@ const REST_POSES = Object.freeze({
     calf_l: [-.055, 0, 0], calf_r: [-.08, 0, 0]
   },
   surfing: {
-    spine_01: [.095, 0, 0], spine_02: [.16, 0, .07],
-    spine_03: [.07, 0, -.035], pelvis: [.075, 0, .035],
-    upperarm_l: [-.09, 0, -.52], upperarm_r: [.13, 0, .53],
-    lowerarm_l: [-.09, 0, -.55], lowerarm_r: [.04, 0, .48],
-    thigh_l: [.30, 0, -.115], thigh_r: [.33, 0, .11],
-    calf_l: [-.47, 0, .055], calf_r: [-.48, 0, -.055],
-    foot_l: [.12, 0, 0], foot_r: [.12, 0, 0]
+    // A low, staggered stance: the front knee drives forward while the
+    // trailing leg and opposing arms counterbalance the board's direction.
+    spine_01: [.12, -.08, -.035], spine_02: [.19, -.16, .09],
+    spine_03: [.035, .12, -.045], pelvis: [.10, .11, -.03],
+    upperarm_l: [-.21, -.12, -.64], upperarm_r: [.18, .16, .46],
+    lowerarm_l: [-.12, .08, -.46], lowerarm_r: [-.06, -.10, .65],
+    thigh_l: [.43, -.06, -.17], thigh_r: [.29, .07, .13],
+    calf_l: [-.63, .02, .08], calf_r: [-.39, -.02, -.06],
+    foot_l: [.18, 0, .035], foot_r: [.08, 0, -.035]
   }
 })
 
@@ -50,10 +52,17 @@ export function sampleSurferPose(pose, elapsed = 0, reducedMotion = false) {
   if (offsets.upperarm_l) offsets.upperarm_l[2] += balance * (stance === 'surfing' ? .9 : .12)
   if (offsets.upperarm_r) offsets.upperarm_r[2] += balance * (stance === 'surfing' ? -.8 : -.12)
   if (stance === 'surfing') {
+    // The torso leads the adjustment; the trailing knee and arms respond with
+    // smaller phase-shifted offsets. No changes accumulate between frames.
+    const settle = Math.sin(t * .88 + .75) * .035 * motion
+    offsets.pelvis[2] += settle * .55
+    offsets.spine_01[1] += settle * .48
+    offsets.upperarm_l[0] -= settle * .45
+    offsets.upperarm_r[0] += settle * .5
     offsets.thigh_l[0] += balance * .22
-    offsets.thigh_r[0] -= balance * .22
+    offsets.thigh_r[0] -= balance * .16
     offsets.calf_l[0] -= balance * .18
-    offsets.calf_r[0] += balance * .18
+    offsets.calf_r[0] += balance * .12
   }
   return offsets
 }
