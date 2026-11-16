@@ -1,70 +1,65 @@
-# Rule Review — Turn Flow, Passing, and Game Pace
+# Rule Review — Game Pace, Energy, and Turn Flow
 
-**Status:** Problem identified; anti-stall rule is a **proposal**, not owner-approved.  
-**Tracking:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11), [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12).  
-**Code baseline inspected:** `main` `6daa1705ff11d958a10cffd951eca9f5f2a1084c` (2026-11-15).
+**Status:** In design review. The owner has removed **Rest** as a game mechanic. Mandatory movement and energy costs remain **proposals**.
+**Tracking:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) and [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12).
+**Verified rules-engine baseline:** `main` `6c80c80b28b6d115b3d2267e9462c2cc91fc6311` (2026-11-16). No runtime tests executed.
 
-## Design target — owner request
+## Product design goal — owner-confirmed direction
 
-The owner wants a **simple, fast, fun game that cannot stall**. They identified a concrete problem: **if every player continually skips their actions, the match makes no spatial progress**. The assistant should bring grounded design recommendations and discuss them one at a time, not ask the owner to design each rule without guidance.
+Design Surf King **as a complete game**, not as independent rule tweaks, to be:
+- **Fast**: short turns and match progression; avoid stalls.
+- **Practical and portable**: easy to learn and replay almost anywhere.
+- **Fun and replayable**: meaningful interactions, surprises, and reasons to play again.
+- **Strategic**: consequential choices about direction, position, cards, combat, risk and victory.
+- **Simple**: do not add mechanics unless they solve a demonstrated design problem.
 
-These goals and the reported problem are confirmed context; the proposed remedy below is **not yet approved**.
+Avoid posing implementation details as owner decisions. Offer reasoned design proposals with trade-offs, one focused topic per conversation.
 
-## Observed implementation
+## Owner-confirmed facts and decisions
 
-From `src/game/SurfKingGame.js`:
+1. **Zero energy means falling off the surfboard.** It is not resting. This matches the engine's fall-state trigger; the return-to-board rule still needs review.
+2. **Remove Rest as a game mechanic.** The owner explicitly requested this on 2026-11-16. Do not invent a Rest button, Rest reward or optional Rest action.
+3. The main-phase all-pass stalemate is unacceptable as a design target. The owner wants gameplay that progresses without players agreeing to skip indefinitely.
+4. Normal movement in any of six edge-sharing directions, and edge-sharing-only drop-in range, were separately approved (see `MOVEMENT.md` and `ATTACK.md`).
 
-- Opening `phaseA` offers `maneuver` only, then the main `phaseB` cycles through `MOVE_USE_CARD`, `MOVE_DROP_IN`, and `MOVE_MANEUVER`.
-- In `phaseB`, `pass` is permitted at each stage. Passing from `MOVE_MANEUVER` ends that player's turn.
-- A player who finishes the maneuver stage **without moving**, while not fallen or blocked, gains **one energy**, up to `MAX_ENERGY = 4`.
-- No rule advances a surfer toward the beach solely because everyone passed. The round counter and some active-card timers can still advance.
-- Normal movement spends one energy (except applicable card effects); successfully maneuvering also qualifies for a replacement card.
-- If a fallen player passes the card stage, the code restores one energy, clears the fall state, and sets a blocked flag for that turn.
+**Not yet approved:** Making normal movement compulsory, changing energy costs, automatic stand-up behavior following a fall, or any anti-oscillation / round-limit mechanism. Removing Rest does not by itself specify these systems.
 
-**Diagnosis (derived from code, not a runtime simulation):** In the main phase, a group can repeatedly skip every action, regain full energy, and remain on their original cells indefinitely. This prevents the victory condition (reaching one of the final four hexagons) from ever being reached.
+## Observed current code (different from desired design)
 
-## Assistant recommendation — not an accepted rule
+`src/game/SurfKingGame.js` currently:
+- Starts normal surfers at maximum 4 energy.
+- Consumes 1 energy per ordinary maneuver unless the applicable Bottled Water effect intervenes.
+- Marks a fall at 0 energy (also after combat / card damage).
+- Lets players `pass` the maneuver stage and recover 1 energy if they did not move and are not blocked or fallen.
+- Handles a fallen player by giving 1 energy and blocking that player's actions temporarily when passing the card stage.
+- Allows players to pass card, attack and movement stages in the main phase; repeating that cycle can leave every surfer stationary indefinitely.
 
-**Proposal P-01: Compulsory normal maneuver when possible.**
+These are implementation observations, **not** approvals of the current rules.
 
-1. Using a card is optional.
-2. Attempting a drop-in attack is optional.
-3. At the maneuver stage, **if the surfer has enough energy and at least one otherwise legal normal destination**, they **must move to one of those destinations**. The chosen destination may be in any of the six edge-sharing directions (separate owner-approved Rule 1).
-4. If no normal maneuver is possible (for example zero energy, a blocked state, or no legal destination), the player may **rest/pass**; for ordinary non-fallen, non-blocked circumstances, regain one energy, capped at four. Recovery for fallen/blocked players is a separate pending rule and should not be assumed to work identically.
-5. A forced action must never require an illegal move through occupied cells, stones, or board edges.
+## Why the mechanics must be balanced together
 
-**Why:** Removes the simple all-pass stalemate without introducing a clock, random event, new cards, or an automatic current. It also preserves choice among valid directions and optional tactical attacks.
+| Rule subsystem | Interaction / risk |
+| --- | --- |
+| Movement vs energy | Mandatory movement at -1 energy can force a fall after just a few turns. |
+| Energy vs combat | Energy determines the number of dice, so changes to regeneration or movement cost also alter attack strength and strategy. |
+| Cards and hazards | Energy-restoration cards and damage obstacles change value when ordinary movement stops costing energy. |
+| Zero energy / fall | A fall needs a separate short, understandable return mechanism; never re-label it Rest. |
+| Progress and victory | Removing passing alone still permits back-and-forth movement with no progress toward the beach. |
+| Portability and pace | Avoid timers, additional choices and special cases before confirming they actually improve play. |
 
-**Trade-off:** Mandatory movement can force an undesirable move (backward, onto a hazard) and does not prevent intentionally alternating between two cells. A later review should assess a finite round cap or another end-of-game fallback rather than assuming P-01 solves *all* stalls.
+## Assistant design direction — P-03 (proposal, not approved)
 
-## Revision after owner feedback: do not offer a voluntary Rest action (P-02, not approved)
+- Eliminate voluntary Rest as the owner requested; whether `pass` is also disallowed for normal movement still needs a decision.
+- **Candidate:** make a normal one-hex maneuver cost **0 energy** so players are not forced to fall merely by moving; retain energy as a combat/survival resource and make card/obstacle risks meaningful.
+- **Candidate:** require an otherwise legal move each active turn, while allowing card-play and drop-in to remain optional.
+- **Confirmed consequence, not a new recovery rule:** If energy reaches zero, the surfer **falls**. The length and manner of returning to play are **open**.
+- Keep exceptional immobilization (card effects, no legal adjacent destination) as a separate rule, with no fictitious Rest action.
+- Consider an anti-loop victory/pressure rule only if a core-loop review shows mandatory movement alone is insufficient.
 
-**Owner concern:** Is even an optional rest mechanic needed? Could stopping be restricted to card effects, or removed entirely? Would it help the pace?
+The previous P-01/P-02 optional/automatic Rest proposals are **discarded**, not accepted rules.
 
-**Assistant recommendation:** **Do not expose Rest / voluntary passing as a selectable movement-stage action.**
+## Next small design step
 
-- With energy and a valid edge-sharing maneuver: **must move**. Playing cards and drop-in attacks remain optional.
-- At **zero energy**: allow **automatic recovery**, not a player-chosen rest. Otherwise, the existing one-energy-per-movement cost and four-energy maximum can strand a surfer after a few moves, particularly if no usable energy card is available. The exact amount and timing of recovery are **pending separate balancing review**.
-- If a temporary card/status effect **prevents movement**, apply its status automatically; the player does not choose to stop and does **not automatically earn an extra energy reward** for being immobilized.
-- If every neighboring destination is blocked by occupancy, stones, or another rule, the game must not require an illegal move. Whether this is a temporary auto-skipped maneuver or demands an escape rule is **still open**. Do not pretend P-02 alone solves positional deadlocks.
-- **Do not award +1 energy merely for declining a legal maneuver.** That behavior is part of the present implementation but should not define the proposed system.
+**Review the energy economy as a whole before approving compulsory movement:** compare routine movement at **0 energy cost** against the current **1 energy cost**, including typical travel time, combat dice, energy cards, falls and comeback opportunities. Then propose **one coherent minimal core loop** for owner approval.
 
-**Trade-off:** Preserves forced pacing while recognizing that energy exhaustion and involuntary immobilization still need recovery paths. Mandatory movement in six directions can still produce deliberate back-and-forth loops. Review a round cap / objective pressure later.
-
-**Status:** P-01's optional rest is **superseded as a recommendation by P-02**, not by an owner-approved rule. The next decision is whether to remove voluntary movement-stage passing altogether.
-
-## Deferred questions
-
-- Should there also be a maximum number of rounds with a fallback winner if players avoid victory?
-- How should compulsory movement interact with zero energy, fallen surfers, card effects, and blocking obstacles?
-- Combat dice tie resolution remains **pending**; the current code favors defenders on ties, but no redesign decision has been made.
-
-## One next question
-
-**Does the owner agree with assistant Proposal P-02: no voluntary Rest/skip during the movement stage; automatically recover when energy is zero; automatically respect card-imposed immobilization without bonus energy?**
-
-**Status:** Awaiting owner response. Automatic recovery amount/timing, physically blocked destinations and eventual time limit remain separate unresolved topics.
-
-## Implementation boundary
-
-Documentation only. Do not change code, create a gameplay PR, merge, run tests, or deploy based on this unapproved proposal.
+**Drop-in dice-tie resolution remains deferred.** No gameplay code, merge or deployment is authorized by this review.
