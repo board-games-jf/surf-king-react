@@ -13,7 +13,7 @@
 
 ## Active work — Issue #20
 
-- Branch `feat/20-refine-3d-surfers` is **not merged or deployed**. First reviewable iteration improves `surfModels.js` without changing the exported `createSurferModel()` contract.
+- Branch `feat/20-refine-3d-surfers` / [draft PR #21](https://github.com/board-games-jf/surf-king-react/pull/21) is **not merged or deployed**. First reviewable iteration improves `surfModels.js` without changing the exported `createSurferModel()` contract.
 - Surfboards now use a bevelled, tapered procedural hull and shape-based deck stripe, rear grip and swept underside fin. Existing seven player colors are unchanged.
 - Riders have a deterministic multi-frequency balance pose: torso/head/arms/stance and slight board pitch. No model allocates new meshes per animation frame.
 - The existing real match and board catalog consume the same model factory; no separate fake assets were added.
