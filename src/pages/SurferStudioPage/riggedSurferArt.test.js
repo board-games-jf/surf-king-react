@@ -150,6 +150,28 @@ describe('styled rigged avatar preview — cosmetic geometry only', () => {
     material.dispose()
   })
 
+  test('attaches hair to the actual head bone in a surf crouch and detaches on disposal', () => {
+    const { root, geometry, material } = makeMockRig()
+    const head = new THREE.Bone()
+    head.name = 'head'
+    head.position.set(0, 1.68, 0)
+    root.add(head)
+    const art = decorateRiggedSurfer(root, baseStyle, { pose: 'surfing' })
+    const hair = art.display.getObjectByName('surfer-hair-root')
+    expect(hair.parent).toBe(head)
+    const before = hair.getWorldPosition(new THREE.Vector3()).clone()
+    head.rotation.z = .28
+    const after = hair.getWorldPosition(new THREE.Vector3())
+    expect(after.distanceTo(before)).toBeGreaterThan(.001)
+    const strand = hair.getObjectByName('rigged-hair-strand')
+    const disposeStrand = jest.spyOn(strand.geometry, 'dispose')
+    art.dispose()
+    expect(hair.parent).toBeNull()
+    expect(disposeStrand).toHaveBeenCalledTimes(1)
+    geometry.dispose()
+    material.dispose()
+  })
+
   test('aligns hair with the smaller female face without modifying the shared body', () => {
     const male = makeMockRig(), female = makeMockRig()
     const maleArt = decorateRiggedSurfer(male.root, { ...baseStyle, character: 'male' })
