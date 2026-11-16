@@ -48,8 +48,21 @@ A **strict attacker win** could cause candidate **−1 energy** to the defender 
 
 This recommendation is supported by **verified hex-layout examples and exact dice enumeration**, not an executed playtest. See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md) for the 7-step Shark route, 8-step Shark-free detour, and 2/3/4/7-player stress matrix.
 
+## P-11 related safety rules — assistant proposal, NOT approved
+
+A positional Drop In should resolve in this order:
+
+1. Compare dice; **equal best dice produce zero energy damage**, an owner-accepted trial setting.
+2. Apply the candidate **−1 to the strict loser**. If the defender falls, they leave their hex and no live-player swap occurs; the attacker may enter that vacated **adjacent** cell as their one normal maneuver and trigger its hazard.
+3. If both remain on their boards and the attacker won, the attacker **may** exchange cells. This **consumes the attacker's ordinary maneuver**. Both entrants resolve the new cell's effects **once each**, including Shark, Storm or Island. An attacker who enters the Shark may fall after a successful combat roll; a forced defender moved into a Shark can suffer **both attack and terrain damage**.
+4. A strict attacker loss or tie produces no exchange; surviving attackers can still maneuver normally. If either participant falls due to terrain, remove their board occupancy, preserving a fall-location checkpoint for later recovery.
+
+**Critical test:** At two starting energy, a strict loser losing candidate 1 energy **and** involuntarily entering a −1 Shark cell can fall instantly. This may be an excessive penalty; consider whether forced relocation should cause terrain effects only after testing the trade-off, **not** by silently exempting it. `Stone` blocks occupied-endpoint movement and `Cyclone` normally redirects arrivals, so occupied live-surfer swaps do not ordinarily land on those cells.
+
+**Return from fall:** A fallen surfer must not permanently block a cell; propose a short return at or near the fall location (never closer to the beach) with 2 energy on their next turn, losing that turn's maneuver. Exact safe destination choice and rescue-card interactions remain **open**, not approved. See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
+
 ## Next connected action
 
-**Evaluate optional exchange on a strict attacker win as the preferred P-10 paper-playtest candidate.** Before owner approval, resolve obstacle triggers on exchanged tiles, fall occupancy, counter-swaps and full-race pacing. No other attack rewards have been accepted.
+**P-11 desk review completed:** Exchange-entry hazard rules and falling occupancy have an internally consistent candidate, but forced **attack + Shark** damage can knock a two-energy defender off immediately. Next design focus is whether to accept that severity or tune the forced relocation rule and safe fall re-entry. No new owner-approved Drop In rule beyond adjacent range and trial no-damage ties.
 
 **No game code edits, runtime tests, merge or deployment.**
