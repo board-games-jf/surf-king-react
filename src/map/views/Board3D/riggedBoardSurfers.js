@@ -32,10 +32,10 @@ export function createRiggedBoardSurfer(template, playerId) {
   return art
 }
 
-export function loadRiggedBoardTemplate(onReady, onError) {
+export function loadRiggedBoardTemplate(onReady, onError, loader = new GLTFLoader()) {
   // One fetch and parse per 3D scene; clones share immutable source geometry.
   const path = (process.env.PUBLIC_URL || '') + '/assets/surfers/quaternius-male-base.glb'
-  new GLTFLoader().load(path, loaded => {
+  loader.load(path, loaded => {
     const body = loaded.scene.getObjectByName('SuperHero_Male')
     if (!body?.isSkinnedMesh || !body.skeleton?.bones.length) {
       onError(new Error('The local surfer GLB has no valid skeleton'))
