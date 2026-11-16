@@ -78,4 +78,22 @@ describe('styled rigged avatar preview — cosmetic geometry only', () => {
       geometry.dispose()
     }
   })
+  test('male rashguard and female-presenting top use different color zones', () => {
+    const first = makeMockRig(), second = makeMockRig()
+    const male = decorateRiggedSurfer(first.root, { ...baseStyle, character: 'male' })
+    const female = decorateRiggedSurfer(second.root, { ...baseStyle, character: 'female' })
+    const maleColors = first.model.geometry.getAttribute('color').array
+    const femaleColors = second.model.geometry.getAttribute('color').array
+    // A vertex at y=1.2 is suit-colored for the rashguard but exposed skin
+    // for the cropped top. The underlying licensed body geometry is the same.
+    expect(maleColors[0]).not.toBeCloseTo(femaleColors[0])
+    expect(first.model.isSkinnedMesh && second.model.isSkinnedMesh).toBe(true)
+    male.dispose()
+    female.dispose()
+    first.geometry.dispose()
+    second.geometry.dispose()
+    first.material.dispose()
+    second.material.dispose()
+  })
+
 })
