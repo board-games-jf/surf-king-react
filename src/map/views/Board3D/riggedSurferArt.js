@@ -335,16 +335,16 @@ export function decorateRiggedSurfer(loadedScene, choices, presentation = {}) {
         node.geometry = originalGeometry
       })
       materials.forEach(m => m.dispose())
+      // Remove the hair subtree first: when a source rig has no head bone,
+      // it is still under owner and must not be traversed/disposed twice.
+      hairGroup.removeFromParent()
       const accessories = boardMode ? [owner, hairGroup, surfboard] : [owner, hairGroup]
-      // Hair can be parented to the skeleton, outside the accessory group.
-      // Dispose it exactly once, then detach from the (possibly reused) rig.
       accessories.forEach(accessory => {
         accessory.traverse(node => {
           if (node.geometry) node.geometry.dispose()
           if (node.material && !materials.includes(node.material)) node.material.dispose()
         })
       })
-      hairGroup.removeFromParent()
     }
   }
 }
