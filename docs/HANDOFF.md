@@ -13,7 +13,7 @@
 
 ## Active work — Issue #28 (not merged, not deployed)
 
-- Branch: `feat/28-female-surfer-and-poses`. Owner requested a genuinely distinguishable female/male face and alternatives to permanently outstretched arms.
+- [Draft PR #29](https://github.com/board-games-jf/surf-king-react/pull/29) / branch `feat/28-female-surfer-and-poses` is **not merged or deployed**. Owner requested a genuinely distinguishable female/male face and alternatives to permanently outstretched arms.
 - Imported **a distinct Quaternius Superhero Female skinned model** (65 joints) from the same CC0 *Universal Base Characters* pack as the male. Original `.gltf` geometry/bone binary was bundled into a self-contained GLB with neutral materials; see `docs/DATA_SOURCES.md` for source Git SHAs and conversion details.
 - `riggedBoardSurfers.js` selects gender-specific templates and loads both local GLBs once per 3D scene. Each active player gets an independent skeleton. Failure to load either model keeps its existing procedural board actor visible.
 - `surferPoses.js` provides deterministic **standing**, **relaxed** and **surfing** bone-offset poses. `riggedSurferArt.js` applies these relative to the original male/female bind poses and restores them on disposal; female hairstyle placement is adjusted to her separate head shape.
