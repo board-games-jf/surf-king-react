@@ -13,7 +13,7 @@
 
 ## Active visual refinement — Issue #13
 
-- Branch `feat/13-card-faithful-obstacle-effects` implements the owner-approved visual direction (SK-DEC-010) and remains **unmerged** until separately authorized.
+- Branch `feat/13-card-faithful-obstacle-effects` / [draft PR #17](https://github.com/board-games-jf/surf-king-react/pull/17) implements the owner-approved visual direction (SK-DEC-010) and remains **unmerged** until separately authorized.
 - Stone is now a mint-green faceted twin crag following `src/assets/cards/stone.png`; Island is orange sand with two leaning palms following `src/assets/cards/island.png`.
 - Removed opaque blue disk meshes beneath Shark, Storm and Cyclone; the shared scene ocean remains the water surface, with only local foam and wakes.
 - Storm uses five prebuilt jagged/branched lightning shapes with deterministic but irregular flash timing; Cyclone is taller and drifts smoothly within a bounded hex-center radius; Shark has a bounded moving fin and foam trail.
