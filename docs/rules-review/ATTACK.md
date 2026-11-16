@@ -59,10 +59,10 @@ A positional Drop In should resolve in this order:
 
 **Critical test:** At two starting energy, a strict loser losing candidate 1 energy **and** involuntarily entering a −1 Shark cell can fall instantly. This may be an excessive penalty; consider whether forced relocation should cause terrain effects only after testing the trade-off, **not** by silently exempting it. `Stone` blocks occupied-endpoint movement and `Cyclone` normally redirects arrivals, so occupied live-surfer swaps do not ordinarily land on those cells.
 
-**Return from fall:** A fallen surfer must not permanently block a cell; propose a short return at or near the fall location (never closer to the beach) with 2 energy on their next turn, losing that turn's maneuver. Exact safe destination choice and rescue-card interactions remain **open**, not approved. See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
+**Return from fall — P-12 refinement (NOT approved):** With exchange, terrain and fall already causing a positional setback, **do not also require a fully missed next turn**. Prefer a return at the start of the surfer's next personal turn on a **free hazard-free cell seaward of the fall location**, at **2 energy**, followed by a normal maneuver that same turn. No solid blocking while fallen. Edge-of-sea fallback, safe cell choice and rescue-card advantages still need confirmation. See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
 
 ## Next connected action
 
-**P-11 desk review completed:** Exchange-entry hazard rules and falling occupancy have an internally consistent candidate, but forced **attack + Shark** damage can knock a two-energy defender off immediately. Next design focus is whether to accept that severity or tune the forced relocation rule and safe fall re-entry. No new owner-approved Drop In rule beyond adjacent range and trial no-damage ties.
+**P-11/P-12 desk review:** A **1-energy surfer at Shark 28** attacking a **2-energy surfer at 35** wins on **55/216 = 25.46%**, loses on **125/216 = 57.87%**, ties on **36/216 = 16.67%** under 1 die vs 2 dice. A winning swap + forced Shark entry could make the two-energy defender fall. P-12 recommends a sea-ward position setback **without also losing the next entire turn**. Evaluate this high-risk/high-reward mechanic with rescue cards before any approval.
 
 **No game code edits, runtime tests, merge or deployment.**
