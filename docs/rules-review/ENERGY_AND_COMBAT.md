@@ -42,7 +42,7 @@ The owner proposed **5 or 6 maximum energy**, alongside **2 dice for attack and 
 
 **This is not a confirmed rule.** The earlier P-07 full-match variants assume a **tentative cap of 4** and a different dice rule. For any future comparison, explicitly test the same A/B/C gameplay options under the P-08 cap/dice hypothesis rather than silently treating P-08 as accepted.
 
-**Systemic concerns:** Starting energy stays **2 (approved)**, and 0 is a fall. Energy beyond 2 no longer increases per-roll odds, so the WAR-like army progression becomes primarily survivability. If each clash does only one damage, a five-energy player needs repeated successful hits to fall; sharks, Big Wave, healing cards, and re-entry need coordinated balancing. The tie outcome remains unresolved. No probability or match simulations executed.
+**Systemic concerns:** Starting energy stays **2 (approved)**, and 0 is a fall. Energy beyond 2 no longer increases per-roll odds, so the WAR-like army progression becomes primarily survivability. If each clash does only one damage, a five-energy player needs repeated successful hits to fall; sharks, Big Wave, healing cards, and re-entry need coordinated balancing. The owner has now accepted **ties without energy damage for this design trial**; final balancing remains open. No probability simulation or full-match playtest executed.
 
 ## Integrated 5-energy / two-dice test — P-09 (assistant proposal, NOT approved)
 
@@ -58,6 +58,12 @@ Under the proposed **two-dice cap**, energy **2 and 5 have the same roll distrib
 - Preserve beach victory; test a finite **10-round fallback** from P-07, and check whether it is fair with 2 and 7 participants.
 
 **Main open questions:** If nobody can get a usable card, a card-or-attack system can become a plain race; card availability and attack positioning matter. Two dice with single damage may lead to slow combat, so Drop In may need a simple *positional* payoff in a later candidate. Do not accept new combat/card rules without whole-game evaluation.
+
+## Confirmed trial refinement — no-damage ties (2026-11-16)
+
+**Owner explicitly chose to try a tie with no damage.** Within the experimental 5-energy, up-to-two-dice model, equal best results do not reduce **either** surfer's energy. This is **confirmed as a provisional design-trial rule only**, not a final permanent rule and not a request to alter the engine. The single-energy penalty on a strictly lost clash remains part of the linked assistant proposal, not separately confirmed.
+
+**Gameplay concern to test:** Non-damaging ties reduce early falls, but can make Drop In a weak way to stop a surfer approaching the beach. Review attack incentives, card supply, recovery strength, Shark/Big Wave damage, and a possible positional consequence **together**, without assuming a new attack effect is accepted.
 
 ## Next design review — complete match first
 
