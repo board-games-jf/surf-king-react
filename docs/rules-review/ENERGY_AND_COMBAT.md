@@ -34,8 +34,6 @@
 - Combat still has leader-strength snowball concerns (energy influences both dice count and survival); test card-based catch-up opportunities.
 - Rules for recovery after falling, positional deadlocks, compulsory movement and victory-time limit remain undecided.
 
-## Next one-question discussion
+## Next design review — complete match first
 
-**Would the owner prefer this simpler principle: ordinary movement neither costs nor grants energy, while playable cards are the primary way to gain energy?** The exact treatment of environmental rewards/hazards and the card deck would be discussed afterward.
-
-**Status:** Pending approval. No code modified, game tests executed, merge or deployment.
+The owner explicitly said the isolated P-05 energy question does not yet show how the entire match works. **Defer approval of P-05** and review the complete hypothetical match [COMPLETE_MATCH.md](COMPLETE_MATCH.md), including the central Shark crossing, dice/card effects, fall recovery, turn duration and match end. No code modified, game tests executed, merge or deployment.
