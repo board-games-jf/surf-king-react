@@ -219,6 +219,8 @@ export function decorateRiggedSurfer(loadedScene, choices) {
     const bone = loadedScene.getObjectByName(name)
     if (bone?.isBone) rest[name] = { bone, rotation: bone.rotation.clone(), quaternion: bone.quaternion.clone() }
   }
+  const zAxis = new THREE.Vector3(0, 0, 1)
+  const swingQuaternion = new THREE.Quaternion()
   const animate = (seconds, reduceMotion = false) => {
     const t = reduceMotion ? 0 : seconds
     if (rest.spine_02) rest.spine_02.bone.rotation.set(
@@ -236,9 +238,8 @@ export function decorateRiggedSurfer(loadedScene, choices) {
     for (const [name, swing] of [['upperarm_l', -1.18], ['upperarm_r', 1.18]]) {
       const joint = rest[name]
       if (joint) joint.bone.quaternion.copy(joint.quaternion).multiply(
-        new THREE.Quaternion().setFromAxisAngle(
-          new THREE.Vector3(0, 0, 1),
-          swing + Math.sin(t * .81 + swing) * .018
+        swingQuaternion.setFromAxisAngle(
+          zAxis, swing + Math.sin(t * .81 + swing) * .018
         )
       )
     }
