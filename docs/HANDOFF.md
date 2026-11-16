@@ -14,7 +14,7 @@
 
 ## Active board integration — Issue #26
 
-- [Draft PR #27](https://github.com/board-games-jf/surf-king-react/pull/27) / branch `feat/26-rigged-surfer-board` is **not merged or deployed**.
+- [PR #27](https://github.com/board-games-jf/surf-king-react/pull/27) / branch `feat/26-rigged-surfer-board` received **explicit owner merge authorization on 2026-11-16**. Confirm actual merged status in GitHub. **Deployment remains unauthorized.**
 - The styled GLB decorator was moved to the shared `src/map/views/Board3D/riggedSurferArt.js` so studio and board use the same mesh and materials.
 - Board presentation lays the cosmetic surfboard under the rider's feet, angles the figure sideways and scales the full model to fit the existing hex footprint.
 - `riggedBoardSurfers.js` loads the local GLB once per 3D scene and uses `SkeletonUtils.clone` for independent skinned riders. All seven original player colors remain identifiable on their boards; outfits/hairstyles use fixed preview presets, not a live-player profile.
@@ -27,4 +27,4 @@
 - **Added but not executed:** Jest tests for independent rig clones, colors, board footprint and load/fallback, plus existing studio tests updated to import the shared file.
 - **Pending:** install actual dependencies, run Jest and CRA build, inspect the GLB on the real WebGL board/catalog and mobile view, and evaluate surfing stance/readability from board camera height.
 - **Review path:** open `/#/catalog`, choose **Focus on the new 3D surfer**, then check an actual local 3D match and `/#/customize`. If GLB loading fails, inspect console and verify the old procedural fallback.
-- **Next:** complete those checks, correct visuals or performance, and request separate explicit merge authorization; deployment needs its own independent authorization.
+- **Next:** verify authorized PR #27 merge on `main`, then complete Jest/build and actual WebGL/browser/mobile checks, correcting visual or performance issues in a follow-up PR. Deployment remains separately unauthorized.
