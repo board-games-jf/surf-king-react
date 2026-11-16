@@ -135,6 +135,17 @@
 .surfer-preview-controls button[aria-pressed="true"] {
   background: #fff6cb; border-color: #e6ab37;
 }
+.surfer-pose-controls {
+  position: absolute; z-index: 3; top: 98px; left: 14px; right: 14px;
+  justify-content: center; pointer-events: auto; margin: 0;
+}
+.surfer-pose-controls button {
+  flex: 0 1 105px; background: #fff9ebef;
+  border-color: #bed4cb; box-shadow: 0 2px 7px #24525f30;
+}
+.surfer-pose-controls button[aria-pressed="true"] {
+  background: #c4f2ed; border-color: #edaf39;
+}
 .surfer-studio-stage-label {
   position: absolute; z-index: 2; top: 15px; left: 15px;
   display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
@@ -195,6 +206,8 @@
 }
 @media (max-width: 730px) {
   .surfer-preview-controls { top: 58px; left: 9px; right: 9px; }
+  .surfer-pose-controls { top: 108px; left: 9px; right: 9px; }
+  .surfer-pose-controls button { font-size: 11px; padding: 7px 6px; flex: 1 1 auto; }
   .surfer-preview-controls button { font-size: 11px; padding: 7px 6px; }
   .surfer-studio-stage-label { top: 10px; left: 10px; }
   .surfer-studio { padding: 12px; }
