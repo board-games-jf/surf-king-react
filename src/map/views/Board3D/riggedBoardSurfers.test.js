@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { createRiggedBoardSurfer, PLAYER_BOARD_COLORS } from './riggedBoardSurfers'
+import { createRiggedBoardSurfer, loadRiggedBoardTemplate, PLAYER_BOARD_COLORS } from './riggedBoardSurfers'
 
 function makeSkinnedTemplate() {
   const root = new THREE.Group()
@@ -84,4 +84,25 @@ describe('shared real rigged surfer integration for the 3D board', () => {
     const invalid = new THREE.Group()
     expect(() => createRiggedBoardSurfer(invalid, 0)).toThrow(/skinned character/)
   })
+  test('requests the same local GLB exactly once and accepts a valid skeleton', () => {
+    const { root, body, geometry } = makeSkinnedTemplate()
+    const success = jest.fn(), failure = jest.fn()
+    const loader = { load: jest.fn((path, resolve) => resolve({ scene: root })) }
+    loadRiggedBoardTemplate(success, failure, loader)
+    expect(loader.load).toHaveBeenCalledTimes(1)
+    expect(loader.load.mock.calls[0][0]).toMatch(/\/assets\/surfers\/quaternius-male-base\.glb$/)
+    expect(success).toHaveBeenCalledWith(root)
+    expect(failure).not.toHaveBeenCalled()
+    body.material.dispose()
+    geometry.dispose()
+  })
+
+  test('invalid loaded model safely reports an error instead of replacing fallback', () => {
+    const success = jest.fn(), failure = jest.fn()
+    const loader = { load: jest.fn((path, resolve) => resolve({ scene: new THREE.Group() })) }
+    loadRiggedBoardTemplate(success, failure, loader)
+    expect(success).not.toHaveBeenCalled()
+    expect(failure).toHaveBeenCalledWith(expect.any(Error))
+  })
+
 })
