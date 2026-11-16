@@ -80,6 +80,22 @@ flowchart LR
   Factory --> Three[Three.js meshes]
   Creator --> Store[Browser-local preview save]
 ```
+## Isolated rigged GLB character evaluation (Issue #22)
+
+The existing `/#/surfers` studio gallery has an opt-in compare control between the merged procedural `SurferViewer` and a separate `RiggedBaseViewer`. The new component lazy-loads Three.js `GLTFLoader` and reads `/assets/surfers/quaternius-male-base.glb` **from this repository**, fitting the imported skinned mesh to a studio frame. The original procedural model and the `/#/customize` interface remain untouched. The `createScene.js` live gameplay integration, map snapshot and game rules are unchanged.
+
+```mermaid
+flowchart LR
+  Gallery[Surfer gallery] --> Compare{Preview choice}
+  Compare --> Old[Existing procedural viewer]
+  Compare --> New[RiggedBaseViewer]
+  New --> Loader[Three.js GLTFLoader]
+  Loader --> Asset[Bundled GLB + original CC0 license]
+  Match[Local match] --> OldModel[Existing createSurferModel]
+```
+
+The GLB candidate is a static neutral base with rigging, **not a final animated or customizable surfer**. Browser/WebGL validation and art review are pending. Rollback is simple: remove the gallery comparison and asset without affecting local matches.
+
 ## Limits and validation
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.
