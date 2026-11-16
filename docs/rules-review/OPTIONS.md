@@ -24,6 +24,8 @@
 - Tentative **end-of-round 10 limit** to prevent infinite stalling; if no beach winner, closest to the beach wins (graph distance to the final cells). If equally close, higher energy wins; an exact tie is a shared draw. This is a *fallback*, not a proven balanced duration; 2–7 player testing needed. Specify completion at end of the entire round, not mid-round.
 - Existing damage cards such as Big Wave -2 should be evaluated for spikes against 2-energy starters; do **not** silently modify their effect in these proposals.
 
+**Latest trial refinement (P-12, not owner-approved):** The shared **"fallen surfer returns next turn but cannot move"** parameter above belongs to the older P-07 exercise. After analyzing a forced Drop In displacement into a Shark, the current preferred experiment is **fall → clear active occupancy → next personal turn respawn at 2 energy on a safe vacant sea-ward cell and move normally that turn**. Otherwise a single attack could combine a backward displacement, fall and an entire skipped turn in a very short race. See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md). The current P-10/P-11 positional exchange and P-12 recovery have **not** been approved by the owner.
+
 ## Three comparable complete alternatives
 
 | Rule | A — Card Race | B — Tactical Surf / WAR-like (**assistant's preferred playtest**) | C — Risky Sprint |
