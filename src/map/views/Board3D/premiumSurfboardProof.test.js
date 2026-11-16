@@ -29,10 +29,11 @@ describe('isolated sculpted surfboard quality proof (#33)', () => {
       expect(dimensions.z).toBeGreaterThan(.35)
       expect(dimensions.y).toBeGreaterThan(.2)
       expect(getPremiumBoardShape(type).length).toBeGreaterThan(1.5)
-      expect(fin.geometry.boundingBox || fin.geometry.computeBoundingBox()).toBeDefined()
+      fin.geometry.computeBoundingBox()
+      expect(fin.geometry.boundingBox.min.y).toBeLessThan(0)
 
       const stripeNormals = stripe.geometry.getAttribute('normal')
-      expect(stripeNormals.getY(0)).toBeGreaterThan(0)
+      expect(stripeNormals.getY(88)).toBeGreaterThan(0)
       const positions = hull.geometry.getAttribute('position')
       for (let i = 0; i < positions.count; i++) {
         expect(Number.isFinite(positions.getX(i))).toBe(true)
