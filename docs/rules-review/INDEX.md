@@ -46,6 +46,8 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 
 **Assistant P-17 revision to review, NOT approved:** On an unrecovered Shark fall, **immediately bounce back to the previously occupied safe tile** (28→21 if entering from 21), **end the current movement**, and **play normally on the next personal turn with 1 energy**. A rescue instead consumes Float/Fin and keeps the Shark tile at 2/1 energy, with no extra move. This maintains the real cost of the failed maneuver, prevents farming 2 energy by repeatedly falling, and still avoids multi-turn inactivity. Alternate safe oceanward tile if previous one is occupied/hazardous; forced displacement and re-entry edge cases remain open.
 
+**Clarification — no strategic reward for falling itself:** Under provisional Shark −1, an energy-2 surfer can **choose** a 7-maneuver Shark shortcut instead of an 8-maneuver safe route (survives at 1 energy, saves one move); an energy-1 surfer needs a held Float/Fin to **spend** for the shortcut; at energy 1 **without rescue**, the fall is certain and choosing the Shark would be a mistake, not a clever healing move. Even with Float/Fin, sacrificing a rare card just to save one move may be a weak payoff. **Do not add intentional fall-to-heal rewards**; examine route reward versus card cost. This is a design observation, not an accepted numerical rule.
+
 **Current status:** Preserve **SK-DEC-018 Accepted** (return next own turn at 2) until the owner accepts a change. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) P-17 for the exact issue and proposal.
 
 ## 5. Recommended integrated whole-match v0.1 — **assistant proposal only**
