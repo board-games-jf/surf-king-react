@@ -7,15 +7,16 @@
 
 ## North star
 
-**Frequent and dramatic falls, but no long recovery downtime**, within a **fast, easy-to-learn, portable, strategic, fun and replayable beach race**. This is the owner's explicitly clarified original gameplay identity (P-14). The assistant must lead integrated full-match design, prioritize **cost of falling** separately from **frequency of falling**, spot stalled loops and recommend a small coherent package. **Never ask the owner to solve isolated mechanics.**
+**Frequent and dramatic falls, but no long recovery downtime**, within a **fast, easy-to-learn, portable, strategic, fun and replayable beach race**. The owner **explicitly confirmed this as the project's gameplay direction** on 2026-11-16 (**SK-DEC-015 Accepted**). The assistant must lead integrated full-match design, prioritize **cost of falling** separately from **frequency of falling**, spot stalled loops and recommend a small coherent package. **Never ask the owner to solve isolated mechanics.**
 
 Keep one coherent whole-match candidate visible while considering one focused choice at a time. Separate proven mechanics, owner's decisions, experiments and open design proposals. Changes in this draft are **documentation only**.
 
-## 1. Owner-confirmed design rules
+## 1. Owner-confirmed design rules and product direction
 
 | Rule | Scope |
 | --- | --- |
 | All surfers **start at 2 energy** | Accepted product rule; see `docs/DECISIONS.md` **SK-DEC-014** on this draft branch |
+| **Frequent falls + rapid return to meaningful play** | **Approved overall direction, SK-DEC-015**; exact recovery/card/damage mechanics remain experimental |
 | **0 energy means falling off the surfboard** | Not resting; timing and method of recovery unresolved |
 | **No Rest mechanic** | No voluntary or automatic Rest action; forced inability to move needs a separate safety rule |
 | Normal movement in **any of six edge-sharing directions**, backward included | Any adjacency, occupancy or obstacle limitations still need review; displayed 18 → 15 was confirmed illegal |
@@ -61,7 +62,7 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 
 ## 5. Strategic pivot — the owner wants **frequent falls without stalling**
 
-**Owner clarification on 2026-11-16 (accepted design goal, NOT individual rule approval):** The initial game deliberately made surfers **fall many times**, but recovery mechanisms created stalls. The owner is encouraged by the tactical direction yet has lost the overview after multiple local tweaks. Preserve **fall frequency, suspense and meaningful insurance**, while removing **long periods unable to play**. **Do not redesign Surf King into a no-fall race.**
+**Owner clarification and explicit confirmation on 2026-11-16 (accepted direction SK-DEC-015, NOT individual rule approval):** The initial game deliberately made surfers **fall many times**, but recovery mechanisms created stalls. The owner is encouraged by the tactical direction yet has lost the overview after multiple local tweaks. Preserve **fall frequency, suspense and meaningful insurance**, while removing **long periods unable to play**. **Do not redesign Surf King into a no-fall race.**
 
 **Core design loop:** Start at 2 energy → maneuver toward beach → choose risky Shark shortcut, card or adjacent Drop In → perhaps fall → with rare rescue card preserve position and continue; without rescue lose position but **take a normal turn again soon** → contest leadership → beach victory. This is a **hypothesis for whole-match paper playtest**, not an implemented rulebook.
 
@@ -81,4 +82,4 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 4. Continue from the **Next action** above; report owner decisions in Portuguese and update Issue #11 comments and affected English draft Markdown for each material interaction.
 5. Never modify gameplay, merge, deploy or publish under this design-review epic. A separate scoped implementation issue and explicit owner approval will be needed after game rules are settled.
 
-**Decision ID note:** Latest `main` contains the additional accepted **SK-DEC-013 rigged 3D character evaluation**; the draft gameplay decision **2 starting energy** is now correctly **SK-DEC-014** to avoid colliding with an existing merged art decision. Preserve all upstream IDs.
+**Decision ID note:** `main` accepted **SK-DEC-013 rigged 3D character evaluation**; draft **SK-DEC-014** confirms 2 starting energy, and **SK-DEC-015** now records the owner-confirmed high-level gameplay identity. Preserve all upstream decisions and do not interpret SK-DEC-015 as acceptance of individual damage/return/card rules.
