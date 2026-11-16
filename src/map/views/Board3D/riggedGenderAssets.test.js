@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { getRiggedSurferAsset, RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
 
 function readGLB(name) {
   const data = fs.readFileSync(path.join(process.cwd(), 'public/assets/surfers', name))
@@ -30,6 +31,14 @@ describe('two genuinely distinct Quaternius character bases', () => {
     }))
     expect(female.buffers.every(buffer => !buffer.uri)).toBe(true)
     expect(female.images || []).toHaveLength(0)
+  })
+
+  test('uses the same gender asset selection for studio and board', () => {
+    expect(getRiggedSurferAsset('male')).toBe(RIGGED_SURFER_ASSETS.male)
+    expect(getRiggedSurferAsset('female')).toBe(RIGGED_SURFER_ASSETS.female)
+    expect(getRiggedSurferAsset('unknown')).toBe(RIGGED_SURFER_ASSETS.male)
+    expect(getRiggedSurferAsset('female').body).toBe('Superhero_Female')
+    expect(getRiggedSurferAsset('female').path).toMatch(/quaternius-female-base\.glb$/)
   })
 
   test('bundled pack license covers both authored bodies', () => {
