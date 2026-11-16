@@ -5,7 +5,8 @@ import { BOARD_LAYOUT } from '../../layout/boardLayout'
 import { createCoastalScenery } from './createCoastalScenery'
 import { createScenePrimitives, palette } from './scenePrimitives'
 import { createSurferModel } from './surfModels'
-import { PLAYER_BOARD_COLORS, createRiggedBoardSurfer, loadRiggedBoardTemplate } from './riggedBoardSurfers'
+import { PLAYER_BOARD_COLORS, createRiggedBoardSurfer, loadRiggedBoardTemplates } from './riggedBoardSurfers'
+import { PRESET_SURFERS } from './surferStyle'
 import { createObstacleModel } from './obstacleModels'
 import { createHexDepth } from './hexDepth'
 
@@ -164,13 +165,15 @@ export function createScene(container,onCellSelect,onError) {
   renderer.domElement.addEventListener('pointercancel',cancel)
   renderer.domElement.addEventListener('pointerleave',leave)
   const actors=new Map(),obstacles=new Map()
-  let riggedTemplate = null
+  const riggedTemplates = {}
   function upgradeSurfer(actor) {
-    if (!riggedTemplate || actor.avatar) return
+    const id = Number(actor.id)
+    const style = PRESET_SURFERS[(Number.isInteger(id) && id >= 0 ? id : 0) % PRESET_SURFERS.length]
+    if (!riggedTemplates[style.character] || actor.avatar) return
     try {
       // One independent bone hierarchy per rider; keep the existing procedural
       // model invisible as a safe fallback if GLB parsing or styling fails.
-      const avatar = createRiggedBoardSurfer(riggedTemplate, actor.id)
+      const avatar = createRiggedBoardSurfer(riggedTemplates, actor.id)
       actor.g.add(avatar.display)
       actor.legacy.group.visible = false
       actor.avatar = avatar
@@ -273,9 +276,9 @@ export function createScene(container,onCellSelect,onError) {
   camera.position.setFromSpherical(defaultOffset()).add(controls.target)
   controls.update()
   raf = requestAnimationFrame(frame)
-  loadRiggedBoardTemplate(template => {
+  loadRiggedBoardTemplates((character, template) => {
     if (disposed) {
-      // The asynchronous asset must not resurrect a disposed 3D scene.
+      // The asynchronous asset must never resurrect a disposed 3D scene.
       template.traverse(node => {
         if (node.geometry) node.geometry.dispose()
         if (node.material) (Array.isArray(node.material) ? node.material : [node.material])
@@ -283,11 +286,11 @@ export function createScene(container,onCellSelect,onError) {
       })
       return
     }
-    riggedTemplate = template
+    riggedTemplates[character] = template
     actors.forEach(upgradeSurfer)
-  }, error => {
-    // An unavailable optional asset must never block a playable 3D/2D match.
-    if (!disposed) console.warn('Rigged surfers unavailable; retaining legacy models:', error)
+  }, (character, error) => {
+    // Failure of one gender never prevents other surfers from rendering.
+    if (!disposed) console.warn('Using procedural ' + character + ' surfer fallback:', error)
   })
 
   function zoom(scale) {
@@ -310,5 +313,5 @@ export function createScene(container,onCellSelect,onError) {
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);if(riggedTemplate)riggedTemplate.traverse(collect);geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }
