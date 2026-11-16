@@ -1,35 +1,38 @@
 # Project Handoff
 
-**Last direct GitHub verification:** 2026-11-16
+**Last direct GitHub review:** 2026-11-16
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Original feature base commit:** `6c80c80b28b6d115b3d2267e9462c2cc91fc6311` (interactive board catalog PR #16 merged). A newer `main` includes local startup work (PR #19).
+**Current main at work start:** `e4e083f9035e314eb2107bd1cca448292cc4629e` (PR #17, card-faithful obstacle refinement).
 
-## Existing game
+## Current integrated state
 
-- React 18 / CRA 5 local `boardgame.io` game with 53 hexagon IDs and selectable 2D/Three.js views. Card actions and game turns stay in the game engine.
-- The 3D board uses shared procedural models and an ocean/beach scene; the public map snapshot supplies real in-game obstacles and players.
-- The `/#/obstacles` individual viewer and `/#/catalog` interactive full-board showroom reuse the same 3D constructors. The showroom has illustrative placements, not an authoritative match.
-- PR #14 merged the first version of the five 3D obstacles; PR #16 merged the board showroom. Both still require real browser/Jest/build verification.
+- The local boardgame.io game has 53 hex cell IDs, both 2D and Three.js views, and a shared public rendering snapshot.
+- The Three.js map renders procedural surfers and obstacles from `src/map/views/Board3D/`. The `/#/catalog` route reuses these live game models as a design sandbox with illustrative placements.
+- Obstacle visual direction is approved and integrated via PRs #14 and #17; do not reopen obstacle art without a new owner request.
+- The online multiplayer and AI game flows are not active; changes to game rules are not in scope for the current visual work.
 
-## Active visual refinement — Issue #13
+## Active work — Issue #20
 
-- Branch `feat/13-card-faithful-obstacle-effects` / [draft PR #17](https://github.com/board-games-jf/surf-king-react/pull/17) implements the owner-approved visual direction (SK-DEC-010) and is authorized for merge by the project owner on 2026-11-16. Confirm its actual merged status on GitHub; deployment was not authorized.
-- Stone is now a mint-green faceted twin crag following `src/assets/cards/stone.png`; Island is orange sand with two leaning palms following `src/assets/cards/island.png`.
-- Removed opaque blue disk meshes beneath Shark, Storm and Cyclone; the shared scene ocean remains the water surface, with only local foam and wakes.
-- Storm uses five prebuilt jagged/branched lightning shapes with deterministic but irregular flash timing; Cyclone is taller and drifts smoothly within a bounded hex-center radius; Shark has a bounded moving fin and foam trail.
-- No game rules, matchmaking, server code, cards, textures, or external services changed.
+- Branch `feat/20-refine-3d-surfers` is **not merged or deployed**. First reviewable iteration improves `surfModels.js` without changing the exported `createSurferModel()` contract.
+- Surfboards now use a bevelled, tapered procedural hull and shape-based deck stripe, rear grip and swept underside fin. Existing seven player colors are unchanged.
+- Riders have a deterministic multi-frequency balance pose: torso/head/arms/stance and slight board pitch. No model allocates new meshes per animation frame.
+- The existing real match and board catalog consume the same model factory; no separate fake assets were added.
 
-## Evidence and open validations
+## Validation
 
-- Relevant code and original card images were read directly from GitHub.
-- Actual production code was evaluated in a lightweight Three.js geometry mock; all five constructors and animation callbacks passed. Pure drift sampling stayed within a radius of 0.319 units. This **does not** verify WebGL rendering.
-- New Jest tests cover silhouettes, removal of opaque bases, bounded drift, irregular lightning, and finite animated transforms. **Jest suite and build were not run** because the project dependencies are not present here.
-- Browser evaluation of shaders, animation quality, performance and touch controls remains pending. The older issue #15 catalog checks also remain pending.
-- Separate issue #11 and draft PR #12 discuss game rules; do not merge rules work as part of the visual refinement.
+- The updated model source and new tests passed JavaScript syntax checks.
+- The **actual model source** was instantiated and animated in a lightweight mocked Three.js environment for seven player variants; hull color, expected named geometry and finite sample poses passed.
+- Added Jest tests for colored hulls, board geometry, footprint, smooth pose, seven variants and retention of the shark animation API. **Jest was not run**; npm dependencies, production build and real browser WebGL evaluation remain pending.
+- Before merging, verify front/back board direction, avatar leg/foot contact, camera-distance readability, mobile performance and no regression in the 2D/3D switch.
 
-## Next actions
+## Other open work
 
-1. Confirm GitHub PR #17 merge status and run Jest/build in a full project environment.
-2. Inspect `/#/catalog` and `/#/obstacles` in a real WebGL browser, confirm card resemblance and adjust individual models if needed.
-3. Test a live local 3D match, multiple same-type obstacles, hover and turn badges, and the 2D fallback.
-4. Merge was explicitly authorized on 2026-11-16. **Deployment still requires separate explicit authorization.**
+- Issues #7, #13 and #15 remain open for technical integration/validation checks; these are separate from artistic sign-off.
+- Issue #11 / draft PR #12 are reserved for rules review and should not be mixed into surfboard refinement.
+- The approved MVP, canonical board coordinates, complete rules acceptance and test/build baselines are not yet settled.
+
+## Next action
+
+1. Review the Issue #20 draft PR's real meshes in `/#/catalog` and a local 3D game.
+2. Run Jest, production build and WebGL smoke checks with the app dependencies installed; record failures and adjust the visual model.
+3. Request explicit approval before merging; **no deployment is authorized**.
