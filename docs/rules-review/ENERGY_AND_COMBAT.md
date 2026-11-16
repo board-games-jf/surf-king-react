@@ -34,6 +34,16 @@
 - Combat still has leader-strength snowball concerns (energy influences both dice count and survival); test card-based catch-up opportunities.
 - Rules for recovery after falling, positional deadlocks, compulsory movement and victory-time limit remain undecided.
 
+## Candidate balance shift P-08 — 2026-11-16 (not approved)
+
+The owner proposed **5 or 6 maximum energy**, alongside **2 dice for attack and defense instead of 3**. Current code has maximum energy 4 and rolls `energy` dice, not a fixed 3.
+
+**Assistant's preferred test:** **5 maximum energy** and **up to 2 dice on either side** (one die at energy 1, two dice at energy 2–5), comparing the highest die and inflicting at most 1 energy damage in a Drop In. This distinguishes **energy capacity** from **dice count**, preventing five-energy surfers from automatically rolling five dice. At 5 vs 2 energy, both roll two dice, so the 5-energy surfer has more staying power but not a larger dice pool. It is faster and less swingy than comparing 5 pairs. Six maximum energy may extend matches unnecessarily.
+
+**This is not a confirmed rule.** The earlier P-07 full-match variants assume a **tentative cap of 4** and a different dice rule. For any future comparison, explicitly test the same A/B/C gameplay options under the P-08 cap/dice hypothesis rather than silently treating P-08 as accepted.
+
+**Systemic concerns:** Starting energy stays **2 (approved)**, and 0 is a fall. Energy beyond 2 no longer increases per-roll odds, so the WAR-like army progression becomes primarily survivability. If each clash does only one damage, a five-energy player needs repeated successful hits to fall; sharks, Big Wave, healing cards, and re-entry need coordinated balancing. The tie outcome remains unresolved. No probability or match simulations executed.
+
 ## Next design review — complete match first
 
 The owner explicitly said the isolated P-05 energy question does not yet show how the entire match works. **Defer approval of P-05** and review the complete hypothetical match [COMPLETE_MATCH.md](COMPLETE_MATCH.md), including the central Shark crossing, dice/card effects, fall recovery, turn duration and match end. No code modified, game tests executed, merge or deployment.
