@@ -56,8 +56,18 @@ This supports **Shark −1 as a provisional trade-off**: with the approved 2 sta
 
 The assistant's new **P-10 (NOT approved)** aims to make Drop In worth using: on a strict attacker win, allow an **optional attacker/defender hex exchange that counts as the attacker's single normal maneuver**, along with the candidate 1 damage to the defender. A challenger at energy 2 and leader at 5 still roll two dice each; winning only 1 energy damage would not affect the leader's odds or distance, whereas exchange can change who is ahead. Exchanging onto hazard cells cannot be treated as a free Shark bypass; resolve obstacle triggering before approving.
 
+## P-11 — Combined attack damage and forced hazard entry (NOT approved)
+
+In the P-10 optional occupied-cell exchange, both surfers would resolve the terrain **once on arrival**, including a surfer forced into the attacker's former hex. If the defender strictly loses the dice and is moved into a Shark or Storm, they can lose the proposed **1 energy from combat plus 1 from terrain**. This can cause an instant fall from the approved **2-energy starting strength**, even though the independent Shark / Big Wave damage is being considered for reduction to 1. **This is the biggest newly identified balance conflict.**
+
+Recommendation for the *first* trial: keep the simple "every entrance activates terrain" principle, but **do not approve any additional forced-entry damage cap or immunity yet**. In a controlled desk scenario, compare this occasional two-point combo against the strategic risk of voluntarily remaining on a hazardous cell; decide whether it is fun, readable and fair. The exchange itself stays optional for the attacker, and using it consumes the normal maneuver.
+
+**Fall/re-entry safety:** When reduced to zero, a surfer should cease to occupy an active board cell; no solid fallen blocker should cause a jam. A short return on the next personal turn at 2 energy (without that turn's move), using the fall location if free or the nearest safe unoccupied water hex no closer to the beach, remains a *candidate only*. The tile-selection tie-break, obstacle effects during re-entry, and Lifeguard Float / Swimming Fin advantages need separate specification. The current code cannot be assumed to implement any of this.
+
+See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md) for exact example cells, order of operations and 2–7-player stress cases.
+
 ## Next integrated action
 
-The first tabletop/geometric stress review now supports investigating **P-10 optional positional exchange**; see [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md). Next validate **hazards on exchanged positions**, fall occupancy/return, counter-exchange loops and 2–7-player turns before recommending approval. Keep all unapproved mechanics provisional.
+The P-11 desk review suggests terrain should trigger once on **every** position exchange entry, and any surfer who reaches zero should vacate the hex (proposals, not approved). This reveals a possible **two-point combined hit** on a forced defender entering a Shark/Storm after losing combat; test its fairness alongside the promised comeback and rescue cards **before** finalizing positional Drop In. See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
 
 **No gameplay code edits, gameplay tests, merge or deployment.**
