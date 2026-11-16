@@ -118,12 +118,12 @@ describe('card silhouette and environmental motion', () => {
       const positions = []
       for (const time of [0, 1.3, 3, 5.6]) {
         model.update(time, 13)
-        let sumX = 0
+        let positionSum = 0
         model.object.traverse(node => {
           expect(node.position.toArray().every(Number.isFinite)).toBe(true)
-          sumX += node.position.x
+          positionSum += node.position.x + node.position.y + node.position.z
         })
-        positions.push(sumX)
+        positions.push(positionSum)
       }
       expect(new Set(positions.map(x => x.toFixed(3))).size).toBeGreaterThan(1)
     }
