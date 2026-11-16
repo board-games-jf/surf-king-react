@@ -6,7 +6,7 @@
 
 ## P-14 — Restore the game's original identity: frequent falls, minimal downtime
 
-**2026-11-16 owner clarification:** The original Surf King was intentionally designed for surfers to **fall often**, but the old fall/recovery system caused stalled matches. The owner likes the new direction but has lost the full-picture connection to the original game and needs the assistant to lead coherent design. This **changes the priority of the review**: do not optimize for **few falls**; optimize for **frequent, dramatic falls with immediate strategic consequences and no extended inactivity**. It is an **accepted design goal**, not approval of specific rules or numerical values.
+**2026-11-16 owner clarification and confirmation:** The original Surf King was intentionally designed for surfers to **fall often**, but the old fall/recovery system caused stalled matches. The owner likes the new strategic direction and subsequently explicitly confirmed: **"Esse é o direcionamento."** The approved gameplay north star is **frequent, dramatic falls, immediate tactical consequences, and no long recovery downtime** in a fast, simple, strategic race. See **SK-DEC-015 (Accepted)** in draft `docs/DECISIONS.md`. This does **not** approve specific fall placement, timing, combat damage, rescue-card reactions or numerical values.
 
 **North-star loop for a later playtest:**
 `move toward beach → choose risk (Shark shortcut / card / adjacent Drop In) → possible fall → quick rejoin with a position cost (or spend limited rescue to preserve progress) → move and contest again → first to beach wins`.
@@ -70,4 +70,4 @@ The **P-13 optional immediate reaction** makes the held card's value more visibl
 
 **Review a single risky Shark shortcut with and without each rescue card**, and compare position after the next personal turn. Then test one forced position exchange causing a fall, including the case where the player can choose not to spend a rescue card. If the rescue card saves insufficient progress, consider **more distance lost on ordinary falls** before adding new movement actions or extra complexity.
 
-**Status:** Owner's overarching goal is now explicitly **frequent falls, rapid re-entry, strategic card insurance, and a match that keeps moving** (P-14 design north star). P-12/P-13 timing, effects and comeback are still **assistant proposals**. No game code changed, Jest tests run, match playtest, merge or deployment.
+**Status:** Owner **confirmed** the original high-frequency-fall, quick-recovery gameplay identity (**SK-DEC-015 Accepted**). P-12/P-13 timing, precise positions, rescue-card effects and the whole-match balance remain **assistant proposals**. No game code changed, Jest tests run, match playtest, merge or deployment.
