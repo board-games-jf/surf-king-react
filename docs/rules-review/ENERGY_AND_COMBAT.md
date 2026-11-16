@@ -24,7 +24,7 @@
 | Big Wave / Sunburn | Big Wave −2; Sunburn −1 | Big Wave **−1** is candidate only; test against 2 starting energy |
 | Energy card / Energy x2 / Energy x3 | +1 / +2 / +3 | Consider capping healing per card at +2, not approved |
 | Coconut | Restore to energy cap | Potentially overpowered at new cap 5; rework or restrict only if needed |
-| Lifeguard Float / Swimming Fin | Rescue from fall, restore +2 / +1 | Need review alongside automatic return rules |
+| Lifeguard Float / Swimming Fin | Rescue from fall, restore +2 / +1; deck has 4 of each (8/64 total) | **P-13 proposed optional immediate fall reaction**, preserving resolved position instead of seaward fallback; distinct strength (+2 vs +1), not approved |
 | Bottled Water | Prevents the cost of a normal maneuver | Becomes redundant if normal movement becomes free; redesign/removal needs approval |
 | Card acquisition | Initial 2 cards; later card supply often follows a maneuver | Must preserve meaningful choices without random-draw domination |
 
@@ -36,7 +36,7 @@
 
 **Damage/hazards:** first trial candidate: Shark −1, Big Wave −1, Storm −1. Be careful not to make hazards harmless; their purpose is to create a risk/reward path decision. Island currently restores +2, which may need controls to stop cycling and farming.
 
-**Recovery:** being at zero means fallen. Experiment with a guaranteed short comeback (return at 2 energy next personal turn, losing that maneuver), **not Rest**. Rescue cards should provide an advantage but should never be the only way to resume play. Recovery timing is not approved.
+**Recovery, updated P-12/P-13 candidates:** On real damage bringing energy to zero, the owner wants rescue cards to make **risking a fall a strategic choice**. P-13 proposes optional **immediate Lifeguard Float (+2)** or **Swimming Fin (+1)** as a reaction even on an opponent's turn, preserving the cell reached by the completed triggering effect and not giving a new maneuver. Without a card, P-12 returns the surfer from a nearby safe seaward cell next own turn at 2 energy **with the normal maneuver available**. The older 'miss next turn entirely' suggestion is superseded for exploration, not approved. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
 
 **Match pressure:** first to beach wins, with a finite-round fallback only as a candidate. The approximately seven-step geometric shortest route means fights must affect position or momentum, not just wear down health too slowly.
 
@@ -66,8 +66,16 @@ Recommendation for the *first* trial: keep the simple "every entrance activates 
 
 See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md) for exact example cells, order of operations and 2–7-player stress cases.
 
+## P-13 — Deliberate risk because rescue cards exist (owner idea; effects unapproved)
+
+The owner explicitly wants **sometimes accepting a fall to be worthwhile when holding a rescue card**, while keeping the mechanic easy to learn. Current deck contains **4 Lifeguard Float (+2)** and **4 Swimming Fin (+1)** cards out of **64**. The likelihood that a random 2-card opening hand contains at least one is about **23.61%** (not a playtest measurement); receiving an early rescue is not guaranteed.
+
+**Assistant response:** The rescue card should work as a **reaction when a real hazard or attack reduces energy to 0**; spent card preserves the resulting position and restores its existing +2 / +1 energy, with **no extra movement, action or draw**. Without a card, a player has a guaranteed normal P-12 fallback that loses position but does not skip an entire turn. This differentiates the cards from auto-recovery and gives a player reason to *save* one for a Shark shortcut or hard Drop In. Do **not** add a voluntary "fall to heal" move or let saving undo an already resolved exchange. Card-trigger timing, ocean-edge fallback, number of rescues per action and repeated terrain effects remain to be balanced.
+
+**The current engine does not implement the reaction mechanic**: cards are used in the card phase only once the player is marked fallen, and `pass()` includes an unrelated fall-recovery path. Treat both as code facts, not approvals. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
+
 ## Next integrated action
 
-The P-11/P-12 desk review suggests that destination terrain triggers once on **every** exchanged arrival, and a fallen surfer vacates. A forced defender may suffer **two-point combined damage** (combat + Shark/Storm), knocking them off from 2 energy. But a 1-energy attacker on Shark 28 versus a 2-energy defender on 35 has only a **25.46%** strict-win chance and a **57.87%** strict-loss/fall chance; this creates meaningful risk/reward. **P-12's positional setback with next-turn movement** is preferred to prevent a triple penalty. Check comeback fairness, sea-edge fall, rescue cards and match length together. See [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
+The owner's new direction is **calculated fall risk with rescue in hand**. The recommended next paper scenario compares **no card**, **Swimming Fin (+1)** and **Lifeguard Float (+2)** for the same Shark shortcut or a P-10 forced position exchange. Reactions must make the card valuable but not create an extra move or free teleport. Also check the already identified combined Shark/combat hit (potential immediate fall from 2 energy), a 25.46% underdog attack win at 1d6 vs 2d6, safe return and card scarcity. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) and [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md).
 
 **No gameplay code edits, gameplay tests, merge or deployment.**
