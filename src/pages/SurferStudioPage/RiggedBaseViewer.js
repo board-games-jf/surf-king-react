@@ -1,10 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { normalizeSurferStyle } from '../../map/views/Board3D/surferStyle'
 
-// Isolated review of a licensed, rigged GLB base; the procedural game renderer is unchanged.
-export default function RiggedBaseViewer() {
+// Uses the real local, rigged Quaternius GLB. Neither this component nor its
+// experimental artwork is used in a live match.
+export default function RiggedBaseViewer({ style, styled = false }) {
   const holder = useRef(null)
+  const live = useRef(null)
+  const latest = useRef({ style, styled })
   const [error, setError] = useState(null)
   const [ready, setReady] = useState(false)
+  latest.current = { style, styled }
 
   useEffect(() => {
     let cancelled = false
@@ -12,36 +17,37 @@ export default function RiggedBaseViewer() {
     Promise.all([
       import('three'),
       import('three/examples/jsm/loaders/GLTFLoader.js'),
-      import('three/examples/jsm/controls/OrbitControls.js')
-    ]).then(([THREE, { GLTFLoader }, { OrbitControls }]) => {
+      import('three/examples/jsm/controls/OrbitControls.js'),
+      import('./riggedSurferArt')
+    ]).then(([THREE, { GLTFLoader }, { OrbitControls }, { decorateRiggedSurfer }]) => {
       if (cancelled || !holder.current) return
       const scene = new THREE.Scene()
-      scene.add(new THREE.HemisphereLight('#fffaf0', '#67a7a5', 2.2))
-      const sun = new THREE.DirectionalLight('#fff1d7', 2.1)
-      sun.position.set(-3, 6, 4)
+      scene.add(new THREE.HemisphereLight('#fffdf2', '#4f9d9b', 2.1))
+      const sun = new THREE.DirectionalLight('#fff0d0', 2.3)
+      sun.position.set(-3.5, 6, 4.5)
       scene.add(sun)
-      const rim = new THREE.DirectionalLight('#c4efff', 1.05)
-      rim.position.set(4, 2, -3)
+      const rim = new THREE.DirectionalLight('#a8e5f3', 1.15)
+      rim.position.set(4, 3, -3)
       scene.add(rim)
 
-      const camera = new THREE.PerspectiveCamera(37, 1, .05, 40)
-      camera.position.set(2.7, 2.15, 3.4)
+      const camera = new THREE.PerspectiveCamera(35, 1, .05, 40)
+      camera.position.set(2.35, 1.75, 3.55)
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
-      renderer.toneMappingExposure = 1.1
-      renderer.domElement.setAttribute('aria-label', 'Rotatable rigged GLB character base')
+      renderer.toneMappingExposure = 1.08
+      renderer.domElement.setAttribute('aria-label', 'Real rigged 3D surfer and surfboard; drag to rotate')
       renderer.domElement.style.cssText = 'width:100%;height:100%;display:block;touch-action:none'
       holder.current.appendChild(renderer.domElement)
 
       const controls = new OrbitControls(camera, renderer.domElement)
       controls.enableDamping = true
       controls.enablePan = false
-      controls.target.set(0, .88, 0)
-      controls.minDistance = 1.8
+      controls.target.set(.16, .91, 0)
+      controls.minDistance = 2.15
       controls.maxDistance = 7
-      controls.maxPolarAngle = Math.PI * .75
+      controls.maxPolarAngle = Math.PI * .76
       controls.update()
 
       const resize = () => {
@@ -57,68 +63,89 @@ export default function RiggedBaseViewer() {
       if (observer) observer.observe(holder.current)
       else window.addEventListener('resize', resize)
 
-      let raf = 0
-      function frame() {
-        raf = requestAnimationFrame(frame)
-        controls.update()
-        renderer.render(scene, camera)
-      }
-      frame()
+      let loadedScene = null
+      let currentGroup = null
+      let currentArt = null
+      let fingerprint = ''
+      const updateLook = (options, renderStyled) => {
+        if (!loadedScene) return
+        const next = JSON.stringify({ renderStyled, style: renderStyled ? normalizeSurferStyle(options) : null })
+        if (next === fingerprint) return
+        fingerprint = next
+        if (currentArt) {
+          currentArt.dispose()
+          currentArt = null
+        }
+        if (currentGroup) scene.remove(currentGroup)
+        loadedScene.removeFromParent()
 
-      const disposeModel = model => {
-        model.traverse(node => {
-          if (node.geometry) node.geometry.dispose()
-          if (node.material) {
-            const materials = Array.isArray(node.material) ? node.material : [node.material]
-            materials.forEach(material => material.dispose())
-          }
-        })
+        currentGroup = new THREE.Group()
+        if (renderStyled) {
+          currentArt = decorateRiggedSurfer(loadedScene, options)
+          currentGroup.add(currentArt.display)
+        } else {
+          currentGroup.add(loadedScene)
+        }
+        // The imported base is 1.81m tall; accessories stay in the same units.
+        currentGroup.name = renderStyled ? 'styled-surfer-review' : 'rigged-base-review'
+        scene.add(currentGroup)
       }
       const assetPath = (process.env.PUBLIC_URL || '') + '/assets/surfers/quaternius-male-base.glb'
       new GLTFLoader().load(assetPath, loaded => {
         if (cancelled) {
-          disposeModel(loaded.scene)
+          loaded.scene.traverse(node => {
+            if (node.geometry) node.geometry.dispose()
+            if (node.material) {
+              const mats = Array.isArray(node.material) ? node.material : [node.material]
+              mats.forEach(material => material.dispose())
+            }
+          })
           return
         }
-        const model = loaded.scene
-        let riggedMeshes = 0
-        model.traverse(node => { if (node.isSkinnedMesh && node.skeleton?.bones.length) riggedMeshes++ })
-        if (!riggedMeshes) {
-          disposeModel(model)
-          setError('O GLB não contém uma malha com esqueleto válido.')
+        let hasSkin = false
+        loaded.scene.traverse(node => {
+          if (node.isSkinnedMesh && node.skeleton?.bones.length) hasSkin = true
+        })
+        const bounds = new THREE.Box3().setFromObject(loaded.scene)
+        if (!hasSkin || bounds.isEmpty() || !Number.isFinite(bounds.max.y)) {
+          setError('O GLB não tem malha articulada e dimensões válidas.')
           return
         }
-        const bounds = new THREE.Box3().setFromObject(model)
-        const size = bounds.getSize(new THREE.Vector3())
-        if (bounds.isEmpty() || size.y <= 0 || !Number.isFinite(size.y)) {
-          disposeModel(model)
-          setError('O GLB não tem dimensões válidas.')
-          return
-        }
-        const center = bounds.getCenter(new THREE.Vector3())
-        const display = new THREE.Group()
-        const scale = 1.8 / size.y
-        display.scale.setScalar(scale)
-        display.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale)
-        display.add(model)
-        scene.add(display)
+        loadedScene = loaded.scene
+        updateLook(latest.current.style, latest.current.styled)
+        live.current = { updateLook }
         setReady(true)
       }, undefined, cause => {
         if (!cancelled) setError('Não foi possível carregar o modelo GLB: ' + (cause?.message || 'Erro de carregamento'))
       })
+
+      let raf = 0
+      const clock = new THREE.Clock()
+      const reduceMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      function frame() {
+        raf = requestAnimationFrame(frame)
+        if (currentArt) currentArt.animate(clock.getElapsedTime(), reduceMotion)
+        controls.update()
+        renderer.render(scene, camera)
+      }
+      frame()
 
       dispose = () => {
         cancelAnimationFrame(raf)
         if (observer) observer.disconnect()
         else window.removeEventListener('resize', resize)
         controls.dispose()
-        scene.traverse(node => {
-          if (node.geometry) node.geometry.dispose()
-          if (node.material) {
-            const materials = Array.isArray(node.material) ? node.material : [node.material]
-            materials.forEach(material => material.dispose())
-          }
-        })
+        if (currentArt) currentArt.dispose()
+        if (loadedScene) {
+          loadedScene.traverse(node => {
+            if (node.geometry) node.geometry.dispose()
+            if (node.material) {
+              const mats = Array.isArray(node.material) ? node.material : [node.material]
+              mats.forEach(material => material.dispose())
+            }
+          })
+        }
+        live.current = null
         renderer.dispose()
         renderer.domElement.remove()
       }
@@ -131,12 +158,16 @@ export default function RiggedBaseViewer() {
     }
   }, [])
 
+  useEffect(() => { live.current?.updateLook(style, styled) }, [style, styled])
+
   return (
     <div className="surfer-viewer" ref={holder} role="img"
-      aria-label="Real imported rigged GLB character base; drag to rotate and scroll to zoom">
+      aria-label="Imported 3D surfer model; drag to rotate and scroll to zoom">
       {error && <div className="surfer-viewer-error" role="alert">{error}</div>}
-      {!error && !ready && <div className="surfer-viewer-error" role="status">A carregar o modelo GLB local...</div>}
-      <span className="surfer-viewer-hint" aria-hidden="true">↻ Rodar · Scroll para zoom · Modelo-base sem roupa de surf</span>
+      {!error && !ready && <div className="surfer-viewer-error" role="status">A carregar o surfista 3D...</div>}
+      <span className="surfer-viewer-hint" aria-hidden="true">
+        ↻ Rodar · Scroll para zoom · {styled ? 'Visual Surf King experimental' : 'Base GLB original'}
+      </span>
     </div>
   )
 }
