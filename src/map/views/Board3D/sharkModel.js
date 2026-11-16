@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { sampleSharkAnimation } from './surfModels'
 
-// A single dorsal fin remains the visual language for the shark obstacle.
+// The shark is deliberately represented by a dorsal fin, not an entire body.
 export default {
   defaults: { color: '#527a92' },
   create({ settings, helpers }) {
@@ -43,16 +43,35 @@ export default {
     inset.position.z = .093
     inset.name = 'shark-fin-accent'
 
-    const wake = helpers.ripple(object, .40)
+    // Only partial foam trails: the water surface itself belongs to the map.
+    const wake = helpers.ripple(object, .38)
+    const trailingFoam = helpers.ripple(object, .56)
+    trailingFoam.scale.set(.88, .68, .88)
+    const bubble = helpers.mesh(
+      new THREE.IcosahedronGeometry(1, 1), '#c6f5e9', body,
+      { transparent: true, opacity: .84, depthWrite: false })
+    bubble.scale.set(.057, .022, .044)
+    bubble.position.set(-.23, .045, .10)
+
     return {
       object,
-      update(time, phase) {
+      update(time, phase = 0) {
         const pose = sampleSharkAnimation(time, phase)
-        body.position.set(pose.x, .12 + pose.bob, pose.z)
-        body.rotation.set(0, pose.heading, pose.roll)
-        wake.position.set(pose.x, .10, pose.z)
-        wake.rotation.z = -pose.heading
+        // Overlaid smooth frequencies create a non-repeating, bounded glide.
+        const x = pose.x + .17 * Math.sin(time * .61 + phase * .43)
+        const z = pose.z + .17 * Math.sin(time * .47 + phase * .71 + 1.5)
+        const heading = pose.heading + .18 * Math.sin(time * .36 + phase)
+        body.position.set(x, .12 + pose.bob + .013 * Math.sin(time * 1.1 + phase), z)
+        body.rotation.set(0, heading, pose.roll)
+        finRoot.rotation.z = .04 * Math.sin(time * 1.1 + phase)
+
+        wake.position.set(x, .035, z)
+        wake.rotation.z = .3 - heading
         wake.scale.set(pose.rippleScale, pose.rippleScale * .86, 1)
+        trailingFoam.position.set(x - .10, .025, z - .09)
+        trailingFoam.rotation.z = 1.7 - heading
+        const ripple = 1 + Math.sin(time * 1.4 + phase) * .09
+        trailingFoam.scale.set(.88 * ripple, .68 * ripple, 1)
       }
     }
   }
