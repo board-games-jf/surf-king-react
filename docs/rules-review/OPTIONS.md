@@ -76,7 +76,7 @@ The owner **agreed to experiment with P-08 (5 energy maximum, up to 2 dice per s
 
 Prefer the **short, tactical turn spirit of B**, but **suspend B's repeatable free +1 energy action** for this paper-playtest. Otherwise every surfer could reach energy 5 by their third +1 action, before the central Shark crossing. With only one damage per lost fight, the energy economy could become too defensive.
 
-Test a single active turn as: **optional 1 card OR 1 adjacent Drop In → mandatory legal one-hex move without energy cost → draw 1 card** (to hand cap). At energy 1 roll 1 die; at energy 2–5 roll 2; compare highest; only a strict loser loses 1 energy; **ties without damage** is a *new provisional* option. At 0, the surfer falls. Initial hazard/card candidates: Shark -1, Big Wave -1; test whether Energy x3 and Coconut should be capped to +2 rather than full restoration. Fallen recovery and a full-round cutoff remain pending, with temporary values from P-07 for tabletop scenarios.
+Test a single active turn as: **optional 1 card OR 1 adjacent Drop In → mandatory legal one-hex move without energy cost → draw 1 card** (to hand cap). At energy 1 roll 1 die; at energy 2–5 roll 2; compare highest; only a strict loser loses 1 energy; **ties without energy damage** has since been **accepted by the owner for this design trial**, not finalized. At 0, the surfer falls. Initial hazard/card candidates: Shark -1, Big Wave -1; test whether Energy x3 and Coconut should be capped to +2 rather than full restoration. Fallen recovery and a full-round cutoff remain pending, with temporary values from P-07 for tabletop scenarios.
 
 **Why this package:** Keeps turns moving and combats short without allowing effortless repeated healing. Card luck remains a risk; do not claim this variant balanced without testing. Track whether successful Drop In should eventually have a **positional reward** to make attacks more important than conserving energy.
 
@@ -84,6 +84,6 @@ See [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md) and [ATTACK.md](ATTACK.md) for 
 
 ## Next discussion
 
-**Evaluate the entire P-09 tabletop trial together** (especially card restoration, Shark crossing and comeback) before confirming any unapproved mechanics or picking a final A/B/C version. No gameplay code changes, tests, merges or deployment.
+**Next epic-level scenario:** In a short seven-step race, compare an attacker with 2 energy to a leader with 5 energy under 2-dice, no-damage-tie combat. Determine whether a **strictly successful Drop In also needs a simple positional effect** to alter race outcome. Examine alongside Shark/Big Wave, card healing, falls and turn pacing before proposing any finalized rule. The owner requested the assistant lead this cross-system analysis and maintain Issue #11 plus the [INDEX.md](INDEX.md) hub for continuity. No gameplay code changes, tests, merges or deployment.
 
 **Change boundary:** Only draft rules-review Markdown and Issue #11 may change under this review. Do **not** change application/game code, run or claim tests, merge, or deploy.
