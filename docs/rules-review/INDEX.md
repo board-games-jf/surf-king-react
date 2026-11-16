@@ -31,13 +31,13 @@ Keep one coherent whole-match candidate visible while considering one focused ch
 
 The trial has not yet been playtested or proved balanced. Approval to **try** these does not authorize implementing or merging anything.
 
-## 3. Current coherent working package — P-09 to P-12, **assistant proposals only**
+## 3. Current coherent working package — P-09 to P-13, **assistant proposals only**
 
 - Start at 2 energy, trial cap 5, edge-adjacent geometry, no Rest, fall at 0.
 - Per active turn, **optionally play one card OR attempt one adjacent Drop In**, then make one legal **free normal maneuver** when possible; draw a card after moving. No separate free repeatable +1-energy choice (it would produce 2 → 5 in only three personal turns).
 - Experimental Drop In: up to two d6 per surfer, compare the highest results; **tie without energy loss** (owner accepted for trial); a strictly lower result loses **1 energy** (damage value still an assistant proposal). **P-10 candidate:** when the attacker strictly wins, they may exchange hexagons with the defender; if used, this consumes the attacker's regular maneuver, avoiding a double step (not approved). **P-11 candidate:** resolve combat damage before exchanging, apply terrain once for **both entering surfers**, and remove any fallen surfer's solid board occupancy; if the defender falls from the attack, the attacker can instead move into the freed adjacent cell as their one maneuver (not approved).
 - Proposed first-pass obstacle/card retune: **Shark -1**, **Big Wave -1** instead of their currently implemented -2; review energy-restoration cards (+3 and full refill), Island +2 and Bottled Water's now-obsolete waiver.
-- **Updated P-12 fall-return proposal:** falling vacates the active hex. Rejoin on the next personal turn at **2 energy** in the closest **empty, hazard-free cell toward the sea**, then **take a normal maneuver that turn**. This replaces the earlier proposal to also skip the next entire turn; a positional setback already delays progress. Exact sea-edge and blocked-hex fallback remain open. Proposed victory safety: first to beach wins, with a **10-round** positional fallback. **Neither re-entry nor round limit has been approved.**
+- **P-13 strategic-rescue recommendation, not approved:** on reaching 0, a player may spend **Lifeguard Float (+2)** or **Swimming Fin (+1)** as an **immediate reaction, including on another player's turn**, to **preserve their resolved cell** and avoid the seaward fall setback; no extra maneuver or card draw. **Without / declining a rescue**, use the P-12 candidate: vacate active cell, return next own turn at 2 energy in the closest **empty hazard-free cell toward the sea** and take the normal maneuver that turn. Rescue must not undo an already resolved swap or trigger a duplicate hazard. The exact timing and sea-edge fallback remain open. [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md). Proposed victory safety: first to beach wins, with a **10-round** positional fallback; no recovery/endgame rules have been finalized.
 
 ### Known linked failure modes
 
@@ -54,26 +54,24 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 | --- | --- |
 | Board / movement | Direction and true adjacency accepted; other restrictions open — [MOVEMENT.md](MOVEMENT.md) |
 | Drop In / dice | Range accepted; cap/tie experimental; P-10 optional exchange proposed — [ATTACK.md](ATTACK.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md) |
-| Energy / cards / hazards | Start 2 accepted; cap 5 experimental; economy/card balance pending — [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md) |
+| Energy / cards / hazards | Start 2 accepted; cap 5 experimental; recovery cards now part of P-13 tactical balance — [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md), [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) |
 | Turn structure / anti-stall | No Rest accepted; full loop, forced blocks and finite ending pending — [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
 | Complete-match design | A/B/C alternatives, P-09 core and P-10 positional stress review — [OPTIONS.md](OPTIONS.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md); earlier [COMPLETE_MATCH.md](COMPLETE_MATCH.md) |
-| Victory and comeback | Beach victory as implemented; final rule, rounds, tie-break and re-entry open — [OPTIONS.md](OPTIONS.md) |
+| Victory and comeback | P-12 normal return vs P-13 reaction rescue under review; victory/round cap open — [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [OPTIONS.md](OPTIONS.md) |
 
-## 5. Verified desk findings and next design action
+## 5. Latest owner insight — a rescue card should make falling a calculated risk
 
-**Board path trade-off:** From engine cell 0 to beach 49, **7 edge-adjacent moves via Shark 28** or **8 edge-adjacent moves avoiding all four initial Sharks**. Hazard risk versus a one-move detour is already an organic choice in the provisional board layout.
+**2026-11-16 owner concept:** Falling must remain **simple and strategic**. Sometimes it should be worthwhile to take a risky line or Drop In **because the surfer holds a fall-recovery card**. This is a design direction; the owner has **not** explicitly approved new rescue timing, movement exemptions or respawn rules.
 
-**Combat comparison:** With the owner-accepted **no-damage tie trial** and experimental 2-dice cap, energy 2 vs 5 combat produces a strict attacker win **38.97%**, strict loss **38.97%**, tie **22.07%**. A damage-only win from 5 to 4 energy would not change the leader's position or dice. P-10's **optional adjacent-cell exchange on strict attacker win, using that attacker's one maneuver** (NOT approved) can make attacking worthwhile.
+**Verified current cards:** `Lifeguard float` currently returns **+2 energy** only if already fallen; `Swimming fin` returns **+1**. The current deck has **4 copies of each in 64 total**: 8 rescue cards (12.5% of deck), and ~**23.61%** chance a uniformly dealt 2-card starting hand contains at least one. Thus cards are scarce enough to matter but not guaranteed. Their present card-phase timing would not be a reliable surprise reaction to an opponent's turn.
 
-**P-11 edge case (NOT approved):** On a winning exchange, the candidate combat damage happens first; if the defender reaches 0, they fall and vacate, and the attacker may enter the freed hex as their one movement. If both survive, exchange simultaneously and resolve terrain **once for both entering surfers**. If an involuntarily displaced defender enters Shark/Storm, proposed damage can combine: **−1 attack + −1 terrain**, possibly a fall from **2 energy**.
+**Assistant proposal P-13 (NOT owner approved):** A recovery card is **optional immediate fall insurance**, triggered only when real damage reduces energy to zero. Float restores 2 energy; Fin restores 1; each **preserves the position reached by the causing event**, but neither grants an extra move/card/action. Without a rescue card or if declined, the surfer falls off the board and uses the earlier P-12 next-turn seaward setback/2-energy return with a normal turn. This makes rescue worthwhile without letting players farm energy by voluntarily falling. **The card must not undo an opponent's already resolved displacement or restart hazard effects.**
 
-**P-12 scenario and revised recommendation (NOT approved):** With attacker **1 energy on Shark 28** versus defender **2 energy on adjacent 35**, the attacker rolls 1 die vs 2; strict win **55/216 = 25.46%**, loss/fall **125/216 = 57.87%**, tie **36/216 = 16.67%**. A rare win can cause the defender to fall from combined attack and Shark effects, while a failed attack likely knocks out the one-energy attacker. This is high risk/high reward, but **combining a backward displacement, fall and a missed next turn** could become unfairly punitive.
+**Why this replaces the previous next action:** The owner identified the missing strategic purpose of rescue cards. The old P-12 return alone could make both rare rescue cards weak. Playtest **one Shark shortcut with no card, Fin and Float**, then one P-10 forced Shark exchange to resolve card reaction timing and anti-exploit safety.
 
-**Assistant's preferred fall return:** a fallen surfer does **not** occupy/block a cell; on their next personal turn, return with **2 energy** to the nearest **empty hazard-free cell oceanward of the fall checkpoint** and **play the normal maneuver that turn**. This replaces the older candidate of losing an entire turn *in addition* to a positional setback. The exact deterministic return placement, ocean-edge exception and rescue-card rewards remain open.
+**Open:** Rescues after falls during another player's turn; exact position after positional exchange; immediate reaction before vacancy; at most one rescue per fall event; safe ocean-edge fallback; whether rescue preserves too much position late in a 7–8-step race. **No card/fall rules beyond the owner-accepted 0-energy fall have been finalized.**
 
-**Next evaluation:** Test a Shark-driven fall with P-12 return, contrasting a successful rescue card, a contested starting edge and a 7-player crowded board. Then decide whether double hazard+combat damage and the P-10 swap are acceptable as a **whole package**, rather than accepting their individual numbers. No implementation/playtest or new owner approvals.
-
-**Detailed evidence:** [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md), [ATTACK.md](ATTACK.md), [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md).
+**Source:** [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md), [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md). No gameplay code/tests or match playtests executed.
 
 ## 6. How to resume in a new conversation
 
