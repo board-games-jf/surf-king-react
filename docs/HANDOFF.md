@@ -15,7 +15,7 @@
 
 ## Active visual work — Issue #24
 
-- Branch `feat/24-styled-rigged-surfer` / [draft PR #25](https://github.com/board-games-jf/surf-king-react/pull/25) is **not merged or deployed**.
+- Branch `feat/24-styled-rigged-surfer` / [PR #25](https://github.com/board-games-jf/surf-king-react/pull/25) received **explicit owner merge authorization on 2026-11-16**. Confirm actual merge status in GitHub. **No deployment is authorized.**
 - New `riggedSurferArt.js` decorates the same skinned GLB body/skeleton with surfwear/skin color zones, smoothly shaped hair, a cosmetic board and a relaxed arm pose.
 - `RiggedBaseViewer` reuses the loaded local GLB for styled and original modes. The gallery offers styled GLB / original GLB / procedural comparisons.
 - `/#/customize` defaults to the styled GLB; the existing hairstyle, skin, outfit and board controls change this preview without re-downloading the asset. Previous procedural models remain available as fallback.
@@ -27,4 +27,4 @@
 - `riggedSurferArt.js` source passed JavaScript syntax parsing. Executed the actual production styling module against a lightweight Three.js API mock for **9 hair/board combinations**: all constructed, animated and restored the skinned rig/materials/geometry after disposal. Added targeted Jest art/cleanup tests and updated React studio tests, but these **have not been executed in Jest**.
 - CRA build, Jest, actual GLTFLoader/WebGL rendering, mobile presentation and visual quality still need validation in the application.
 - Next: run `npm test -- --watchAll=false` and `npm run build`, then open `/#/surfers` and `/#/customize` at desktop and mobile sizes to review the new model.
-- The branch requires separate explicit merge approval. **No deployment is authorized.** Issue #24 stays open pending visual and technical review.
+- The owner explicitly authorized PR #25 merge on 2026-11-16. **No deployment is authorized.** Issue #24 stays open pending Jest/build/WebGL and visual review.
