@@ -1,7 +1,7 @@
 # Rule Review — Energy, Cards, Obstacles and Comeback
 
 **Epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) | **Rules hub:** [INDEX.md](INDEX.md) | **Draft PR:** [#12](https://github.com/board-games-jf/surf-king-react/pull/12)
-**Status:** Initial energy **2 is accepted** (`SK-DEC-014`, draft DECISIONS). Cap **5**, up to **2 combat dice** and no-damage ties are **owner-accepted experiments**, not finalized game rules.
+**Status:** Initial energy **2 accepted** (`SK-DEC-016`); **Shark-specific fall/rescue/re-entry defined** (`SK-DEC-018`), both in the draft DECISIONS. Cap **5**, up to **2 combat dice** and no-damage ties remain **owner-accepted experiments**, not finalized combat rules.
 
 ## Confirmed design foundations
 
@@ -34,7 +34,7 @@
 
 **Combat:** at energy 1 roll one die; at 2–5 roll two; compare highest. **Equal best results cost no energy (owner accepted for trial)**; a strict loss costs one (assistant candidate). A full-health 5-energy rival is tougher to knock down but does not have more dice than an energy-2 rival.
 
-**Damage/hazards:** first trial candidate: Shark −1, Big Wave −1, Storm −1. Be careful not to make hazards harmless; their purpose is to create a risk/reward path decision. Island currently restores +2, which may need controls to stop cycling and farming.
+**Damage/hazards:** current integrated P-15 candidate tests Shark −1, **Big Wave −2** (retain as a strong fall threat), Storm −1; earlier all-−1 variants are historical, not accepted. Be careful not to make hazards harmless; their purpose is to create a risk/reward path decision. Island currently restores +2, which may need controls to stop cycling and farming.
 
 **Recovery, updated P-12/P-13 candidates:** On real damage bringing energy to zero, the owner wants rescue cards to make **risking a fall a strategic choice**. P-13 proposes optional **immediate Lifeguard Float (+2)** or **Swimming Fin (+1)** as a reaction even on an opponent's turn, preserving the cell reached by the completed triggering effect and not giving a new maneuver. Without a card, P-12 returns the surfer from a nearby safe seaward cell next own turn at 2 energy **with the normal maneuver available**. The older 'miss next turn entirely' suggestion is superseded for exploration, not approved. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
 
@@ -83,6 +83,12 @@ The owner explicitly wants **sometimes accepting a fall to be worthwhile when ho
 **Preferred guiding loop:** The surfer should actively make tactical decisions every personal turn (except any unresolved truly blocked turn); if a real attack or hazard causes a fall, the immediate consequence is **loss of progress**, with a rare rescue card proposed as insurance to preserve an advanced cell. At most one core fall penalty for each event; do not compound a missed entire turn and extra backward penalties on top of the fall. Without cards, returning must remain possible and useful. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) P-14.
 
 **Next evaluation:** Paper-test the same 3-player complete race with at least a few falls under the old full-turn skip versus the proposed next-turn active recovery. Inspect match pacing and how much a rescue card saves before asking for any damage-number approvals.
+
+## Accepted Shark-specific fall resolution — SK-DEC-018 (design only)
+
+If entering a Shark reduces energy to 0, a surfer can **immediately discard Lifeguard Float to remain on the Shark at 2 energy, or Swimming Fin to remain there at 1 energy**, without triggering the same entry effect again or earning extra movement. Otherwise the surfer vacates the Shark cell; **at the beginning of the next own turn**, return at **2 energy** to an unoccupied obstacle-free adjacent tile **toward the sea** (`28 → 21` if safe), or the nearest safe vacant oceanward tile without moving closer to the beach if directly blocked. The player can **move normally that same turn**, without a skipped inactive turn. Exact re-entry selection and fall marker handling are recorded in [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
+
+**Only falls caused by Sharks are covered by this accepted rule.** Drop In, Big Wave, Storm and any combined terrain/combat effects continue in holistic design review. The amount of Shark damage itself is still not finalized; no engine change has occurred.
 
 ## Next integrated action
 
