@@ -2,7 +2,7 @@
 
 **Current accepted Shark-specific rule: SK-DEC-020 (design only, NOT implemented).** Earlier P-12/P-13/P-16/P-17/P-18 experiments are historical; all non-Shark recovery/combat interactions remain under review. This file is not an accepted complete rulebook or authorization to implement.
 **Epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) | [INDEX.md](INDEX.md) | [Draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12)
-**Source verified:** `main` `df81076781a7a70845dbe079f7a8ca21a79d35e6` on 2026-11-16, `src/game/Cards.js` and `src/game/SurfKingGame.js` (deck, card-use, energy and fall functions). **No gameplay tests or playtest run.**
+**Source verified:** `main` `aac50d222a3437200bcd4886eb90f29e537dfc65` on 2026-11-16, `src/game/Cards.js` and `src/game/SurfKingGame.js` (deck, card-use, energy and fall functions). **No gameplay tests or playtest run.**
 
 ## P-14 — Restore the game's original identity: frequent falls, minimal downtime
 
@@ -33,7 +33,7 @@
 1. On entering a Shark tile, take **2 energy damage** once. If energy falls to 0, **fall there and remain on that Shark tile**: no backward movement, no teleport to another hex.
 2. **Wait until the start of that surfer's next personal turn** for the recovery decision, rather than interrupting another player as an immediate reaction.
 3. At that turn start, automatically stand up on the **same Shark tile** with **1 energy**, or optionally discard **Swimming Fin** for **2 energy total** or **Lifeguard Float** for **3 energy total**. These are recovery totals, **not** +2 or +3 on top of another bonus. Each card is +1 / +2 on top of the normal 1-energy recovery baseline.
-4. **Recovery card use consumes the normal tactical card/action choice for that own turn**, not a separate bonus play. **Regardless of card choice**, the surfer may perform their **normal single legal maneuver** during that return turn. No bonus movement, second attack or extra card draw is granted merely by recovery.
+4. **Whether a recovery card consumes the normal tactical card/action choice is still open**; recovery itself does not grant a bonus movement, second attack or extra card draw. **Regardless of card choice**, the surfer may perform their **normal single legal maneuver** on that return turn.
 5. **Standing up is not a new entry** into the Shark tile: never re-trigger the same −2 damage simply because the surfer recovered there. If they later leave and enter a Shark tile again, that is a new entry and the −2 applies again.
 
 **Why it is strategic:** A Shark shortcut can save a movement relative to a longer detour, but at **2 energy** a Shark's **−2 causes a fall**; on recovery without a card the surfer is vulnerable at **1 energy**, and scarce cards can improve survival to 2 or 3. **There is no positional penalty for an unsaved Shark fall**. The intended trade-off is vulnerability; a later tabletop test must verify this is sufficient danger and card value.
