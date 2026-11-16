@@ -27,7 +27,7 @@
 | Movement and hex adjacency | **In discussion** | [MOVEMENT.md](MOVEMENT.md) |
 | Movement direction (forward/backward) | **Owner-confirmed** | [MOVEMENT.md](MOVEMENT.md) |
 | Attack / drop-in adjacency and resolution | **Range owner-confirmed; dice pending** | [ATTACK.md](ATTACK.md) |
-| Energy and recovery | **0 energy = fall confirmed; economy under review** | [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
+| Energy and recovery | **WAR-like progression proposed; start amount open** | [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md) |
 | Turns, action order and replenishment | **Rest removed; core-loop redesign pending** | [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
 | Card effects and durations | Not started | — |
 | Forced movement, obstacles and boundary cases | Not started | — |
@@ -45,7 +45,7 @@
 
 ## Next question
 
-**Integrated finding (2026-11-16):** a seven-maneuver geometric route exists from start to goal, but starting energy is 4 and each normal maneuver costs 1, so an unassisted surfer falls before reaching the goal (the central Shark row increases risk). Free movement would avoid travel attrition but make the current Bottled Water effect redundant and change energy-card and drop-in balance. **Next:** compare coherent movement/energy/combat/card packages and recommend one compact turn loop. **No movement-cost rule has been approved.** See [TURNS_AND_PACING.md](TURNS_AND_PACING.md).
+**Next focused decision:** Owner suggested WAR/Risk-like energy as accumulated combat strength and considered starting at 1 with gains from movement/cards. Assistant proposes **starting at 2**, free normal movement and +1 (max 4) only on entering a new personal furthest-forward row, plus cards. This is **P-04, not approved**. First validate the starting-energy value, then the gain rule and related card/attack rebalancing. See [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md).
 
 **Deferred:** The drop-in dice tie decision remains pending until we address the all-pass stalemate.
 
@@ -64,3 +64,4 @@ No gameplay code, production deployment, tests, or merger is authorized by this 
 - **2026-11-15:** Owner questioned whether optional Rest is needed at all; P-02 was proposed and then superseded, not approved.
 - **2026-11-16:** Owner clarified 0 energy causes a fall and explicitly removed Rest as a mechanic. Owner requested holistic balance for fast, portable, fun, replayable and strategic games. Next: review movement/energy/combat/card economy as a complete loop; free movement is only an assistant proposal.
 - **2026-11-16:** Assistant verified a seven-step start-to-goal geometric path and key interactions: only four starting energy, shark bottleneck, and current Bottled Water card losing its purpose if ordinary movement becomes free. Holistic balance analysis recorded; no new rule approved.
+- **2026-11-16:** Owner proposed WAR/Risk-like energy representing combat force and suggested a one-energy start with growth via progress or cards. Assistant recommends investigating a two-energy start with +1 only on new forward personal-best rows (P-04); avoid one-hit initial falls and backward/forward energy farming. No rule approved.
