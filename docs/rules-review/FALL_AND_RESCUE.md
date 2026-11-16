@@ -6,7 +6,7 @@
 
 ## P-14 — Restore the game's original identity: frequent falls, minimal downtime
 
-**2026-11-16 owner clarification and confirmation:** The original Surf King was intentionally designed for surfers to **fall often**, but the old fall/recovery system caused stalled matches. The owner likes the new strategic direction and subsequently explicitly confirmed: **"Esse é o direcionamento."** The approved gameplay north star is **frequent, dramatic falls, immediate tactical consequences, and no long recovery downtime** in a fast, simple, strategic race. See **SK-DEC-015 (Accepted)** in draft `docs/DECISIONS.md`. This does **not** approve specific fall placement, timing, combat damage, rescue-card reactions or numerical values.
+**2026-11-16 owner clarification and confirmation:** The original Surf King was intentionally designed for surfers to **fall often**, but the old fall/recovery system caused stalled matches. The owner likes the new strategic direction and subsequently explicitly confirmed: **"Esse é o direcionamento."** The approved gameplay north star is **frequent, dramatic falls, immediate tactical consequences, and no long recovery downtime** in a fast, simple, strategic race. See **SK-DEC-017 (Accepted)** in draft `docs/DECISIONS.md`. This does **not** approve specific fall placement, timing, combat damage, rescue-card reactions or numerical values.
 
 **North-star loop for a later playtest:**
 `move toward beach → choose risk (Shark shortcut / card / adjacent Drop In) → possible fall → quick rejoin with a position cost (or spend limited rescue to preserve progress) → move and contest again → first to beach wins`.
@@ -23,6 +23,24 @@
 **Practical playtest acceptance questions (NOT measured yet):** Can a player fall multiple times and remain engaged? Does a no-card fall still allow a normal action on their next turn? Does a rescue card preserve meaningful progress? Can a 5-energy leader still be disrupted without needing five separate attacks? Do backward loops, repeated Shark entries, full hands, and seven-player crowding terminate fairly? Quantify **falls per player, inactive turns, board progress, rescue effectiveness and total rounds** in a future rules prototype. Do not prescribe a numerical fall rate without actual playtest evidence.
 
 **Immediate next step:** Freeze **this design target** and compare one full 3-player race using the same hazards/cards under **quick recovery** versus **old skipped-turn recovery**; identify whether the sole blocker was time lost or accumulated movement/energy costs. Then assess 2-, 4- and 7-player cases. **No code is authorized**, so this remains a written design exercise.
+
+## P-16 — Shark fall and return: owner-requested definitive design rule
+
+**Status: ACCEPTED AS A DESIGN RULE, NOT IMPLEMENTED — SK-DEC-018 (2026-11-16).** The owner explicitly asked to **settle now** whether a surfer knocked off by a Shark stays on its hex or moves backward. The following is the closed rule for **a fall caused by Shark terrain**; extending it verbatim to falls from attack, Big Wave and other terrain still requires its own review.
+
+**Simple rule the player sees:** **"Shark knocked you off? Spend a rescue to stay, or return one safe hex toward the sea next turn with 2 energy. You never lose the whole next turn."**
+
+1. **A Shark event brings energy to zero:** It triggers exactly once upon **entering** the Shark hex. The surfer is shown falling there. Immediately offer **one optional rescue card** from their hand.
+2. **Lifeguard Float:** Discard it and **stay on that same Shark hex at 2 energy**; the Shark does not damage again until the surfer subsequently **leaves and re-enters**. No additional action, draw, or movement.
+3. **Swimming Fin:** Identical, but **stay at 1 energy**. The distinct amount matters because under the ongoing two-dice experiment 1 energy rolls only one die.
+4. **No rescue or card declined:** The player is now **fallen and not occupying** the Shark hex (a temporary fall animation/marker may show the original landing). They cannot be attacked or block normal occupancy there. The current action ends if they fell during their own maneuver.
+5. **Start of their next personal turn:** Automatically re-enter at **2 energy** on the **vacant, obstacle-free hex one legal edge-adjacent step toward the sea** from their fall hex. If there are several, prefer the same lane/column, then the lowest cell ID. The example `28 (Shark) → 21 (safe)` is valid when cell 21 is empty and obstacle-free.
+6. **Blocked direct backward cell:** Select the **closest empty obstacle-free hex** in the oceanward half of the board that is **not closer to the beach** than the fall location; prioritize minimal number of legal adjacent steps from the checkpoint, then the closest lane/column, then lowest cell ID. If a fall occurs at the starting sea boundary with no oceanward tile, choose a free safe starting-row hex instead. Do not re-enter onto a Shark, Storm, Cyclone, Island or Stone tile (avoid repeated damage, free bonus, or obstructed return), nor on another surfer.
+7. **The returning player immediately takes their usual turn**, including one normal legal maneuver. The automatic sea-ward re-entry is the **position penalty**, not an extra earned movement. **No mandatory Rest or additional skipped turn.** No card is required to continue participating.
+
+**Important safeguards:** Recovery is triggered by a genuine fall, not a voluntary "fall for healing" action. No Shark effect may recur simply from rescuing at the same tile; it triggers on new entry only. A rescue does not undo a previously completed attacker/defender displacement or grant a second normal move. The mechanics for an unrescuable collision with other hazards or forced Drop In relocation have not been accepted merely by fixing Shark falls.
+
+**Rationale:** A deliberate Shark shortcut is still dangerous and a rescue card has a clear use: it prevents a **loss of progress**. A player who has no rescue is not penalized by entire inactive rounds. This is the least complex complete answer to the owner's concrete Shark example. **Do not mistake design approval for code implementation or proven balance.**
 
 ## Owner's expressed gameplay direction (not yet specific rule approval)
 
@@ -70,4 +88,4 @@ The **P-13 optional immediate reaction** makes the held card's value more visibl
 
 **Review a single risky Shark shortcut with and without each rescue card**, and compare position after the next personal turn. Then test one forced position exchange causing a fall, including the case where the player can choose not to spend a rescue card. If the rescue card saves insufficient progress, consider **more distance lost on ordinary falls** before adding new movement actions or extra complexity.
 
-**Status:** Owner **confirmed** the original high-frequency-fall, quick-recovery gameplay identity (**SK-DEC-015 Accepted**). P-12/P-13 timing, precise positions, rescue-card effects and the whole-match balance remain **assistant proposals**. No game code changed, Jest tests run, match playtest, merge or deployment.
+**Status:** **SK-DEC-017** confirms the fall-heavy/no-downtime vision, and **SK-DEC-018** now defines **the Shark-specific** optional rescue/no-rescue return. General P-12/P-13 behavior after attacks, cards and other terrain and all balance values remain **unapproved**. No game code changed, Jest tests run, match playtest, merge or deployment.
