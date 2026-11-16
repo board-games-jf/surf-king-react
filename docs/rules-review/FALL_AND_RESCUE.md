@@ -42,6 +42,24 @@
 
 **Rationale:** A deliberate Shark shortcut is still dangerous and a rescue card has a clear use: it prevents a **loss of progress**. A player who has no rescue is not penalized by entire inactive rounds. This is the least complex complete answer to the owner's concrete Shark example. **Do not mistake design approval for code implementation or proven balance.**
 
+## P-17 — Challenge to the accepted one-hex / 2-energy Shark comeback (PROPOSED REVISION, not approved)
+
+**Owner objection, 2026-11-16:** "mas se volta pra onde tava qual o sentido?" The owner questions the meaningful penalty when a Shark fall at cell 28 sends a surfer to 21 and on the very next turn they can maneuver straight back into 28. This is a substantive gameplay concern, **not explicit approval** to change SK-DEC-018. Keep SK-DEC-018 as the last accepted design rule until an owner decision.
+
+**What SK-DEC-018 currently costs:** A fall on the 21→28 entry is followed by oceanward return to 21, then a normal 21→28 move next personal turn. This costs one net forward maneuver versus a successfully rescued surfer who stays at 28, and **triggers the Shark again** on re-entry. It does not leave the surfer permanently behind. With the accepted return at **2 energy**, a player who repeatedly enters the Shark at 1 energy may gain energy from the fall/recovery loop, while failing to advance, so there is a **potential energy-farming incentive** to validate.
+
+**Assistant recommendation to investigate, P-17 (NOT accepted):** Make the loss of momentum and energy explicit without adding a skipped *future* turn:
+1. A fall on entering a Shark **cancels that maneuver**, **immediately knocks the surfer back to the preceding safe vacant cell** (e.g. **28 → 21** if they came from 21), and **ends their current movement/action**. No vanishing marker or delayed placement is needed. If that tile is no longer valid, use the nearest safe vacant oceanward tile.
+2. The surfer re-enters active play on their **next personal turn with only 1 energy**, but takes their full normal turn/maneuver. This is **not Rest**, and no new cards or movements are granted by falling.
+3. If a Float/Fin is available when the Shark would cause a fall, the surfer may spend it **instead of being knocked back**, preserving the reached Shark tile at 2/1 energy with no retrigger or bonus movement, matching the rescue choice already accepted in SK-DEC-018.
+4. When back at 21, the player can **retry the Shark** (and trigger its hazard on re-entry) or **take a safe detour**. Both are meaningful choices. 1-energy re-entry prevents intentionally falling from 1 energy just to refill to 2, and maintains the danger of the shortcut.
+
+**Why not retreat two hexes or skip the whole next turn?** A seven-maneuver shortest path gives a one-move setback a real opportunity cost; a two-move retreat **plus** a weak return could be too punishing with the owner's desired frequent falls. Likewise, a skipped next turn recreates the original stalled recovery. Test P-17 against SK-DEC-018 and adjust only with an explicit owner decision.
+
+**Open edge cases:** A forced Shark entry not resulting from the surfer's own maneuver may have no well-defined previous tile; selecting a safe vacant oceanward tile must then be deterministic. Ocean boundary fallback should not reward intentional falling. A rescue cannot retroactively undo a completed Drop In swap. A 1-energy return may feel too vulnerable without another safe path, especially in seven-player congestion.
+
+**Decision boundary:** P-17 is an **assistant proposal prompted by owner feedback**, not a replacement approved rule. The existing SK-DEC-018 remains current until the owner confirms a revision.
+
 ## Owner's expressed gameplay direction (not yet specific rule approval)
 
 The owner wants a **simple, highly strategic fall mechanic** where a player may **intentionally accept the risk of falling** because they hold a rescue card: an aggressive Drop In or a hazardous shortcut can be worth taking when the player has a planned comeback. Do not mistake this for approval of a button to fall voluntarily, a free energy refill, or a particular respawn rule.
