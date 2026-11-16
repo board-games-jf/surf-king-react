@@ -7,9 +7,9 @@ jest.mock('./SurferViewer', () => function MockSurferViewer({ style }) {
   return <div data-testid="surfer-style">{JSON.stringify(style)}</div>
 })
 
-jest.mock('./RiggedBaseViewer', () => function MockRiggedBaseViewer({ style, styled }) {
+jest.mock('./RiggedBaseViewer', () => function MockRiggedBaseViewer({ style, styled, pose }) {
   return <div data-testid="rigged-base-viewer">
-    {JSON.stringify({ style, styled })}
+    {JSON.stringify({ style, styled, pose })}
   </div>
 })
 
@@ -64,6 +64,25 @@ describe('rigged surfer visual exploration', () => {
     expect(screen.queryByRole('button', { name: 'Base GLB' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Modelo antigo' }))
     expect(screen.getByTestId('surfer-style')).toBeTruthy()
+  })
+
+  test('creator switches genuine gender preview and standing / relaxed / surfing poses', () => {
+    open()
+    expect(rigged().style.character).toBe('male')
+    expect(rigged().pose).toBe('relaxed')
+    fireEvent.click(screen.getByRole('button', { name: 'Feminino' }))
+    expect(rigged().style.character).toBe('female')
+    fireEvent.click(screen.getByRole('button', { name: 'Em pé' }))
+    expect(rigged().pose).toBe('standing')
+    fireEvent.click(screen.getByRole('button', { name: 'A surfar' }))
+    expect(rigged().pose).toBe('surfing')
+    fireEvent.click(screen.getByRole('button', { name: 'Relaxado' }))
+    expect(rigged().pose).toBe('relaxed')
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar visual' }))
+    const saved = JSON.parse(window.localStorage.getItem('surf-king-surfer-preview-v1'))
+    expect(saved.character).toBe('female')
+    expect(saved).not.toHaveProperty('pose')
+    expect(saved).not.toHaveProperty('energy')
   })
 
   test('saving remains cosmetic-only and local to the browser', () => {
