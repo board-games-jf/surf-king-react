@@ -1,12 +1,12 @@
 # Rules Review — Energy as Combat Strength
 
-**Status:** Assistant proposal for playtesting; **not owner-approved**.
+**Status:** **Owner-confirmed initial energy = 2.** Energy gain and normal movement cost remain **unapproved proposals**.
 **Tracking:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) / [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12).
 **Current main reviewed:** `e4e083f9035e314eb2107bd1cca448292cc4629e` (2026-11-16).
 
 ## Owner concept
 
-The owner suggested a **WAR/Risk-like interpretation** of energy: energy behaves like soldiers/strength in combat, possibly starting everyone at one energy and growing through movement or cards. This is a **question and design direction, not approval of the start value or gain rule**.
+The owner suggested a **WAR/Risk-like interpretation** of energy: energy behaves like soldiers/strength in combat and can grow through progress or cards. After comparing a 1-energy versus 2-energy opening, **the owner explicitly approved starting every surfer with 2 energy (2026-11-16)**. No approval was given for free movement or a particular energy-gain mechanic.
 
 ## Current implementation facts
 
@@ -19,9 +19,11 @@ The owner suggested a **WAR/Risk-like interpretation** of energy: energy behaves
 - Island currently adds 2 energy on entry (through negative damage). This needs rebalancing with the proposed economy.
 - A one-energy attacker or defender can be knocked off the board after losing a single paired die; this is the main early-game risk of starting with 1.
 
-## Assistant recommendation — P-04 (not approved)
+## Approved opening strength, and the remaining P-04 hypotheses
 
-**Start with 2 energy**, rather than 1, to avoid first-hit elimination. For design evaluation, propose a small, coherent package:
+**Owner-approved:** Every surfer starts with **2 energy**. This is a rules-design decision awaiting later implementation, not a change already made to the game engine.
+
+**Unapproved proposal:** For continued design evaluation, consider the following connected mechanics:
 
 1. A normal edge-adjacent maneuver costs **0 energy**.
 2. Gain **+1 energy** (up to 4) only when reaching a **new personal furthest-forward row** toward the beach. This does not award energy for moving sideways, backward, or returning to an already reached row.
@@ -31,9 +33,9 @@ The owner suggested a **WAR/Risk-like interpretation** of energy: energy behaves
 
 **Illustrative progression:** Start at 2; first new forward row → 3; next new forward row → 4. Further movement does not increase energy unless it was reduced earlier and a still newer row is reached, or cards restore it.
 
-### Why two rather than one?
+### Why the owner chose two rather than one
 
-Starting at 1 could produce a highly punitive opening: one loss is a fall, especially with a Sunburn card (-1) or an early attack. Two grants a small buffer while still making a third and fourth energy point worth earning. Both numbers should eventually be playtested rather than assumed balanced.
+Starting at 1 could produce a highly punitive opening: one loss is a fall, especially with a Sunburn card (-1) or an early attack. Two grants a small buffer while still making a third and fourth energy point worth earning. **Starting at 2 is approved**; actual balance must still be playtested.
 
 ### Known cross-system risks (not solved yet)
 
@@ -47,6 +49,6 @@ Starting at 1 could produce a highly punitive opening: one loss is a fall, espec
 
 ## One focused next decision
 
-**Would the owner like to explore a 2-energy opening, rather than the proposed 1-energy opening, as a provisional design baseline for balance testing?**
+**Next proposal to evaluate:** Instead of +1 on *every* new forward row (which could reach the four-energy cap very quickly), gain **+1 energy after every two distinct improvements to the surfer's personal forward-progress record**, up to the provisional cap of 4. Cards may provide additional energy; sideways/backward movement and revisiting previous progress never trigger the bonus. This is a **new assistant recommendation, not approved**. Should energy be earned this way, or should it be earned only via cards?
 
 No code implementation, tests, merge or deployment approved. Other mechanics should not be finalized until cross-system review.
