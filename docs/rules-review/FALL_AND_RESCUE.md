@@ -4,6 +4,26 @@
 **Epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) | [INDEX.md](INDEX.md) | [Draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12)
 **Source verified:** `main` `df81076781a7a70845dbe079f7a8ca21a79d35e6` on 2026-11-16, `src/game/Cards.js` and `src/game/SurfKingGame.js` (deck, card-use, energy and fall functions). **No gameplay tests or playtest run.**
 
+## P-14 — Restore the game's original identity: frequent falls, minimal downtime
+
+**2026-11-16 owner clarification:** The original Surf King was intentionally designed for surfers to **fall often**, but the old fall/recovery system caused stalled matches. The owner likes the new direction but has lost the full-picture connection to the original game and needs the assistant to lead coherent design. This **changes the priority of the review**: do not optimize for **few falls**; optimize for **frequent, dramatic falls with immediate strategic consequences and no extended inactivity**. It is an **accepted design goal**, not approval of specific rules or numerical values.
+
+**North-star loop for a later playtest:**
+`move toward beach → choose risk (Shark shortcut / card / adjacent Drop In) → possible fall → quick rejoin with a position cost (or spend limited rescue to preserve progress) → move and contest again → first to beach wins`.
+
+**Important correction to earlier P-09 assumptions:** Starting at 2 energy, raising max to 5, reducing each attack/obstacle to **1 damage** and removing movement energy cost may collectively make falls **too rare** (especially at 4–5 energy). These mechanics were developed to cure stalling, but **frequency of falling and the penalty for falling are different tuning knobs**. Do not prematurely approve all risk-reducing changes just because faster recovery is attractive.
+
+**Preferred integrated hypothesis (not approved):**
+1. **Never eliminate a surfer for multiple inactive turns.** At 0 energy, the surfer falls; cards may protect the hard-won position (P-13), while no card still guarantees a return the next own turn with a position setback (P-12). No Rest.
+2. **Keep risky shortcuts and attacks dangerous.** The initial fast path (7 moves) crosses a Shark; an 8-move bypass is safer. A 2-energy surfer taking −1 at Shark is vulnerable to the next hit. At 5 energy, a lone −1 hazard may be negligible; test damage and card healing together, rather than flattening all hazards.
+3. **Cards create calculated aggression, not mandatory survival.** Lifeguard Float and Swimming Fin preserve progress when genuinely falling; without a card, the surfer can always get back into the race.
+4. **Limit the downside of a single fall to one understandable core consequence**, normally loss of some forward position. Do not automatically stack forced backward exchange, entire-turn skip and another displacement. Combined combat/terrain damage can remain a tactical hazard if the resulting fall is recoverable and readable.
+5. **Do not add a voluntary "fall" action.** Taking a real risk and using scarce insurance is strategic; intentionally resetting at 0 to farm energy would be an exploit.
+
+**Practical playtest acceptance questions (NOT measured yet):** Can a player fall multiple times and remain engaged? Does a no-card fall still allow a normal action on their next turn? Does a rescue card preserve meaningful progress? Can a 5-energy leader still be disrupted without needing five separate attacks? Do backward loops, repeated Shark entries, full hands, and seven-player crowding terminate fairly? Quantify **falls per player, inactive turns, board progress, rescue effectiveness and total rounds** in a future rules prototype. Do not prescribe a numerical fall rate without actual playtest evidence.
+
+**Immediate next step:** Freeze **this design target** and compare one full 3-player race using the same hazards/cards under **quick recovery** versus **old skipped-turn recovery**; identify whether the sole blocker was time lost or accumulated movement/energy costs. Then assess 2-, 4- and 7-player cases. **No code is authorized**, so this remains a written design exercise.
+
 ## Owner's expressed gameplay direction (not yet specific rule approval)
 
 The owner wants a **simple, highly strategic fall mechanic** where a player may **intentionally accept the risk of falling** because they hold a rescue card: an aggressive Drop In or a hazardous shortcut can be worth taking when the player has a planned comeback. Do not mistake this for approval of a button to fall voluntarily, a free energy refill, or a particular respawn rule.
@@ -50,4 +70,4 @@ The **P-13 optional immediate reaction** makes the held card's value more visibl
 
 **Review a single risky Shark shortcut with and without each rescue card**, and compare position after the next personal turn. Then test one forced position exchange causing a fall, including the case where the player can choose not to spend a rescue card. If the rescue card saves insufficient progress, consider **more distance lost on ordinary falls** before adding new movement actions or extra complexity.
 
-**Status:** Owner's high-level strategic concept recorded; P-13 timing, effect and fallback remain **assistant proposals**. No game code changed, Jest tests run, match playtest, merge or deployment.
+**Status:** Owner's overarching goal is now explicitly **frequent falls, rapid re-entry, strategic card insurance, and a match that keeps moving** (P-14 design north star). P-12/P-13 timing, effects and comeback are still **assistant proposals**. No game code changed, Jest tests run, match playtest, merge or deployment.
