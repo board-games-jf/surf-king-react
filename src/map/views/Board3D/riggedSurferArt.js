@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import {
   BOARD_COLORS, HAIR_COLORS, SKIN_TONES, SURFWEAR_COLORS, normalizeSurferStyle
 } from './surferStyle'
+import { normalizeSurferPose, sampleSurferPose } from './surferPoses'
 
 // This preview retains the imported skinned body and armature.
 // Only appearance materials and a handful of removable accessories are authored here.
@@ -154,7 +155,8 @@ function createShoreStage() {
 }
 
 export function decorateRiggedSurfer(loadedScene, choices, presentation = {}) {
-  const boardMode = presentation.boardMode === true
+  const pose = normalizeSurferPose(presentation.pose, presentation.boardMode ? 'surfing' : 'relaxed')
+  const boardMode = presentation.boardMode === true || pose === 'surfing'
   const { style, skin, hair, suit, board } = resolveRiggedPalette(choices)
   const display = new THREE.Group()
   display.name = 'styled-rigged-surfer'
@@ -215,10 +217,19 @@ export function decorateRiggedSurfer(loadedScene, choices, presentation = {}) {
 
   const hairMat = material(hair, .94, { side: THREE.DoubleSide })
   materials.push(hairMat)
+  const hairGroup = new THREE.Group()
+  hairGroup.name = 'surfer-hair-root'
+  // The separately authored female base is slightly shorter with a smaller
+  // head. Keep the sculpted hairstyle aligned to its actual head silhouette.
+  if (style.character === 'female') {
+    hairGroup.position.y = -.072
+    hairGroup.scale.setScalar(.96)
+  }
+  owner.add(hairGroup)
   const cap = new THREE.Mesh(smoothScalp(), hairMat)
   cap.name = 'rigged-sculpted-hair'
-  owner.add(cap)
-  hairLocks(owner, style, hairMat)
+  hairGroup.add(cap)
+  hairLocks(hairGroup, style, hairMat)
   const surfboard = buildBoard(style.boardType, presentation.playerColor || board)
   if (boardMode) {
     // Keep the same skinned avatar and accessory hair, but place the
@@ -234,38 +245,27 @@ export function decorateRiggedSurfer(loadedScene, choices, presentation = {}) {
     owner.add(createShoreStage())
   }
 
-  // A subtle breathing movement keeps the preview alive without claiming a
-  // finished retargeted animation. Bone hierarchy stays fully intact.
+  // Animate from each authored GLB's own bind pose; never assume male and
+  // female joints share the same absolute rest rotation.
+  const sampleRest = sampleSurferPose(pose, 0, true)
   const rest = {}
-  for (const name of ['spine_02', 'spine_03', 'upperarm_l', 'upperarm_r']) {
+  Object.keys(sampleRest).forEach(name => {
     const bone = loadedScene.getObjectByName(name)
-    if (bone?.isBone) rest[name] = { bone, rotation: bone.rotation.clone(), quaternion: bone.quaternion.clone() }
-  }
-  const zAxis = new THREE.Vector3(0, 0, 1)
-  const swingQuaternion = new THREE.Quaternion()
+    if (bone?.isBone) rest[name] = { bone, quaternion: bone.quaternion.clone() }
+  })
+  const euler = new THREE.Euler()
+  const delta = new THREE.Quaternion()
   const animate = (seconds, reduceMotion = false) => {
-    const t = reduceMotion ? 0 : seconds
-    if (rest.spine_02) rest.spine_02.bone.rotation.set(
-      rest.spine_02.rotation.x + Math.sin(t * 1.2) * .018,
-      rest.spine_02.rotation.y,
-      rest.spine_02.rotation.z + Math.sin(t * .72) * (boardMode ? .028 : .012)
-    )
-    if (rest.spine_03) rest.spine_03.bone.rotation.set(
-      rest.spine_03.rotation.x + Math.sin(t * 1.07) * .012,
-      rest.spine_03.rotation.y,
-      rest.spine_03.rotation.z
-    )
-    // Verified against the source skeleton hierarchy: z rotation brings hands
-    // down from T-pose shoulder height to a relaxed, readable idle position.
-    for (const [name, swing] of [['upperarm_l', boardMode ? -.78 : -1.18], ['upperarm_r', boardMode ? .78 : 1.18]]) {
+    const offsets = sampleSurferPose(pose, seconds, reduceMotion)
+    Object.entries(offsets).forEach(([name, xyz]) => {
       const joint = rest[name]
-      if (joint) joint.bone.quaternion.copy(joint.quaternion).multiply(
-        swingQuaternion.setFromAxisAngle(
-          zAxis, swing + Math.sin(t * .81 + swing) * .018
-        )
-      )
-    }
+      if (!joint) return
+      euler.set(xyz[0], xyz[1], xyz[2], 'XYZ')
+      joint.bone.quaternion.copy(joint.quaternion)
+        .multiply(delta.setFromEuler(euler))
+    })
   }
+  animate(0, true)
   return {
     display, surfboard, animate,
     dispose() {
