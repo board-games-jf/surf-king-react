@@ -2,7 +2,7 @@
 
 **Last GitHub verification:** 2026-11-16
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Current baseline `main`:** `668d2f2bcd10e2d6516c0d4ef6819217a5df823b` (3D board surfer PR #27 merged).
+**Current baseline `main`:** `ea8c4d3a3c7d62525fbf14aab0e711a4e1c0ce2e` (PR #29 merged with explicit authorization; no deployment).
 
 ## Integrated baseline
 
@@ -11,9 +11,9 @@
 - The existing board identifies up to seven players by board color; surfboards have no gameplay effects (SK-DEC-011). Studio saves only a local cosmetic draft; it is **not** applied to match players.
 - Obstacle art, 2D/3D view choice and game rules are separate; gameplay-balance issue #11 and draft PR #12 remain outside character work.
 
-## Active work — Issue #28 (not merged, not deployed)
+## Integrated visual rigs — Issue #28 (PR #29 merged, no deployment)
 
-- [Draft PR #29](https://github.com/board-games-jf/surf-king-react/pull/29) / branch `feat/28-female-surfer-and-poses` is **not merged or deployed**. Owner requested a genuinely distinguishable female/male face and alternatives to permanently outstretched arms.
+- [PR #29](https://github.com/board-games-jf/surf-king-react/pull/29) was **merged into main on 2026-11-16** with owner authorization; it has **not been deployed**. Owner requested a genuinely distinguishable female/male face and alternatives to permanently outstretched arms.
 - Imported **a distinct Quaternius Superhero Female skinned model** (65 joints) from the same CC0 *Universal Base Characters* pack as the male. Original `.gltf` geometry/bone binary was bundled into a self-contained GLB with neutral materials; see `docs/DATA_SOURCES.md` for source Git SHAs and conversion details.
 - `riggedBoardSurfers.js` selects gender-specific templates and loads both local GLBs once per 3D scene. Each active player gets an independent skeleton. Failure to load either model keeps its existing procedural board actor visible.
 - `surferPoses.js` provides deterministic **standing**, **relaxed** and **surfing** bone-offset poses. `riggedSurferArt.js` applies these relative to the original male/female bind poses and restores them on disposal; female hairstyle placement is adjusted to her separate head shape.
@@ -26,7 +26,7 @@
 - Executed production pose sampler/decorator logic with a lightweight Three.js API mock across **six combinations** (two authored body choices × three poses). Bone changes, pose restoration and flat surfing board mode passed; **these are not Jest/WebGL results**.
 - Added Jest tests for female/male GLB provenance, three poses/reduced-motion behavior, board skeleton independence, gender-specific loader paths and preview switching. **Jest suite, CRA build and actual WebGL/browser/mobile QA are not yet run.**
 - Next: run `npm test -- --watchAll=false` and `npm run build` in a dependency-enabled environment; visually review both faces and standing/relaxed/surfing poses in `/#/customize`, then check the local 3D board and `/#/catalog` under real WebGL.
-- Do not merge without fresh explicit owner authorization. Do not deploy without separate explicit authorization. Remain open until visual and technical acceptance criteria are verified.
+- Merged PR #29 has explicit authorization; further merges and any deployment require separate owner authorization. Keep remaining visual/runtime acceptance gaps open.
 
 ## Validation checkpoint — 2026-11-16 (PR #29)
 
@@ -35,4 +35,12 @@
 - Browser tab `http://localhost:3003/#/catalog` was readable as page text, but its running git branch and actual WebGL pixels were not verifiable through the available browser interface. Do not consider this a successful visual check.
 - The isolated execution container has Node/npm but GitHub DNS resolution fails, with no checked-out application or installed project dependencies. **No Jest run, CRA build, GLTFLoader render, browser/mobile QA or screenshots were produced in this checkpoint.** No GitHub Actions PR workflow runs are recorded.
 - Remaining acceptance risks: bone directions/standing-arm appearance, natural surfing knee/foot-to-board contact for both authored bodies, rapid gender toggling under delayed loads, safe studio fallback when an invalid GLB is received, and mobile readability.
-- **Next concrete action:** run `CI=true npm test -- --watchAll=false` and `npm run build` on a checkout of `feat/28-female-surfer-and-poses` with dependencies, then visually inspect `/#/customize` and `/#/catalog`/live board on desktop and mobile; correct identified issues on this same branch with regression coverage. Keep PR #29 draft and Issue #28 open until verified. Merge and deploy remain unauthorized.
+- **Next concrete action:** run `CI=true npm test -- --watchAll=false` and `npm run build` on an updated checkout with dependencies, then visually inspect `/#/customize` and `/#/catalog`/live board on desktop/mobile. PR #29 is merged; Issue #28 retains unverified checks. Deployment remains unauthorized.
+
+## Active visual follow-up — Issue #30 (unmerged)
+
+- Owner reviewed the integrated GLB and reported an unnatural surfing stance and poor tubular hair. [Issue #30](https://github.com/board-games-jf/surf-king-react/issues/30), branch `fix/30-surf-stance-hair-polish`, scopes a shared visual-only refinement.
+- `surferPoses.js`: adjusted surfing to a lower asymmetric front/trailing knee stance with opposing shoulder and pelvis/torso rotations, plus bounded counterbalance movement. No state or gameplay changes.
+- `riggedSurferArt.js`: replaced fixed-radius tubular hair locks with broad tapered, owned BufferGeometry locks for short, wavy and ponytail styles. Original style IDs, materials, GLB assets, body rigs and board presentation preserved.
+- Added targeted source tests for asymmetric/static pose parameters and tapered hair geometry/disposal. **These Jest tests have not been executed**: isolated container has Node/npm but GitHub DNS is unavailable, and no project checkout or installed dependencies exist there. No CRA build or actual WebGL/mobile review was possible.
+- **Next:** run Jest/build on the issue branch, inspect masculine/feminine hair and foot/board alignment in all 3 poses and on the board, fix visual issues, then review its draft PR. No merge or deploy without owner authorization.
