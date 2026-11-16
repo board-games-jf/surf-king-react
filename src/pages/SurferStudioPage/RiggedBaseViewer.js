@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { normalizeSurferStyle } from '../../map/views/Board3D/surferStyle'
+import { getRiggedSurferAsset } from '../../map/views/Board3D/riggedSurferAssets'
 
 // Uses the real local, rigged Quaternius GLB. Neither this component nor its
 // experimental artwork is used in a live match.
@@ -92,9 +93,8 @@ export default function RiggedBaseViewer({ style, styled = false, pose = 'relaxe
       }
       // Parent uses a gender key to remount when anatomy changes; a stale
       // in-flight loader is ignored by the existing cancellation guard.
-      const gender = style.character === 'female' ? 'female' : 'male'
-      const assetPath = (process.env.PUBLIC_URL || '') +
-        '/assets/surfers/quaternius-' + gender + '-base.glb'
+      const asset = getRiggedSurferAsset(style.character)
+      const assetPath = (process.env.PUBLIC_URL || '') + asset.path
       new GLTFLoader().load(assetPath, loaded => {
         if (cancelled) {
           loaded.scene.traverse(node => {
@@ -106,12 +106,10 @@ export default function RiggedBaseViewer({ style, styled = false, pose = 'relaxe
           })
           return
         }
-        let hasSkin = false
-        loaded.scene.traverse(node => {
-          if (node.isSkinnedMesh && node.skeleton?.bones.length) hasSkin = true
-        })
+        const body = loaded.scene.getObjectByName(asset.body)
         const bounds = new THREE.Box3().setFromObject(loaded.scene)
-        if (!hasSkin || bounds.isEmpty() || !Number.isFinite(bounds.max.y)) {
+        if (!body?.isSkinnedMesh || !body.skeleton?.bones.length ||
+          bounds.isEmpty() || !Number.isFinite(bounds.max.y)) {
           setError('O GLB não tem malha articulada e dimensões válidas.')
           return
         }
