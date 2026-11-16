@@ -187,8 +187,15 @@ export function decorateRiggedSurfer(loadedScene, choices) {
         // Clothes are painted on the existing deforming body surface, not
         // simulated with non-skinned cylinders that would break during posing.
         if (y > .82 && y < 1.07 && x < .35) c = shortsColor
-        else if (y >= 1.07 && y < 1.49 && x < .31) c = fabricColor
-        else if (y >= 1.485 && y < 1.515 && x < .31) c = cream
+        else if (style.character === 'female') {
+          // A cropped surf top is a presentation variant on the male base,
+          // NOT a claim that a dedicated female anatomical GLB exists.
+          if (y >= 1.22 && y < 1.49 && x < .31) c = fabricColor
+          else if (y >= 1.20 && y < 1.23 && x < .31) c = cream
+        } else {
+          if (y >= 1.07 && y < 1.49 && x < .31) c = fabricColor
+          else if (y >= 1.485 && y < 1.515 && x < .31) c = cream
+        }
         colors[i * 3] = c.r
         colors[i * 3 + 1] = c.g
         colors[i * 3 + 2] = c.b
