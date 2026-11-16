@@ -46,7 +46,7 @@
 
 ## Next question
 
-**Next focused decision:** With **2 starting energy owner-approved**, consider whether energy should increase after **every two distinct improvements in personal forward progress** (assistant proposal, not approved) plus cards, or only via cards. This avoids gaining energy by shuttling backward/forward and reduces early max-energy snowballing. Free normal movement and the cap remain separate decisions. See [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md).
+**Next focused decision:** Owner rejected the proposal to count personal progress milestones as too complex. Assistant **P-05 (NOT approved):** normal movement neither spends nor grants energy; playing energy cards is the primary energy-gain mechanism. Discuss this simple principle first. Card supply, obsolete Bottled Water effect, Island's current bonus, Shark's -2 damage, and recovery from falling require later balancing. **2 starting energy remains approved.** See [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md).
 
 **Deferred:** The drop-in dice tie decision remains pending until we address the all-pass stalemate.
 
@@ -66,4 +66,5 @@ No gameplay code, production deployment, tests, or merger is authorized by this 
 - **2026-11-16:** Owner clarified 0 energy causes a fall and explicitly removed Rest as a mechanic. Owner requested holistic balance for fast, portable, fun, replayable and strategic games. Next: review movement/energy/combat/card economy as a complete loop; free movement is only an assistant proposal.
 - **2026-11-16:** Assistant verified a seven-step start-to-goal geometric path and key interactions: only four starting energy, shark bottleneck, and current Bottled Water card losing its purpose if ordinary movement becomes free. Holistic balance analysis recorded; no new rule approved.
 - **2026-11-16:** Owner proposed WAR/Risk-like energy representing combat force and considered a one-energy start with growth via progress or cards. Assistant recommended two.
-- **2026-11-16:** **Owner approved 2 starting energy.** Assistant recommends considering a more gradual +1 for every two new personal-forward-progress milestones instead of every new row, subject to approval; free movement, fall return and card balance remain pending.
+- **2026-11-16:** **Owner approved 2 starting energy.** All other energy mechanics remained pending.
+- **2026-11-16:** Owner called the proposed two-progress-milestone energy gain too complex. Assistant withdrew it and proposed a simpler P-05: ordinary moves cost/give no energy; cards are the main energy source. **Not approved;** energy/hazard/card balance still pending.
