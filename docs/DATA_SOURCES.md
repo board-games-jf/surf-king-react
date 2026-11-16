@@ -17,6 +17,7 @@
 ## Unverified inputs
 
 - No canonical source version of the Surf King rulebook has been confirmed in the repository.
+- The existing repository card illustrations `src/assets/cards/stone.png` and `src/assets/cards/island.png` (and matching `src/assets/obstacles/` PNGs) are the internal visual references for the 3D Stone and Island silhouettes in Issue #13. The illustrations remain unchanged and are not placed on planes as 3D substitutes.
 - No original Figma design file or authoritative export has been verified.
 - No external ocean/real-world datasets are verified as integrated.
 - New 3D models, textures, fonts, music, and sound effects require source, license and attribution review before reuse or distribution.

@@ -13,6 +13,7 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 | SK-DEC-007 | Proposed | Separate game-state logic from presentation and transport adapters. | Limit coupling and preserve testability. | Future architecture Issue |
 | SK-DEC-008 | Accepted | Players can switch between 2D and 3D views of a single match without changing game state. | Both map styles must show the same turn, positions and interactions. | [#5](https://github.com/board-games-jf/surf-king-react/issues/5) |
 | SK-DEC-009 | Proposed | Connect independently developed 3D rendering through a renderer-neutral map contract and public view-model adapter. | Allow standalone art/scene development without gameplay coupling. | [#5](https://github.com/board-games-jf/surf-king-react/issues/5) |
+| SK-DEC-010 | Accepted | Obstacle meshes should sit directly in the sea without opaque blue bases. Stone and Island should follow their existing card silhouettes; lightning should branch and flash irregularly; the Cyclone should be larger but drift gently within its hex; and the Shark should move with the water. | Visual coherence between card art and gameplay, with readable animated obstacles. | [#13](https://github.com/board-games-jf/surf-king-react/issues/13) |
 
 ## Safeguards
 

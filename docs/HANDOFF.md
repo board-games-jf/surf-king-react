@@ -1,44 +1,35 @@
 # Project Handoff
 
-**Verified on GitHub:** 2026-11-15
-**Official repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Pre-PR #14 `main` commit:** `6daa1705ff11d958a10cffd951eca9f5f2a1084c` (shared 2D/3D hex adjacency, PR #10).
+**Last direct GitHub verification:** 2026-11-16
+**Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
+**Original feature base commit:** `6c80c80b28b6d115b3d2267e9462c2cc91fc6311` (interactive board catalog PR #16 merged). A newer `main` includes local startup work (PR #19).
 
-## Existing gameplay and 3D baseline
+## Existing game
 
-- React 18 / CRA 5 and local `boardgame.io` client; online and AI routes are disabled.
-- The game engine in `src/game/SurfKingGame.js` manages 53 cells, turns, cards, obstacles, and victory.
-- The shared 2D/3D layout uses 53 cell IDs and a provisional coordinate manifest.
-- The live Three.js board and 2D/3D switching entered `main` in PR #9. 3D shows actual players and obstacles from a public snapshot, without changing rules.
-- Application Jest tests, production build, and WebGL browser behavior have not been reverified in this session.
+- React 18 / CRA 5 local `boardgame.io` game with 53 hexagon IDs and selectable 2D/Three.js views. Card actions and game turns stay in the game engine.
+- The 3D board uses shared procedural models and an ocean/beach scene; the public map snapshot supplies real in-game obstacles and players.
+- The `/#/obstacles` individual viewer and `/#/catalog` interactive full-board showroom reuse the same 3D constructors. The showroom has illustrative placements, not an authoritative match.
+- PR #14 merged the first version of the five 3D obstacles; PR #16 merged the board showroom. Both still require real browser/Jest/build verification.
 
-## Obstacle refinement (PR #14)
+## Active visual refinement — Issue #13
 
-- [Issue #13](https://github.com/board-games-jf/surf-king-react/issues/13) / [PR #14](https://github.com/board-games-jf/surf-king-react/pull/14), refines the five live Three.js obstacles with procedural meshes. Check the PR for its current merge status.
-- The live Three.js scene uses `obstacleModels.js` for Shark, Stone, Island, Storm and Cyclone.
-- An in-app `/obstacles` gallery reuses those same models for rotation, zoom and per-type review without creating a match.
-- These are approximate 3D interpretations of approved illustration concepts; no generated image or external 3D file is embedded.
-- [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) / [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12) contain a separate rules review. Keep its decisions separate from visual work.
+- Branch `feat/13-card-faithful-obstacle-effects` / [draft PR #17](https://github.com/board-games-jf/surf-king-react/pull/17) implements the owner-approved visual direction (SK-DEC-010) and is authorized for merge by the project owner on 2026-11-16. Confirm its actual merged status on GitHub; deployment was not authorized.
+- Stone is now a mint-green faceted twin crag following `src/assets/cards/stone.png`; Island is orange sand with two leaning palms following `src/assets/cards/island.png`.
+- Removed opaque blue disk meshes beneath Shark, Storm and Cyclone; the shared scene ocean remains the water surface, with only local foam and wakes.
+- Storm uses five prebuilt jagged/branched lightning shapes with deterministic but irregular flash timing; Cyclone is taller and drifts smoothly within a bounded hex-center radius; Shark has a bounded moving fin and foam trail.
+- No game rules, matchmaking, server code, cards, textures, or external services changed.
 
-## Pending showroom prototype (Issue #15)
+## Evidence and open validations
 
-- Branch `feat/15-interactive-board-catalog`: standalone `/#/catalog` page under review, **not merged or deployed**.
-- Reuses the exact live `Board3D` component, 53 hex geometry, surf models, five obstacle constructors and coastal scenery.
-- Fixture starts with one of each obstacle and two surfers in **illustrative** positions; tools inspect, place, replace and erase without touching `boardgame.io` gameplay state.
-- Selected hex can be focused with the existing 3D camera controls; original game view remains unchanged when no focus prop is supplied.
-- Unit tests added for fixture placement and invariants. Pure fixture operations passed an independent V8 smoke check with a 53-item layout stub. Jest/build/real browser tests were **not executed** in this session.
+- Relevant code and original card images were read directly from GitHub.
+- Actual production code was evaluated in a lightweight Three.js geometry mock; all five constructors and animation callbacks passed. Pure drift sampling stayed within a radius of 0.319 units. This **does not** verify WebGL rendering.
+- New Jest tests cover silhouettes, removal of opaque bases, bounded drift, irregular lightning, and finite animated transforms. **Jest suite and build were not run** because the project dependencies are not present here.
+- Browser evaluation of shaders, animation quality, performance and touch controls remains pending. The older issue #15 catalog checks also remain pending.
+- Separate issue #11 and draft PR #12 discuss game rules; do not merge rules work as part of the visual refinement.
 
-## Validation
+## Next actions
 
-- Modified non-JSX JavaScript syntax was checked successfully.
-- Mocked-Three.js obstacle factory construction and update checks passed for all five types.
-- Jest geometry/bounds checks were added but **not executed**; there are no installed application dependencies available for a full test/build here.
-- Real WebGL appearance, performance, mobile scaling, gallery interaction and in-game obstacle effects are **not yet verified**.
-- Legacy `loadsh` dependency typo, original rulebook and canonical board layout are unresolved and outside this visual-only PR.
-
-## Next action
-
-1. Install dependencies, run Jest/build for Issue #15, and test the `/#/catalog` showroom in a real WebGL browser.
-2. Verify showroom placement, cell focus, reset/clear and mobile controls, then inspect a live local 3D match, obstacle expiry and the 2D fallback.
-3. Review the Issue #15 draft PR. Keep Issues #13 and #15 open until their respective browser and functional acceptance checks are verified.
-4. **The owner authorized merging PR #14 on 2026-11-15; no deployment authorization was granted.**
+1. Confirm GitHub PR #17 merge status and run Jest/build in a full project environment.
+2. Inspect `/#/catalog` and `/#/obstacles` in a real WebGL browser, confirm card resemblance and adjust individual models if needed.
+3. Test a live local 3D match, multiple same-type obstacles, hover and turn badges, and the 2D fallback.
+4. Merge was explicitly authorized on 2026-11-16. **Deployment still requires separate explicit authorization.**
