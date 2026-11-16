@@ -1,54 +1,41 @@
 # Rules Review — Energy as Combat Strength
 
-**Status:** **Owner-confirmed initial energy = 2.** Energy gain and normal movement cost remain **unapproved proposals**.
+**Status:** Owner-approved opening energy: **2**. All gain/cost mechanics below remain **assistant proposals, not accepted rules**.
 **Tracking:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) / [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12).
-**Current main reviewed:** `e4e083f9035e314eb2107bd1cca448292cc4629e` (2026-11-16).
+**Rules-engine baseline checked:** `main` `e4e083f9035e314eb2107bd1cca448292cc4629e` (2026-11-16).
 
-## Owner concept
+## Owner-approved rules and design goal
 
-The owner suggested a **WAR/Risk-like interpretation** of energy: energy behaves like soldiers/strength in combat and can grow through progress or cards. After comparing a 1-energy versus 2-energy opening, **the owner explicitly approved starting every surfer with 2 energy (2026-11-16)**. No approval was given for free movement or a particular energy-gain mechanic.
+- Every surfer starts with **2 energy**.
+- **0 energy means falling off the surfboard**, not resting.
+- **Rest is removed** as a game mechanic.
+- Movement/attacks are geographically limited to true edge-adjacent cells in the separately approved contexts.
+- Gameplay should be **fast, simple, portable, fun, repeatable and strategic**, with energy resembling WAR/Risk combat strength rather than a complicated progress counter.
 
-## Current implementation facts
+## Current implementation facts (not the new rules)
 
-- All players start with 4 energy, the maximum is 4.
-- Each normal maneuver currently costs 1 energy, except with the Bottled Water effect.
-- Drop-in rolls as many dice as each combatant's energy. Descending dice are compared; defender wins ties.
-- Zero energy triggers falling off the board.
-- Cards increase energy (+1, +2, +3, or to maximum), and some damage it (Big Wave -2; Sunburn -1).
-- The four built-in Shark cells (28–31) each currently impose 2 energy damage.
-- Island currently adds 2 energy on entry (through negative damage). This needs rebalancing with the proposed economy.
-- A one-energy attacker or defender can be knocked off the board after losing a single paired die; this is the main early-game risk of starting with 1.
+- The engine still starts players at 4 energy, its present maximum; normal movement costs 1 energy.
+- A successful normal maneuver can replace a card; several deck cards restore energy.
+- Drop-in uses energy as **dice count and remaining strength**; zero energy causes a fall.
+- Shark currently deals 2 energy damage; Island currently adds 2. Sunburn deals 1, Big Wave 2.
+- Bottled Water currently prevents a normal maneuver's 1-energy cost.
 
-## Approved opening strength, and the remaining P-04 hypotheses
+## Simplified assistant proposal — P-05 (NOT approved)
 
-**Owner-approved:** Every surfer starts with **2 energy**. This is a rules-design decision awaiting later implementation, not a change already made to the game engine.
+**Normal movement should neither consume nor grant energy. Energy would increase through cards, not by crossing rows or counting movement progress.** A surfer still starts at 2; the existing maximum of 4 is a candidate to retain pending balance testing. This replaces the assistant's earlier P-04 recommendation to gain energy by reaching a new highest row or every two distinct milestones.
 
-**Unapproved proposal:** For continued design evaluation, consider the following connected mechanics:
+**Why simplify:** The owner explicitly found the record/progress milestone mechanic too complex. A one-line rule is easier to teach, implement and understand. It prevents gain loops through backward/forward maneuvers with no extra counters.
 
-1. A normal edge-adjacent maneuver costs **0 energy**.
-2. Gain **+1 energy** (up to 4) only when reaching a **new personal furthest-forward row** toward the beach. This does not award energy for moving sideways, backward, or returning to an already reached row.
-3. Energy cards still increase strength/recovery; energy measures combat dice and resilience to hazards. Their relative deck frequency will need review after adjusting progression.
-4. At **0 energy**, the surfer **falls**, as owner-confirmed. **Return timing/energy remains unresolved.**
-5. No Rest mechanic, as explicitly owner-approved. Whether movement is compulsory, and how to handle physical immobilization, remain to be confirmed separately.
+**Consequences requiring review before implementation:**
+- Bottled Water's existing effect becomes redundant if normal movement is free; remove or redesign it later.
+- Energy gains become more dependent on random card draws. Keep card supply and deck composition under review so players have reasonable access to strength/recovery.
+- Island's current +2 energy effect is an environmental bonus, not a card played from the hand. Decide separately whether to keep it as an exception, retune it or change it.
+- At 2 starting energy, Shark's current -2 causes an immediate fall; hazard intensity must be balanced with this start.
+- Combat still has leader-strength snowball concerns (energy influences both dice count and survival); test card-based catch-up opportunities.
+- Rules for recovery after falling, positional deadlocks, compulsory movement and victory-time limit remain undecided.
 
-**Illustrative progression:** Start at 2; first new forward row → 3; next new forward row → 4. Further movement does not increase energy unless it was reduced earlier and a still newer row is reached, or cards restore it.
+## Next one-question discussion
 
-### Why the owner chose two rather than one
+**Would the owner prefer this simpler principle: ordinary movement neither costs nor grants energy, while playable cards are the primary way to gain energy?** The exact treatment of environmental rewards/hazards and the card deck would be discussed afterward.
 
-Starting at 1 could produce a highly punitive opening: one loss is a fall, especially with a Sunburn card (-1) or an early attack. Two grants a small buffer while still making a third and fourth energy point worth earning. **Starting at 2 is approved**; actual balance must still be playtested.
-
-### Known cross-system risks (not solved yet)
-
-- The leading player gains energy fastest and could snowball. Cards and combat might enable comebacks, but this needs playtesting.
-- The +1 progression cap is reached within two fresh forward rows from a start of 2; most later energy growth would depend on cards after taking damage. Check that energy cards remain worthwhile but not dominant.
-- If ordinary movement is free, Bottled Water's current cost-waiver effect becomes obsolete and needs a redesign or removal.
-- Island's current +2 and Shark's -2 become major positioning incentives. An initial 1-energy start could be particularly punishing for a surfer forced into an obstacle or targeted by cards.
-- The drop-in combat system currently uses energy as both **dice count and damage capacity**, so an advantaged leader is doubly stronger.
-- The **furthest-forward row** condition is proposed to prevent repeatedly moving back and forth to farm energy. This requires tracking each surfer's maximum progress but no extra player-facing choice.
-- Mandatory movement does not alone guarantee forward progress; a separate simple anti-stall end condition might be needed.
-
-## One focused next decision
-
-**Next proposal to evaluate:** Instead of +1 on *every* new forward row (which could reach the four-energy cap very quickly), gain **+1 energy after every two distinct improvements to the surfer's personal forward-progress record**, up to the provisional cap of 4. Cards may provide additional energy; sideways/backward movement and revisiting previous progress never trigger the bonus. This is a **new assistant recommendation, not approved**. Should energy be earned this way, or should it be earned only via cards?
-
-No code implementation, tests, merge or deployment approved. Other mechanics should not be finalized until cross-system review.
+**Status:** Pending approval. No code modified, game tests executed, merge or deployment.
