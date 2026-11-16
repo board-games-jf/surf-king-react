@@ -11,7 +11,7 @@ function makeMockRig() {
   const root = new THREE.Group()
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.Float32BufferAttribute([
-    -.1, 1.20, 0, .10, 1.25, 0, -.1, .91, 0,
+    -.1, 1.16, 0, .10, 1.25, 0, -.1, .91, 0,
     .10, .90, 0, 0, 1.66, .09, 0, .12, .3
   ], 3))
   const material = new THREE.MeshStandardMaterial({ color: '#aaccbb' })
@@ -84,7 +84,7 @@ describe('styled rigged avatar preview — cosmetic geometry only', () => {
     const female = decorateRiggedSurfer(second.root, { ...baseStyle, character: 'female' })
     const maleColors = first.model.geometry.getAttribute('color').array
     const femaleColors = second.model.geometry.getAttribute('color').array
-    // A vertex at y=1.2 is suit-colored for the rashguard but exposed skin
+    // A vertex at y=1.16 is suit-colored for the rashguard but exposed skin
     // for the cropped top. The underlying licensed body geometry is the same.
     expect(maleColors[0]).not.toBeCloseTo(femaleColors[0])
     expect(first.model.isSkinnedMesh && second.model.isSkinnedMesh).toBe(true)
