@@ -4,11 +4,11 @@
 **Single epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) — canonical status, chronological owner feedback and next action.
 **Living documentation:** [Draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12), branch `docs/11-progressive-rules-review` — Markdown only, **do not merge without explicit approval**.
 **Current single complete-match design reference (NOT approved):** [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md) — recommended v0.1 loop, decisions, illustrative 3-player race, interdependencies and playtest gates.
-**Latest checked code:** `main` `e79c02c8f008c70dc84b5273d3ce0b20e9c78410` (2026-11-16). Game rules are not implemented from this draft.
+**Latest checked code:** `main` `ea8c4d3a3c7d62525fbf14aab0e711a4e1c0ce2e` (2026-11-16). Game rules are not implemented from this draft.
 
 ## North star
 
-**Frequent and dramatic falls, but no long recovery downtime**, within a **fast, easy-to-learn, portable, strategic, fun and replayable beach race**. The owner **explicitly confirmed this as the project's gameplay direction** on 2026-11-16 (**SK-DEC-015 Accepted**). The assistant must lead integrated full-match design, prioritize **cost of falling** separately from **frequency of falling**, spot stalled loops and recommend a small coherent package. **Never ask the owner to solve isolated mechanics.**
+**Frequent and dramatic falls, but no long recovery downtime**, within a **fast, easy-to-learn, portable, strategic, fun and replayable beach race**. The owner **explicitly confirmed this as the project's gameplay direction** on 2026-11-16 (**SK-DEC-017 Accepted**). The assistant must lead integrated full-match design, prioritize **cost of falling** separately from **frequency of falling**, spot stalled loops and recommend a small coherent package. **Never ask the owner to solve isolated mechanics.**
 
 Keep one coherent whole-match candidate visible while considering one focused choice at a time. Separate proven mechanics, owner's decisions, experiments and open design proposals. Changes in this draft are **documentation only**.
 
@@ -16,9 +16,10 @@ Keep one coherent whole-match candidate visible while considering one focused ch
 
 | Rule | Scope |
 | --- | --- |
-| All surfers **start at 2 energy** | Accepted product rule; see `docs/DECISIONS.md` **SK-DEC-014** on this draft branch |
-| **Frequent falls + rapid return to meaningful play** | **Approved overall direction, SK-DEC-015**; exact recovery/card/damage mechanics remain experimental |
+| All surfers **start at 2 energy** | Accepted product rule; see `docs/DECISIONS.md` **SK-DEC-016** on this draft branch |
+| **Frequent falls + rapid return to meaningful play** | **Approved overall direction, SK-DEC-017**; exact recovery/card/damage mechanics remain experimental |
 | **0 energy means falling off the surfboard** | Not resting; timing and method of recovery unresolved |
+| **Shark-caused fall return (SK-DEC-018)** | **Accepted design rule:** rescue with Float/Fin keeps surfer on Shark; otherwise vacate and return safe oceanward on next own active turn. Does not automatically settle other fall causes. |
 | **No Rest mechanic** | No voluntary or automatic Rest action; forced inability to move needs a separate safety rule |
 | Normal movement in **any of six edge-sharing directions**, backward included | Any adjacency, occupancy or obstacle limitations still need review; displayed 18 → 15 was confirmed illegal |
 | Normal **Drop In only against an edge-sharing adjacent opponent** | Dice resolution, card effects and other attack conditions are separate |
@@ -33,7 +34,13 @@ Keep one coherent whole-match candidate visible while considering one focused ch
 
 The trial has not yet been playtested or proved balanced. Approval to **try** these does not authorize implementing or merging anything.
 
-## 3. Recommended integrated whole-match v0.1 — **assistant proposal only**
+## 3. Shark fall rule settled — SK-DEC-018 Accepted (design only)
+
+**Explicitly defined at the owner's request on 2026-11-16:** A Shark tile reduces a surfer to zero → optional immediate **Lifeguard Float** to stay on that Shark at **2 energy**, or **Swimming Fin** to stay at **1 energy**. Either card is discarded, gives no additional maneuver or draw, and the **same Shark entry is not re-triggered**. Without/declining rescue, the fallen surfer **vacates** the tile; at the start of their **next personal turn** they return at **2 energy** to the nearest **empty, obstacle-free legal adjacent hex toward the ocean** (e.g., **28 → 21**). If blocked, use the nearest safe vacant oceanward hex **no closer to the beach**; at the ocean start edge use a safe vacant starting-row hex. The surfer **plays normally on that turn** — no skipped turn. A fall animation marker may show the original landing but never blocks its cell.
+
+**Scope:** Shark-specific falling is now **accepted as a design rule**, and its precise timing/return cell is no longer an unresolved proposal. Applying the same rules to attacks, cards, other obstacles, simultaneous effects or positional swaps **still needs evaluation**. All game source remains unchanged. [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md).
+
+## 4. Recommended integrated whole-match v0.1 — **assistant proposal only**
 
 The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md) (**P-15, not approved**). It is now the preferred end-to-end tabletop trial and takes precedence **as a proposal** over earlier isolated P-06 through P-13 draft variants. Do not treat earlier round-10 or all-damage-−1 candidates as accepted. The earlier individual research below remains context.
 
@@ -41,7 +48,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 - Per active turn, **optionally play one card OR attempt one adjacent Drop In**, then make one legal **free normal maneuver** when possible; draw a card after moving. No separate free repeatable +1-energy choice (it would produce 2 → 5 in only three personal turns).
 - Experimental Drop In: up to two d6 per surfer, compare the highest results; **tie without energy loss** (owner accepted for trial); a strictly lower result loses **1 energy** (damage value still an assistant proposal). **P-10 candidate:** when the attacker strictly wins, they may exchange hexagons with the defender; if used, this consumes the attacker's regular maneuver, avoiding a double step (not approved). **P-11 candidate:** resolve combat damage before exchanging, apply terrain once for **both entering surfers**, and remove any fallen surfer's solid board occupancy; if the defender falls from the attack, the attacker can instead move into the freed adjacent cell as their one maneuver (not approved).
 - Proposed first-pass obstacle/card retune: **Shark -1**, **Big Wave -1** instead of their currently implemented -2; review energy-restoration cards (+3 and full refill), Island +2 and Bottled Water's now-obsolete waiver.
-- **P-13 strategic-rescue recommendation, not approved:** on reaching 0, a player may spend **Lifeguard Float (+2)** or **Swimming Fin (+1)** as an **immediate reaction, including on another player's turn**, to **preserve their resolved cell** and avoid the seaward fall setback; no extra maneuver or card draw. **Without / declining a rescue**, use the P-12 candidate: vacate active cell, return next own turn at 2 energy in the closest **empty hazard-free cell toward the sea** and take the normal maneuver that turn. Rescue must not undo an already resolved swap or trigger a duplicate hazard. The exact timing and sea-edge fallback remain open. [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md). Proposed victory safety: first to beach wins, with a **10-round** positional fallback; no recovery/endgame rules have been finalized.
+- **Shark falls are now defined (SK-DEC-018 Accepted):** a rescue card immediately preserves the Shark cell with Float +2 / Fin +1; without one the surfer vacates and returns next own turn to a vacant safe sea-ward hex at 2 energy and can move. **P-13 for non-Shark falls remains a proposal**; precise exchanges and other terrain causes have not been approved. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md). Endgame cap is an open **12-round tabletop candidate** in [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md), not an approved rule.
 
 ### Known linked failure modes
 
@@ -52,7 +59,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 5. **Blocked turns / player count:** 2, 4 and 7 player congestion, Stones, fall occupancy, hand limits, 10-round cutoff and a winner tie-break need validation.
 6. **Fast finish vs tactical relevance:** a theoretical start-to-goal path is seven legal maneuvers; attacks must influence race outcome, not just slowly deplete health.
 
-## 4. Review workstreams (same epic, no duplicate issues)
+## 5. Review workstreams (same epic, no duplicate issues)
 
 | Workstream | Status and detail |
 | --- | --- |
@@ -63,7 +70,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 | Complete-match design | A/B/C alternatives, P-09 core and P-10 positional stress review — [OPTIONS.md](OPTIONS.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md); earlier [COMPLETE_MATCH.md](COMPLETE_MATCH.md) |
 | Victory and comeback | P-12 normal return vs P-13 reaction rescue under review; victory/round cap open — [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [OPTIONS.md](OPTIONS.md) |
 
-## 5. Full gameplay proposal prepared (P-15, NOT approved)
+## 6. Full gameplay proposal prepared (P-15, NOT approved)
 
 **Owner request:** No code; provide **clear definitions and the full picture** from start to end. See **[GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md)**, the current integrated design reference.
 
@@ -73,21 +80,21 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 
 **Next step:** Position-by-position three-player tabletop scenario comparing the full v0.1 prototype with the previous inactive-turn recovery; then stressed 2/4/7-player variants. The walkthrough in the blueprint is explicitly **illustrative, not an executed match**. Update only the affected design documents after actual owner feedback.
 
-## 6. Previously agreed design north star
+## 7. Previously agreed design north star
 
-**Owner clarification and explicit confirmation on 2026-11-16 (accepted direction SK-DEC-015, NOT individual rule approval):** The initial game deliberately made surfers **fall many times**, but recovery mechanisms created stalls. The owner is encouraged by the tactical direction yet has lost the overview after multiple local tweaks. Preserve **fall frequency, suspense and meaningful insurance**, while removing **long periods unable to play**. **Do not redesign Surf King into a no-fall race.**
+**Owner clarification and explicit confirmation on 2026-11-16 (accepted direction SK-DEC-017, NOT individual rule approval):** The initial game deliberately made surfers **fall many times**, but recovery mechanisms created stalls. The owner is encouraged by the tactical direction yet has lost the overview after multiple local tweaks. Preserve **fall frequency, suspense and meaningful insurance**, while removing **long periods unable to play**. **Do not redesign Surf King into a no-fall race.**
 
 **Core design loop:** Start at 2 energy → maneuver toward beach → choose risky Shark shortcut, card or adjacent Drop In → perhaps fall → with rare rescue card preserve position and continue; without rescue lose position but **take a normal turn again soon** → contest leadership → beach victory. This is a **hypothesis for whole-match paper playtest**, not an implemented rulebook.
 
 **Critical distinction:** **How often players fall** and **how long they are punished for falling** are **separate balance parameters**. Existing assistant P-09 combinations (free movement + damage reduced to 1 + max 5 energy + only 1 damage per duel + no-damage ties) may make falls too rare, even if they cure the stall. We should **not finalize those proposed damage reductions**, nor automatically make all risks safe. Balance the full loop, not only the dice.
 
-**What is fixed:** Owner-confirmed 2 starting energy (`SK-DEC-014` on this draft, latest art decision `SK-DEC-013` is preserved), 0-energy fall, no Rest, six edge-adjacent normal move directions, edge-adjacent normal Drop In. **Accepted for experimentation only:** 5 energy maximum, up to 2 combat dice, dice tie = no energy damage. **All other turn, card, swap, terrain and comeback mechanics remain assistant candidates.**
+**What is fixed:** Owner-confirmed 2 starting energy (`SK-DEC-016` on this draft, latest art decision `SK-DEC-013` is preserved), 0-energy fall, no Rest, six edge-adjacent normal move directions, edge-adjacent normal Drop In. **Accepted for experimentation only:** 5 energy maximum, up to 2 combat dice, dice tie = no energy damage. **All other turn, card, swap, terrain and comeback mechanics remain assistant candidates.**
 
 **Preferred direction for evaluating P-12/P-13:** A **fall costs position, not a full inactive turn**. Lifeguard Float / Swimming Fin are optional limited **fall insurance** preserving progress (assistant proposal); no-card players return to meaningful play at next own turn with a small seaward positional setback (assistant proposal). **No voluntary reset-to-full-energy fall**, no extra free move, no guaranteed win based on lucky card access.
 
 **Next decisive work:** The integrated v0.1 synthesis and schematic 3-player timeline are now in [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md). Next compare a **position-by-position complete 3-player race** (early start, central Sharks and cards, Drop In, 1–3 falls, late comeback and beach finish) under the old skip-turn penalty versus the candidate position-only penalty. Track **falls per player, missed turns, chances to catch up, rescue value, and length**, then test 2/4/7-player stress cases. These are **playtest goals**, not numerical claims or simulated measurements. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md) and [OPTIONS.md](OPTIONS.md).
 
-## 7. How to resume in a new conversation
+## 8. How to resume in a new conversation
 
 1. Read the latest [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11), including its chronological comments.
 2. Read this INDEX, **[GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md)**, then supporting [ATTACK.md](ATTACK.md), [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md), [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) on draft PR #12.
@@ -95,4 +102,4 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 4. Continue from the **Next action** above; report owner decisions in Portuguese and update Issue #11 comments and affected English draft Markdown for each material interaction.
 5. Never modify gameplay, merge, deploy or publish under this design-review epic. A separate scoped implementation issue and explicit owner approval will be needed after game rules are settled.
 
-**Decision ID note:** `main` accepted **SK-DEC-013 rigged 3D character evaluation**; draft **SK-DEC-014** confirms 2 starting energy, and **SK-DEC-015** now records the owner-confirmed high-level gameplay identity. Preserve all upstream decisions and do not interpret SK-DEC-015 as acceptance of individual damage/return/card rules.
+**Decision ID note:** Current `main` owns SK-DEC-013 (3D base), SK-DEC-014 (3D board avatar) and SK-DEC-015 (male/female + poses); this draft now owns SK-DEC-016 (start 2), SK-DEC-017 (frequent falls with rapid recovery) and SK-DEC-018 (specific Shark-fall resolution). Keep IDs unique; no code merge or deploy.
