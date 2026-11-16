@@ -45,7 +45,7 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 | **Swimming Fin** | **2** | Discard the card, stand on the same Shark, continue normal turn |
 | **Lifeguard Float** | **3** | Discard the card, stand on the same Shark, continue normal turn |
 
-**Each card is a bonus of +1/+2 above the automatic 1-energy baseline**, not an additional free card use. A used recovery card consumes the turn's normal tactical card/action slot, **but the regular legal movement remains available**. Standing up does not retrigger the Shark damage; a fresh entry does. This **supersedes SK-DEC-018** (immediate reaction / sea-ward displacement). Details and historical P-12—P-19 explorations: [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
+**Each card is a bonus of +1/+2 above the automatic 1-energy baseline**, not an additional free card use. **Whether a rescue card consumes the turn's normal tactical action is still undecided**; the regular legal movement remains available. Standing up does not retrigger the Shark damage; a fresh entry does. This **supersedes SK-DEC-018** (immediate reaction / sea-ward displacement). Details and historical P-12—P-19 explorations: [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
 
 **Still open:** How a fallen surfer affects occupation, attacks, and forced movement onto a shared Shark hex; whether the same recovery should apply to **Drop In, Big Wave, Storm, Cyclone and other causes**; whether automatic same-tile progress with 1 energy makes the Shark shortcut too rewarding. Do not generalize SK-DEC-020 to all falls automatically. **No code, test runs, merge or deployment.**
 
