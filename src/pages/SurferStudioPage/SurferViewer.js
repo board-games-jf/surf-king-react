@@ -30,7 +30,7 @@ export default function SurferViewer({ style, phase = 0 }) {
       scene.add(rim)
 
       const camera = new THREE.PerspectiveCamera(38, 1, .1, 30)
-      camera.position.set(2.55, 1.95, 3.2)
+      camera.position.set(2.1, 1.9, -3.15)
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
       renderer.outputColorSpace = THREE.SRGBColorSpace
@@ -50,6 +50,7 @@ export default function SurferViewer({ style, phase = 0 }) {
       controls.update()
 
       const helpers = createScenePrimitives(scene)
+      const priorMaterials = new Set()
       let current = null
       let currentStyle = ''
       let currentModel = null
@@ -59,7 +60,11 @@ export default function SurferViewer({ style, phase = 0 }) {
         currentStyle = fingerprint
         if (currentModel) {
           scene.remove(currentModel.group)
-          currentModel.group.traverse(node => { if (node.geometry) node.geometry.dispose() })
+          currentModel.group.traverse(node => {
+            if (node.geometry) node.geometry.dispose()
+            if (node.material) (Array.isArray(node.material) ? node.material : [node.material])
+              .forEach(material => priorMaterials.add(material))
+          })
         }
         currentModel = createSurferModel(scene, helpers, '#ffbb41', '#e5a875', '#724c35', true, options)
         currentModel.group.scale.setScalar(1.06)
@@ -107,6 +112,7 @@ export default function SurferViewer({ style, phase = 0 }) {
             .forEach(material => materialSet.add(material))
         })
         geometrySet.forEach(geometry => geometry.dispose())
+        priorMaterials.forEach(material => materialSet.add(material))
         materialSet.forEach(material => material.dispose())
         renderer.dispose()
         renderer.domElement.remove()
