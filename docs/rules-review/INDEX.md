@@ -3,11 +3,11 @@
 **Status:** Active game-design exploration; **not** a finalized rulebook or implementation authorization.
 **Single epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) — canonical status, chronological owner feedback and next action.
 **Living documentation:** [Draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12), branch `docs/11-progressive-rules-review` — Markdown only, **do not merge without explicit approval**.
-**Latest checked code:** `main` `df81076781a7a70845dbe079f7a8ca21a79d35e6` (2026-11-16). Game rules are not implemented from this draft.
+**Latest checked code:** `main` `e79c02c8f008c70dc84b5273d3ce0b20e9c78410` (2026-11-16). Game rules are not implemented from this draft.
 
 ## North star
 
-**Fast, easy-to-learn, portable, genuinely strategic, fun and replayable.** The assistant should lead integrated game-system design: show a complete match, compare concrete alternatives, identify loops and unbalanced incentives, recommend a compact rule package, and explain trade-offs. **Never ask the owner to solve a collection of isolated mechanics.**
+**Frequent and dramatic falls, but no long recovery downtime**, within a **fast, easy-to-learn, portable, strategic, fun and replayable beach race**. This is the owner's explicitly clarified original gameplay identity (P-14). The assistant must lead integrated full-match design, prioritize **cost of falling** separately from **frequency of falling**, spot stalled loops and recommend a small coherent package. **Never ask the owner to solve isolated mechanics.**
 
 Keep one coherent whole-match candidate visible while considering one focused choice at a time. Separate proven mechanics, owner's decisions, experiments and open design proposals. Changes in this draft are **documentation only**.
 
@@ -15,7 +15,7 @@ Keep one coherent whole-match candidate visible while considering one focused ch
 
 | Rule | Scope |
 | --- | --- |
-| All surfers **start at 2 energy** | Accepted product rule; see `docs/DECISIONS.md` **SK-DEC-013** on this draft branch |
+| All surfers **start at 2 energy** | Accepted product rule; see `docs/DECISIONS.md` **SK-DEC-014** on this draft branch |
 | **0 energy means falling off the surfboard** | Not resting; timing and method of recovery unresolved |
 | **No Rest mechanic** | No voluntary or automatic Rest action; forced inability to move needs a separate safety rule |
 | Normal movement in **any of six edge-sharing directions**, backward included | Any adjacency, occupancy or obstacle limitations still need review; displayed 18 → 15 was confirmed illegal |
@@ -59,19 +59,19 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 | Complete-match design | A/B/C alternatives, P-09 core and P-10 positional stress review — [OPTIONS.md](OPTIONS.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md); earlier [COMPLETE_MATCH.md](COMPLETE_MATCH.md) |
 | Victory and comeback | P-12 normal return vs P-13 reaction rescue under review; victory/round cap open — [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [OPTIONS.md](OPTIONS.md) |
 
-## 5. Latest owner insight — a rescue card should make falling a calculated risk
+## 5. Strategic pivot — the owner wants **frequent falls without stalling**
 
-**2026-11-16 owner concept:** Falling must remain **simple and strategic**. Sometimes it should be worthwhile to take a risky line or Drop In **because the surfer holds a fall-recovery card**. This is a design direction; the owner has **not** explicitly approved new rescue timing, movement exemptions or respawn rules.
+**Owner clarification on 2026-11-16 (accepted design goal, NOT individual rule approval):** The initial game deliberately made surfers **fall many times**, but recovery mechanisms created stalls. The owner is encouraged by the tactical direction yet has lost the overview after multiple local tweaks. Preserve **fall frequency, suspense and meaningful insurance**, while removing **long periods unable to play**. **Do not redesign Surf King into a no-fall race.**
 
-**Verified current cards:** `Lifeguard float` currently returns **+2 energy** only if already fallen; `Swimming fin` returns **+1**. The current deck has **4 copies of each in 64 total**: 8 rescue cards (12.5% of deck), and ~**23.61%** chance a uniformly dealt 2-card starting hand contains at least one. Thus cards are scarce enough to matter but not guaranteed. Their present card-phase timing would not be a reliable surprise reaction to an opponent's turn.
+**Core design loop:** Start at 2 energy → maneuver toward beach → choose risky Shark shortcut, card or adjacent Drop In → perhaps fall → with rare rescue card preserve position and continue; without rescue lose position but **take a normal turn again soon** → contest leadership → beach victory. This is a **hypothesis for whole-match paper playtest**, not an implemented rulebook.
 
-**Assistant proposal P-13 (NOT owner approved):** A recovery card is **optional immediate fall insurance**, triggered only when real damage reduces energy to zero. Float restores 2 energy; Fin restores 1; each **preserves the position reached by the causing event**, but neither grants an extra move/card/action. Without a rescue card or if declined, the surfer falls off the board and uses the earlier P-12 next-turn seaward setback/2-energy return with a normal turn. This makes rescue worthwhile without letting players farm energy by voluntarily falling. **The card must not undo an opponent's already resolved displacement or restart hazard effects.**
+**Critical distinction:** **How often players fall** and **how long they are punished for falling** are **separate balance parameters**. Existing assistant P-09 combinations (free movement + damage reduced to 1 + max 5 energy + only 1 damage per duel + no-damage ties) may make falls too rare, even if they cure the stall. We should **not finalize those proposed damage reductions**, nor automatically make all risks safe. Balance the full loop, not only the dice.
 
-**Why this replaces the previous next action:** The owner identified the missing strategic purpose of rescue cards. The old P-12 return alone could make both rare rescue cards weak. Playtest **one Shark shortcut with no card, Fin and Float**, then one P-10 forced Shark exchange to resolve card reaction timing and anti-exploit safety.
+**What is fixed:** Owner-confirmed 2 starting energy (`SK-DEC-014` on this draft, latest art decision `SK-DEC-013` is preserved), 0-energy fall, no Rest, six edge-adjacent normal move directions, edge-adjacent normal Drop In. **Accepted for experimentation only:** 5 energy maximum, up to 2 combat dice, dice tie = no energy damage. **All other turn, card, swap, terrain and comeback mechanics remain assistant candidates.**
 
-**Open:** Rescues after falls during another player's turn; exact position after positional exchange; immediate reaction before vacancy; at most one rescue per fall event; safe ocean-edge fallback; whether rescue preserves too much position late in a 7–8-step race. **No card/fall rules beyond the owner-accepted 0-energy fall have been finalized.**
+**Preferred direction for evaluating P-12/P-13:** A **fall costs position, not a full inactive turn**. Lifeguard Float / Swimming Fin are optional limited **fall insurance** preserving progress (assistant proposal); no-card players return to meaningful play at next own turn with a small seaward positional setback (assistant proposal). **No voluntary reset-to-full-energy fall**, no extra free move, no guaranteed win based on lucky card access.
 
-**Source:** [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md), [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md). No gameplay code/tests or match playtests executed.
+**Next decisive work:** Draft and compare a **single complete 3-player race** (early start, central Sharks and cards, Drop In, 1–3 falls, late comeback and beach finish) using the old skip-turn penalty versus the position-only penalty. Track **falls per player, missed turns, chances to catch up, rescue value, and length**, then test 2/4/7-player stress cases. These are **playtest goals**, not numerical claims or simulated measurements. See [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md) and [OPTIONS.md](OPTIONS.md).
 
 ## 6. How to resume in a new conversation
 
@@ -81,4 +81,4 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 4. Continue from the **Next action** above; report owner decisions in Portuguese and update Issue #11 comments and affected English draft Markdown for each material interaction.
 5. Never modify gameplay, merge, deploy or publish under this design-review epic. A separate scoped implementation issue and explicit owner approval will be needed after game rules are settled.
 
-**Decision ID note:** Current `main` reserves SK-DEC-011 and SK-DEC-012 for cosmetic/visual choices. The confirmed **2 starting energy** rule is correctly recorded as **SK-DEC-013** in the draft `docs/DECISIONS.md`; never reuse old draft ID 011 for gameplay.
+**Decision ID note:** Latest `main` contains the additional accepted **SK-DEC-013 rigged 3D character evaluation**; the draft gameplay decision **2 starting energy** is now correctly **SK-DEC-014** to avoid colliding with an existing merged art decision. Preserve all upstream IDs.
