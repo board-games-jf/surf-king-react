@@ -18,7 +18,7 @@ export default function RiggedBaseViewer({ style, styled = false }) {
       import('three'),
       import('three/examples/jsm/loaders/GLTFLoader.js'),
       import('three/examples/jsm/controls/OrbitControls.js'),
-      import('./riggedSurferArt')
+      import('../../map/views/Board3D/riggedSurferArt')
     ]).then(([THREE, { GLTFLoader }, { OrbitControls }, { decorateRiggedSurfer }]) => {
       if (cancelled || !holder.current) return
       const scene = new THREE.Scene()
