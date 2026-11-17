@@ -1,6 +1,6 @@
 # Rule Review — Movement and Adjacency
 
-**Status:** Movement direction and edge-adjacency approved; other movement constraints still under review  
+**Status:** Six edge-adjacent directions and **mandatory normal maneuver whenever a legal destination exists** approved (SK-DEC-022); other movement constraints remain under review  
 **Owner confirmation:** Six directions are allowed only when cells share an edge. The 18 → 15 exception remains confirmed.  
 **Tracking:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) and its comments.
 
@@ -29,7 +29,13 @@ At the reviewed `main` baseline `6daa1705ff11d958a10cffd951eca9f5f2a1084c`:
 
 **Confirmed on 2026-11-15:** A surfer's **normal maneuver** may move **in any of the six directions**, including backward, **provided the destination shares an entire edge with the origin hex**. Edge and corner hexes have fewer than six adjacent cells.
 
-This approval covers **normal movement direction and geometric adjacency only**. Energy cost, occupancy, special card-driven movement and obstacles remain separate decisions. The range of **drop-in** was independently confirmed as edge adjacency; see [ATTACK.md](ATTACK.md). The range semantics for tsunami, cyclone, and cards must be decided separately.
+Direction and geometric adjacency were approved separately. **SK-DEC-022 later confirmed that a player must make a legal normal maneuver if one exists; voluntary passing/standing still is forbidden, even though backward movement is legal.** Energy cost, occupancy, special card-driven movement and obstacles remain separate decisions. The range of **drop-in** was independently confirmed as edge adjacency; see [ATTACK.md](ATTACK.md). The range semantics for tsunami, cyclone, and cards must be decided separately.
+
+## 4. Movement is mandatory when possible — SK-DEC-022 Accepted (design only)
+
+The owner explicitly clarified on 2026-11-17: **a player does not choose to stay put; they must move unless they cannot**. Therefore, when any true edge-adjacent legally available hex exists, the active surfer must select and move to one of those hexes, including backward or sideways when those are the only legal choices. **Other legal card/attack actions are not an alternative to the required maneuver.** A player may end the movement stage without displacement only if **no normal legal movement exists** (a forced blocked state); the automatic blocked-turn fallback and whether any reward applies are still to be finalized.
+
+**Implementation mismatch:** The current `main` UI exposes `Skip`, and the boardgame.io Phase B engine accepts `pass` at movement, potentially granting +1 energy. This behavior is **not** compliance with the accepted design rule; no code has been altered during this design review.
 
 ## 4. Examples and status
 
