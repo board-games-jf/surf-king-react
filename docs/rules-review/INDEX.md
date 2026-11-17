@@ -21,6 +21,7 @@ Keep one coherent whole-match candidate visible while considering one focused ch
 | **0 energy means falling off the surfboard** | Not resting; timing and method of recovery unresolved |
 | **Shark −2 damage on entry (SK-DEC-019)** | **Accepted**; no numerical Shark damage reduction |
 | **Shark fall and next-turn recovery (SK-DEC-020)** | **Accepted design rule:** at zero fall and stay on same Shark; next own turn **no card 1**, **Fin 2**, **Float 3** energy; move normally. **SK-DEC-018 superseded**. Other falls unresolved |
+| **Fallen surfer occupies Shark and blocks normal movement (SK-DEC-021)** | **Accepted:** one surfer per tile, no normal entry onto fallen occupant and **no normal Drop In targeting them**; normal alternative moves/actions remain possible; forced displacement/cards and full-block fallback still unresolved |
 | **No Rest mechanic** | No voluntary or automatic Rest action; forced inability to move needs a separate safety rule |
 | Normal movement in **any of six edge-sharing directions**, backward included | Any adjacency, occupancy or obstacle limitations still need review; displayed 18 → 15 was confirmed illegal |
 | Normal **Drop In only against an edge-sharing adjacent opponent** | Dice resolution, card effects and other attack conditions are separate |
@@ -47,7 +48,9 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 
 **Each card is a bonus of +1/+2 above the automatic 1-energy baseline**, not an additional free card use. **Whether a rescue card consumes the turn's normal tactical action is still undecided**; the regular legal movement remains available. Standing up does not retrigger the Shark damage; a fresh entry does. This **supersedes SK-DEC-018** (immediate reaction / sea-ward displacement). Details and historical P-12—P-19 explorations: [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md).
 
-**Still open:** How a fallen surfer affects occupation, attacks, and forced movement onto a shared Shark hex; whether the same recovery should apply to **Drop In, Big Wave, Storm, Cyclone and other causes**; whether automatic same-tile progress with 1 energy makes the Shark shortcut too rewarding. Do not generalize SK-DEC-020 to all falls automatically. **No code, test runs, merge or deployment.**
+**SK-DEC-021 ACCEPTED (2026-11-17):** A fallen surfer **continues occupying their Shark cell**; no other surfer can enter it by normal maneuver or perform normal Drop In against that fallen surfer. The other surfer may choose another legal move or independently allowed action. At recovery, the surfer remains the cell's occupant until moving out. This is the board-occupancy rule, not approval of interactions with special card displacement.
+
+**Still open:** Forced relocation/card targets, fallback when *all* neighboring tiles are blocked, whether the same recovery should apply to **Drop In, Big Wave, Storm, Cyclone and other fall causes**, and whether same-tile recovery makes the Shark shortcut too rewarding. Do not generalize SK-DEC-020 to all falls automatically. **No code, test runs, merge or deployment.**
 
 ## 4. Recommended integrated whole-match v0.1 — **assistant proposal only**
 
@@ -97,7 +100,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 
 **Critical distinction:** **How often players fall** and **how long they are punished for falling** are **separate balance parameters**. Existing assistant P-09 combinations (free movement + damage reduced to 1 + max 5 energy + only 1 damage per duel + no-damage ties) may make falls too rare, even if they cure the stall. We should **not finalize those proposed damage reductions**, nor automatically make all risks safe. Balance the full loop, not only the dice.
 
-**What is fixed:** Owner-confirmed 2 starting energy (`SK-DEC-016`), fall at 0, no Rest, six true edge-adjacent directions, edge-adjacent Drop In, **Shark −2 SK-DEC-019**, and **Shark fall-on-cell recovery SK-DEC-020** (supersedes `SK-DEC-018`). All upstream visual decisions through `SK-DEC-015` are preserved. **Accepted for experimentation only:** 5 energy maximum, up to 2 combat dice, dice tie = no energy damage. **All other turn, card, swap, terrain and comeback mechanics remain assistant candidates.**
+**What is fixed:** Owner-confirmed 2 starting energy (`SK-DEC-016`), fall at 0, no Rest, six true edge-adjacent directions, edge-adjacent Drop In, **Shark −2 SK-DEC-019**, **same-cell Shark recovery SK-DEC-020**, and **fallen Shark occupancy/normal Drop In restriction SK-DEC-021** (old `SK-DEC-018` Superseded). All upstream visual decisions through `SK-DEC-015` are preserved. **Accepted for experimentation only:** 5 energy maximum, up to 2 combat dice, dice tie = no energy damage. **All other turn, card, swap, terrain and comeback mechanics remain assistant candidates.**
 
 **Preferred direction for evaluating P-12/P-13:** A **fall costs position, not a full inactive turn**. Lifeguard Float / Swimming Fin are optional limited **fall insurance** preserving progress (assistant proposal); no-card players return to meaningful play at next own turn with a small seaward positional setback (assistant proposal). **No voluntary reset-to-full-energy fall**, no extra free move, no guaranteed win based on lucky card access.
 
@@ -111,4 +114,4 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 4. Continue from the **Next action** above; report owner decisions in Portuguese and update Issue #11 comments and affected English draft Markdown for each material interaction.
 5. Never modify gameplay, merge, deploy or publish under this design-review epic. A separate scoped implementation issue and explicit owner approval will be needed after game rules are settled.
 
-**Decision ID note:** `main` owns visual SK-DEC-013 through SK-DEC-015; this draft owns gameplay SK-DEC-016 (start 2), SK-DEC-017 (fall-heavy identity), SK-DEC-018 (superseded old Shark retreat), SK-DEC-019 (Shark −2) and SK-DEC-020 (approved same-tile next-turn 1/2/3 recovery). Preserve IDs. No gameplay code changes, merge or deploy.
+**Decision ID note:** `main` owns visual SK-DEC-013 through SK-DEC-015; this draft owns gameplay SK-DEC-016 (start 2), SK-DEC-017 (fall-heavy identity), SK-DEC-018 (superseded old Shark retreat), SK-DEC-019 (Shark −2), SK-DEC-020 (approved same-tile next-turn 1/2/3 recovery) and SK-DEC-021 (fallen occupant blocks normal entry and Drop In). Preserve IDs. No gameplay code changes, merge or deploy.
