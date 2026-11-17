@@ -1,6 +1,6 @@
 # Rule Review — Game Pace, Energy, and Turn Flow
 
-**Status:** In design review. The owner has removed **Rest** as a game mechanic. Mandatory movement and energy costs remain **proposals**.
+**Status:** **Mandatory normal movement when legal is now owner-approved (SK-DEC-022 Accepted)**; no Rest. Energy cost, blocked-turn automation and exceptional replacement movement remain open. No game implementation authorized.
 **Tracking:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) and [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12).
 **Verified rules-engine baseline:** `main` `6c80c80b28b6d115b3d2267e9462c2cc91fc6311` (2026-11-16). No runtime tests executed.
 
@@ -21,8 +21,17 @@ Avoid posing implementation details as owner decisions. Offer reasoned design pr
 2. **Remove Rest as a game mechanic.** The owner explicitly requested this on 2026-11-16. Do not invent a Rest button, Rest reward or optional Rest action.
 3. The main-phase all-pass stalemate is unacceptable as a design target. The owner wants gameplay that progresses without players agreeing to skip indefinitely.
 4. Normal movement in any of six edge-sharing directions, and edge-sharing-only drop-in range, were separately approved (see `MOVEMENT.md` and `ATTACK.md`).
+5. **Movement is mandatory when a legal adjacent destination exists (SK-DEC-022 Accepted, 2026-11-17):** player must make a normal movement (in any legal direction, including backward) and cannot voluntarily stand still or Skip. **Only if there is no legal normal maneuver** can the movement phase finish without displacement as a forced blockage. Optional cards or ordinary Drop In do not automatically replace this requirement. After standing up on a Shark (SK-DEC-020) the same mandatory-move rule applies, if a destination exists.
 
-**Not yet approved:** Making normal movement compulsory, changing energy costs, automatic stand-up behavior following a fall, or any anti-oscillation / round-limit mechanism. Removing Rest does not by itself specify these systems.
+**Approved design:** mandatory normal movement when legal (SK-DEC-022), and Shark-specific next-own-turn recovery (SK-DEC-020). **Not yet approved:** changing ordinary movement energy cost; automatic detection/treatment of a fully blocked move phase; special-action-as-maneuver exceptions; anti-oscillation or match-round limits. No code has been changed.
+
+## SK-DEC-022 — mandatory movement and blocked-only exception (ACCEPTED, design only)
+
+**Owner clarification on 2026-11-17:** A player **does not choose to stay still**. They **must move** if at least one legal normal adjacent move exists; they can finish without changing cells **only if no legal normal move exists**. This applies also on the Shark recovery turn (SK-DEC-020). Ordinary movement may be sideways or backward, as previously accepted; it is not necessarily forward progress.
+
+**Not a Rest/Skip tactic:** Playing a card or attempting ordinary Drop In does not itself authorize skipping the required movement. If all neighboring destinations are genuinely illegal, end the maneuver step safely as a forced blocked case; whether to give cards/energy or how the phase advances is not yet decided. Prevent any indefinite skip loop or free energy farming. Card effects that legitimately **count as** a maneuver must be approved separately.
+
+**Current implementation gap:** Phase B exposes `pass` and the board UI renders a `Skip` control even at the maneuver step. Engine `pass()` currently may award an energy on a stationary pass. The approved design is **not already enforced by the current engine**, notwithstanding the owner's intended rule. Future change must distinguish voluntary Skip (forbidden if a legal move exists) from blocked-only safe completion (allowed), with tests covering legal adjacency, occupancy, Stones, fallen blockers and a fully-blocked player.
 
 ## Observed current code (different from desired design)
 
@@ -30,7 +39,7 @@ Avoid posing implementation details as owner decisions. Offer reasoned design pr
 - Starts normal surfers at maximum 4 energy.
 - Consumes 1 energy per ordinary maneuver unless the applicable Bottled Water effect intervenes.
 - Marks a fall at 0 energy (also after combat / card damage).
-- Lets players `pass` the maneuver stage and recover 1 energy if they did not move and are not blocked or fallen.
+- Lets players `pass` the maneuver stage and recover 1 energy if they did not move and are not blocked or fallen, **contrary to the newly confirmed SK-DEC-022 design rule**. `src/components/Board/Board.js` also renders a **Skip** button during normal control phases. This must be corrected in a future separately authorized implementation and covered by tests.
 - Handles a fallen player by giving 1 energy and blocking that player's actions temporarily when passing the card stage.
 - Allows players to pass card, attack and movement stages in the main phase; repeating that cycle can leave every surfer stationary indefinitely.
 
@@ -49,14 +58,14 @@ These are implementation observations, **not** approvals of the current rules.
 
 ## Assistant design direction — P-03 (proposal, not approved)
 
-- Eliminate voluntary Rest as the owner requested; whether `pass` is also disallowed for normal movement still needs a decision.
+- Eliminate voluntary Rest and **voluntary `pass`/Skip of normal movement**; this has now been explicitly confirmed by the owner (SK-DEC-022).
 - **Candidate:** make a normal one-hex maneuver cost **0 energy** so players are not forced to fall merely by moving; retain energy as a combat/survival resource and make card/obstacle risks meaningful.
-- **Candidate:** require an otherwise legal move each active turn, while allowing card-play and drop-in to remain optional.
+- **Now Accepted (SK-DEC-022):** require an otherwise legal move each eligible turn. A separate mandatory-move bypass is allowed only when truly blocked. Card-play/drop-in optionality and any approved move-replacement special action remain independent decisions.
 - **Confirmed consequence, not a new recovery rule:** If energy reaches zero, the surfer **falls**. The length and manner of returning to play are **open**.
 - Keep exceptional immobilization (card effects, no legal adjacent destination) as a separate rule, with no fictitious Rest action.
 - Consider an anti-loop victory/pressure rule only if a core-loop review shows mandatory movement alone is insufficient.
 
-The previous P-01/P-02 optional/automatic Rest proposals are **discarded**, not accepted rules.
+The previous P-01/P-02 optional/automatic Rest proposals are **discarded**, not accepted rules. No voluntary pass or stand-still is allowed at the movement step when a legal move exists (SK-DEC-022).
 
 ## Integrated rule-interaction audit — 2026-11-16 (assistant analysis, not approved)
 
