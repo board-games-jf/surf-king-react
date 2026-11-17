@@ -38,7 +38,21 @@
 
 **Why it is strategic:** A Shark shortcut can save a movement relative to a longer detour, but at **2 energy** a Shark's **−2 causes a fall**; on recovery without a card the surfer is vulnerable at **1 energy**, and scarce cards can improve survival to 2 or 3. **There is no positional penalty for an unsaved Shark fall**. The intended trade-off is vulnerability; a later tabletop test must verify this is sufficient danger and card value.
 
-**Explicit scope limit:** This decision establishes **Shark-caused falls** only. Normal Drop In, Big Wave, Storm and other causes are not automatically given the same rules. **Fallen-surfer occupancy**, legal attacks on a fallen surfer, forced movement onto an occupied Shark, and interactions in a crowded seven-player game remain open. Until defined, do not claim all cases are ready for implementation or playtested.
+**Explicit scope limit:** SK-DEC-020 establishes **Shark-caused recovery** only. **SK-DEC-021 now settles normal occupancy and normal Drop In targeting of a fallen Shark occupant**, below. Recovery from Big Wave, Storm, Drop In and other fall causes, forced displacement/card targeting, and all-neighbors-blocked congestion remain open. Do not claim every edge case is ready to implement or tested.
+
+## SK-DEC-021 — A fallen surfer continues to occupy the Shark tile (ACCEPTED; design only)
+
+**Owner approval (2026-11-17):** The owner answered "**ta otimo**" to the proposed interaction: **a fallen surfer continues to occupy their Shark hex; another surfer cannot enter that occupied cell or Drop In against the fallen surfer; instead the other surfer chooses a different legal maneuver or an otherwise permitted action**.
+
+**Canonical Shark-cell occupancy rule:**
+
+1. **One surfer per hex.** A surfer at zero energy remains visible and occupying their Shark cell. They **block normal maneuver entry** into that cell even while fallen.
+2. **No normal Drop In against a fallen surfer.** They cannot defend in combat at zero energy; normal Drop In may be attempted against an adjacent **standing** surfer under the separate approved adjacency restriction.
+3. **Other players act normally elsewhere:** choose a different **legal** neighboring cell, or another **independently permitted** action; do not forcibly relocate or overlap the fallen surfer merely to unblock the route.
+4. **At the start of the fallen surfer's next personal turn**, apply **SK-DEC-020**: stand on the same Shark cell at **1 energy without a card**, **2 with Swimming Fin**, or **3 with Lifeguard Float**, then take the normal legal maneuver. **Only when that surfer actually leaves** is the Shark hex released. The same Shark does not retrigger on standing up.
+5. **Unresolved interactions:** The precise fallback if *all* legal adjacent cells are blocked; whether a forced swap/Change/Tsunami/other card may displace or target a fallen surfer; and how many active surfers can cluster around a Shark in a 7-player match. **SK-DEC-021 does not authorize** these special card/forced-movement cases.
+
+**Why it fits the game:** Falling creates a temporary tactical obstruction while allowing the fallen player to rejoin play on their next turn without a lost move or positional retreat. Unlike the historical engine's fallen-surfer swap on normal maneuver, the intended rule prohibits that swap; this needs a future scoped implementation with regression tests, not just a visual change.
 
 ## Historical proposals superseded for Shark falls (read only)
 
