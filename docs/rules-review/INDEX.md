@@ -24,6 +24,7 @@ Keep one coherent whole-match candidate visible while considering one focused ch
 | **Fallen surfer occupies Shark and blocks normal movement (SK-DEC-021)** | **Accepted:** one surfer per tile, no normal entry onto fallen occupant and **no normal Drop In targeting them**; normal alternative moves/actions remain possible; forced displacement/cards and full-block fallback still unresolved |
 | **No Rest mechanic** | No voluntary or automatic Rest action; forced inability to move needs a separate safety rule |
 | Normal movement in **any of six edge-sharing directions**, backward included | Any adjacency, occupancy or obstacle limitations still need review; displayed 18 → 15 was confirmed illegal |
+| **Mandatory movement when legal (SK-DEC-022)** | **Accepted**: player must move to a legal adjacent hex (back/sideways allowed); voluntary Skip/standing still forbidden; if **no legal move**, the movement step may end as a forced blocked exception. Whether movement costs energy is **NOT approved** |
 | Normal **Drop In only against an edge-sharing adjacent opponent** | Dice resolution, card effects and other attack conditions are separate |
 
 ## 2. Owner-accepted **design experiments**, NOT finalized rules
@@ -50,6 +51,8 @@ The trial has not yet been playtested or proved balanced. Approval to **try** th
 
 **SK-DEC-021 ACCEPTED (2026-11-17):** A fallen surfer **continues occupying their Shark cell**; no other surfer can enter it by normal maneuver or perform normal Drop In against that fallen surfer. The other surfer may choose another legal move or independently allowed action. At recovery, the surfer remains the cell's occupant until moving out. This is the board-occupancy rule, not approval of interactions with special card displacement.
 
+**Movement/balance checkpoint — SK-DEC-022 Accepted (2026-11-17):** Normal movement is compulsory **whenever legal**. A card or ordinary Drop In does not by itself excuse standing still. The player may move sideways or backwards, so compulsory movement promotes activity **but cannot guarantee beachward progress**; persistent two-cell oscillation still needs stress tests. **Making movement cost 0 energy is a strong assistant recommendation, NOT an approved numerical rule:** compulsory −1-energy travel from the approved 2-energy start would cause falls from routine movement and could recreate stalls even with next-turn Shark recovery. Hazardous-but-legal destinations still count as legal, so occupied/Stone bottlenecks can force risky movement. Fully blocked turns need a safe forced exception (no voluntary Rest or free repeatable healing). The engine still exposes Skip/pass at maneuver and is not yet aligned. [TURNS_AND_PACING.md](TURNS_AND_PACING.md), [MOVEMENT.md](MOVEMENT.md).
+
 **Still open:** Forced relocation/card targets, fallback when *all* neighboring tiles are blocked, whether the same recovery should apply to **Drop In, Big Wave, Storm, Cyclone and other fall causes**, and whether same-tile recovery makes the Shark shortcut too rewarding. Do not generalize SK-DEC-020 to all falls automatically. **No code, test runs, merge or deployment.**
 
 ## 4. Recommended integrated whole-match v0.1 — **assistant proposal only**
@@ -66,7 +69,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 
 1. **Combat too weak:** tie ≈22% with equal two-die pools; a decisive combat under P-09 only takes 1 energy, possibly not enough to interrupt a race.
 2. **Healing snowball:** cards and any automatic growth can make an energy-5 surfer effectively immune to significant interruption, even though it does not roll more dice than a surfer at energy 2.
-3. **Shark shortcut vs bypass:** code starts four Sharks in the central row; the 7-move shortest example enters Shark 28, but a valid 8-move bypass avoids all Sharks. Current Shark -2 and Big Wave -2 can drop a starting 2-energy surfer immediately; the proposed -1 penalty offers a real speed/resilience trade-off.
+3. **Shark shortcut vs bypass:** four Sharks lie on the initial central row. The 7-maneuver shortcut crosses Shark 28; a legal 8-maneuver bypass avoids Sharks. **Shark −2 is now Accepted (SK-DEC-019)**: entering it from 2 energy causes a fall, but SK-DEC-020 lets the surfer keep that tile and recover next own turn, so the shortcut's risk/reward needs playtesting.
 4. **Luck vs strategy:** free movement and card-draw dependency could turn tactics into card lottery; compulsory movement alone still allows backward-forward stalling.
 5. **Blocked turns / player count:** 2, 4 and 7 player congestion, Stones, fall occupancy, hand limits, the current **12-round proposal** and tie-break need validation.
 6. **Fast finish vs tactical relevance:** a theoretical start-to-goal path is seven legal maneuvers; attacks must influence race outcome, not just slowly deplete health.
@@ -75,10 +78,10 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 
 | Workstream | Status and detail |
 | --- | --- |
-| Board / movement | Direction and true adjacency accepted; other restrictions open — [MOVEMENT.md](MOVEMENT.md) |
+| Board / movement | Six directions, true adjacency **and movement when legal (SK-DEC-022) Accepted**; energy cost and special card movement still open — [MOVEMENT.md](MOVEMENT.md) |
 | Drop In / dice | Range accepted; cap/tie experimental; P-10 optional exchange proposed — [ATTACK.md](ATTACK.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md) |
 | Energy / cards / hazards | Start 2 accepted; cap 5 experimental; recovery cards now part of P-13 tactical balance — [ENERGY_AND_COMBAT.md](ENERGY_AND_COMBAT.md), [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md) |
-| Turn structure / anti-stall | No Rest accepted; full loop, forced blocks and finite ending pending — [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
+| Turn structure / anti-stall | **No Rest and compulsory movement when legal accepted (SK-DEC-022)**; free movement COST and fully blocked transition remain unresolved — [TURNS_AND_PACING.md](TURNS_AND_PACING.md) |
 | Complete-match design | A/B/C alternatives, P-09 core and P-10 positional stress review — [OPTIONS.md](OPTIONS.md), [RACE_STRESS_REVIEW.md](RACE_STRESS_REVIEW.md); earlier [COMPLETE_MATCH.md](COMPLETE_MATCH.md) |
 | Victory and comeback | P-12 normal return vs P-13 reaction rescue under review; victory/round cap open — [FALL_AND_RESCUE.md](FALL_AND_RESCUE.md), [OPTIONS.md](OPTIONS.md) |
 
@@ -86,7 +89,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 
 **Owner request:** No code; provide **clear definitions and the full picture** from start to end. See **[GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md)**, the current integrated design reference.
 
-**Candidate whole-match system:** 2 starting energy + 2 cards; experimental energy max 5; free compulsory one-hex move; one optional normal card **or** adjacent Drop In, then draw after successful movement; experimental up-to-2-dice and no-damage tie; provisional 1 energy lost on strictly losing fight; optional position exchange on a strict attacker win consumes the maneuver; **approved Shark −2** / Storm −1 / Big Wave −2 for a meaningful threat (all damage proposals); optional immediate Float (+2)/Fin (+1) on a real fall preserves position, while no-card fall returns next personal turn with 2 energy and a short seaward positional setback but a normal active turn; first beach arrival wins, with provisional **12-completed-round** fallback only if necessary.
+**Updated candidate whole-match system:** Approved: 2 initial energy, Shark −2, normal movement **mandatory when legal (SK-DEC-022)**, fall/return **on the same Shark cell** at 1/2/3 energy next own turn (no card/Fin/Float), fallen Shark occupant blocks normal entry/Drop In. Still candidate: **0 energy cost for ordinary movement**, one optional card OR adjacent Drop In before the maneuver, after-move draw, max-5 energy experiment, up-to-2-dice/tie-no-damage trial, strictly lost duel −1 energy, optional positional swap consuming maneuver, and first beach arrival with a possible 12-round cap. **Do not reuse P-15's historical immediate rescue / sea-ward respawn**. Full sequence is not yet playtested.
 
 **Why these are linked:** Frequent dramatic falls are explicitly approved as identity; an auto-return that removes players for entire rounds is not. The owner retained Shark −2, which causes a fall at the approved 2-energy start, so the actual decision is how to recover and keep the shortcut risk strategic; the previous Shark −1 experiment is superseded. Rescue becomes a scarce strategic choice rather than mandatory eligibility to play. Successful Drop In needs positional meaning or strong surfers can ignore weak damage. The exact fall frequency, cards/healing snowball, round cap and rescue timing remain **unverified**.
 
@@ -100,7 +103,7 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 
 **Critical distinction:** **How often players fall** and **how long they are punished for falling** are **separate balance parameters**. Existing assistant P-09 combinations (free movement + damage reduced to 1 + max 5 energy + only 1 damage per duel + no-damage ties) may make falls too rare, even if they cure the stall. We should **not finalize those proposed damage reductions**, nor automatically make all risks safe. Balance the full loop, not only the dice.
 
-**What is fixed:** Owner-confirmed 2 starting energy (`SK-DEC-016`), fall at 0, no Rest, six true edge-adjacent directions, edge-adjacent Drop In, **Shark −2 SK-DEC-019**, **same-cell Shark recovery SK-DEC-020**, and **fallen Shark occupancy/normal Drop In restriction SK-DEC-021** (old `SK-DEC-018` Superseded). All upstream visual decisions through `SK-DEC-015` are preserved. **Accepted for experimentation only:** 5 energy maximum, up to 2 combat dice, dice tie = no energy damage. **All other turn, card, swap, terrain and comeback mechanics remain assistant candidates.**
+**What is fixed:** Owner-confirmed 2 starting energy (`SK-DEC-016`), fall at 0, no Rest, six true edge-adjacent directions, adjacent Drop In, **Shark −2 SK-DEC-019**, **same-cell recovery SK-DEC-020**, **fallen Shark occupancy SK-DEC-021**, and **mandatory movement when legal SK-DEC-022** (old `SK-DEC-018` Superseded). All upstream visual decisions through `SK-DEC-015` are preserved. **Accepted for experimentation only:** 5 energy maximum, up to 2 combat dice, dice tie = no energy damage. **All other turn, card, swap, terrain and comeback mechanics remain assistant candidates.**
 
 **Preferred direction for evaluating P-12/P-13:** A **fall costs position, not a full inactive turn**. Lifeguard Float / Swimming Fin are optional limited **fall insurance** preserving progress (assistant proposal); no-card players return to meaningful play at next own turn with a small seaward positional setback (assistant proposal). **No voluntary reset-to-full-energy fall**, no extra free move, no guaranteed win based on lucky card access.
 
@@ -114,4 +117,4 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 4. Continue from the **Next action** above; report owner decisions in Portuguese and update Issue #11 comments and affected English draft Markdown for each material interaction.
 5. Never modify gameplay, merge, deploy or publish under this design-review epic. A separate scoped implementation issue and explicit owner approval will be needed after game rules are settled.
 
-**Decision ID note:** `main` owns visual SK-DEC-013 through SK-DEC-015; this draft owns gameplay SK-DEC-016 (start 2), SK-DEC-017 (fall-heavy identity), SK-DEC-018 (superseded old Shark retreat), SK-DEC-019 (Shark −2), SK-DEC-020 (approved same-tile next-turn 1/2/3 recovery) and SK-DEC-021 (fallen occupant blocks normal entry and Drop In). Preserve IDs. No gameplay code changes, merge or deploy.
+**Decision ID note:** `main` owns visual SK-DEC-013 through SK-DEC-015; this draft owns gameplay SK-DEC-016 (start 2), SK-DEC-017 (fall-heavy identity), SK-DEC-018 (superseded old Shark retreat), SK-DEC-019 (Shark −2), SK-DEC-020 (approved same-tile next-turn 1/2/3 recovery) SK-DEC-021 (fallen occupant blocks normal entry and Drop In), and SK-DEC-022 (mandatory movement, blocked-only exception). Preserve IDs. No gameplay code changes, merge or deploy.
