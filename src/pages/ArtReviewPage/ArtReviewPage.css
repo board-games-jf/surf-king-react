@@ -1,0 +1,100 @@
+.art-review {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: clamp(14px, 3vw, 36px);
+  background: linear-gradient(140deg, #b2ecea, #e6f7e7 60%, #f7e7bd);
+  color: #17464d;
+  font-family: system-ui, sans-serif;
+}
+.art-review-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 1360px;
+  margin: 0 auto 20px;
+}
+.art-review-header a {
+  color: #175b67;
+  font-weight: 700;
+  text-decoration: none;
+}
+.art-review-header h1 { margin: 0 0 4px; font-size: clamp(24px, 3vw, 34px); }
+.art-review-header p { margin: 0; }
+.art-review-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
+  gap: 18px;
+  max-width: 1360px;
+  min-height: min(72vh, 760px);
+  margin: 0 auto;
+}
+.art-review-controls {
+  padding: 22px;
+  background: #fffdf5f2;
+  border: 1px solid #b5cfcb;
+  border-radius: 20px;
+  box-shadow: 0 9px 22px #145a6225;
+}
+.art-review-controls h2 { margin: 0 0 12px; font-size: 19px; }
+.art-review-controls p { font-size: 14px; line-height: 1.55; }
+.art-review-controls a { color: #096477; }
+.art-review-controls label {
+  display: block;
+  margin: 17px 0 7px;
+  font-weight: 750;
+}
+.art-review-controls input,
+.art-review-controls select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px;
+  border: 1px solid #aacdc6;
+  border-radius: 10px;
+  background: #fff;
+  color: #17464d;
+}
+.art-review-note {
+  padding: 12px;
+  border-radius: 10px;
+  background: #e4f4ef;
+}
+.art-review-report {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #b9d8d1;
+}
+.art-review-stage {
+  min-width: 0;
+  min-height: 550px;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid #fff;
+  border-radius: 20px;
+  background: #ccecea;
+  box-shadow: 0 9px 22px #145a6225;
+}
+.art-review-canvas { position: absolute; inset: 0; }
+.art-review-status {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: #fffdf4e8;
+  padding: 10px;
+  border-radius: 12px;
+  pointer-events: none;
+}
+.art-review-footer {
+  max-width: 1360px;
+  margin: 18px auto 0;
+  font-size: 12px;
+}
+@media (max-width: 800px) {
+  .art-review-header { display: block; }
+  .art-review-header > a { display: inline-block; margin-bottom: 10px; }
+  .art-review-grid { grid-template-columns: minmax(0, 1fr); }
+  .art-review-stage { min-height: 430px; }
+}
