@@ -8,6 +8,7 @@ import LocalPage from './pages/LocalPage'
 import ObstacleGalleryPage from './pages/ObstacleGalleryPage'
 import BoardCatalogPage from './pages/BoardCatalogPage'
 import SurferStudioPage from './pages/SurferStudioPage'
+import ArtReviewPage from './pages/ArtReviewPage'
 
 const AppRoutes = () => (
     // Hash router is used because of github-pages issues with browser router
@@ -20,6 +21,7 @@ const AppRoutes = () => (
             <Route path="/catalog" element={<BoardCatalogPage />} />
             <Route path="/surfers" element={<SurferStudioPage />} />
             <Route path="/customize" element={<SurferStudioPage />} />
+            <Route path="/art-review" element={<ArtReviewPage />} />
             {/* <Route path="/online" element={LoadableOnlinePage} /> */}
             <Route path="*" element={ErrorPage} />
         </Routes>
