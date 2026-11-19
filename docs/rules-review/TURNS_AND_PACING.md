@@ -23,7 +23,7 @@ Avoid posing implementation details as owner decisions. Offer reasoned design pr
 4. Normal movement in any of six edge-sharing directions, and edge-sharing-only drop-in range, were separately approved (see `MOVEMENT.md` and `ATTACK.md`).
 5. **Movement is mandatory when a legal adjacent destination exists (SK-DEC-022 Accepted, 2026-11-17):** player must make a normal movement (in any legal direction, including backward) and cannot voluntarily stand still or Skip. **Only if there is no legal normal maneuver** can the movement phase finish without displacement as a forced blockage. Optional cards or ordinary Drop In do not automatically replace this requirement. After standing up on a Shark (SK-DEC-020) the same mandatory-move rule applies, if a destination exists.
 
-**Approved design:** mandatory normal movement when legal (SK-DEC-022), and Shark-specific next-own-turn recovery (SK-DEC-020). **Not yet approved:** changing ordinary movement energy cost; automatic detection/treatment of a fully blocked move phase; special-action-as-maneuver exceptions; anti-oscillation or match-round limits. No code has been changed.
+**Approved design:** mandatory movement when legal (SK-DEC-022), universal next-own-turn fall recovery (SK-DEC-023), and **owner-approved trial of ordinary movement at 0 energy cost (SK-DEC-026, TRIAL ONLY; NOT final or implemented)**. Still undecided: the final ordinary movement cost, automatic handling of a fully blocked maneuver, special-action-as-maneuver exceptions, anti-oscillation and match-round limits. No gameplay code has been changed.
 
 ## SK-DEC-022 — mandatory movement and blocked-only exception (ACCEPTED, design only)
 
@@ -32,6 +32,10 @@ Avoid posing implementation details as owner decisions. Offer reasoned design pr
 **Not a Rest/Skip tactic:** Playing a card or attempting ordinary Drop In does not itself authorize skipping the required movement. If all neighboring destinations are genuinely illegal, end the maneuver step safely as a forced blocked case; whether to give cards/energy or how the phase advances is not yet decided. Prevent any indefinite skip loop or free energy farming. Card effects that legitimately **count as** a maneuver must be approved separately.
 
 **Current implementation gap:** Phase B exposes `pass` and the board UI renders a `Skip` control even at the maneuver step. Engine `pass()` currently may award an energy on a stationary pass. The approved design is **not already enforced by the current engine**, notwithstanding the owner's intended rule. Future change must distinguish voluntary Skip (forbidden if a legal move exists) from blocked-only safe completion (allowed), with tests covering legal adjacency, occupancy, Stones, fallen blockers and a fully-blocked player.
+
+## SK-DEC-026 — zero-cost normal movement trial approved (2026-11-19; no code change)
+
+**One change for the controlled trial:** Each **legal ordinary move** consumes **zero energy**, independently of direction (side/back/forward); it is **still mandatory when possible**. Resolving the **destination terrain** and attacks/cards keeps their separately approved values, notably **Shark −2 energy on entry**. The trial does **not** authorize a free tactical action, free energy gain for a forced blocked turn or any new card draw rule. The current engine continues to charge 1 energy on ordinary maneuvers unless protected by Bottled Water, so this is design-study-only. **Acceptance check:** compare fixed-path no-hazard moves, Shark shortcut vs 8-move bypass, fallen-on-Shark occupancy, 2/4/7-player congestion and card-loss events. Record effects on normal-travel falls, combat/obstacle falls, time to beach and how often Bottled Water becomes useless. Never report that the main code or automated tests already enforce this trial.
 
 ## Observed current code (different from desired design)
 
@@ -59,7 +63,7 @@ These are implementation observations, **not** approvals of the current rules.
 ## Assistant design direction — P-03 (proposal, not approved)
 
 - Eliminate voluntary Rest and **voluntary `pass`/Skip of normal movement**; this has now been explicitly confirmed by the owner (SK-DEC-022).
-- **Candidate:** make a normal one-hex maneuver cost **0 energy** so players are not forced to fall merely by moving; retain energy as a combat/survival resource and make card/obstacle risks meaningful.
+- **SK-DEC-026 Accepted for design trials ONLY:** ordinary one-hex maneuver costs **0 energy** in the next controlled 2/4/7-player balance simulations, so compelled safe travel itself does not cause falls. Energy remains a combat/survival resource; **Shark −2** and card/attack damage stay separate. No permanent movement-cost decision or game-code changes are approved.
 - **Now Accepted (SK-DEC-022):** require an otherwise legal move each eligible turn. A separate mandatory-move bypass is allowed only when truly blocked. Card-play/drop-in optionality and any approved move-replacement special action remain independent decisions.
 - **Confirmed consequence, not a new recovery rule:** If energy reaches zero, the surfer **falls**. The length and manner of returning to play are **open**.
 - Keep exceptional immobilization (card effects, no legal adjacent destination) as a separate rule, with no fictitious Rest action.
@@ -81,7 +85,7 @@ Conversely, making ordinary movement **free** avoids automatic attrition but cha
 - Four **Shark** cells are initially placed across a central row (IDs 28–31). They remain a meaningful high-risk bottleneck, with risk magnitude contingent on the energy rule.
 - A **mandatory but free** normal maneuver would remove voluntary all-pass stalemates but still permits back-and-forth motion, so a separate simple endgame pressure / round limit may ultimately be required.
 
-**Working hypothesis for further design, not approval:** ordinary edge-adjacent movement costs 0 energy; energy is a scarce survival/combat resource affected by hazards and attacks; cards are rebalanced to this economy; normal movement is required when legal, and an explicit falling/re-entry mechanic replaces any mistaken Rest state. The next design work should compare this complete package with a minimal alternative that retains movement cost, **before asking the owner to lock a single number**.
+**Owner-approved controlled experiment (SK-DEC-026; NOT a permanent game rule):** ordinary edge-adjacent movement costs **0 energy** in comparative simulations. Energy remains a scarce survival/combat resource affected by hazards and attacks. Keep SK-DEC-019 Shark −2, SK-DEC-023 universal 1/2/3 recovery, SK-DEC-025 random card loss/attacker transfer, and no Rest/voluntary maneuver pass. **Bottled Water's present travel-cost protection becomes redundant in the trial; do not redesign or remove it without a separate decision.** Compare equal routes and fixed hands under current −1 versus trial 0, then continue with seeded card-draw 2/4/7-player matches, forced Shark entry and back-and-forth/fully blocked stress cases before making the 0-energy cost final.
 
 No probabilities were simulated and no gameplay tests were executed. These are deductions from source and layout, not observed playtest results.
 
