@@ -75,6 +75,16 @@ The timeline is deliberately schematic and uses hypothetical draws, rolls and oc
 
 **Not a solved match:** Those three cards may not be in actual opening hands; not every player necessarily suffers those events in a real game. Individual routes and turns need explicit position-by-position validation once a test ruleset is authorized. No match-frequency or total-duration estimates are claimed.
 
+## 2026-11-19 — First executed controlled four-player design-model scenarios
+
+See [CONTROLLED_FOUR_PLAYER_MATCH.md](CONTROLLED_FOUR_PLAYER_MATCH.md) for **two executed deterministic walkthroughs**, verified against the 53-cell center adjacency and per-turn occupancy. These are **not live SurfKingGame engine runs** and omit random card draws and most unresolved tactical rules.
+
+- **First beach race from actual four-player starts 0–3:** With **trial zero-energy movement**, Ana and Diogo choose the direct 7-move Shark routes while Bruno/Carla choose Shark-free 8-move routes. Ana/Diogo both fall at Shark 28/31 on round 4; Ana recovers at 1 without a card, Diogo recovers at 3 using Float on round 5. Carla makes **one scripted provisional −1 Drop In** against Diogo on round 6. Ana wins at internal beach cell 49 on the first move of round 7: **25 legal maneuvers, no overlapping players, two Shark falls, two approved recoveries**. **Without cards or opponents, the approved same-cell Shark recovery gives the risky route no tempo penalty.**
+- **Reachable forced Shark entry:** Valid, collision-free maneuvers from starts 0–3 reach Ana 21 / Bruno 14 / Carla 18 / Diogo 25 after round 6. At the beginning of round 7 Ana's only vacant neighbor is **Shark 28**, so under accepted mandatory-movement SK-DEC-022 she must enter and fall (energy 2→0). In round 8 she rises on 28 with 1 energy and moves to 35. **32 verified movements** over eight rounds. This requires deliberately coordinated blocking choices; not a typical-play prediction.
+- **New balance evidence to investigate, not new accepted rules:** A Shark shortcut from energy 2 is potentially beneficial despite a fall; Float/Fin may matter mostly for combat endurance, not speed. With two 7-maneuver racers an immediate first-arrival win can hinge on player order. A −1 losing Drop In at 1 energy would cause a non-Shark fall, which **remains undefined**. The trial's 0-energy ordinary movement makes Bottled Water's current benefit redundant. Initial seven-player lane asymmetry remains open.
+
+**Next:** Controlled card-draw/tactical-action variation and two-/seven-player cases, with exact provisional rules named for each step. No actual match, test suite, card distribution or UI was run; no rule damage, initiative or movement-cost value has been approved by this study.
+
 ## 6. Failure modes and countermeasures — trial design, not decisions
 
 | Failure | Potential corrective action |
