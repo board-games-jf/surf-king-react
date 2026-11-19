@@ -2,6 +2,12 @@
 
 **2026-11-19 — design analysis; NOT a gameplay implementation or approved complete ruleset.** Existing [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11), draft [PR #12](https://github.com/board-games-jf/surf-king-react/pull/12). This extends [CONTROLLED_FOUR_PLAYER_MATCH.md](CONTROLLED_FOUR_PLAYER_MATCH.md) without replacing its original deterministic evidence.
 
+## Post-study decision update (2026-11-19): SK-DEC-023 ACCEPTED
+
+**The study below remains a truthful historical record of what was tested at that time.** After it exposed the missing non-Shark fall recovery, the owner explicitly approved **SK-DEC-023**, extending **the same next-own-turn same-cell recovery** (no card 1 / Swimming Fin 2 / Lifeguard Float 3 energy) to **all zero-energy falls**, including those caused by Big Wave and Drop In. A newly fallen surfer remains on the final resolved hex with normal occupancy; there is no additional retreat caused solely by falling. Mandatory normal movement follows recovery when legal. This closes the *rule definition* gap that stopped the original no-card/Fin Big Wave branches.
+
+**No earlier simulation was rerun:** The branch results below still **stop at the point where non-Shark recovery had not yet been approved**. The next independent model should apply SK-DEC-023 to these branches and distinguish existing card inventory from newly obtained rescue cards; action-slot costs, displacement exceptions and non-Shark fallen targeting need further design. **This approval changes design status, not evidence of match results.**
+
 ## Source and authority
 
 Rechecked current `main` `aac50d222a3437200bcd4886eb90f29e537dfc65`; mandatory governance docs; draft SK-DEC-016–022; Issue #11 and open PR #12; `src/map/layout/board-layout.json`, `src/game/Cards.js`, `src/game/SurfKingGame.js` and relevant Drop In/maneuver tests. **The hex geometry manifest is provisional.** A separate Python design-model executed neighbor, turn order, vacancy, energy and drawn-card copy-count assertions. This was **not the application's `SurfKingGame` engine**, a Jest run, randomized real match, or human playtest.
