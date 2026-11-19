@@ -1,7 +1,7 @@
 # Rule Review — Energy, Cards, Obstacles and Comeback
 
 **Epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) | **Rules hub:** [INDEX.md](INDEX.md) | **Draft PR:** [#12](https://github.com/board-games-jf/surf-king-react/pull/12)
-**Status:** **2 starting energy SK-DEC-016**, **Shark −2 SK-DEC-019**, and **same-tile next-own-turn Shark recovery SK-DEC-020** are Accepted design decisions on draft PR #12. Prior SK-DEC-018 return-to-sea rule is Superseded. Cap **5**, up to **2 dice** and no-damage ties remain **owner-accepted experiments**, not finalized combat rules.
+**Status (2026-11-19):** **Starting 2 energy SK-DEC-016**, **Shark entry −2 SK-DEC-019**, **universal next-own-turn same-cell fall recovery SK-DEC-023**, **Fin/Float tactical-action cost SK-DEC-024**, and **random card loss on fall SK-DEC-025** are Accepted in design (not implemented). **Normal movement at 0 energy is explicitly OWNER-ACCEPTED FOR BALANCE TRIALS ONLY — SK-DEC-026**, not ratified as the final cost. Cap 5, up-to-2 combat dice and no-damage ties remain trial experiments. Older SK-DEC-018 return-to-sea and immediate-rescue options are Superseded.
 
 ## Confirmed design foundations
 
@@ -16,7 +16,7 @@
 | --- | --- | --- |
 | Starting energy | 4 | **2 accepted**; not implemented |
 | Energy cap | 4 | **5 trial** accepted |
-| Normal movement | Costs 1 energy unless Bottled Water | **0 cost** is assistant P-09, not approved |
+| Normal movement | Costs 1 energy unless Bottled Water | **0 energy per normal maneuver ACCEPTED FOR CONTROLLED TRIAL (SK-DEC-026)**, not a final rule or implemented |
 | Drop In dice | Dice count equals player's energy, up to 4 | **Up to 2 dice** is accepted for design trial; compare highest, strict loss −1 are assistant details |
 | Combat tie | Attacker takes damage on equal paired dice | **No damage to either participant** accepted for trial |
 | Shark, four central hexes | **−2 energy on entry** | **Owner-approved SK-DEC-019.** Shark −1 proposal superseded. At 2 energy, entry causes an immediate fall |
@@ -25,8 +25,14 @@
 | Energy card / Energy x2 / Energy x3 | +1 / +2 / +3 | Consider capping healing per card at +2, not approved |
 | Coconut | Restore to energy cap | Potentially overpowered at new cap 5; rework or restrict only if needed |
 | Lifeguard Float / Swimming Fin | Rescue from fall, restore +2 / +1; deck has 4 of each (8/64 total) | **P-13 proposed optional immediate fall reaction**, preserving resolved position instead of seaward fallback; distinct strength (+2 vs +1), not approved |
-| Bottled Water | Prevents the cost of a normal maneuver | Becomes redundant if normal movement becomes free; redesign/removal needs approval |
+| Bottled Water | Prevents the cost of a normal maneuver | **Would be redundant in the approved 0-cost trial**; 4 copies in 64-card current deck, no redesign/removal approved |
 | Card acquisition | Initial 2 cards; later card supply often follows a maneuver | Must preserve meaningful choices without random-draw domination |
+
+## SK-DEC-026 — owner-approved trial: ordinary movement costs 0 energy (NOT a final rule)
+
+**Controlled test parameter only:** A legal normal one-hex edge-adjacent move (including backward/sideways) costs **0 energy**, but is still mandatory whenever legal (SK-DEC-022). Destination hazard effects are separate: **Shark remains −2 energy** (SK-DEC-019), including a possible zero-energy fall with random hand-card loss or attacker transfer under SK-DEC-025. A fallen player still rises next own turn with **1 / 2 / 3** energy under SK-DEC-023, with Fin/Float spending the normal tactical action under SK-DEC-024. We are **not** simultaneously reducing attack/obstacle damage, changing card-draw, introducing energy regeneration, changing cap/dice, or altering the Bottled Water card.
+
+**Trial evidence required before ratifying:** Fixed-path two-energy no-hazard travel at cost **−1 vs 0**; Shark shortcut versus safe detour; forced hazardous entry; hand-card losses and second-fall recovery; energy distribution, attacks and card acquisition across **2, 4 and 7 players**, plus movement oscillation. Existing deterministic 4-player/2-player/7-player examples used the zero-cost hypothesis but were **not repeated with the newly approved random fall-card-loss package**. No new game simulation, Jest or code change has occurred merely from this approval.
 
 ## Current coherent candidate P-09 — NOT approved
 
