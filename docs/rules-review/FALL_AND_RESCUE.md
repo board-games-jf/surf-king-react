@@ -1,8 +1,26 @@
 # P-13 — Strategic Falling and Rescue Cards
 
-**Current accepted Shark-specific rule: SK-DEC-020 (design only, NOT implemented).** Earlier P-12/P-13/P-16/P-17/P-18 experiments are historical; all non-Shark recovery/combat interactions remain under review. This file is not an accepted complete rulebook or authorization to implement.
+**Current accepted general fall rule: SK-DEC-023 (design only, NOT implemented).** It applies the Shark-specific SK-DEC-020 recovery to **all** causes of zero-energy falls; SK-DEC-019 Shark −2 and SK-DEC-021 Shark occupancy/Drop In restrictions remain in force. Earlier P-12/P-13/P-16/P-17/P-18 alternatives are historical. Forced displacement, special-card effects, tactical-action costs and combat damage amounts remain under review. This is not an accepted complete rulebook or implementation authorization.
 **Epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) | [INDEX.md](INDEX.md) | [Draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12)
 **Source verified:** `main` `aac50d222a3437200bcd4886eb90f29e537dfc65` on 2026-11-16, `src/game/Cards.js` and `src/game/SurfKingGame.js` (deck, card-use, energy and fall functions). **No gameplay tests or playtest run.**
+
+## SK-DEC-023 — Universal fall recovery (ACCEPTED; design only)
+
+**Owner approval (2026-11-19):** Following the controlled Big Wave card study, the assistant proposed that **any** zero-energy fall—not only a Shark fall—should follow the same quick no-retreat recovery rule. The owner explicitly replied **"Vamos fechar"**, approving that unified baseline.
+
+**Accepted sequence for Shark, other terrain, Big Wave/Sunburn, Drop In/combat or other zero-energy damage:**
+
+1. **A real damage event reduces energy to 0:** The surfer is now **fallen**, visibly remaining on the **cell where the triggering effect finishes**. Falling **itself** does not trigger a retreat, teleport, exchange or free movement. If a separate card effect also forcibly displaces a surfer, its timing and final-cell resolution require a separate rule.
+2. **Occupancy:** The fallen surfer continues to **occupy** that cell. Normal moves cannot place two surfers in one hex. The specifically accepted Shark-fall rule SK-DEC-021 also prohibits **normal Drop In targeting a fallen Shark occupant**; the precise generalization of this attack-target restriction to non-Shark falls is **not settled** by SK-DEC-023.
+3. **Recovery decision at the start of the surfer's NEXT personal turn:** **No card → stand on the same hex at 1 total energy**; discard **Swimming Fin → 2 total energy**; discard **Lifeguard Float → 3 total energy**. Cards are optional; this is **not** a reaction on an opponent's turn. No double addition of base energy and card totals.
+4. **Usual movement that turn:** After standing, the surfer may and **must** make their normal edge-adjacent maneuver **if a legal destination exists** (SK-DEC-022), including sideways or backward. The act of recovery grants **no bonus movement** and does not enforce a completely inactive recovery turn. If no legal maneuver exists, apply only the accepted blocked-only exception; exact safe auto-transition and rewards are still pending.
+5. **No duplicate terrain entry:** Standing up **without changing hex** is **not entering** that hex again. The original Shark −2 remains a single event on entry under SK-DEC-019. A later new entry triggers the effect normally.
+
+**Concrete card example:** A surfer reaches cell 35 after recovering from a Shark. An opponent's **Big Wave** (legacy −2) reduces their energy from 1 to 0. They **fall on cell 35** and, under newly accepted SK-DEC-023, stand **on 35** at the **start of their next own turn** with 1/2/3 energy, then perform a legal normal maneuver when possible. Earlier [CARD_AND_PLAYER_COUNT_STUDY.md](CARD_AND_PLAYER_COUNT_STUDY.md) intentionally stopped this outcome because at the **time of that experiment** non-Shark recovery was not defined. The new decision **resolves the missing recovery rule**, but those prior runs were **not rerun** or converted into observed wins.
+
+**Not silently approved:** Numerical damage for combat/other terrain, how special cards or swaps forcibly move someone in the same effect as falling, other card targeting of a fallen surfer, whether a recovery card uses the ordinary tactical-action slot, whether a new attack is possible immediately after recovering, forced-all-neighbor-blocked transitions, and the movement energy cost (0 remains a trial only). No engine tests or complete card/deck match were executed by this decision.
+
+---
 
 ## P-14 — Restore the game's original identity: frequent falls, minimal downtime
 
@@ -38,7 +56,7 @@
 
 **Why it is strategic:** A Shark shortcut can save a movement relative to a longer detour, but at **2 energy** a Shark's **−2 causes a fall**; on recovery without a card the surfer is vulnerable at **1 energy**, and scarce cards can improve survival to 2 or 3. **There is no positional penalty for an unsaved Shark fall**. The intended trade-off is vulnerability; a later tabletop test must verify this is sufficient danger and card value.
 
-**Explicit scope limit:** SK-DEC-020 establishes **Shark-caused recovery** only. **SK-DEC-021 now settles normal occupancy and normal Drop In targeting of a fallen Shark occupant**, below. Recovery from Big Wave, Storm, Drop In and other fall causes, forced displacement/card targeting, and all-neighbors-blocked congestion remain open. Do not claim every edge case is ready to implement or tested.
+**Scope update (2026-11-19):** This section records the original Shark-specific acceptance SK-DEC-020. **SK-DEC-023 now extends its exact 1/2/3 next-turn recovery to all zero-energy falls**. SK-DEC-021 separately settles normal Drop In against fallen **Shark** occupants. Special displacement, other targeting rules and full blockage remain open; see the canonical SK-DEC-023 section above.
 
 ## SK-DEC-021 — A fallen surfer continues to occupy the Shark tile (ACCEPTED; design only)
 
@@ -177,4 +195,4 @@ The **P-13 optional immediate reaction** makes the held card's value more visibl
 
 **Review a single risky Shark shortcut with and without each rescue card**, and compare position after the next personal turn. Then test one forced position exchange causing a fall, including the case where the player can choose not to spend a rescue card. If the rescue card saves insufficient progress, consider **more distance lost on ordinary falls** before adding new movement actions or extra complexity.
 
-**Current status:** **SK-DEC-020 Accepted** controls Shark falls and next-turn card recovery; **SK-DEC-018 Superseded**. **SK-DEC-019 Accepted** controls Shark −2. Other sources of falling and broader balance remain **unapproved**. No game source changes, Jest runs, match playtests, merge or deployment.
+**Current status (2026-11-19):** **SK-DEC-023 Accepted** now controls next-own-turn 1/2/3 recovery after **all** zero-energy falls, building on **SK-DEC-020** (Shark specifics) while retaining **SK-DEC-019** Shark −2 and **SK-DEC-021** Shark occupancy/Drop In exclusion. **SK-DEC-018 Superseded**. Special forced displacement/card targeting, recovery action economy, damage balancing and full match tests remain open. No source changes, Jest runs, real app playtests, merge or deployment.
