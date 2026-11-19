@@ -121,6 +121,7 @@ export default function SurferStudioPage() {
           <Link to="/surfers" aria-current={gallery ? 'page' : undefined}>Galeria</Link>
           <Link to="/customize" aria-current={!gallery ? 'page' : undefined}>Personalizar</Link>
           <Link to="/catalog">Tabuleiro</Link>
+          <Link to="/art-review">Testar GLB externo</Link>
         </nav>
       </header>
 
