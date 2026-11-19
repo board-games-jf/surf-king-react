@@ -18,6 +18,9 @@
 - [Issue #33](https://github.com/board-games-jf/surf-king-react/issues/33) is the consolidated visual quality gate. [#20](https://github.com/board-games-jf/surf-king-react/issues/20) covers earlier creator/board work, [#28](https://github.com/board-games-jf/surf-king-react/issues/28) gender rigs, and [#30](https://github.com/board-games-jf/surf-king-react/issues/30) rejected pose/hair polish; do not duplicate their past patches.
 - The exact approved concept PNG exists in the owner's ChatGPT conversation, **not yet as a verified GitHub asset or issue attachment**. Attach it to #33 before declaring visual equivalence.
 
+- **Accepted camera behavior (SK-DEC-017, 2026-11-19):** the owner requires a freely orbiting camera around surfers, so fixed-angle or 2.5D sprite characters are unsuitable as the primary production rendering strategy. Keep genuinely 3D characters and surfboards as the visual target, with full-angle quality and a proper rig for poses/customization. Current `createScene.js` uses `OrbitControls` and supports azimuth rotation, but its polar-angle constraint has not been evaluated against the requested freedom; avoid claiming the camera behavior is fully accepted until visually checked.
+- Recent off-app 2.5D images and the schematic pose demonstration were rejected as an acceptable visual result; no 2.5D implementation, approved animated asset or new character/board integration exists on `main`.
+
 ## Validation and blockers
 
 - Prior Jest/build and desktop/mobile WebGL checks for the rigged poses and hair remain unverified. Do not count mock source checks or 2D concept images as actual 3D acceptance.
