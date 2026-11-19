@@ -2,6 +2,23 @@
 
 **Date:** 2026-11-17. **Status:** Assistant assessment, NOT an accepted movement-energy change or a playable match test. **Scope:** Issue #11, draft PR #12 only.
 
+## 2026-11-19 trial authorization update — SK-DEC-026
+
+**After this original deterministic desk assessment, the owner explicitly approved EXPERIMENTING with ordinary movement at 0 energy cost**, tracked as **SK-DEC-026 Accepted for controlled design trials only**. This is **NOT a final permanent rule, source-code edit, game-engine run or test pass**. Previous route-length calculations stay valid because geometry does not depend on energy; historical comments describing 0 energy as unapproved referred to the time of the earlier study.
+
+**Smallest controlled comparison from starting energy 2, no hazard or cards:**
+
+| Two consecutive legal ordinary safe maneuvers | Old engine cost −1 per maneuver | Owner-approved trial cost 0 |
+| --- | --- | --- |
+| Energy after first maneuver | **1** | **2** |
+| Energy after second maneuver | **0 — fall** | **2 — remains upright** |
+
+At trial cost 0, after three safe maneuvers the surfer still has **2**, but entering a **Shark on the fourth** separately applies approved **−2**, causing a fall on that Shark, the SK-DEC-025 **one random eligible hand-card loss** to discard if the surfer has a card, and the SK-DEC-023 next-own-turn 1/2/3 recovery. **That random card-loss rule was approved after the original study**, so do not claim its outcome or recipient was actually randomized or measured in the earlier deterministic race. Keep player-caused attacks transferring the one lost card to the attacker under SK-DEC-025 and don't double the loss.
+
+**Validation still needed:** Replay the controlled 2/4/7-player scripts with actual seeded hand/draw states and the now accepted loss/transfers; record card depletion, attacker reward, Shark shortcut versus detour, falling frequency, cycling/congestion and first-turn advantage. **Four Bottled Water copies currently waive the old travel cost** and would be effectless under this trial; no replacement/removal authorized.
+
+---
+
 ## Evidence and method
 
 Read current `main` commit `aac50d222a3437200bcd4886eb90f29e537dfc65`, `src/game/SurfKingGame.js` and the provisional 53-cell `src/map/layout/board-layout.json`. Exhaustively constructed true edge-neighbor connectivity using center spacing about 2.295 (`sqrt(3) * hexRadius`); used shortest-path search from actual initial cell IDs 0–6 to beach cells 49–52, both with and without initial Shark cells 28–31. Examined occupied-neighbor arrangements and enumerated two-dice trial outcome counts. **No random hands, software matches, Jest suite, or real-player sessions were run.**
@@ -60,4 +77,4 @@ Before an implementation issue, test controlled position-by-position sequences w
 4. **Fully blocked turns**: no voluntary Skip; specify safe transition and avoid automatic repeatable energy/card rewards.
 5. **Bottled Water** redesign if free movement is selected, plus all combat/card/fall sources not yet specified.
 
-**Decision boundary:** The owner requested this evaluation and liked the forced-Shark tactical scenario; **0-energy normal movement, spawn changes, card changes and anti-loop solutions remain proposals** until separately approved. This is static source-grounded analysis, not a match-balancing validation or implementation authorization.
+**Historical decision boundary, updated 2026-11-19:** The source-grounded geometry and arithmetic here are not a playable match or proof of balance. **SK-DEC-026 now ACCEPTS 0-energy normal movement FOR TRIAL ONLY**, not as a permanent implemented rule. Spawn changes, Bottled Water redesign and anti-loop solutions remain separate unapproved proposals.
