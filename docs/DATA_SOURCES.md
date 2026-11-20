@@ -19,6 +19,14 @@
 - The user selected the Surf King wooden/crown logo and sunny tropical beach character-creator concept in the conversation on 2026-11-16. These supplied/generated images are **visual references**, not mesh files or packaged repository assets.
 - The experimental `/#/surfers` and `/#/customize` pages use procedural Three.js geometry and CSS-drawn scenery; they do not embed the exact supplied raster logo, create a rigged character from a screenshot, or claim its fidelity.
 - For final production artwork, integrate reviewed binary assets and document their provenance and rights.
+## Approved premium surfer-and-board concept reference (Issue #33)
+
+- **Source:** stylized female surfer/board concept render generated within the owner's Surf King ChatGPT conversation, and explicitly approved by the owner on 2026-11-16 as the **minimum visual quality target for both real 3D character and surfboard**. The owner also supplied screenshots of failed live 3D poses/hair as negative comparison evidence.
+- **Contents:** athletic low surfing stance with staggered bent knees, planted feet and active balance arms; expressive styled face, integrated updo hairstyle, green surfwear; finished turquoise board with clean white longitudinal stripe, rails, nose/tail and fin.
+- **Raster fingerprint:** `dynamic_surfing_stance_on_aqua_board.png`, 1122×1402 pixels, SHA-256 `6f35b83a3d9101d1ed93572e0942d4fbfa9513163e77fdadd14490073ed617e9` (verified from the exact conversation image file on 2026-11-16).
+- **Availability:** the exact raster image is present in the conversation, but is **not yet verified as a permanent repository asset or GitHub issue attachment**. The stable reference must be attached to Issue #33 and matched against the fingerprint before actual model fidelity review can be considered complete.
+- **Status / rights:** design reference, not a real GLB, source texture, licensed third-party model, final exported image asset or proof of WebGL quality. A replacement production GLB, 3D board mesh, rigged animation and any external source must each have documented provenance and rights before packaging.
+
 ## Rigged surfer evaluation asset (Issue #22)
 
 | Item | Provenance and validation |
@@ -49,6 +57,14 @@ The upstream pack is publicly labelled CC0; any later additions need their own p
 | Limitations | Female visual and the new standing/relaxed/surfing poses are experimental. Real GLTFLoader, WebGL, mobile quality and bone alignment remain unverified. No authored animation files or professional motion-capture data were imported |
 
 The official CC0 pack covers both male and female base characters. No additional third-party runtime assets or CDN are required.
+## Selected external rigged female base (owner approval 2026-11-20)
+
+- **Model:** [Grab3D Female Athlete](https://grab3d.com/models/characters/female-athlete/) (published 2026-11-17). This is the selected female surfer foundation (SK-DEC-018), **not** the existing Quaternius female GLB already on `main`. The owner reports a local visual test and approved adopting this base on 2026-11-20. No finished Surf King adaptation or surf animation has been approved.
+- **Publisher's licence claim:** CC0 1.0, free individual download without login, personal/commercial use and redistribution. [Publisher's manifest](https://grab3d.com/dl/female-athlete/manifest.json) records CC0-1.0, provenance `ai-assisted` (Meshy base plus Blender cleanup) and 490,630 triangles for the full static variant. These are **source claims**, not an independent license-chain or delivered-file audit.
+- **Rigged download:** `https://grab3d.com/dl/female-athlete-rigged/female-athlete-rigged.glb` (~13 MB per publisher); the site advertises rigged GLB/FBX/.blend versions with walk and run clips. A real surf stance, customizable clothing, barefoot board contact, expression rig and mobile optimization are **not provided/verified**.
+- **Access/verification:** The page and linked manifest were inspected via web on 2026-11-19; downloading the binary to the isolated runtime failed due to network restrictions. The owner reports testing the model locally, but the exact binary/hash and screenshots were not shared. The assistant has not independently audited the delivered GLB, skeleton, texture provenance, animations or WebGL render. Verify before bundling or shipping.
+- **Review path:** Draft [PR #36](https://github.com/board-games-jf/surf-king-react/pull/36) adds an isolated local-file Three.js GLB review screen for owner visual assessment. It does not download assets automatically, replace in-game characters, or solve pose/board alignment.
+
 ## Unverified inputs
 
 - No canonical source version of the Surf King rulebook has been confirmed in the repository.
