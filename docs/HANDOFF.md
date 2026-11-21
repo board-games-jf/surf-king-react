@@ -1,8 +1,8 @@
 # Project Handoff
 
-**Last GitHub verification:** 2026-11-16
+**Last GitHub verification:** 2026-11-21
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Current baseline `main`:** `f8c93ea06fa213e54192c8a98574f1f1404817cb` (PR #31 merged with explicit authorization; no deployment).
+**Current baseline `main`:** `aac50d222a3437200bcd4886eb90f29e537dfc65` (current main verified; PR #36 remains draft; no deployment authorized in this session).
 
 ## External Female Athlete file inspection — 2026-11-20
 
@@ -23,7 +23,10 @@
 
 - The `/#/art-review` lab now offers `Base` and `Surf (proof)` static poses for imported rigged GLBs, alongside the embedded `walk` and `run` clips. The surf pose uses only the uploaded file's 24 named joints and is never applied to the game renderer or saved data.
 - The owner-uploaded rigged Female Athlete is copied unchanged to `public/assets/surfers/female-athlete-rigged-review.glb` and loads automatically in the lab; manual file selection is now optional.
-- Browser/WebGL checked with the embedded rig: the static surf proof adds a turquoise review board, visibly contacts both shoes to its deck, bends the knees and offsets the arms/torso. It is a review-only pose and board; it does not demonstrate production acceptance or alter the game renderer.
+- Earlier WebGL review of the embedded rig showed the turquoise review board, but the owner rejected the surf pose on 2026-11-21: knees bend backward and hands point toward the wrong sides. The prior visual check is not acceptance.
+- PR #36 correction: derive horizontal anatomical axes from the real hip/toe joints; solve each two-bone leg with a forward knee pole, lower the hips proportionally, preserve shoe orientation and aim each arm on its own anatomical side. The review board follows the stance axis, and switching poses/animation restores the centered base position.
+- Added Jest regression cases for anatomical yaw, toe direction and unreachable ankle targets. **Jest, build and corrected WebGL preview have not been executed**; the connector cannot retrieve the 13 MB GLB contents, and the local runtime has no installed Three.js dependency. Foot/deck contact, wrist/shoulder appearance and torso twist still need real visual inspection. The left-leading stance is a review default, not an approved product decision.
+- Next: reload `/#/art-review` from the updated PR branch, select Surf, and orbit front, side and three-quarter views. Verify both knees bend forward, hands stay on their own sides, and both soles rest on the board. Keep Issue #33 open and PR #36 draft; no game avatar changes, merge or deploy.
 
 ## Integrated baseline
 
