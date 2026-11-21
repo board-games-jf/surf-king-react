@@ -4,6 +4,40 @@ import { inspectRiggedAsset, validateReviewFile } from './artReviewUtils'
 import './ArtReviewPage.css'
 
 const CANDIDATE = 'https://grab3d.com/models/characters/female-athlete/'
+const REVIEW_SURFER = '/assets/surfers/female-athlete-rigged-review.glb'
+
+const SURF_POSE_OFFSETS = {
+  Hips: [.08, .08, 0],
+  Spine: [.06, -.08, 0], Spine01: [.08, -.06, .04], Spine02: [.04, -.05, -.03],
+  LeftUpLeg: [.62, .06, -.10], LeftLeg: [-.82, 0, .04], LeftFoot: [.12, 0, 0],
+  RightUpLeg: [.44, -.08, .10], RightLeg: [-.60, 0, -.04], RightFoot: [.10, 0, 0],
+}
+
+function createReviewBoard(THREE) {
+  const board = new THREE.Group()
+  board.name = 'isolated-review-surfboard'
+  const outline = new THREE.Shape()
+  outline.moveTo(-1.16, 0)
+  outline.bezierCurveTo(-1.02, -.22, -.62, -.31, 0, -.32)
+  outline.bezierCurveTo(.65, -.31, 1.02, -.22, 1.18, 0)
+  outline.bezierCurveTo(1.02, .22, .65, .31, 0, .32)
+  outline.bezierCurveTo(-.62, .31, -1.02, .22, -1.16, 0)
+  const hull = new THREE.Mesh(
+    new THREE.ExtrudeGeometry(outline, { depth: .12, bevelEnabled: true, bevelThickness: .025, bevelSize: .02, bevelSegments: 3, curveSegments: 24 }),
+    new THREE.MeshStandardMaterial({ color: '#19c8c2', roughness: .26, metalness: .08 })
+  )
+  hull.rotation.x = Math.PI / 2
+  board.add(hull)
+  const stripe = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.64, .055),
+    new THREE.MeshStandardMaterial({ color: '#f7fffb', roughness: .58 })
+  )
+  stripe.rotation.x = -Math.PI / 2
+  stripe.position.y = .008
+  board.add(stripe)
+  board.visible = false
+  return board
+}
 
 // Free an imported asset's GPU resources when switching files or leaving the page.
 function disposeImported(root) {
@@ -31,10 +65,11 @@ export default function ArtReviewPage() {
   const active = useRef(null)
   const [surferFile, setSurferFile] = useState(null)
   const [boardFile, setBoardFile] = useState(null)
-  const [status, setStatus] = useState('Seleciona uma surfista GLB para começar.')
+  const [status, setStatus] = useState('A carregar a surfista de revisão...')
   const [report, setReport] = useState(null)
   const [clips, setClips] = useState([])
   const [selectedClip, setSelectedClip] = useState('')
+  const [selectedPose, setSelectedPose] = useState('base')
 
   const changeFile = (event, setter) => {
     const file = event.target.files?.[0] || null
@@ -56,11 +91,7 @@ export default function ArtReviewPage() {
     setReport(null)
     setClips([])
     setSelectedClip('')
-
-    if (!surferFile && !boardFile) {
-      setStatus('Seleciona uma surfista GLB para começar.')
-      return () => { cancelled = true }
-    }
+    setSelectedPose('base')
 
     setStatus('A preparar a visualização 3D...')
     async function start() {
@@ -88,6 +119,8 @@ export default function ArtReviewPage() {
       ground.rotation.x = -Math.PI / 2
       ground.position.y = -.055
       scene.add(ground)
+      const reviewBoard = createReviewBoard(THREE)
+      scene.add(reviewBoard)
 
       const camera = new THREE.PerspectiveCamera(36, 1, .02, 200)
       const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -122,13 +155,19 @@ export default function ArtReviewPage() {
       const loadedRoots = []
       let mixer = null
       let animationClips = []
-      const playClip = name => {
+      const restorePose = bindPose => {
+        bindPose.forEach(({ bone, position, quaternion }) => {
+          bone.position.copy(position)
+          bone.quaternion.copy(quaternion)
+        })
+      }
+      const playClip = (name, bindPose) => {
         if (!mixer) return
+        restorePose(bindPose)
         mixer.stopAllAction()
         const clip = animationClips.find(item => item.name === name)
         if (clip) mixer.clipAction(clip).reset().play()
       }
-      active.current = { playClip }
       const clock = new THREE.Clock()
       let frameId = 0
       const render = () => {
@@ -152,14 +191,23 @@ export default function ArtReviewPage() {
         })
         ground.geometry.dispose()
         ground.material.dispose()
+        reviewBoard.traverse(node => {
+          node.geometry?.dispose()
+          node.material?.dispose()
+        })
         renderer.dispose()
         renderer.domElement.remove()
         active.current = null
       }
 
       const loader = new GLTFLoader()
-      const loadFile = async file => {
-        const buffer = await file.arrayBuffer()
+      const loadFile = async (file, fallbackUrl = null) => {
+        const buffer = file
+          ? await file.arrayBuffer()
+          : await fetch(fallbackUrl).then(response => {
+            if (!response.ok) throw new Error('Não foi possível carregar a surfista de revisão.')
+            return response.arrayBuffer()
+          })
         if (cancelled) return null
         return new Promise((resolve, reject) => {
           loader.parse(buffer, '', resolve, reject)
@@ -167,11 +215,62 @@ export default function ArtReviewPage() {
       }
 
       let character = null
-      if (surferFile) {
-        character = await loadFile(surferFile)
+      {
+        character = await loadFile(surferFile, REVIEW_SURFER)
         if (cancelled || !character) return
         const stats = inspectRiggedAsset(character)
         const root = character.scene
+        const rootPosition = root.position.clone()
+        const bindPose = new Map()
+        const bones = new Map()
+        root.traverse(node => {
+          if (!node.isBone) return
+          bindPose.set(node, {
+            bone: node, position: node.position.clone(), quaternion: node.quaternion.clone()
+          })
+          bones.set(node.name, node)
+        })
+        const setPose = pose => {
+          mixer?.stopAllAction()
+          restorePose(bindPose)
+          root.position.copy(rootPosition)
+          reviewBoard.visible = pose === 'surf'
+          if (pose !== 'surf') return
+          Object.entries(SURF_POSE_OFFSETS).forEach(([name, offset]) => {
+            const bone = bones.get(name)
+            if (bone) bone.quaternion.multiply(new THREE.Quaternion().setFromEuler(
+              new THREE.Euler(...offset)
+            ))
+          })
+          const hips = bones.get('Hips')
+          if (hips) hips.position.y -= .20
+          root.updateMatrixWorld(true)
+          if (hips) {
+            const hipPoint = hips.getWorldPosition(new THREE.Vector3())
+            const aimBone = (name, childName, target) => {
+              const bone = bones.get(name)
+              const child = bones.get(childName)
+              if (!bone || !child) return
+              const start = bone.getWorldPosition(new THREE.Vector3())
+              const end = child.getWorldPosition(new THREE.Vector3())
+              const worldDelta = new THREE.Quaternion().setFromUnitVectors(
+                end.sub(start).normalize(), target.sub(start).normalize()
+              )
+              const parentWorld = bone.parent.getWorldQuaternion(new THREE.Quaternion())
+              const localDelta = parentWorld.clone().invert().multiply(worldDelta).multiply(parentWorld)
+              bone.quaternion.premultiply(localDelta)
+              root.updateMatrixWorld(true)
+            }
+            aimBone('LeftArm', 'LeftForeArm', hipPoint.clone().add(new THREE.Vector3(-.52, .14, .16)))
+            aimBone('LeftForeArm', 'LeftHand', hipPoint.clone().add(new THREE.Vector3(-.84, -.12, .10)))
+            aimBone('RightArm', 'RightForeArm', hipPoint.clone().add(new THREE.Vector3(.52, .10, -.16)))
+            aimBone('RightForeArm', 'RightHand', hipPoint.clone().add(new THREE.Vector3(.84, -.14, -.10)))
+          }
+          root.updateMatrixWorld(true)
+          const feet = new THREE.Box3().setFromObject(root)
+          root.position.y += .25 - feet.min.y
+          reviewBoard.position.y = .25
+        }
         const bounds = new THREE.Box3().setFromObject(root)
         if (bounds.isEmpty()) throw new Error('A surfista GLB está vazia.')
         root.position.set(
@@ -183,6 +282,11 @@ export default function ArtReviewPage() {
         loadedRoots.push(root)
         mixer = new THREE.AnimationMixer(root)
         animationClips = character.animations || []
+        active.current = {
+          selectClip: name => playClip(name, bindPose),
+          selectPose: setPose
+        }
+        setPose('base')
         setReport(stats)
         const available = stats.animations.filter(Boolean)
         setClips(available)
@@ -232,8 +336,6 @@ export default function ArtReviewPage() {
     }
   }, [surferFile, boardFile])
 
-  useEffect(() => { active.current?.playClip(selectedClip) }, [selectedClip])
-
   return (
     <main className="art-review">
       <header className="art-review-header">
@@ -246,22 +348,38 @@ export default function ArtReviewPage() {
       <div className="art-review-grid">
         <section className="art-review-controls" aria-label="Importar ficheiros GLB">
           <h2>Modelos para avaliar</h2>
-          <p>A candidata é a <a href={CANDIDATE} target="_blank" rel="noopener noreferrer">Female Athlete do Grab3D</a>. Descarrega a versão <strong>Rigged GLB</strong> e seleciona-a abaixo.</p>
+          <p>A <a href={CANDIDATE} target="_blank" rel="noopener noreferrer">Female Athlete do Grab3D</a> rigged está carregada para a prova. Podes substituir por outro <strong>Rigged GLB</strong> abaixo.</p>
           <label htmlFor="art-review-surfer">Surfista GLB</label>
           <input id="art-review-surfer" type="file" accept=".glb,model/gltf-binary"
             onChange={event => changeFile(event, setSurferFile)} />
           <label htmlFor="art-review-board">Prancha GLB (opcional)</label>
           <input id="art-review-board" type="file" accept=".glb,model/gltf-binary"
             onChange={event => changeFile(event, setBoardFile)} />
-          <p className="art-review-note">Os ficheiros ficam no navegador. Não são enviados para servidores. A pose da candidata ainda é de atleta, não de surf.</p>
+          <p className="art-review-note">A surfista de revisão vem incluída neste laboratório. Ficheiros escolhidos manualmente ficam no navegador e não são enviados para servidores. A pose de surf é uma prova isolada, não uma integração no jogo.</p>
           {report && <div className="art-review-report">
             <h2>Inspeção do ficheiro</h2>
             <p><strong>{report.rigged ? 'Articulada' : 'Sem articulação detetada'}</strong> · {report.skinnedMeshes} malhas com rig · {report.bones} ossos · {report.triangles.toLocaleString()} triângulos</p>
             <label htmlFor="art-review-animation">Animação do GLB</label>
             <select id="art-review-animation" value={selectedClip}
-              onChange={event => setSelectedClip(event.target.value)}>
+              onChange={event => {
+                const name = event.target.value
+                setSelectedPose('base')
+                setSelectedClip(name)
+                active.current?.selectClip(name)
+              }}>
               <option value="">Sem animação</option>
               {clips.map(clip => <option key={clip} value={clip}>{clip}</option>)}
+            </select>
+            <label htmlFor="art-review-pose">Pose estática</label>
+            <select id="art-review-pose" value={selectedPose}
+              onChange={event => {
+                const pose = event.target.value
+                setSelectedClip('')
+                setSelectedPose(pose)
+                active.current?.selectPose(pose)
+              }}>
+              <option value="base">Base</option>
+              <option value="surf">Surf (prova)</option>
             </select>
             {!clips.length && <p>Este ficheiro não inclui animações exportadas.</p>}
           </div>}
