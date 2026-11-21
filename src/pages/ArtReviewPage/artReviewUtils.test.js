@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { MAX_REVIEW_ASSET_BYTES, inspectRiggedAsset, validateReviewFile } from './artReviewUtils'
+import { MAX_REVIEW_ASSET_BYTES, inspectRiggedAsset, validateReviewFile, reviewStanceFrame, reviewKneeTarget } from './artReviewUtils'
 
 describe('isolated external GLB art review', () => {
   test('requires a nonempty GLB no larger than the review limit', () => {
@@ -46,5 +46,32 @@ describe('isolated external GLB art review', () => {
       node.geometry?.dispose()
       node.material?.dispose()
     })
+  })
+})
+
+
+describe('anatomical surf pose geometry', () => {
+  test.each([0, Math.PI / 2, Math.PI])('uses the same forward knee direction after yaw %s', yaw => {
+    const up = new THREE.Vector3(0, 1, 0)
+    const left = new THREE.Vector3(.2, 1, 0).applyAxisAngle(up, yaw)
+    const right = new THREE.Vector3(-.2, 1, 0).applyAxisAngle(up, yaw)
+    const toe = new THREE.Vector3(0, 0, 1).applyAxisAngle(up, yaw)
+    const frame = reviewStanceFrame(THREE, left, right, [toe])
+    expect(frame.forward.dot(toe)).toBeCloseTo(1)
+    expect(frame.lateral.dot(left.clone().sub(right))).toBeGreaterThan(0)
+    const ankle = left.clone().addScaledVector(up, -.75).addScaledVector(frame.lateral, .2)
+    const knee = reviewKneeTarget(left, ankle, .5, .5, frame.forward)
+    expect(knee.clone().sub(left).dot(toe)).toBeGreaterThan(0)
+    expect(knee.distanceTo(left)).toBeCloseTo(.5)
+    expect(knee.distanceTo(ankle)).toBeCloseTo(.5)
+  })
+
+  test('honors toe direction and rejects unreachable ankle targets', () => {
+    const left = new THREE.Vector3(.2, 1, 0)
+    const right = new THREE.Vector3(-.2, 1, 0)
+    const toe = new THREE.Vector3(0, 0, -1)
+    const frame = reviewStanceFrame(THREE, left, right, [toe])
+    expect(frame.forward.dot(toe)).toBeCloseTo(1)
+    expect(reviewKneeTarget(left, new THREE.Vector3(.2, -1, 0), .5, .5, frame.forward)).toBeNull()
   })
 })
