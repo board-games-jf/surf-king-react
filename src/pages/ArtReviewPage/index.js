@@ -228,7 +228,7 @@ export default function ArtReviewPage() {
       <footer className="art-review-footer">
         <div className="art-review-controls">
           <button type="button" disabled={!ready} onClick={save}>Guardar visual</button>
-          <Link to="/catalog">Ver no tabuleiro</Link>
+          <Link to="/catalog" state={{ athleteBoardType: style.boardType }}>Ver no tabuleiro</Link>
           <Link to="/local">Jogo local</Link>
         </div>
         {saved && <p role="status">Visual guardado neste navegador. Ainda não está associado a um jogador.</p>}
