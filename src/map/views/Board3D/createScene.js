@@ -177,7 +177,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       actor.g.add(avatar.display)
       actor.legacy.group.visible = false
       actor.avatar = avatar
-      if (avatar.display.userData.athletePreview) renderer.domElement.dataset.athleteReady = 'true'
+      if (avatar.display.userData.athletePreview) {
+        renderer.domElement.dataset.athleteReady = 'true'
+        renderer.domElement.dataset[avatar.display.userData.character === 'male' ? 'athleteMaleReady' : 'athleteFemaleReady'] = 'true'
+      }
     } catch (error) {
       console.warn('Using the procedural surfer fallback:', error)
     }
