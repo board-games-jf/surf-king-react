@@ -119,3 +119,18 @@ test('board flattens before the rider rises, and both hands release after mounti
   expect(riding).toMatchObject({ immersion: 0, boardRise: 0, riderAside: 0, boardAside: 0, handContact: 0 })
   expect(sampleRemount(.2, 0, true)).toEqual(riding)
 })
+
+test('remount turns toward the near rail before loading the hands', () => {
+  expect(sampleRemount(0)).toMatchObject({ railApproach: 0, faceBoard: 0 })
+  const turn = sampleRemount(.14)
+  expect(turn.railApproach).toBeGreaterThan(0)
+  expect(turn.faceBoard).toBeGreaterThan(0)
+  expect(turn.handContact).toBe(0)
+  const press = sampleRemount(.32)
+  expect(press.railApproach).toBe(1)
+  expect(press.faceBoard).toBe(1)
+  expect(press.handContact).toBeCloseTo(1)
+  expect(press.immersion).toBeGreaterThan(.98)
+  expect(sampleRemount(.95).faceBoard).toBeLessThan(.01)
+  expect(sampleRemount(1)).toMatchObject({ faceBoard: 0, riderAside: 0, handContact: 0 })
+})
