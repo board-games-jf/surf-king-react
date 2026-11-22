@@ -75,3 +75,18 @@ test('carving stops in the water or under reduced motion', () => {
   expect(Object.values(sampleCarve(.35, 2, 2, 1)).slice(1).every(v => v === 0)).toBe(true)
   expect(sampleCarve(.35, 2, 2, 0, true)).toEqual({ progress: 1, idle: 0, idleForward: 0, travel: 0, yaw: 0, bank: 0, lift: 0 })
 })
+
+test('water entry and board rise start only after the initial imbalance', () => {
+  for (const f of [0, .24, .58]) {
+    expect(sampleRiderMotion(f).immersion).toBe(0)
+    expect(sampleRiderMotion(f).boardRise).toBe(0)
+  }
+  const entry = sampleRiderMotion(.80, 1, 0)
+  expect(entry.immersion).toBeGreaterThan(0)
+  expect(entry.immersion).toBeLessThan(1)
+  expect(entry.boardRise).toBeGreaterThan(0)
+  expect(entry.boardRise).toBeLessThan(entry.immersion)
+  expect(sampleRiderMotion(1, 1, 2, true)).toMatchObject({
+    immersion: 1, boardRise: 1, floatBob: 0, travelBank: 0
+  })
+})
