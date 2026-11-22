@@ -69,3 +69,17 @@ export function setCatalogSurferFallen(catalog, id, fallen) {
   else delete next[id]
   return { ...catalog, fallen: next }
 }
+
+// A deterministic showcase movement to an empty nearby cell, not a legal move check.
+export function nearbyCatalogCell(catalog, id) {
+  const origin = BOARD_LAYOUT[catalog.surfers[id]]
+  if (!origin || catalog.fallen?.[id]) return null
+  const used = new Set([...Object.values(catalog.surfers), ...Object.keys(catalog.obstacles).map(Number)])
+  let best = null, distance = Infinity
+  for (const cell of BOARD_LAYOUT) {
+    if (used.has(cell.id)) continue
+    const d = (cell.x - origin.x) ** 2 + (cell.z - origin.z) ** 2
+    if (d < distance) { distance = d; best = cell.id }
+  }
+  return best
+}
