@@ -14,7 +14,7 @@ describe('public map snapshot', () => {
         const snapshot = createPublicMapSnapshot(game(), { currentPlayer: '0' }, 5)
         expect(snapshot.cells).toHaveLength(53)
         expect(snapshot.cells.map((c) => c.id)).toEqual(Array.from({ length: 53 }, (_, i) => i))
-        expect(snapshot.players).toEqual([{ id: '0', cellId: 0 }, { id: '1', cellId: 6 }])
+        expect(snapshot.players).toEqual([{ id: '0', cellId: 0, fallen: false }, { id: '1', cellId: 6, fallen: false }])
         expect(snapshot.selectedCellId).toBe(5)
         expect(snapshot.activePlayerId).toBe('0')
         expect(JSON.stringify(snapshot)).not.toMatch(/Hidden card|Secret deck card|deck|cards/)
@@ -51,4 +51,14 @@ test('marks the direct first-to-eighth move only during a maneuver', () => {
     expect(createPublicMapSnapshot(G, ctx).maneuverDestinations).toEqual([3, 7])
     G.currentMove = MOVE_DROP_IN
     expect(createPublicMapSnapshot(G, ctx).maneuverDestinations).toEqual([])
+})
+
+test('projects the engine fallen marker rather than inferring it from energy', () => {
+    const G = game()
+    G.players[0].energy = 0
+    G.players[0].fellOffTheBoard = 3
+    G.players[1].fellOffTheBoard = 4
+    expect(createPublicMapSnapshot(G, {}).players.map(p => p.fallen)).toEqual([true, false])
+    G.players[0].fellOffTheBoard = -1
+    expect(createPublicMapSnapshot(G, {}).players[0].fallen).toBe(false)
 })

@@ -9,6 +9,31 @@ async function capture(page, canvas, name) {
   await page.waitForTimeout(800)
   await canvas.screenshot({ path: output + '/' + name + '.png', timeout: 60000 })
 }
+async function verifyBoardMotion(page, board, id, label) {
+  const state = value => page.waitForFunction(({ id, value }) => {
+    const canvas = document.querySelector('canvas[data-athlete-male-ready="true"][data-athlete-female-ready="true"]')
+    return canvas?.getAttribute('data-surfer-motion' + id) === value
+  }, { id, value })
+  await page.getByRole('button', { name: 'Focus on the selected ' + label + ' surfer' }).click()
+  await state('riding')
+  await page.getByRole('button', { name: 'Glide to nearby hex' }).click()
+  await state('moving')
+  await state('riding')
+  await capture(page, board, 'catalog-' + label + '-after-glide')
+  await page.getByRole('button', { name: 'Fall off board' }).click()
+  await state('falling')
+  await state('fallen')
+  await capture(page, board, 'catalog-' + label + '-fallen')
+  await page.getByRole('button', { name: 'Get back on board' }).click()
+  await state('remounting')
+  await page.waitForFunction(id => {
+    const canvas = document.querySelector('canvas[data-athlete-male-ready="true"][data-athlete-female-ready="true"]')
+    return canvas?.getAttribute('data-surfer-remount' + id) === 'press'
+  }, id)
+  await board.screenshot({ path: output + '/catalog-' + label + '-remount-press.png', timeout: 60000 })
+  await state('riding')
+  await capture(page, board, 'catalog-' + label + '-remounted')
+}
 async function main() {
   const browser = await chromium.launch({ channel: 'chrome', headless: true,
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'] })
@@ -60,6 +85,7 @@ async function main() {
       await page.getByRole('button', {name: 'Focus on the selected male surfer'}).click()
       await page.waitForTimeout(1200)
       await capture(page, board, 'catalog-selected-male')
+      await verifyBoardMotion(page, board, 0, 'male')
       await page.getByRole('link', {name: 'Customize surfer'}).click()
       await page.locator('canvas[data-athlete-character="male"]').waitFor({state:'visible'})
       await page.getByRole('button', {name: 'Feminina'}).click()
@@ -78,6 +104,7 @@ async function main() {
     await page.getByRole('button',{name:'Focus on the selected female surfer'}).click()
     await page.waitForTimeout(1200)
     await capture(page,board,'catalog-selected-female')
+    await verifyBoardMotion(page, board, 1, 'female')
     assert.deepEqual(errors,[])
     console.log('Actual WebGL athlete viewer and catalog loaded; orbit and pose switching exercised.')
   } finally { await browser.close() }

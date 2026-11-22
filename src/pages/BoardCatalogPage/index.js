@@ -9,6 +9,8 @@ import {
   createEmptyBoardCatalog,
   createCatalogSnapshot,
   placeCatalogAsset,
+  setCatalogSurferFallen,
+  nearbyCatalogCell,
 } from './catalogState'
 import './BoardCatalogPage.css'
 
@@ -20,7 +22,7 @@ export default function BoardCatalogPage() {
   const athleteBoardType = BOARD_TYPES.includes(requestedType) ? requestedType : null
   const [catalog, setCatalog] = useState(createBoardCatalog)
   const [tool, setTool] = useState('Inspect')
-  const [surferId, setSurferId] = useState('0')
+  const [surferId, setSurferId] = useState(location.state?.athleteCharacter === 'female' ? '1' : '0')
   const requestedCharacter = location.state?.athleteCharacter
   const [selectedCellId, setSelectedCellId] = useState(() =>
     ['male', 'female'].includes(requestedCharacter)
@@ -51,6 +53,17 @@ export default function BoardCatalogPage() {
     setCatalog(createEmptyBoardCatalog())
     setTool('Inspect')
     setSelectedCellId(null)
+  }
+
+  const nearby = nearbyCatalogCell(catalog, surferId)
+  const previewGlide = () => {
+    if (nearby === null) return
+    focusCell(nearby)
+    setCatalog(current => placeCatalogAsset(current, nearby, 'Surfer', surferId))
+  }
+  const previewMotion = fallen => {
+    focusCell(catalog.surfers[surferId])
+    setCatalog(current => setCatalogSurferFallen(current, surferId, fallen))
   }
 
   const selectedObject = selectedCellId === null ? null
@@ -90,11 +103,11 @@ export default function BoardCatalogPage() {
           <div className="board-catalog-panel-top">
             <h2>Place &amp; inspect</h2>
             <p>Choose a tool, then tap a hex. Inspect mode zooms to its contents.</p>
-            <button type="button" onClick={() => focusCell(catalog.surfers['1'])}
+            <button type="button" onClick={() => { setSurferId('1'); focusCell(catalog.surfers['1']) }}
               disabled={!Number.isInteger(catalog.surfers['1'])}>
               Focus on the selected female surfer
             </button>
-            <button type="button" onClick={() => focusCell(catalog.surfers['0'])}
+            <button type="button" onClick={() => { setSurferId('0'); focusCell(catalog.surfers['0']) }}
               disabled={!Number.isInteger(catalog.surfers['0'])}>
               Focus on the selected male surfer
             </button>
@@ -106,7 +119,14 @@ export default function BoardCatalogPage() {
                 onClick={() => setTool(id)}>{id}</button>
             ))}
           </div>
-          {tool === 'Surfer' && (
+          <fieldset className="board-catalog-actions">
+            <legend>Surfer animation preview</legend>
+            <button type="button" disabled={!Number.isInteger(catalog.surfers[surferId]) || !!catalog.fallen?.[surferId]} onClick={() => previewMotion(true)}>Fall off board</button>
+            <button type="button" disabled={!catalog.fallen?.[surferId]} onClick={() => previewMotion(false)}>Get back on board</button>
+            <button type="button" disabled={nearby === null} onClick={previewGlide}>Glide to nearby hex</button>
+            <button type="button" onClick={() => setTool('Surfer')}>Move surfer</button>
+          </fieldset>
+          <div>
             <label className="board-catalog-surfer">
               Surfer variant
               <select value={surferId} onChange={event => setSurferId(event.target.value)}>
@@ -115,7 +135,7 @@ export default function BoardCatalogPage() {
                 ))}
               </select>
             </label>
-          )}
+          </div>
           <div className="board-catalog-selected" aria-live="polite">
             {selectedCellId === null
               ? 'No hex selected'

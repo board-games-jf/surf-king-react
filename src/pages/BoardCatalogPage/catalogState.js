@@ -40,7 +40,8 @@ export function placeCatalogAsset(catalog, cellId, tool, surferId = '0') {
     if (!/^[0-6]$/.test(String(surferId))) return catalog
     surfers[String(surferId)] = cellId
   }
-  return { obstacles, surfers }
+  const fallen = Object.fromEntries(Object.entries(catalog.fallen || {}).filter(([id]) => id in surfers))
+  return Object.keys(fallen).length ? { obstacles, surfers, fallen } : { obstacles, surfers }
 }
 
 export function createCatalogSnapshot(catalog, selectedCellId = null) {
@@ -52,11 +53,33 @@ export function createCatalogSnapshot(catalog, selectedCellId = null) {
     })),
     players: Object.entries(catalog.surfers)
       .sort(([a], [b]) => Number(a) - Number(b))
-      .map(([id, cellId]) => ({ id, cellId })),
+      .map(([id, cellId]) => ({ id, cellId, fallen: catalog.fallen?.[id] === true })),
     turn: 0,
     activePlayerId: null,
     selectedCellId: Number.isInteger(selectedCellId) && selectedCellId >= 0 && selectedCellId < BOARD_LAYOUT.length
       ? selectedCellId : null,
     maneuverDestinations: [],
   }
+}
+
+export function setCatalogSurferFallen(catalog, id, fallen) {
+  if (!Object.prototype.hasOwnProperty.call(catalog.surfers, id)) return catalog
+  const next = { ...catalog.fallen }
+  if (fallen) next[id] = true
+  else delete next[id]
+  return { ...catalog, fallen: next }
+}
+
+// A deterministic showcase movement to an empty nearby cell, not a legal move check.
+export function nearbyCatalogCell(catalog, id) {
+  const origin = BOARD_LAYOUT[catalog.surfers[id]]
+  if (!origin || catalog.fallen?.[id]) return null
+  const used = new Set([...Object.values(catalog.surfers), ...Object.keys(catalog.obstacles).map(Number)])
+  let best = null, distance = Infinity
+  for (const cell of BOARD_LAYOUT) {
+    if (used.has(cell.id)) continue
+    const d = (cell.x - origin.x) ** 2 + (cell.z - origin.z) ** 2
+    if (d < distance) { distance = d; best = cell.id }
+  }
+  return best
 }
