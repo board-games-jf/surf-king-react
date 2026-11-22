@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 // The heavy Three.js scene is imported only after the 3D view is selected.
-export default function Board3D({ snapshot, onCellSelect, onUnavailable, focusCellId = null, previewFemaleAthlete = false }) {
+export default function Board3D({ snapshot, onCellSelect, onUnavailable, focusCellId = null, previewFemaleAthlete = true }) {
     const container = useRef(null)
     const scene = useRef(null)
     const latestClick = useRef(onCellSelect)
