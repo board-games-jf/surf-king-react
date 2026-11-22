@@ -2,7 +2,7 @@ import layoutManifest from '../../layout/board-layout.json'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { BOARD_LAYOUT } from '../../layout/boardLayout'
-import { createCoastalScenery } from './createCoastalScenery'
+import { createCoastalScenery, sampleOceanHeight } from './createCoastalScenery'
 import { createScenePrimitives, palette } from './scenePrimitives'
 import { createSurferModel } from './surfModels'
 import { PLAYER_BOARD_COLORS, createRiggedBoardSurfer, loadRiggedBoardTemplates } from './riggedBoardSurfers'
@@ -314,10 +314,16 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       // Roll around the board's own longitudinal axis, not a fixed world axis.
       a.g.rotateOnAxis(a.rollAxis,bank)
       const sample=sampleRiderMotion(fall,a.t,phase,reduce,bank)
+      sample.waterOffset=sampleOceanHeight(a.g.position.x,a.g.position.z,elapsed)-a.g.position.y
       if(a.avatar?.setBoardMotion) a.avatar.setBoardMotion(sample)
       else if(!a.avatar&&a.legacyBody){
-        a.legacyBody.position.set(0,.075,0)
-        a.legacyBody.rotation.z=-sample.lean
+        const immersion=sample.immersion
+        a.legacyBody.position.set(.34*immersion,.075+immersion*(sample.waterOffset/.65-.95),0)
+        a.legacyBody.rotation.z=-sample.lean*(1-immersion)
+        // Procedural board has its long axis along Z.
+        a.legacy.board.position.set(-.48*sample.boardRise,(sample.waterOffset/.65-.05)*sample.boardRise,0)
+        a.legacy.board.rotation.x=sample.boardRise*1.32+sample.boardRoll
+        a.legacy.board.rotation.z=bank*.05
       }
       a.animate(elapsed,Number(a.id),bank)
       a.g.userData.motionState=fall>0?(a.fallMotion.to===0?'remounting':fall>=1?'fallen':'falling'):(a.t<1?'moving':'riding')
