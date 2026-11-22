@@ -1,15 +1,15 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { AthleteControls, AthleteCandidateControls, ATHLETE_SAVE_KEY, readAthleteStyle, MALE_REVIEW_BYTES, MALE_REVIEW_SHA256, validateMaleReviewIdentity } from '../ArtReviewPage'
+import { AthleteControls, AthleteCharacterControls, ATHLETE_SAVE_KEY, readAthleteStyle } from '../ArtReviewPage'
 
 beforeEach(() => window.localStorage.clear())
 
 describe('unified athlete creator controls', () => {
-  test('uses the selected female asset and restores valid saved board choices', () => {
+  test('defaults to the female asset and restores either selected character and board choices', () => {
     expect(readAthleteStyle().character).toBe('female')
     expect(readAthleteStyle().boardColor).toBe('turquoise')
     window.localStorage.setItem(ATHLETE_SAVE_KEY, JSON.stringify({ character: 'male', boardType: 'fish', boardColor: 'blue' }))
-    expect(readAthleteStyle()).toMatchObject({ character: 'female', boardType: 'fish', boardColor: 'blue' })
+    expect(readAthleteStyle()).toMatchObject({ character: 'male', boardType: 'fish', boardColor: 'blue' })
   })
 
   test('only exposes real pose and board options; changes reach the viewer callbacks', () => {
@@ -34,23 +34,16 @@ describe('unified athlete creator controls', () => {
   })
 })
 
-describe('verified male candidate preview', () => {
-  test('accepts only the inspected GLB identity', () => {
-    expect(() => validateMaleReviewIdentity(MALE_REVIEW_BYTES, MALE_REVIEW_SHA256)).not.toThrow()
-    expect(() => validateMaleReviewIdentity(MALE_REVIEW_BYTES, 'bad')).toThrow(/Rigged GLB/)
-    expect(() => validateMaleReviewIdentity(1, MALE_REVIEW_SHA256)).toThrow(/Rigged GLB/)
-  })
-
-  test('offers local male import and explicit return to the selected female', () => {
-    const onFemale = jest.fn(), onMaleFile = jest.fn()
-    const { rerender } = render(<AthleteCandidateControls male={false} onFemale={onFemale} onMaleFile={onMaleFile} />)
+describe('approved character selection', () => {
+  test('selects both approved characters without a local file upload', () => {
+    const onCharacter = jest.fn()
+    const { rerender } = render(<AthleteCharacterControls character="female" onCharacter={onCharacter} />)
     expect(screen.getByRole('button', { name: 'Feminina' })).toHaveAttribute('aria-pressed', 'true')
-    const file = new File(['test'], 'man-base-character-rigged.glb', { type: 'model/gltf-binary' })
-    fireEvent.change(screen.getByLabelText('Carregar candidato masculino GLB'), { target: { files: [file] } })
-    expect(onMaleFile).toHaveBeenCalledWith(file)
-    rerender(<AthleteCandidateControls male onFemale={onFemale} onMaleFile={onMaleFile} />)
-    expect(screen.getByRole('button', { name: 'Feminina' })).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(screen.getByRole('button', { name: 'Masculino' }))
+    expect(onCharacter).toHaveBeenCalledWith('male')
+    rerender(<AthleteCharacterControls character="male" onCharacter={onCharacter} />)
+    expect(screen.getByRole('button', { name: 'Masculino' })).toHaveAttribute('aria-pressed', 'true')
     fireEvent.click(screen.getByRole('button', { name: 'Feminina' }))
-    expect(onFemale).toHaveBeenCalledTimes(1)
+    expect(onCharacter).toHaveBeenCalledWith('female')
   })
 })
