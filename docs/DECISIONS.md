@@ -30,6 +30,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-022 | Accepted | Preserve the reviewed S-shaped travel and enrich skeletal surfing motion. Represent a fall by a loss-of-balance reaction within the same cell, without sliding the character away or rigidly rotating the whole body into the water. | Owner rejected the first fall animation and requested in-place imbalance on 2026-11-22. Exact choreography and recovery remain reviewable visual choices; gameplay unchanged. | [#37](https://github.com/board-games-jf/surf-king-react/issues/37) |
 
+| SK-DEC-023 | Accepted | Extend the approved in-place balance-loss reaction (SK-DEC-022) into a final water state: the surfer and a near-upright board remain side by side, both partly submerged in the same cell. On recovery the board returns flat and the surfer resumes riding. | Owner approved this refinement on 2026-11-22. Preserve carving, both approved models and authoritative gameplay rules. Exact waterline, tilt, timing and choreography are visual review parameters. The previous low stance alone is no longer the final fallen state. | [#37](https://github.com/board-games-jf/surf-king-react/issues/37) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
