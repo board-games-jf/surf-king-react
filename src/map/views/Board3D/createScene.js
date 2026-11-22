@@ -315,6 +315,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       a.g.rotateOnAxis(a.rollAxis,bank)
       const sample=sampleRiderMotion(fall,a.t,phase,reduce,bank)
       sample.waterOffset=sampleOceanHeight(a.g.position.x,a.g.position.z,elapsed)-a.g.position.y
+      a.animate(elapsed,Number(a.id),bank)
       if(a.avatar?.setBoardMotion) a.avatar.setBoardMotion(sample)
       else if(!a.avatar&&a.legacyBody){
         const immersion=sample.immersion
@@ -325,7 +326,6 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         a.legacy.board.rotation.x=sample.boardRise*1.32+sample.boardRoll
         a.legacy.board.rotation.z=bank*.05
       }
-      a.animate(elapsed,Number(a.id),bank)
       a.g.userData.motionState=fall>0?(a.fallMotion.to===0?'remounting':fall>=1?'fallen':'falling'):(a.t<1?'moving':'riding')
       renderer.domElement.dataset['surferMotion'+a.id]=a.g.userData.motionState
     }
