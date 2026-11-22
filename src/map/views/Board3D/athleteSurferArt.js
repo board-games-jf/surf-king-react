@@ -139,6 +139,11 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   const boardRoll = new THREE.Quaternion()
   const boardPitch = new THREE.Quaternion()
   const boardCrossAxis = new THREE.Vector3()
+  const anatomicalForward = new THREE.Vector3()
+  const approachDirection = new THREE.Vector3()
+  const faceTarget = new THREE.Vector3()
+  const verticalAxis = new THREE.Vector3(0, 1, 0)
+  let remountFacing = null
   let floatingChestY = 0
   let motionFrames = null
   let carveFrames = null
@@ -173,6 +178,7 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     carveFrames = null
     remountFrames = null
     remountHands = null
+    remountFacing = null
     riderPivot.position.set(0, 0, 0)
     riderPivot.quaternion.identity()
     riderPivot.updateMatrixWorld(true)
@@ -348,6 +354,7 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     boardRestPosition.copy(reviewBoard.position)
     motionAxis.copy(lateral)
     boardCrossAxis.copy(lateral).cross(up).normalize()
+    anatomicalForward.copy(forward)
     const capture = () => Array.from(bones.values(), bone => ({
       bone, position: bone.position.clone(), quaternion: bone.quaternion.clone()
     }))
@@ -366,7 +373,7 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
       rotation: bones.get(side + 'Foot').getWorldQuaternion(new THREE.Quaternion())
     }))
     const poseFrame = ({ shift = 0, drop = 0, pitch = 0, roll = 0, twist = 0,
-      arms = 0, asymmetry = 0, reach = 0, leadLift = 0, trailLift = 0 }) => {
+      arms = 0, asymmetry = 0, reach = 0, leadLift = 0, trailLift = 0, rescue = false }) => {
       restore(rest)
       const offset = forward.clone().multiplyScalar(shift * legLength)
         .addScaledVector(up, -drop * legLength)
@@ -393,10 +400,11 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
       const rotate = (bone, axis, angle) => {
         if (bone && angle) rotateWorld(bone, new THREE.Quaternion().setFromAxisAngle(axis, angle))
       }
-      rotate(spine, lateral, pitch)
+      const bodyPitch = rescue ? pitch * Math.sign(forward.dot(boardCrossAxis)) : pitch
+      rotate(spine, lateral, bodyPitch)
       rotate(spine, forward, roll)
       rotate(spine, up, twist)
-      rotate(bones.get('Head') || bones.get('Neck'), lateral, -pitch * .32)
+      rotate(bones.get('Head') || bones.get('Neck'), lateral, -bodyPitch * .32)
       sides.forEach((side, i) => {
         const sign = i === 0 ? 1 : -1
         const shoulder = point(side + 'Arm')
@@ -432,12 +440,34 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     // Reuse the exact floating endpoint and riding endpoint of the fall.
     remountFrames = [
       { at: 0, pose: motionFrames[motionFrames.length - 1].pose },
-      { at: .26, pose: poseFrame({ shift: -.035, drop: .045, pitch: .34, roll: -.28, twist: -.30, arms: .15, asymmetry: -.28, reach: .75 }) },
-      { at: .53, pose: poseFrame({ shift: .08, drop: .17, pitch: .65, roll: -.15, twist: -.18, arms: -.65, reach: .65, leadLift: .22 }) },
-      { at: .65, pose: poseFrame({ shift: .045, drop: .24, pitch: .53, roll: .06, arms: -.52, reach: .47, trailLift: .15 }) },
-      { at: .74, pose: poseFrame({ shift: .03, drop: .25, pitch: .40, roll: .04, arms: -.48, reach: .38 }) },
+      { at: .26, pose: poseFrame({ shift: -.015, drop: .035, pitch: .29, roll: -.06, arms: .20, reach: .65, rescue: true }) },
+      { at: .53, pose: poseFrame({ shift: .08, drop: .15, pitch: .72, roll: -.05, arms: -.65, reach: .65, leadLift: .25, rescue: true }) },
+      { at: .65, pose: poseFrame({ shift: .045, drop: .24, pitch: .56, roll: .06, arms: -.52, reach: .47, trailLift: .17, rescue: true }) },
+      { at: .76, pose: poseFrame({ shift: .03, drop: .25, pitch: .30, roll: .04, arms: -.48, reach: .38, rescue: true }) },
       { at: 1, pose: rest }
     ]
+    // Measure the shoulders' facing direction in display-local coordinates
+    // after sampling the pose. This works for either imported rig and any
+    // actor/camera heading. Correct yaw before aiming the arms.
+    const shoulderLeft = new THREE.Vector3()
+    const shoulderRight = new THREE.Vector3()
+    const chestFacing = new THREE.Vector3()
+    const facingCross = new THREE.Vector3()
+    const facingSign = Math.sign(forward.dot(boardCrossAxis))
+    remountFacing = (direction, weight) => {
+      if (weight <= 0 || direction.lengthSq() < 1e-8) return
+      display.updateWorldMatrix(true, true)
+      bones.get('LeftArm').getWorldPosition(shoulderLeft)
+      bones.get('RightArm').getWorldPosition(shoulderRight)
+      display.worldToLocal(shoulderLeft)
+      display.worldToLocal(shoulderRight)
+      chestFacing.copy(shoulderLeft).sub(shoulderRight).setY(0)
+        .cross(verticalAxis).multiplyScalar(facingSign).normalize()
+      if (chestFacing.lengthSq() < 1e-8) return
+      const yaw = Math.atan2(facingCross.crossVectors(chestFacing, direction).y,
+        chestFacing.dot(direction))
+      riderPivot.quaternion.setFromAxisAngle(verticalAxis, yaw * weight)
+    }
     // Target the actual moving board deck in world coordinates. Clamp to
     // reachable arm length and preserve the current elbow bending direction.
     // This is visual IK, not a physics constraint or a finger grip.
@@ -451,7 +481,8 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
         const upper = shoulder.distanceTo(elbow)
         const lower = elbow.distanceTo(hand)
         if (upper < 1e-6 || lower < 1e-6) return
-        handTarget.set(i === 0 ? .24 : -.24, .17, .095)
+        // The rider approaches the rail on the side opposite anatomical forward.
+        handTarget.set(i === 0 ? .24 : -.24, .17, -.15 * facingSign)
         reviewBoard.localToWorld(handTarget)
         handTarget.lerp(hand, 1 - weight)
         const direction = handTarget.clone().sub(shoulder)
@@ -530,11 +561,16 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     if (!motionReady) return
     const { fall, boardRoll: roll = 0, travelBank = 0, immersion = 0,
       boardRise = 0, floatBob = 0, waterOffset = -.145, remount,
-      riderAside = immersion, boardAside = boardRise, handContact = 0 } = sample
+      riderAside = immersion, boardAside = boardRise, handContact = 0,
+      railApproach = 0, faceBoard = 0 } = sample
     const waterY = waterOffset / scale
     // The actor's logical cell never moves. Small opposite offsets separate
     // the rider and board inside that cell only after the initial stumble.
-    riderPivot.position.copy(motionAxis).multiplyScalar(.40 * riderAside)
+    // Arc from the approved floating position to the near rail before lifting.
+    // No change to the original fall or the actor's logical cell.
+    approachDirection.copy(motionAxis).multiplyScalar(1 - railApproach)
+      .addScaledVector(anatomicalForward, -railApproach).normalize()
+    riderPivot.position.copy(approachDirection).multiplyScalar(.40 * riderAside)
     riderPivot.position.y = (waterY - floatingChestY) * immersion + floatBob / scale
     riderPivot.quaternion.identity()
     reviewBoard.position.copy(boardRestPosition).addScaledVector(motionAxis, -.60 * boardAside)
@@ -565,6 +601,13 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
         bone.quaternion.slerp(scratchQuaternion, falling)
       }
     })
+    if (rescuing && faceBoard > 0) {
+      // Keep a stable rail-facing heading once the board is beneath the rider.
+      // Before contact, include the board's longitudinal offset in the target.
+      faceTarget.copy(approachDirection).multiplyScalar(-Math.max(.40 * riderAside, .05))
+        .addScaledVector(motionAxis, -.60 * boardAside).normalize()
+      remountFacing(faceTarget, faceBoard)
+    }
     if (rescuing && handContact > 0) remountHands(handContact)
   }
   return { display, get surfboard() { return reviewBoard }, setPose, setBoardStyle, setBoardMotion, animate, dispose }
