@@ -26,14 +26,23 @@ test('interruption reverses from the current value; reduced motion snaps to targ
   expect(stepFallMotion(targetFallMotion(remounting, true), .01, true).value).toBe(1)
 })
 
-test('the fallen rider leaves the deck while the board remains visible', () => {
-  expect(sampleRiderMotion(0, 0, 0, true)).toMatchObject({ lean: 0, side: 0, sink: 0, boardRoll: 0, travelBank: 0, travelLift: 0 })
-  const fallen = sampleRiderMotion(1, .5, 0, true)
-  expect(fallen.lean).toBeGreaterThan(1)
-  expect(fallen.side).toBeGreaterThan(.5)
-  expect(fallen.sink).toBeLessThan(0)
-  expect(fallen.travelBank).toBe(0)
-  expect(sampleRiderMotion(0, .5).travelBank).toBeGreaterThan(0)
+test('loss of balance remains in place and changes direction before settling', () => {
+  const normal = sampleRiderMotion(0, 1, 0, true)
+  expect(normal).toMatchObject({ lean: 0, side: 0, sink: 0, boardRoll: 0, travelBank: 0, travelLift: 0 })
+  const stumble = sampleRiderMotion(.35, 1, 0)
+  const fallen = sampleRiderMotion(1, 1, 0)
+  expect(stumble.lean).toBeGreaterThan(.1)
+  expect(fallen.lean).toBeLessThan(-.1)
+  for (let i = 0; i <= 100; i++) {
+    const sample = sampleRiderMotion(i / 100, .5, 2)
+    expect(sample.side).toBe(0)
+    expect(sample.sink).toBe(0)
+    expect(Math.abs(sample.boardRoll)).toBeLessThan(.16)
+  }
+  expect(fallen.travelBank === 0).toBe(true)
+  expect(sampleRiderMotion(0, .5, 0, false, .16).travelBank).toBeGreaterThan(.7)
+  expect(sampleRiderMotion(0, .5, 0, false, -.16).travelBank).toBeLessThan(-.7)
+  expect(sampleRiderMotion(0, .5, 0, true, .16).travelBank).toBe(0)
   expect(shortestHeading(Math.PI - .1, -Math.PI + .1)).toBeCloseTo(Math.PI + .1)
 })
 
