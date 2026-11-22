@@ -3,9 +3,10 @@ import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js
 import { PRESET_SURFERS } from './surferStyle'
 import { decorateRiggedSurfer } from './riggedSurferArt'
 import { RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
-import { ATHLETE_SURFER_PATH, createAthleteSurferArt, inspectRiggedAsset } from './athleteSurferArt'
+import { ATHLETE_ASSET_PATHS, createAthleteSurferArt, inspectRiggedAsset } from './athleteSurferArt'
 
-// Both bodies use the same licensed asset registry as the character studio.
+// The legacy previewFemaleAthlete flag now selects both approved athlete assets.
+// Keep the legacy registry for existing callers that opt out.
 export { RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
 
 // Keep seven established player identities separate from appearance presets.
@@ -22,7 +23,7 @@ export function createRiggedBoardSurfer(templates, playerId, { previewFemaleAthl
   const template = templates?.[character]
   if (!template) throw new Error('Missing ' + character + ' skinned surfer GLB')
   const independentRig = cloneSkinned(template)
-  if (previewFemaleAthlete && character === 'female') {
+  if (previewFemaleAthlete) {
     const art = createAthleteSurferArt(independentRig, {
       color: PLAYER_BOARD_COLORS[index], boardType: athleteBoardType || style.boardType, scale: .60, ownsSkeleton: true
     })
@@ -61,8 +62,8 @@ function validateTemplate(loaded, character) {
 // successfully loaded players of the other gender.
 export function loadRiggedBoardTemplates(onReady, onError, loader = new GLTFLoader(), { previewFemaleAthlete = false } = {}) {
   Object.entries(RIGGED_SURFER_ASSETS).forEach(([character, asset]) => {
-    const athlete = previewFemaleAthlete && character === 'female'
-    const path = (process.env.PUBLIC_URL || '') + (athlete ? ATHLETE_SURFER_PATH : asset.path)
+    const athlete = previewFemaleAthlete
+    const path = (process.env.PUBLIC_URL || '') + (athlete ? ATHLETE_ASSET_PATHS[character] : asset.path)
     loader.load(path, loaded => {
       try {
         if (athlete && !inspectRiggedAsset(loaded).rigged) throw new Error('The athlete GLB has no skeleton.')
