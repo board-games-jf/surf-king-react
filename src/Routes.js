@@ -1,5 +1,5 @@
 import React from 'react'
-import { HashRouter as Router, Route, Routes } from 'react-router-dom'
+import { HashRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 // import AiPage from './pages/Ai'
 
 import ErrorPage from './pages/Error'
@@ -7,7 +7,6 @@ import HomePage from './pages/HomePage'
 import LocalPage from './pages/LocalPage'
 import ObstacleGalleryPage from './pages/ObstacleGalleryPage'
 import BoardCatalogPage from './pages/BoardCatalogPage'
-import SurferStudioPage from './pages/SurferStudioPage'
 import ArtReviewPage from './pages/ArtReviewPage'
 
 const AppRoutes = () => (
@@ -19,9 +18,9 @@ const AppRoutes = () => (
             <Route path="/local" element={<LocalPage />} />
             <Route path="/obstacles" element={<ObstacleGalleryPage />} />
             <Route path="/catalog" element={<BoardCatalogPage />} />
-            <Route path="/surfers" element={<SurferStudioPage />} />
-            <Route path="/customize" element={<SurferStudioPage />} />
-            <Route path="/art-review" element={<ArtReviewPage />} />
+            <Route path="/surfers" element={<Navigate to="/customize" replace />} />
+            <Route path="/customize" element={<ArtReviewPage />} />
+            <Route path="/art-review" element={<Navigate to="/customize" replace />} />
             {/* <Route path="/online" element={LoadableOnlinePage} /> */}
             <Route path="*" element={ErrorPage} />
         </Routes>
