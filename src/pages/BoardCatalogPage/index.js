@@ -10,6 +10,7 @@ import {
   createCatalogSnapshot,
   placeCatalogAsset,
   setCatalogSurferFallen,
+  nearbyCatalogCell,
 } from './catalogState'
 import './BoardCatalogPage.css'
 
@@ -54,6 +55,12 @@ export default function BoardCatalogPage() {
     setSelectedCellId(null)
   }
 
+  const nearby = nearbyCatalogCell(catalog, surferId)
+  const previewGlide = () => {
+    if (nearby === null) return
+    focusCell(nearby)
+    setCatalog(current => placeCatalogAsset(current, nearby, 'Surfer', surferId))
+  }
   const previewMotion = fallen => {
     focusCell(catalog.surfers[surferId])
     setCatalog(current => setCatalogSurferFallen(current, surferId, fallen))
@@ -96,11 +103,11 @@ export default function BoardCatalogPage() {
           <div className="board-catalog-panel-top">
             <h2>Place &amp; inspect</h2>
             <p>Choose a tool, then tap a hex. Inspect mode zooms to its contents.</p>
-            <button type="button" onClick={() => focusCell(catalog.surfers['1'])}
+            <button type="button" onClick={() => { setSurferId('1'); focusCell(catalog.surfers['1']) }}
               disabled={!Number.isInteger(catalog.surfers['1'])}>
               Focus on the selected female surfer
             </button>
-            <button type="button" onClick={() => focusCell(catalog.surfers['0'])}
+            <button type="button" onClick={() => { setSurferId('0'); focusCell(catalog.surfers['0']) }}
               disabled={!Number.isInteger(catalog.surfers['0'])}>
               Focus on the selected male surfer
             </button>
@@ -116,6 +123,7 @@ export default function BoardCatalogPage() {
             <legend>Surfer animation preview</legend>
             <button type="button" disabled={!Number.isInteger(catalog.surfers[surferId]) || !!catalog.fallen?.[surferId]} onClick={() => previewMotion(true)}>Fall off board</button>
             <button type="button" disabled={!catalog.fallen?.[surferId]} onClick={() => previewMotion(false)}>Get back on board</button>
+            <button type="button" disabled={nearby === null} onClick={previewGlide}>Glide to nearby hex</button>
             <button type="button" onClick={() => setTool('Surfer')}>Move surfer</button>
           </fieldset>
           <div>
