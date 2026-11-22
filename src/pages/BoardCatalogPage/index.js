@@ -9,6 +9,7 @@ import {
   createEmptyBoardCatalog,
   createCatalogSnapshot,
   placeCatalogAsset,
+  setCatalogSurferFallen,
 } from './catalogState'
 import './BoardCatalogPage.css'
 
@@ -20,7 +21,7 @@ export default function BoardCatalogPage() {
   const athleteBoardType = BOARD_TYPES.includes(requestedType) ? requestedType : null
   const [catalog, setCatalog] = useState(createBoardCatalog)
   const [tool, setTool] = useState('Inspect')
-  const [surferId, setSurferId] = useState('0')
+  const [surferId, setSurferId] = useState(location.state?.athleteCharacter === 'female' ? '1' : '0')
   const requestedCharacter = location.state?.athleteCharacter
   const [selectedCellId, setSelectedCellId] = useState(() =>
     ['male', 'female'].includes(requestedCharacter)
@@ -51,6 +52,11 @@ export default function BoardCatalogPage() {
     setCatalog(createEmptyBoardCatalog())
     setTool('Inspect')
     setSelectedCellId(null)
+  }
+
+  const previewMotion = fallen => {
+    focusCell(catalog.surfers[surferId])
+    setCatalog(current => setCatalogSurferFallen(current, surferId, fallen))
   }
 
   const selectedObject = selectedCellId === null ? null
@@ -106,7 +112,13 @@ export default function BoardCatalogPage() {
                 onClick={() => setTool(id)}>{id}</button>
             ))}
           </div>
-          {tool === 'Surfer' && (
+          <fieldset className="board-catalog-actions">
+            <legend>Surfer animation preview</legend>
+            <button type="button" disabled={!Number.isInteger(catalog.surfers[surferId]) || !!catalog.fallen?.[surferId]} onClick={() => previewMotion(true)}>Fall off board</button>
+            <button type="button" disabled={!catalog.fallen?.[surferId]} onClick={() => previewMotion(false)}>Get back on board</button>
+            <button type="button" onClick={() => setTool('Surfer')}>Move surfer</button>
+          </fieldset>
+          <div>
             <label className="board-catalog-surfer">
               Surfer variant
               <select value={surferId} onChange={event => setSurferId(event.target.value)}>
@@ -115,7 +127,7 @@ export default function BoardCatalogPage() {
                 ))}
               </select>
             </label>
-          )}
+          </div>
           <div className="board-catalog-selected" aria-live="polite">
             {selectedCellId === null
               ? 'No hex selected'
