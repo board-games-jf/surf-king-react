@@ -76,11 +76,19 @@ export const ATHLETE_POSES = Object.freeze(['standing', 'relaxed', 'surf'])
 
 export function reviewStandingArmDirections({ lateral, forward, up }, lead, relaxed) {
   const sign = lead ? 1 : -1
+  // The owner's previous relaxed pose becomes the exact standing pose.
+  if (!relaxed) return {
+    upperArm: up.clone().negate().addScaledVector(lateral, sign * .22)
+      .addScaledVector(forward, .10).normalize(),
+    forearm: up.clone().negate().addScaledVector(lateral, sign * .08)
+      .addScaledVector(forward, .30).normalize()
+  }
+  // Relaxed: one softly bent arm near the hip, the other hanging naturally.
   return {
-    upperArm: up.clone().negate().addScaledVector(lateral, sign * (relaxed ? .22 : .12))
-      .addScaledVector(forward, relaxed ? .10 : .02).normalize(),
-    forearm: up.clone().negate().addScaledVector(lateral, sign * (relaxed ? .08 : .10))
-      .addScaledVector(forward, relaxed ? .30 : .04).normalize()
+    upperArm: up.clone().negate().addScaledVector(lateral, sign * (lead ? .43 : .14))
+      .addScaledVector(forward, lead ? .05 : .02).normalize(),
+    forearm: up.clone().negate().addScaledVector(lateral, sign * (lead ? -.36 : .04))
+      .addScaledVector(forward, lead ? .58 : .14).normalize()
   }
 }
 
@@ -172,6 +180,37 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     }
 
     if (pose !== 'surf') {
+      // A modest weight shift, solving both knees against their original ankles.
+      // Skip the shift on a different rig if either target cannot be reached.
+      if (pose === 'relaxed') {
+        const legs = sides.map(side => ({
+          side, hip: point(side + 'UpLeg'), knee: point(side + 'Leg'),
+          ankle: point(side + 'Foot'),
+          footRotation: bones.get(side + 'Foot').getWorldQuaternion(new THREE.Quaternion())
+        }))
+        const length = Math.min(...legs.map(leg =>
+          leg.hip.distanceTo(leg.knee) + leg.knee.distanceTo(leg.ankle)))
+        const shift = lateral.clone().multiplyScalar(length * .055)
+          .addScaledVector(up, -length * .035)
+        const targets = legs.map(leg => ({
+          ...leg,
+          targetKnee: reviewKneeTarget(leg.hip.clone().add(shift), leg.ankle,
+            leg.hip.distanceTo(leg.knee), leg.knee.distanceTo(leg.ankle), forward)
+        }))
+        if (targets.every(leg => leg.targetKnee)) {
+          const hips = bones.get('Hips')
+          hips.position.copy(hips.parent.worldToLocal(point('Hips').add(shift)))
+          root.updateMatrixWorld(true)
+          targets.forEach(({ side, ankle, targetKnee, footRotation }) => {
+            aimBone(side + 'UpLeg', side + 'Leg', targetKnee)
+            aimBone(side + 'Leg', side + 'Foot', ankle)
+            const foot = bones.get(side + 'Foot')
+            foot.quaternion.copy(foot.parent.getWorldQuaternion(new THREE.Quaternion())
+              .invert().multiply(footRotation))
+            root.updateMatrixWorld(true)
+          })
+        }
+      }
       // Stand on the same board with arms lowered from the reference T-pose.
       sides.forEach((side, i) => {
         const shoulder = point(side + 'Arm')
