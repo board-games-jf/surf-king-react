@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { sampleSharkAnimation } from './surfModels'
 
 // The shark is deliberately represented by a dorsal fin, not an entire body.
-export default {
+const sharkModel = {
   defaults: { color: '#527a92' },
   create({ settings, helpers }) {
     const object = new THREE.Group()
@@ -76,3 +76,5 @@ export default {
     }
   }
 }
+
+export default sharkModel

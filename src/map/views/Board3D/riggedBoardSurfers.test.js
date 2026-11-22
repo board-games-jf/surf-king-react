@@ -144,7 +144,10 @@ describe('shared real rigged surfer integration for the 3D board', () => {
       resolve({ scene: path.includes('-female-') ? new THREE.Group() : male.root })
     }) }
     loadRiggedBoardTemplates(success, failure, loader)
-    expect(success).toHaveBeenCalledTimes(2)
+    expect(loader.load).toHaveBeenCalledTimes(2)
+    expect(success).toHaveBeenCalledTimes(1)
+    expect(success).toHaveBeenCalledWith('male', male.root)
+    expect(failure).toHaveBeenCalledTimes(1)
     expect(failure).toHaveBeenCalledWith('female', expect.any(Error))
     male.body.material.dispose()
     male.geometry.dispose()

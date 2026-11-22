@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { HexGrid } from '../HexGrid'
 import './Board.css'
 import Board3D from '../../map/views/Board3D/Board3D'
@@ -158,7 +158,7 @@ const Board = ({ G, ctx, moves }) => {
         }
     }
 
-    const onSkipHandle = () => moves.pass(G, ctx)
+    const onSkipHandle = useCallback(() => moves.pass(G, ctx), [moves, G, ctx])
 
     const onCardClickHandle = (G, ctx, moves, mode, card, cardPos, args) => {
         switch (card.Name) {
@@ -248,11 +248,12 @@ const Board = ({ G, ctx, moves }) => {
         )
     }
 
+    const skipWasPressed = useRef(false)
     useEffect(() => {
-        if (skipPress) {
-            onSkipHandle()
-        }
-    }, [skipPress])
+        const newPress = skipPress && !skipWasPressed.current
+        skipWasPressed.current = skipPress
+        if (newPress) onSkipHandle()
+    }, [skipPress, onSkipHandle])
 
     useEffect(() => {
         console.log('Board::useEffect G', G)
