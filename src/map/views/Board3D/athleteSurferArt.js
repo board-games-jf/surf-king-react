@@ -162,7 +162,7 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     bendTargets.length = 0
     riderPivot.position.set(0, 0, 0)
     riderPivot.quaternion.identity()
-    root.updateMatrixWorld(true)
+    riderPivot.updateMatrixWorld(true)
     restorePose(bindPose)
     root.position.copy(rootPosition)
     reviewBoard.visible = pose !== 'base'
