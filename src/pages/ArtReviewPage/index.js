@@ -79,7 +79,9 @@ function disposeImported(root) {
   const geometries = new Set()
   const materials = new Set()
   const textures = new Set()
+  const skeletons = new Set()
   root.traverse(node => {
+    if (node.isSkinnedMesh && node.skeleton) skeletons.add(node.skeleton)
     if (node.geometry) geometries.add(node.geometry)
     const mats = Array.isArray(node.material) ? node.material : node.material ? [node.material] : []
     mats.forEach(material => {
@@ -89,6 +91,7 @@ function disposeImported(root) {
       })
     })
   })
+  skeletons.forEach(skeleton => skeleton.dispose())
   textures.forEach(texture => texture.dispose())
   materials.forEach(material => material.dispose())
   geometries.forEach(geometry => geometry.dispose())
