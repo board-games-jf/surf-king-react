@@ -129,7 +129,16 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   let currentType = normalizedBoardType(boardType)
   let currentColor = color
   let reviewBoard = createAthleteBoard(currentType, color)
-  display.add(root, reviewBoard)
+  const riderPivot = new THREE.Group()
+  riderPivot.name = 'athlete-rider-motion'
+  riderPivot.add(root)
+  display.add(riderPivot, reviewBoard)
+  const motionAxis = new THREE.Vector3()
+  const motionSide = new THREE.Vector3()
+  const boardRest = new THREE.Quaternion()
+  const boardRoll = new THREE.Quaternion()
+  const bendTargets = []
+  let motionReady = false
   const restorePose = bindPose => {
     bindPose.forEach(({ bone, position, quaternion }) => {
       bone.position.copy(position)
@@ -149,6 +158,11 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   let wave = null
   const setPose = pose => {
     wave = null
+    motionReady = false
+    bendTargets.length = 0
+    riderPivot.position.set(0, 0, 0)
+    riderPivot.quaternion.identity()
+    root.updateMatrixWorld(true)
     restorePose(bindPose)
     root.position.copy(rootPosition)
     reviewBoard.visible = pose !== 'base'
@@ -314,6 +328,28 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     const feet = new THREE.Box3().setFromObject(root, true)
     root.position.y += deckY - feet.min.y
     root.updateMatrixWorld(true)
+
+    // Prepare a separate loss-of-balance reaction from the approved surf pose.
+    // Capture local rotations once: no expensive per-frame skinned bounds/IK.
+    boardRest.copy(reviewBoard.quaternion)
+    motionAxis.copy(lateral)
+    motionSide.copy(lateral).cross(up).normalize()
+    const react = (name, worldAxis, angle) => {
+      const bone = bones.get(name)
+      if (!bone) return
+      const axis = worldAxis.clone().applyQuaternion(
+        bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert()).normalize()
+      const rest = bone.quaternion.clone()
+      const target = rest.clone().premultiply(new THREE.Quaternion().setFromAxisAngle(axis, angle))
+      bendTargets.push({ bone, rest, target })
+    }
+    react('LeftArm', forward, -.55)
+    react('RightArm', forward, .55)
+    react('LeftForeArm', lateral, -.22)
+    react('RightForeArm', lateral, -.22)
+    react('LeftLeg', lateral, .24)
+    react('RightLeg', lateral, .24)
+    motionReady = true
   }
 
   const bounds = new THREE.Box3().setFromObject(root, true)
@@ -363,5 +399,14 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     const angle = reduceMotion || !Number.isFinite(time) ? 0 : Math.sin(time * 5.5) * .19
     wave.bone.quaternion.copy(wave.neutral).premultiply(waveRotation.setFromAxisAngle(wave.axis, angle))
   }
-  return { display, get surfboard() { return reviewBoard }, setPose, setBoardStyle, animate, dispose }
+  const setBoardMotion = sample => {
+    if (!motionReady) return
+    const { fall, lean, side, sink, boardRoll: roll, travelLift } = sample
+    riderPivot.position.copy(motionSide).multiplyScalar(side)
+    riderPivot.position.y = sink + travelLift
+    riderPivot.quaternion.setFromAxisAngle(motionAxis, lean)
+    reviewBoard.quaternion.copy(boardRest).premultiply(boardRoll.setFromAxisAngle(motionAxis, -roll))
+    bendTargets.forEach(({ bone, rest, target }) => bone.quaternion.copy(rest).slerp(target, fall))
+  }
+  return { display, get surfboard() { return reviewBoard }, setPose, setBoardStyle, setBoardMotion, animate, dispose }
 }
