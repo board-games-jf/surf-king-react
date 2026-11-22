@@ -1,7 +1,41 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ATHLETE_SURFER_PATH, createAthleteSurferArt } from '../../map/views/Board3D/athleteSurferArt'
+import { ATHLETE_SURFER_PATH, ATHLETE_POSES, createAthleteSurferArt } from '../../map/views/Board3D/athleteSurferArt'
+import { BOARD_TYPES, BOARD_COLORS, normalizeSurferStyle } from '../../map/views/Board3D/surferStyle'
 import './ArtReviewPage.css'
+
+export const ATHLETE_SAVE_KEY = 'surf-king-surfer-preview-v1'
+const POSE_LABELS = { standing: 'Em pé', relaxed: 'Relaxada', surf: 'A surfar' }
+
+export function readAthleteStyle() {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(ATHLETE_SAVE_KEY) || 'null')
+    return normalizeSurferStyle({ boardColor: 'turquoise', ...saved, character: 'female' })
+  } catch (_) { return normalizeSurferStyle({ character: 'female', boardColor: 'turquoise' }) }
+}
+
+export function AthleteControls({ ready, pose, style, onPose, onStyle }) {
+  return <div className="art-review-tools">
+    <fieldset className="art-review-controls">
+      <legend>Posição</legend>
+      {ATHLETE_POSES.map(value => <button key={value} type="button" disabled={!ready}
+        aria-pressed={pose === value} onClick={() => onPose(value)}>{POSE_LABELS[value]}</button>)}
+    </fieldset>
+    <fieldset className="art-review-controls">
+      <legend>Formato da prancha</legend>
+      {BOARD_TYPES.map(value => <button key={value} type="button" disabled={!ready}
+        aria-pressed={style.boardType === value} onClick={() => onStyle('boardType', value)}>{value}</button>)}
+    </fieldset>
+    <fieldset className="art-review-controls">
+      <legend>Cor da prancha</legend>
+      {Object.entries(BOARD_COLORS).map(([value, color]) => <button key={value} type="button"
+        className="art-review-swatch" aria-label={value} title={value} disabled={!ready}
+        aria-pressed={style.boardColor === value} style={{ '--board-color': color }}
+        onClick={() => onStyle('boardColor', value)} />)}
+    </fieldset>
+  </div>
+}
+
 
 // Free an imported asset's GPU resources when switching files or leaving the page.
 function disposeImported(root) {
@@ -30,6 +64,19 @@ export default function ArtReviewPage() {
   const [status, setStatus] = useState('A carregar a surfista...')
   const [ready, setReady] = useState(false)
   const [selectedPose, setSelectedPose] = useState('surf')
+  const [style, setStyle] = useState(readAthleteStyle)
+  const initialStyle = useRef(style)
+  const [saved, setSaved] = useState(false)
+  const changeStyle = (key, value) => {
+    const next = normalizeSurferStyle({ ...style, [key]: value, character: 'female' })
+    active.current?.setBoardStyle(next.boardType, BOARD_COLORS[next.boardColor])
+    setStyle(next)
+    setSaved(false)
+  }
+  const save = () => {
+    try { window.localStorage.setItem(ATHLETE_SAVE_KEY, JSON.stringify(style)); setSaved(true) }
+    catch (_) { setStatus('Não foi possível guardar neste navegador.') }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -127,9 +174,11 @@ export default function ArtReviewPage() {
       if (cancelled) { disposeImported(character.scene); return }
       const root = character.scene
       loadedRoots.push(root)
-      art = createAthleteSurferArt(root)
+      art = createAthleteSurferArt(root, {
+        boardType: initialStyle.current.boardType, color: BOARD_COLORS[initialStyle.current.boardColor]
+      })
       scene.add(art.display)
-      active.current = { selectPose: pose => {
+      active.current = { setBoardStyle: art.setBoardStyle, selectPose: pose => {
         try { art.setPose(pose); setStatus(''); return true }
         catch (error) { art.setPose('base'); setStatus(error.message); return false }
       } }
@@ -159,28 +208,32 @@ export default function ArtReviewPage() {
   return (
     <main className="art-review">
       <header className="art-review-header">
-        <Link to="/customize">← Criador de surfistas</Link>
+        <Link to="/">← Início</Link>
         <div>
-          <h1>Surfista 3D</h1>
-          <p>Roda para veres a postura de todos os ângulos.</p>
+          <h1>Cria a tua surfista</h1>
+          <p>Modelo selecionado · Personalização visual · Câmara livre</p>
         </div>
       </header>
       <div className="art-review-grid">
-        <div className="art-review-controls" role="group" aria-label="Pose da surfista">
-          {[['surf', 'Surf'], ['base', 'Base']].map(([pose, label]) => (
-            <button key={pose} type="button" disabled={!ready} aria-pressed={selectedPose === pose}
-              onClick={() => {
-                if (active.current?.selectPose(pose)) setSelectedPose(pose)
-                else setSelectedPose('base')
-              }}>{label}</button>
-          ))}
-        </div>
+        <AthleteControls ready={ready} pose={selectedPose} style={style}
+          onPose={pose => {
+            if (active.current?.selectPose(pose)) setSelectedPose(pose)
+            else setSelectedPose('base')
+          }} onStyle={changeStyle} />
         <section className="art-review-stage" aria-label="Pré-visualização 3D real">
           <div className="art-review-canvas" ref={holder} />
           {status && <div className="art-review-status" role="status">{status}</div>}
         </section>
       </div>
-      <footer className="art-review-footer">Pré-visualização · Arrasta para rodar · Scroll ou pinça para aproximar</footer>
+      <footer className="art-review-footer">
+        <div className="art-review-controls">
+          <button type="button" disabled={!ready} onClick={save}>Guardar visual</button>
+          <Link to="/catalog">Ver no tabuleiro</Link>
+          <Link to="/local">Jogo local</Link>
+        </div>
+        {saved && <p role="status">Visual guardado neste navegador. Ainda não está associado a um jogador.</p>}
+        <p>Roupa, pele e cabelo ainda fazem parte da textura original. Arrasta para rodar; scroll ou pinça para aproximar.</p>
+      </footer>
     </main>
   )
 }
