@@ -26,6 +26,11 @@ async function verifyBoardMotion(page, board, id, label) {
   await capture(page, board, 'catalog-' + label + '-fallen')
   await page.getByRole('button', { name: 'Get back on board' }).click()
   await state('remounting')
+  await page.waitForFunction(id => {
+    const canvas = document.querySelector('canvas[data-athlete-male-ready="true"][data-athlete-female-ready="true"]')
+    return canvas?.getAttribute('data-surfer-remount' + id) === 'press'
+  }, id)
+  await board.screenshot({ path: output + '/catalog-' + label + '-remount-press.png', timeout: 60000 })
   await state('riding')
   await capture(page, board, 'catalog-' + label + '-remounted')
 }
