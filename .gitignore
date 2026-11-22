@@ -44,3 +44,7 @@ yarn-error.log*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Verified male model prepared locally before start/build
+/public/assets/surfers/man-base-character-rigged.glb
+/public/assets/surfers/man-base-character-rigged.glb.*.tmp
