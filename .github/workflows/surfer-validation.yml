@@ -1,0 +1,26 @@
+name: Surfer validation
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.head_ref == 'feat/33-rigged-asset-review'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install locked dependencies
+        run: npx --yes yarn@1.22.22 install --frozen-lockfile
+      - name: Jest
+        run: npm test -- --watchAll=false --runInBand
+      - name: Build
+        if: success() || failure()
+        run: npm run build
