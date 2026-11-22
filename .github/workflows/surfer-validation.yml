@@ -43,13 +43,12 @@ jobs:
           trap 'kill "$server_pid"' EXIT
           for i in {1..20}; do curl --fail --silent http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
           node scripts/validate-surfer-webgl.cjs
-      - name: Inspect and render male candidate
+      - name: Verify approved male selection and board
         if: (success() || failure()) && hashFiles('build/index.html') != ''
         id: male-review
-        continue-on-error: true
         run: |
           mkdir -p artifacts/male-review
-          curl --fail --location --proto '=https' --max-time 60 --max-filesize 41943040 'https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb' -o artifacts/male-review/man-base-character-rigged.glb
+          cp public/assets/surfers/man-base-character-rigged.glb artifacts/male-review/man-base-character-rigged.glb
           node scripts/inspect-male-candidate.cjs artifacts/male-review/man-base-character-rigged.glb
           export PLAYWRIGHT_MODULE="$RUNNER_TEMP/surf-browser/node_modules/playwright-core"
           export SURFER_CANDIDATE_GLB="$PWD/artifacts/male-review/man-base-character-rigged.glb"
