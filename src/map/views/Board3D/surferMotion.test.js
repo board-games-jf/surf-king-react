@@ -1,4 +1,4 @@
-import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleCarve, shortestHeading, FALL_SECONDS, REMOUNT_SECONDS } from './surferMotion'
+import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, shortestHeading, FALL_SECONDS, REMOUNT_SECONDS } from './surferMotion'
 
 test('a loaded fallen player starts in water without replaying a fall', () => {
   expect(createFallMotion(true).value).toBe(1)
@@ -89,4 +89,33 @@ test('water entry and board rise start only after the initial imbalance', () => 
   expect(sampleRiderMotion(1, 1, 2, true)).toMatchObject({
     immersion: 1, boardRise: 1, floatBob: 0, travelBank: 0
   })
+})
+
+test('full water recovery uses a separate sequence while interrupted transitions remain continuous', () => {
+  const recovery = targetFallMotion(createFallMotion(true), false)
+  expect(recovery.remount).toBe(true)
+  const mid = stepFallMotion(recovery, REMOUNT_SECONDS / 2)
+  expect(mid.remount).toBe(true)
+  const interrupted = targetFallMotion(mid, true)
+  expect(interrupted.remount).toBe(true)
+  expect(interrupted.value).toBe(mid.value)
+  expect(stepFallMotion(interrupted, FALL_SECONDS).remount).toBe(false)
+  expect(stepFallMotion(recovery, REMOUNT_SECONDS).remount).toBe(false)
+  expect(stepFallMotion(recovery, .1, true).remount).toBe(false)
+})
+
+test('board flattens before the rider rises, and both hands release after mounting', () => {
+  const water = sampleRemount(0, 0)
+  expect(water).toMatchObject({ immersion: 1, boardRise: 1, riderAside: 1, boardAside: 1, handContact: 0 })
+  const press = sampleRemount(.30, 0)
+  expect(press.boardRise).toBe(0)
+  expect(press.immersion).toBeGreaterThan(.9)
+  expect(press.handContact).toBeCloseTo(1)
+  expect(sampleRemount(.5, 0).boardRise).not.toBe(sampleRiderMotion(.5, 1, 0).immersion + .1)
+  const crouch = sampleRemount(.74, 0)
+  expect(crouch.immersion).toBe(0)
+  expect(crouch.riderAside).toBe(0)
+  const riding = sampleRemount(1, 0)
+  expect(riding).toMatchObject({ immersion: 0, boardRise: 0, riderAside: 0, boardAside: 0, handContact: 0 })
+  expect(sampleRemount(.2, 0, true)).toEqual(riding)
 })
