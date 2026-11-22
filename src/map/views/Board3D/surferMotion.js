@@ -1,5 +1,5 @@
 // Presentation-only interpolation. Authoritative snapshots always win.
-export const FALL_SECONDS = .72
+export const FALL_SECONDS = .85
 export const REMOUNT_SECONDS = 1.05
 export const MOVE_SECONDS = .95
 
@@ -30,16 +30,21 @@ export function stepFallMotion(motion, dt, reducedMotion = false) {
   return { ...motion, elapsed, value }
 }
 
-export function sampleRiderMotion(fall, travel = 0, time = 0, reducedMotion = false) {
+export function sampleRiderMotion(fall, travel = 0, time = 0, reducedMotion = false, bank = 0) {
   const f = clamp01(fall)
+  const riding = 1 - f
   const moving = reducedMotion ? 0 : Math.sin(Math.PI * clamp01(travel))
-  const bob = reducedMotion ? 0 : Math.sin(time * 2.6) * .025 * f
+  const wobble = Math.sin(Math.PI * f)
+  // Express a stumble with the skeleton, not a displaced or horizontal rider.
+  // The board and foot anchor stay in the same cell.
+  const carve = reducedMotion ? 0 : Math.max(-1, Math.min(1,
+    bank / .19 + Math.sin(time * 1.6) * .16))
   return {
-    fall: f, lean: f * Math.PI * .47, side: f * .97,
-    sink: -f * .23 + bob,
-    boardRoll: f * .16,
-    travelBank: moving * .12 * (1 - f),
-    travelLift: moving * .035 * (1 - f)
+    fall: f, lean: -.24 * f + .36 * wobble,
+    side: 0, sink: 0,
+    boardRoll: reducedMotion ? 0 : Math.sin(3 * Math.PI * f) * wobble * .13 + f * .025,
+    travelBank: carve * riding,
+    travelLift: moving * .035 * riding
   }
 }
 
