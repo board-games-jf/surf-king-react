@@ -134,10 +134,10 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   riderPivot.add(root)
   display.add(riderPivot, reviewBoard)
   const motionAxis = new THREE.Vector3()
-  const motionSide = new THREE.Vector3()
   const boardRest = new THREE.Quaternion()
   const boardRoll = new THREE.Quaternion()
-  const bendTargets = []
+  let motionFrames = null
+  let carveFrames = null
   let motionReady = false
   const restorePose = bindPose => {
     bindPose.forEach(({ bone, position, quaternion }) => {
@@ -159,7 +159,8 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   const setPose = pose => {
     wave = null
     motionReady = false
-    bendTargets.length = 0
+    motionFrames = null
+    carveFrames = null
     riderPivot.position.set(0, 0, 0)
     riderPivot.quaternion.identity()
     riderPivot.updateMatrixWorld(true)
@@ -329,26 +330,85 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     root.position.y += deckY - feet.min.y
     root.updateMatrixWorld(true)
 
-    // Prepare a separate loss-of-balance reaction from the approved surf pose.
-    // Capture local rotations once: no expensive per-frame skinned bounds/IK.
+    // Precompute staged surf reactions with the original ankle targets. This
+    // avoids whole-model tipping, expensive per-frame IK and accumulating drift.
     boardRest.copy(reviewBoard.quaternion)
     motionAxis.copy(lateral)
-    motionSide.copy(lateral).cross(up).normalize()
-    const react = (name, worldAxis, angle) => {
-      const bone = bones.get(name)
-      if (!bone) return
-      const axis = worldAxis.clone().applyQuaternion(
-        bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert()).normalize()
-      const rest = bone.quaternion.clone()
-      const target = rest.clone().premultiply(new THREE.Quaternion().setFromAxisAngle(axis, angle))
-      bendTargets.push({ bone, rest, target })
+    const capture = () => Array.from(bones.values(), bone => ({
+      bone, position: bone.position.clone(), quaternion: bone.quaternion.clone()
+    }))
+    const restore = frame => {
+      frame.forEach(({ bone, position, quaternion }) => {
+        bone.position.copy(position)
+        bone.quaternion.copy(quaternion)
+      })
+      root.updateMatrixWorld(true)
     }
-    react('LeftArm', forward, -.55)
-    react('RightArm', forward, .55)
-    react('LeftForeArm', lateral, -.22)
-    react('RightForeArm', lateral, -.22)
-    react('LeftLeg', lateral, .24)
-    react('RightLeg', lateral, .24)
+    const rest = capture()
+    const planted = sides.map((side, i) => ({
+      side, ankle: point(side + 'Foot'), hip: point(side + 'UpLeg'),
+      upper: legs[i].upper, lower: legs[i].lower,
+      pole: reviewSurfDirections(frame, i === 0).toe,
+      rotation: bones.get(side + 'Foot').getWorldQuaternion(new THREE.Quaternion())
+    }))
+    const poseFrame = ({ shift = 0, drop = 0, pitch = 0, roll = 0, twist = 0,
+      arms = 0, asymmetry = 0, reach = 0 }) => {
+      restore(rest)
+      const offset = forward.clone().multiplyScalar(shift * legLength)
+        .addScaledVector(up, -drop * legLength)
+      const knees = planted.map(leg => reviewKneeTarget(leg.hip.clone().add(offset),
+        leg.ankle, leg.upper, leg.lower, leg.pole))
+      if (knees.every(Boolean)) {
+        hips.position.copy(hips.parent.worldToLocal(point('Hips').add(offset)))
+        root.updateMatrixWorld(true)
+        planted.forEach((leg, i) => {
+          aimBone(leg.side + 'UpLeg', leg.side + 'Leg', knees[i])
+          aimBone(leg.side + 'Leg', leg.side + 'Foot', leg.ankle)
+          const foot = bones.get(leg.side + 'Foot')
+          foot.quaternion.copy(foot.parent.getWorldQuaternion(new THREE.Quaternion())
+            .invert().multiply(leg.rotation))
+          root.updateMatrixWorld(true)
+        })
+      }
+      const spine = bones.get('Spine') || bones.get('Spine01')
+      const rotate = (bone, axis, angle) => {
+        if (bone && angle) rotateWorld(bone, new THREE.Quaternion().setFromAxisAngle(axis, angle))
+      }
+      rotate(spine, lateral, pitch)
+      rotate(spine, forward, roll)
+      rotate(spine, up, twist)
+      rotate(bones.get('Head') || bones.get('Neck'), lateral, -pitch * .32)
+      sides.forEach((side, i) => {
+        const sign = i === 0 ? 1 : -1
+        const shoulder = point(side + 'Arm')
+        const upper = shoulder.distanceTo(point(side + 'ForeArm'))
+        const lower = point(side + 'ForeArm').distanceTo(point(side + 'Hand'))
+        const directions = reviewSurfDirections(frame, i === 0)
+        const arm = directions.upperArm.addScaledVector(up, arms + sign * asymmetry)
+          .addScaledVector(forward, reach).normalize()
+        const forearm = directions.forearm.addScaledVector(up, arms * .65 - reach * .5)
+          .addScaledVector(forward, reach * .8).normalize()
+        aimBone(side + 'Arm', side + 'ForeArm', shoulder.addScaledVector(arm, upper))
+        aimBone(side + 'ForeArm', side + 'Hand',
+          point(side + 'ForeArm').addScaledVector(forearm, lower))
+      })
+      return capture()
+    }
+    // Carving: alternate compression, shoulder counter-rotation and arm balance.
+    carveFrames = [
+      poseFrame({ shift: -.065, drop: .045, pitch: -.055, roll: -.13, twist: .10, asymmetry: -.22 }),
+      rest,
+      poseFrame({ shift: .065, drop: .045, pitch: .055, roll: .13, twist: -.10, asymmetry: .22 })
+    ]
+    // Fall is an in-place stumble: anticipate, overcorrect, knees buckle.
+    // End in a low unstable stance, not a rigid horizontal figure in the sea.
+    motionFrames = [
+      { at: 0, pose: rest },
+      { at: .24, pose: poseFrame({ shift: -.075, drop: -.015, pitch: -.22, roll: -.18, arms: .85, asymmetry: .22 }) },
+      { at: .58, pose: poseFrame({ shift: .095, drop: .12, pitch: .24, roll: .24, arms: .48, asymmetry: -.45, reach: .4 }) },
+      { at: 1, pose: poseFrame({ shift: .04, drop: .23, pitch: .43, roll: -.12, arms: -.42, asymmetry: .20, reach: .45 }) }
+    ]
+    restore(rest)
     motionReady = true
   }
 
@@ -399,14 +459,34 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     const angle = reduceMotion || !Number.isFinite(time) ? 0 : Math.sin(time * 5.5) * .19
     wave.bone.quaternion.copy(wave.neutral).premultiply(waveRotation.setFromAxisAngle(wave.axis, angle))
   }
+  const scratchPosition = new THREE.Vector3()
+  const scratchQuaternion = new THREE.Quaternion()
   const setBoardMotion = sample => {
     if (!motionReady) return
-    const { fall, lean, side, sink, boardRoll: roll } = sample
-    riderPivot.position.copy(motionSide).multiplyScalar(side)
-    riderPivot.position.y = sink
-    riderPivot.quaternion.setFromAxisAngle(motionAxis, lean)
+    const { fall, boardRoll: roll, travelBank = 0 } = sample
+    // Keep the rider root and board anchored. Only joints express loss of balance.
+    riderPivot.position.set(0, 0, 0)
+    riderPivot.quaternion.identity()
     reviewBoard.quaternion.copy(boardRest).premultiply(boardRoll.setFromAxisAngle(motionAxis, -roll))
-    bendTargets.forEach(({ bone, rest, target }) => bone.quaternion.copy(rest).slerp(target, fall))
+    const carve = Math.max(-1, Math.min(1, travelBank))
+    const carveTarget = carveFrames[carve < 0 ? 0 : 2]
+    const rest = carveFrames[1]
+    const upper = motionFrames.findIndex(frame => frame.at >= fall)
+    const next = motionFrames[Math.max(1, upper)]
+    const previous = motionFrames[Math.max(0, upper - 1)]
+    const t = Math.max(0, Math.min(1, (fall - previous.at) / (next.at - previous.at)))
+    const eased = t * t * (3 - 2 * t)
+    const falling = Math.min(1, fall * 6)
+    rest.forEach(({ bone, position, quaternion }, i) => {
+      bone.position.copy(position).lerp(carveTarget[i].position, Math.abs(carve))
+      bone.quaternion.copy(quaternion).slerp(carveTarget[i].quaternion, Math.abs(carve))
+      if (fall > 0) {
+        scratchPosition.copy(previous.pose[i].position).lerp(next.pose[i].position, eased)
+        scratchQuaternion.copy(previous.pose[i].quaternion).slerp(next.pose[i].quaternion, eased)
+        bone.position.lerp(scratchPosition, falling)
+        bone.quaternion.slerp(scratchQuaternion, falling)
+      }
+    })
   }
   return { display, get surfboard() { return reviewBoard }, setPose, setBoardStyle, setBoardMotion, animate, dispose }
 }
