@@ -366,18 +366,23 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
       rotation: bones.get(side + 'Foot').getWorldQuaternion(new THREE.Quaternion())
     }))
     const poseFrame = ({ shift = 0, drop = 0, pitch = 0, roll = 0, twist = 0,
-      arms = 0, asymmetry = 0, reach = 0 }) => {
+      arms = 0, asymmetry = 0, reach = 0, leadLift = 0, trailLift = 0 }) => {
       restore(rest)
       const offset = forward.clone().multiplyScalar(shift * legLength)
         .addScaledVector(up, -drop * legLength)
-      const knees = planted.map(leg => reviewKneeTarget(leg.hip.clone().add(offset),
-        leg.ankle, leg.upper, leg.lower, leg.pole))
+      const stepTargets = planted.map((leg, i) => {
+        const lift = i === 0 ? leadLift : trailLift
+        return leg.ankle.clone().addScaledVector(up, lift * legLength)
+          .addScaledVector(lateral, (i === 0 ? -1 : 1) * lift * legLength * .35)
+      })
+      const knees = planted.map((leg, i) => reviewKneeTarget(leg.hip.clone().add(offset),
+        stepTargets[i], leg.upper, leg.lower, leg.pole))
       if (knees.every(Boolean)) {
         hips.position.copy(hips.parent.worldToLocal(point('Hips').add(offset)))
         root.updateMatrixWorld(true)
         planted.forEach((leg, i) => {
           aimBone(leg.side + 'UpLeg', leg.side + 'Leg', knees[i])
-          aimBone(leg.side + 'Leg', leg.side + 'Foot', leg.ankle)
+          aimBone(leg.side + 'Leg', leg.side + 'Foot', stepTargets[i])
           const foot = bones.get(leg.side + 'Foot')
           foot.quaternion.copy(foot.parent.getWorldQuaternion(new THREE.Quaternion())
             .invert().multiply(leg.rotation))
@@ -428,7 +433,8 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     remountFrames = [
       { at: 0, pose: motionFrames[motionFrames.length - 1].pose },
       { at: .26, pose: poseFrame({ shift: -.035, drop: .045, pitch: .34, roll: -.28, twist: -.30, arms: .15, asymmetry: -.28, reach: .75 }) },
-      { at: .53, pose: poseFrame({ shift: .08, drop: .17, pitch: .65, roll: -.15, twist: -.18, arms: -.65, reach: .65 }) },
+      { at: .53, pose: poseFrame({ shift: .08, drop: .17, pitch: .65, roll: -.15, twist: -.18, arms: -.65, reach: .65, leadLift: .22 }) },
+      { at: .65, pose: poseFrame({ shift: .045, drop: .24, pitch: .53, roll: .06, arms: -.52, reach: .47, trailLift: .15 }) },
       { at: .74, pose: poseFrame({ shift: .03, drop: .25, pitch: .40, roll: .04, arms: -.48, reach: .38 }) },
       { at: 1, pose: rest }
     ]
