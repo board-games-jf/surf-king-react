@@ -156,16 +156,17 @@ describe('shared real rigged surfer integration for the 3D board', () => {
 
 })
 
-test('catalog opt-in selects the textured female asset', () => {
+test('catalog opt-in selects both textured athlete assets', () => {
   const male = makeSkinnedTemplate('male'), female = makeSkinnedTemplate('female')
   const success = jest.fn(), failure = jest.fn()
   const loader = { load: jest.fn((path, resolve) => resolve({ scene: path.includes('female-athlete') ? female.root : male.root })) }
   loadRiggedBoardTemplates(success, failure, loader, { previewFemaleAthlete: true })
   expect(loader.load.mock.calls.map(call => call[0])).toEqual([
-    expect.stringMatching(/quaternius-male-base\.glb$/),
+    expect.stringMatching(/man-base-character-rigged\.glb$/),
     expect.stringMatching(/female-athlete-rigged-review\.glb$/)
   ])
   expect(success).toHaveBeenCalledWith('female', female.root)
+  expect(success).toHaveBeenCalledWith('male', male.root)
   expect(failure).not.toHaveBeenCalled()
   for (const model of [male, female]) { model.geometry.dispose(); model.body.material.dispose() }
 })
