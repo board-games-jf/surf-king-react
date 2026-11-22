@@ -1,6 +1,6 @@
 // Presentation-only interpolation. Authoritative snapshots always win.
 export const FALL_SECONDS = 1.08
-export const REMOUNT_SECONDS = 1.85
+export const REMOUNT_SECONDS = 2.20
 export const MOVE_SECONDS = .95
 
 export const clamp01 = value => Math.min(1, Math.max(0, value))
@@ -87,13 +87,15 @@ export function sampleCarve(travel = 1, time = 0, distance = 0, fall = 0, reduce
 export function sampleRemount(progress, time = 0, reducedMotion = false) {
   const t = reducedMotion ? 1 : clamp01(progress)
   const ramp = (start, end) => ease((t - start) / (end - start))
-  const immersion = 1 - ramp(.23, .71)
+  const immersion = 1 - ramp(.31, .73)
   const boardRise = 1 - ramp(0, .30)
   return {
     fall: 1 - t, remount: t, immersion, boardRise,
-    riderAside: 1 - ramp(.28, .70),
+    riderAside: 1 - ramp(.36, .74),
+    railApproach: ramp(.04, .26),
+    faceBoard: ramp(.01, .24) * (1 - ramp(.69, .96)),
     boardAside: 1 - ramp(.06, .42),
-    handContact: ramp(.05, .27) * (1 - ramp(.69, .87)),
+    handContact: ramp(.16, .30) * (1 - ramp(.69, .87)),
     floatBob: reducedMotion ? 0 : Math.sin(time * 2.2) * .018 * immersion,
     boardRoll: .085 * Math.sin(Math.PI * ramp(.23, .70)),
     travelBank: 0, travelLift: 0, lean: 0, side: 0, sink: 0
