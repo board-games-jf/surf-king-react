@@ -111,7 +111,7 @@ test('board flattens before the rider rises, and both hands release after mounti
   expect(press.boardRise).toBe(0)
   expect(press.immersion).toBeGreaterThan(.9)
   expect(press.handContact).toBeCloseTo(1)
-  expect(sampleRemount(.5, 0).boardRise).not.toBe(sampleRiderMotion(.5, 1, 0).immersion + .1)
+  expect(sampleRemount(.5, 0).immersion).toBeGreaterThan(sampleRiderMotion(.5, 1, 0).immersion)
   const crouch = sampleRemount(.74, 0)
   expect(crouch.immersion).toBe(0)
   expect(crouch.riderAside).toBe(0)
