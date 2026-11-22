@@ -135,7 +135,11 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   display.add(riderPivot, reviewBoard)
   const motionAxis = new THREE.Vector3()
   const boardRest = new THREE.Quaternion()
+  const boardRestPosition = new THREE.Vector3()
   const boardRoll = new THREE.Quaternion()
+  const boardPitch = new THREE.Quaternion()
+  const boardCrossAxis = new THREE.Vector3()
+  let floatingChestY = 0
   let motionFrames = null
   let carveFrames = null
   let motionReady = false
@@ -158,6 +162,10 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   let wave = null
   const setPose = pose => {
     wave = null
+    if (motionReady) {
+      reviewBoard.position.copy(boardRestPosition)
+      reviewBoard.quaternion.copy(boardRest)
+    }
     motionReady = false
     motionFrames = null
     carveFrames = null
@@ -333,7 +341,9 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     // Precompute staged surf reactions with the original ankle targets. This
     // avoids whole-model tipping, expensive per-frame IK and accumulating drift.
     boardRest.copy(reviewBoard.quaternion)
+    boardRestPosition.copy(reviewBoard.position)
     motionAxis.copy(lateral)
+    boardCrossAxis.copy(lateral).cross(up).normalize()
     const capture = () => Array.from(bones.values(), bone => ({
       bone, position: bone.position.clone(), quaternion: bone.quaternion.clone()
     }))
@@ -400,14 +410,20 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
       rest,
       poseFrame({ shift: .065, drop: .045, pitch: .055, roll: .13, twist: -.10, asymmetry: .22 })
     ]
-    // Fall is an in-place stumble: anticipate, overcorrect, knees buckle.
-    // End in a low unstable stance, not a rigid horizontal figure in the sea.
+    // Keep the reviewed stumble, then transition to upright floating beside
+    // the board. The ocean occludes the submerged body rather than hiding it.
     motionFrames = [
       { at: 0, pose: rest },
       { at: .24, pose: poseFrame({ shift: -.075, drop: -.015, pitch: -.22, roll: -.18, arms: .85, asymmetry: .22 }) },
       { at: .58, pose: poseFrame({ shift: .095, drop: .12, pitch: .24, roll: .24, arms: .48, asymmetry: -.45, reach: .4 }) },
-      { at: 1, pose: poseFrame({ shift: .04, drop: .23, pitch: .43, roll: -.12, arms: -.42, asymmetry: .20, reach: .45 }) }
+      { at: .72, pose: poseFrame({ shift: .04, drop: .23, pitch: .43, roll: -.12, arms: -.42, asymmetry: .20, reach: .45 }) },
+      { at: 1, pose: poseFrame({ shift: .015, drop: .075, pitch: .08, roll: -.07, arms: .32, asymmetry: .24, reach: .28 }) }
     ]
+    // Derive a chest-level waterline from each model's actual joint heights.
+    const head = bones.get('Head') || bones.get('Neck')
+    const hipY = point('Hips').y
+    const headY = head ? head.getWorldPosition(new THREE.Vector3()).y : hipY + legLength * .7
+    floatingChestY = hipY + (headY - hipY) * .66
     restore(rest)
     motionReady = true
   }
@@ -463,11 +479,20 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   const scratchQuaternion = new THREE.Quaternion()
   const setBoardMotion = sample => {
     if (!motionReady) return
-    const { fall, boardRoll: roll, travelBank = 0 } = sample
-    // Keep the rider root and board anchored. Only joints express loss of balance.
-    riderPivot.position.set(0, 0, 0)
+    const { fall, boardRoll: roll = 0, travelBank = 0, immersion = 0,
+      boardRise = 0, floatBob = 0, waterOffset = -.145 } = sample
+    const waterY = waterOffset / scale
+    // The actor's logical cell never moves. Small opposite offsets separate
+    // the rider and board inside that cell only after the initial stumble.
+    riderPivot.position.copy(motionAxis).multiplyScalar(.40 * immersion)
+    riderPivot.position.y = (waterY - floatingChestY) * immersion + floatBob / scale
     riderPivot.quaternion.identity()
-    reviewBoard.quaternion.copy(boardRest).premultiply(boardRoll.setFromAxisAngle(motionAxis, -roll))
+    reviewBoard.position.copy(boardRestPosition).addScaledVector(motionAxis, -.60 * boardRise)
+    reviewBoard.position.y += (waterY - .065 - boardRestPosition.y) * boardRise
+    // The longitudinal X axis pitches toward vertical, not merely rolling.
+    reviewBoard.quaternion.copy(boardRest)
+      .premultiply(boardRoll.setFromAxisAngle(motionAxis, -roll))
+      .premultiply(boardPitch.setFromAxisAngle(boardCrossAxis, 1.34 * boardRise))
     const carve = Math.max(-1, Math.min(1, travelBank))
     const carveTarget = carveFrames[carve < 0 ? 0 : 2]
     const rest = carveFrames[1]
