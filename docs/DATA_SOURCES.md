@@ -46,6 +46,12 @@ This static upload must not replace the existing avatar or be represented as the
 | Status | Selected by the owner as the female model foundation. Integrated into the creator and female board presets in draft PR #36; not merged, deployed or accepted as final production art. |
 
 The prior static GLB and this rigged GLB are different source variants. The owner reviewed an earlier real WebGL stance and selected the rigged file; the integrated poses, board fitting, customization, performance and licence chain still require validation before release.
+## Male candidate — actual CI proof (Issue #33)
+
+- [Grab3D Man Base Mesh](https://grab3d.com/models/characters/man-base-character/), rigged export: `https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb`. Publisher [license](https://grab3d.com/dl/man-base-character/LICENSE.txt) declares CC0 and AI-assisted origin; independent rights-chain review pending.
+- [CI run 44971791188](https://github.com/board-games-jf/surf-king-react/actions/runs/44971791188) downloaded and inspected a self-contained GLB: 11,354,468 bytes, SHA-256 `3038f56e1225d0ef9692189ed19ff688f1424e669281148a4cc6995fed568496`, 262,348 triangles, 24 joints including all required anatomical joints, run/walk clips. Chromium render of shared anatomical pose solver completed. [Actual model and screenshots](https://github.com/board-games-jf/surf-king-react/actions/runs/44971791188/artifacts/14734460387) are temporary CI artifacts.
+- The new opt-in creator preview validates the exact byte length and hash before parsing a local file; no network request or upload occurs during preview. No permanent male binary has been added. The owner has requested evaluating a male counterpart but has not yet accepted this candidate's quality, poses, foot contact or suitability for production. Performance and rights-chain checks remain open.
+
 ## Rigged surfer evaluation asset (Issue #22)
 
 | Item | Provenance and validation |
