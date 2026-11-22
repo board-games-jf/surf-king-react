@@ -3,6 +3,7 @@ import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js
 import { PRESET_SURFERS } from './surferStyle'
 import { decorateRiggedSurfer } from './riggedSurferArt'
 import { RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
+import { ATHLETE_SURFER_PATH, createAthleteSurferArt, inspectRiggedAsset } from './athleteSurferArt'
 
 // Both bodies use the same licensed asset registry as the character studio.
 export { RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
@@ -13,7 +14,7 @@ export const PLAYER_BOARD_COLORS = Object.freeze([
   '#e4c45a', '#b17bb6', '#83c16e'
 ])
 
-export function createRiggedBoardSurfer(templates, playerId) {
+export function createRiggedBoardSurfer(templates, playerId, { previewFemaleAthlete = false } = {}) {
   const id = Number(playerId)
   const index = Number.isInteger(id) && id >= 0 ? id % PLAYER_BOARD_COLORS.length : 0
   const style = PRESET_SURFERS[index % PRESET_SURFERS.length]
@@ -21,6 +22,15 @@ export function createRiggedBoardSurfer(templates, playerId) {
   const template = templates?.[character]
   if (!template) throw new Error('Missing ' + character + ' skinned surfer GLB')
   const independentRig = cloneSkinned(template)
+  if (previewFemaleAthlete && character === 'female') {
+    const art = createAthleteSurferArt(independentRig, {
+      color: PLAYER_BOARD_COLORS[index], scale: .60, ownsSkeleton: true
+    })
+    art.display.userData.character = character
+    art.display.userData.athletePreview = true
+    art.display.traverse(node => { if (node.isMesh) node.castShadow = true })
+    return art
+  }
   const body = independentRig.getObjectByName(RIGGED_SURFER_ASSETS[character].body)
   if (!body?.isSkinnedMesh || !body.skeleton?.bones.length) {
     throw new Error('The ' + character + ' surfer GLB is missing the expected skinned character')
@@ -49,12 +59,14 @@ function validateTemplate(loaded, character) {
 // One request per gender and scene, independent of how many players are present.
 // Failure in one gender leaves its procedural players intact and does not block
 // successfully loaded players of the other gender.
-export function loadRiggedBoardTemplates(onReady, onError, loader = new GLTFLoader()) {
+export function loadRiggedBoardTemplates(onReady, onError, loader = new GLTFLoader(), { previewFemaleAthlete = false } = {}) {
   Object.entries(RIGGED_SURFER_ASSETS).forEach(([character, asset]) => {
-    const path = (process.env.PUBLIC_URL || '') + asset.path
+    const athlete = previewFemaleAthlete && character === 'female'
+    const path = (process.env.PUBLIC_URL || '') + (athlete ? ATHLETE_SURFER_PATH : asset.path)
     loader.load(path, loaded => {
       try {
-        onReady(character, validateTemplate(loaded, character))
+        if (athlete && !inspectRiggedAsset(loaded).rigged) throw new Error('The athlete GLB has no skeleton.')
+        onReady(character, athlete ? loaded.scene : validateTemplate(loaded, character))
       } catch (error) { onError(character, error) }
     }, undefined, error => onError(character, error))
   })

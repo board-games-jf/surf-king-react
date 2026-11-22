@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { inspectRiggedAsset, reviewStanceFrame, reviewKneeTarget, reviewSurfDirections } from './artReviewUtils'
+import { inspectRiggedAsset, reviewStanceFrame, reviewKneeTarget, reviewSurfDirections } from './athleteSurferArt'
 
 describe('isolated external GLB art review', () => {
   test('reports real skinning, distinct joints, triangles and actual clip names', () => {

@@ -69,6 +69,7 @@ export default function BoardCatalogPage() {
       <div className="board-catalog-layout">
         <section className="board-catalog-stage" aria-label="Interactive 3D board catalog">
           <Board3D
+            previewFemaleAthlete
             snapshot={snapshot}
             onCellSelect={onCellSelect}
             onUnavailable={setError}
@@ -81,11 +82,11 @@ export default function BoardCatalogPage() {
           <div className="board-catalog-panel-top">
             <h2>Place &amp; inspect</h2>
             <p>Choose a tool, then tap a hex. Inspect mode zooms to its contents.</p>
-            <button type="button" onClick={() => focusCell(catalog.surfers['0'])}
-              disabled={!Number.isInteger(catalog.surfers['0'])}>
-              Focus on the new 3D surfer
+            <button type="button" onClick={() => focusCell(catalog.surfers['1'])}
+              disabled={!Number.isInteger(catalog.surfers['1'])}>
+              Focus on the selected female surfer
             </button>
-            <p>Rigged GLB rider on a surfboard, with a procedural fallback if the model cannot load.</p>
+            <p>Female Athlete review on the actual board; previous male model and procedural fallback remain.</p>
           </div>
           <div className="board-catalog-tools" role="group" aria-label="Catalog tool">
             {CATALOG_TOOLS.map(id => (
