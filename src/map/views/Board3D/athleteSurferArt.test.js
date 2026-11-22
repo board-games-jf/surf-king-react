@@ -142,17 +142,17 @@ function makeAthleteRig() {
 }
 
 describe('shared athlete poses and cosmetics', () => {
-  test('standing and relaxed arms point down and remain on their anatomical sides', () => {
+  test('preserves standing while the relaxed right arm waves', () => {
     const frame = { lateral: new THREE.Vector3(1, 0, 0), forward: new THREE.Vector3(0, 0, 1), up: new THREE.Vector3(0, 1, 0) }
     const relaxed = reviewStandingArmDirections(frame, true, true)
     const standing = reviewStandingArmDirections(frame, true, false)
     // Standing must preserve the former relaxed pose exactly.
     expect(standing.upperArm.distanceTo(new THREE.Vector3(.22, -1, .10).normalize())).toBeLessThan(1e-8)
     expect(standing.forearm.distanceTo(new THREE.Vector3(.08, -1, .30).normalize())).toBeLessThan(1e-8)
-    expect(relaxed.forearm.dot(frame.forward)).toBeGreaterThan(standing.forearm.dot(frame.forward))
-    expect(relaxed.forearm.dot(frame.lateral)).toBeLessThan(0)
-    const otherArm = reviewStandingArmDirections(frame, false, true)
-    expect(otherArm.forearm.dot(frame.forward)).toBeLessThan(relaxed.forearm.dot(frame.forward))
+    expect(relaxed.forearm.dot(frame.up)).toBeLessThan(-.9)
+    const rightArm = reviewStandingArmDirections(frame, false, true)
+    expect(rightArm.forearm.dot(frame.up)).toBeGreaterThan(.9)
+    expect(rightArm.upperArm.dot(frame.lateral)).toBeLessThan(0)
     expect(reviewStandingArmDirections(frame, false, false).upperArm.dot(frame.lateral)).toBeLessThan(0)
   })
 
@@ -174,7 +174,19 @@ describe('shared athlete poses and cosmetics', () => {
       expect(foot.getWorldPosition(new THREE.Vector3()).sub(root.position).distanceTo(ankleOffsets[i])).toBeLessThan(1e-5)
       expect(foot.getWorldQuaternion(new THREE.Quaternion()).angleTo(ankleRotations[i])).toBeLessThan(1e-5)
     })
+    const right = root.getObjectByName('RightForeArm')
+    const left = root.getObjectByName('LeftForeArm')
+    const neutral = right.quaternion.clone()
+    const leftNeutral = left.quaternion.clone()
+    art.animate(Math.PI / 11)
+    expect(right.quaternion.angleTo(neutral)).toBeGreaterThan(.1)
+    expect(left.quaternion.angleTo(leftNeutral)).toBeLessThan(1e-5)
+    art.animate(Math.PI / 11, true)
+    expect(right.quaternion.angleTo(neutral)).toBeLessThan(1e-5)
     art.setPose('surf')
+    const surfRight = right.quaternion.clone()
+    art.animate(Math.PI / 11)
+    expect(right.quaternion.angleTo(surfRight)).toBeLessThan(1e-5)
     expect(arm.quaternion.equals(standing)).toBe(false)
     expect(art.surfboard.visible).toBe(true)
     const previous = art.surfboard
@@ -196,4 +208,14 @@ describe('shared athlete poses and cosmetics', () => {
     material.dispose()
     geometry.dispose()
   })
+})
+
+test('prepared male GLB matches the reviewed rigged asset exactly', () => {
+  const data = fs.readFileSync(path.join(process.cwd(), 'public/assets/surfers/man-base-character-rigged.glb'))
+  expect(data.length).toBe(11354468)
+  expect(crypto.createHash('sha256').update(data).digest('hex')).toBe('3038f56e1225d0ef9692189ed19ff688f1424e669281148a4cc6995fed568496')
+  const gltf = JSON.parse(data.subarray(20, 20 + data.readUInt32LE(12)).toString('utf8'))
+  const joints = gltf.skins.flatMap(skin => skin.joints.map(i => gltf.nodes[i].name))
+  expect(joints).toEqual(expect.arrayContaining(['Hips', 'LeftArm', 'RightArm', 'RightForeArm', 'RightHand', 'LeftFoot', 'RightFoot']))
+  expect(new Set(joints).size).toBe(24)
 })
