@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import * as THREE from 'three'
+import { sampleRiderMotion } from './surferMotion'
 import { inspectRiggedAsset, reviewStanceFrame, reviewKneeTarget, reviewSurfDirections, reviewStandingArmDirections, createAthleteSurferArt } from './athleteSurferArt'
 
 describe('isolated external GLB art review', () => {
@@ -236,7 +237,7 @@ test('staged fall and carving animate joints while keeping the rider anchor stat
   expect(left.quaternion.angleTo(armRest)).toBeGreaterThan(.03)
   art.setBoardMotion({ fall: .24, boardRoll: .09, travelBank: 0 })
   const reaction = left.quaternion.clone()
-  art.setBoardMotion({ fall: 1, boardRoll: .025, travelBank: 0 })
+  art.setBoardMotion(sampleRiderMotion(.58, 1, 0, true))
   expect(hips.position.y).toBeLessThan(rest.y)
   expect(left.quaternion.angleTo(reaction)).toBeGreaterThan(.1)
   expect(pivot.position.length()).toBe(0)
@@ -249,6 +250,37 @@ test('staged fall and carving animate joints while keeping the rider anchor stat
   art.setBoardMotion({ fall: 0, boardRoll: 0, travelBank: 0 })
   expect(hips.position.distanceTo(rest)).toBeLessThan(1e-6)
   expect(left.quaternion.angleTo(armRest)).toBeLessThan(1e-5)
+  art.dispose()
+  mesh.skeleton.dispose()
+  material.dispose()
+  geometry.dispose()
+})
+
+test.each(['shortboard', 'fish', 'longboard'])('fallen %s athlete and board cross the waterline and recover', boardType => {
+  const { root, mesh, material, geometry } = makeAthleteRig()
+  const art = createAthleteSurferArt(root, { scale: .60, boardType })
+  const pivot = art.display.getObjectByName('athlete-rider-motion')
+  const startPosition = art.surfboard.position.clone()
+  const startRotation = art.surfboard.quaternion.clone()
+  const waterOffset = -.145
+  art.setBoardMotion({ ...sampleRiderMotion(1, 1, 0, true), waterOffset })
+  art.display.updateMatrixWorld(true)
+  const head = root.getObjectByName('Head').getWorldPosition(new THREE.Vector3())
+  const hip = root.getObjectByName('Hips').getWorldPosition(new THREE.Vector3())
+  const boardBounds = new THREE.Box3().setFromObject(art.surfboard, true)
+  const boardAxis = new THREE.Vector3(1, 0, 0).applyQuaternion(art.surfboard.quaternion)
+  expect(head.y).toBeGreaterThan(waterOffset)
+  expect(hip.y).toBeLessThan(waterOffset)
+  expect(boardBounds.min.y).toBeLessThan(waterOffset - .15)
+  expect(boardBounds.max.y).toBeGreaterThan(waterOffset + .15)
+  expect(boardAxis.y).toBeGreaterThan(.9)
+  expect(Math.hypot(pivot.position.x, pivot.position.z)).toBeCloseTo(.40)
+  expect(art.surfboard.position.distanceTo(startPosition)).toBeGreaterThan(.5)
+  expect(art.surfboard.visible).toBe(true)
+  art.setBoardMotion({ ...sampleRiderMotion(0, 1, 0, true), waterOffset })
+  expect(pivot.position.length()).toBeLessThan(1e-8)
+  expect(art.surfboard.position.distanceTo(startPosition)).toBeLessThan(1e-8)
+  expect(art.surfboard.quaternion.angleTo(startRotation)).toBeLessThan(1e-6)
   art.dispose()
   mesh.skeleton.dispose()
   material.dispose()
