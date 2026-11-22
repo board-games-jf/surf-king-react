@@ -16,7 +16,7 @@ const colors = { sand:'#f4d49b', rock:'#a6aaa0', trunk:'#b5804f', green:'#4c9755
   cream:'#fff3cb', orange:'#ffbb41', coral:'#f27763', teal:'#38b4ae', blue:'#337a91',
   skin:'#c8824b', dark:'#294b46' }
 
-export function createScene(container,onCellSelect,onError, { previewFemaleAthlete = false } = {}) {
+export function createScene(container,onCellSelect,onError, { previewFemaleAthlete = false, athleteBoardType = null } = {}) {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color('#c8e8e5')
   scene.fog = new THREE.Fog('#c8e8e5',42,105)
@@ -173,7 +173,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     try {
       // One independent bone hierarchy per rider; keep the existing procedural
       // model invisible as a safe fallback if GLB parsing or styling fails.
-      const avatar = createRiggedBoardSurfer(riggedTemplates, actor.id, { previewFemaleAthlete })
+      const avatar = createRiggedBoardSurfer(riggedTemplates, actor.id, { previewFemaleAthlete, athleteBoardType })
       actor.g.add(avatar.display)
       actor.legacy.group.visible = false
       actor.avatar = avatar
