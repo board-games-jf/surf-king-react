@@ -178,7 +178,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       actor.g.add(avatar.display)
       actor.legacy.group.visible = false
       actor.avatar = avatar
-      if (avatar.surfboard) actor.boardYaw = avatar.surfboard.rotation.y
+      if (avatar.surfboard) {
+        actor.boardYaw = avatar.surfboard.rotation.y
+        actor.rollAxis.set(Math.cos(actor.boardYaw),0,-Math.sin(actor.boardYaw))
+      }
       if (avatar.display.userData.athletePreview) {
         renderer.domElement.dataset.athleteReady = 'true'
         renderer.domElement.dataset[avatar.display.userData.character === 'male' ? 'athleteMaleReady' : 'athleteFemaleReady'] = 'true'
@@ -201,6 +204,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       cellId: null, from: null, to: null, t: 1,
       anchor: new THREE.Vector3(), heading: 0, startHeading: 0, endHeading: 0,
       boardYaw: model.group.rotation.y + Math.PI / 2,
+      rollAxis: new THREE.Vector3(Math.cos(model.group.rotation.y + Math.PI / 2),0,-Math.sin(model.group.rotation.y + Math.PI / 2)),
       dx: 0, dz: 0, distance: 0, fallMotion: createFallMotion(),
       legacyBody: model.group.getObjectByName('surfer-stance'),
       animate(seconds, phase, bank) {
@@ -249,6 +253,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     // procedural geometry here, never a shared GLB or pooled material.
     actor.legacy.group.traverse(node => { if (node.geometry) node.geometry.dispose() })
     scene.remove(actor.g)
+    delete renderer.domElement.dataset['surferMotion'+actor.id]
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
   function update(snapshot){positionRing(selected,snapshot.selectedCellId);hexDepth.select(snapshot.selectedCellId)
@@ -307,7 +312,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       a.g.rotation.set(0,a.heading+carve.yaw,0)
       const bank=carve.bank
       // Roll around the board's own longitudinal axis, not a fixed world axis.
-      a.g.rotateOnAxis(new THREE.Vector3(Math.cos(a.boardYaw),0,-Math.sin(a.boardYaw)),bank)
+      a.g.rotateOnAxis(a.rollAxis,bank)
       const sample=sampleRiderMotion(fall,a.t,phase,reduce)
       if(a.avatar?.setBoardMotion) a.avatar.setBoardMotion(sample)
       else if(!a.avatar&&a.legacyBody){
