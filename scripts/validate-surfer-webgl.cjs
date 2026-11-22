@@ -2,7 +2,8 @@
 const fs = require('fs')
 const assert = require('node:assert/strict')
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE)
-const output = 'artifacts/surfer-review'
+const candidate = process.env.SURFER_CANDIDATE_GLB
+const output = candidate ? 'artifacts/male-review' : 'artifacts/surfer-review'
 fs.mkdirSync(output, { recursive: true })
 async function capture(page, canvas, name) {
   await page.waitForTimeout(800)
@@ -16,6 +17,7 @@ async function main() {
     page.setDefaultTimeout(60000)
     const errors = []
     page.on('pageerror', error => errors.push(error.message))
+    if (candidate) await page.route('**/assets/surfers/female-athlete-rigged-review.glb', route => route.fulfill({ path: candidate, contentType: 'model/gltf-binary' }))
     await page.goto('http://127.0.0.1:4173/#/customize')
     const canvas = page.locator('.art-review-canvas canvas')
     const surf = page.getByRole('button', { name: /^(Surf|A surfar)$/ }).first()
@@ -36,6 +38,11 @@ async function main() {
       await page.mouse.move(x+box.height*drag,y,{steps:12})
       await page.mouse.up()
       await capture(page,canvas,'desktop-orbit-'+(index+1))
+    }
+    if (candidate) {
+      assert.deepEqual(errors,[])
+      console.log('Male candidate loaded with the shared anatomical pose solver; screenshots need visual approval.')
+      return
     }
     await page.setViewportSize({width:390,height:844})
     await capture(page,canvas,'mobile-surf')
