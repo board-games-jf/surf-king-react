@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { BOARD_TYPES } from '../../map/views/Board3D/surferStyle'
 import Board3D from '../../map/views/Board3D/Board3D'
 import {
   CATALOG_TOOLS,
@@ -14,6 +15,9 @@ import './BoardCatalogPage.css'
 const SURFER_COLORS = ['Orange', 'Coral', 'Teal', 'Blue', 'Yellow', 'Purple', 'Green']
 
 export default function BoardCatalogPage() {
+  const location = useLocation()
+  const requestedType = location.state?.athleteBoardType
+  const athleteBoardType = BOARD_TYPES.includes(requestedType) ? requestedType : null
   const [catalog, setCatalog] = useState(createBoardCatalog)
   const [tool, setTool] = useState('Inspect')
   const [surferId, setSurferId] = useState('0')
@@ -69,6 +73,7 @@ export default function BoardCatalogPage() {
         <section className="board-catalog-stage" aria-label="Interactive 3D board catalog">
           <Board3D
             previewFemaleAthlete
+            athleteBoardType={athleteBoardType}
             snapshot={snapshot}
             onCellSelect={onCellSelect}
             onUnavailable={setError}
@@ -85,7 +90,7 @@ export default function BoardCatalogPage() {
               disabled={!Number.isInteger(catalog.surfers['1'])}>
               Focus on the selected female surfer
             </button>
-            <p>Selected female model on the actual board; the male model remains temporary.</p>
+            <p>Selected female model on the actual board; the male model remains temporary. Player board colors stay unique.</p>
           </div>
           <div className="board-catalog-tools" role="group" aria-label="Catalog tool">
             {CATALOG_TOOLS.map(id => (
