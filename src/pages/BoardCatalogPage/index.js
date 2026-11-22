@@ -21,7 +21,11 @@ export default function BoardCatalogPage() {
   const [catalog, setCatalog] = useState(createBoardCatalog)
   const [tool, setTool] = useState('Inspect')
   const [surferId, setSurferId] = useState('0')
-  const [selectedCellId, setSelectedCellId] = useState(null)
+  const requestedCharacter = location.state?.athleteCharacter
+  const [selectedCellId, setSelectedCellId] = useState(() =>
+    ['male', 'female'].includes(requestedCharacter)
+      ? catalog.surfers[requestedCharacter === 'male' ? '0' : '1'] ?? null
+      : null)
   const [error, setError] = useState(null)
 
   const snapshot = useMemo(
@@ -90,7 +94,11 @@ export default function BoardCatalogPage() {
               disabled={!Number.isInteger(catalog.surfers['1'])}>
               Focus on the selected female surfer
             </button>
-            <p>Selected female model on the actual board; the male model remains temporary. Player board colors stay unique.</p>
+            <button type="button" onClick={() => focusCell(catalog.surfers['0'])}
+              disabled={!Number.isInteger(catalog.surfers['0'])}>
+              Focus on the selected male surfer
+            </button>
+            <p>Both selected models on the actual board. Player board colors stay unique.</p>
           </div>
           <div className="board-catalog-tools" role="group" aria-label="Catalog tool">
             {CATALOG_TOOLS.map(id => (
