@@ -152,6 +152,21 @@ flowchart LR
 ```
 
 The female GLB is separately authored from the same CC0 pack; source and texture-free packaging are documented in `DATA_SOURCES.md`. This is **not** a validated motion-capture animation set, final facial-expression system or gameplay ability mechanic. Browser/WebGL bone-axis and foot-to-board alignment remain pending.
+## Selected athlete integration (Issue #33, draft PR #36)
+
+`/#/customize` is the single visible surfer creator; older gallery and review URLs redirect to it. It loads the unchanged textured Female Athlete GLB and uses `athleteSurferArt.js` for standing, relaxed and surfing poses and the curved board factory from PR #35. Geometry and textures are preserved. Board shape and paint are cosmetic, and the saved browser style is not a player profile.
+
+```mermaid
+flowchart LR
+  Studio[Unified creator] --> Art[Shared athlete art and poses]
+  Catalog[Catalog and local 3D game] --> Loader[Shared GLB template and independent clones]
+  Loader --> Art
+  Art --> Board[Curved board factory]
+  Catalog --> Fallback[Legacy male / procedural fallback]
+```
+
+The catalog can receive the selected board shape from the creator; game board colors still identify players. The local 3D board uses the selected model for female presets, retaining the previous male and procedural fallbacks. No changes to match rules or public snapshot schema. Hair, skin and clothing are baked into the current texture/mesh and are not yet independent customization options. This is draft branch behavior, pending tests and real WebGL acceptance.
+
 ## Limits and validation
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.
