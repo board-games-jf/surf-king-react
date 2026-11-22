@@ -2,6 +2,14 @@ import * as THREE from 'three'
 import { createScenePrimitives, palette } from './scenePrimitives'
 
 // Scenery from the standalone Surf King preview. The game owns the playable cells.
+// Match the ocean vertex shader at the mean nominal surface.
+// Plane local Y maps to negative world Z after the -PI/2 rotation.
+export function sampleOceanHeight(x, z, elapsed) {
+  return -.015 + Math.sin(x * .67 + elapsed * .72) * .043
+    + Math.sin(-z * .91 - elapsed * .48) * .036
+    + Math.sin(x * 1.8 - z * 1.4 + elapsed) * .016
+}
+
 export function createCoastalScenery(scene) {
   scene.add(new THREE.HemisphereLight('#e4fbff', '#ba9b62', 1.7));
   const sun = new THREE.DirectionalLight('#fff1cc', 2.5);
