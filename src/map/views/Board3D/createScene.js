@@ -9,7 +9,7 @@ import { PLAYER_BOARD_COLORS, createRiggedBoardSurfer, loadRiggedBoardTemplates 
 import { PRESET_SURFERS } from './surferStyle'
 import { createObstacleModel } from './obstacleModels'
 import { createHexDepth } from './hexDepth'
-import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleCarve, shortestHeading, MOVE_SECONDS } from './surferMotion'
+import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, shortestHeading, MOVE_SECONDS } from './surferMotion'
 
 // This renderer receives public state and never validates moves or changes rules.
 const R = layoutManifest.hexRadius
@@ -292,7 +292,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       a.fallMotion=stepFallMotion(a.fallMotion,dt,reduce)
       const fall=a.fallMotion.value
       if(a.from&&a.to) a.t=reduce?1:Math.min(1,a.t+dt/MOVE_SECONDS)
-      const carve=sampleCarve(a.t,phase,a.distance,fall,reduce)
+      const carve=sampleCarve(a.t,phase,a.distance,a.fallMotion.remount ? 1 : fall,reduce)
       if(a.from&&a.to){
         a.anchor.lerpVectors(a.from,a.to,carve.progress)
         if(a.distance>1e-6){
@@ -313,16 +313,18 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       const bank=carve.bank
       // Roll around the board's own longitudinal axis, not a fixed world axis.
       a.g.rotateOnAxis(a.rollAxis,bank)
-      const sample=sampleRiderMotion(fall,a.t,phase,reduce,bank)
+      const sample=a.fallMotion.remount
+        ? sampleRemount(1-fall,phase,reduce)
+        : sampleRiderMotion(fall,a.t,phase,reduce,bank)
       sample.waterOffset=sampleOceanHeight(a.g.position.x,a.g.position.z,elapsed)-a.g.position.y
       a.animate(elapsed,Number(a.id),bank)
       if(a.avatar?.setBoardMotion) a.avatar.setBoardMotion(sample)
       else if(!a.avatar&&a.legacyBody){
         const immersion=sample.immersion
-        a.legacyBody.position.set(.34*immersion,.075+immersion*(sample.waterOffset/.65-.95),0)
+        a.legacyBody.position.set(.34*(sample.riderAside??immersion),.075+immersion*(sample.waterOffset/.65-.95),0)
         a.legacyBody.rotation.z=-sample.lean*(1-immersion)
         // Procedural board has its long axis along Z.
-        a.legacy.board.position.set(-.48*sample.boardRise,(sample.waterOffset/.65-.05)*sample.boardRise,0)
+        a.legacy.board.position.set(-.48*(sample.boardAside??sample.boardRise),(sample.waterOffset/.65-.05)*sample.boardRise,0)
         a.legacy.board.rotation.x=THREE.MathUtils.lerp(a.legacy.board.rotation.x,1.32,sample.boardRise)+sample.boardRoll
         a.legacy.board.rotation.z=bank*.05
       }
