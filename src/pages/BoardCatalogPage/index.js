@@ -60,7 +60,6 @@ export default function BoardCatalogPage() {
         </div>
         <div className="board-catalog-header-links">
           <Link to="/obstacles">Individual models</Link>
-          <Link to="/surfers">Surfer gallery</Link>
           <Link to="/customize">Customize surfer</Link>
           <Link to="/local">Local game</Link>
         </div>
@@ -86,7 +85,7 @@ export default function BoardCatalogPage() {
               disabled={!Number.isInteger(catalog.surfers['1'])}>
               Focus on the selected female surfer
             </button>
-            <p>Female Athlete review on the actual board; previous male model and procedural fallback remain.</p>
+            <p>Selected female model on the actual board; the male model remains temporary.</p>
           </div>
           <div className="board-catalog-tools" role="group" aria-label="Catalog tool">
             {CATALOG_TOOLS.map(id => (
