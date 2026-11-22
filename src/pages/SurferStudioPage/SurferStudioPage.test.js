@@ -1,98 +1,49 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import SurferStudioPage from './index'
-
-jest.mock('./SurferViewer', () => function MockSurferViewer({ style }) {
-  return <div data-testid="surfer-style">{JSON.stringify(style)}</div>
-})
-
-jest.mock('./RiggedBaseViewer', () => function MockRiggedBaseViewer({ style, styled, pose }) {
-  return <div data-testid="rigged-base-viewer">
-    {JSON.stringify({ style, styled, pose })}
-  </div>
-})
-
-function open(path = '/customize') {
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route path="/surfers" element={<SurferStudioPage />} />
-        <Route path="/customize" element={<SurferStudioPage />} />
-      </Routes>
-    </MemoryRouter>
-  )
-}
-
-const rigged = () => JSON.parse(screen.getByTestId('rigged-base-viewer').textContent)
+import { AthleteControls, AthleteCharacterControls, ATHLETE_SAVE_KEY, readAthleteStyle } from '../ArtReviewPage'
 
 beforeEach(() => window.localStorage.clear())
 
-describe('rigged surfer visual exploration', () => {
-  test('gallery defaults to the styled GLB and preserves the existing presets', () => {
-    open('/surfers')
-    expect(screen.getByRole('heading', { name: 'Galeria de surfistas' })).toBeTruthy()
-    expect(rigged().styled).toBe(true)
-    fireEvent.click(screen.getByRole('button', { name: /Surfista 3/i }))
-    expect(rigged().style.character).toBe('male')
-    expect(rigged().style.boardType).toBe('longboard')
-    expect(rigged().style.boardColor).toBe('orange')
-    expect(screen.getByRole('link', { name: 'Personalizar este surfista' })).toBeTruthy()
+describe('unified athlete creator controls', () => {
+  test('defaults to the female asset and restores either selected character and board choices', () => {
+    expect(readAthleteStyle().character).toBe('female')
+    expect(readAthleteStyle().boardColor).toBe('turquoise')
+    window.localStorage.setItem(ATHLETE_SAVE_KEY, JSON.stringify({ character: 'male', boardType: 'fish', boardColor: 'blue' }))
+    expect(readAthleteStyle()).toMatchObject({ character: 'male', boardType: 'fish', boardColor: 'blue' })
   })
 
-  test('gallery compares styled GLB, raw GLB and procedural model', () => {
-    open('/surfers')
-    fireEvent.click(screen.getByRole('button', { name: 'Base GLB' }))
-    expect(rigged().styled).toBe(false)
-    fireEvent.click(screen.getByRole('button', { name: 'Modelo antigo' }))
-    expect(screen.queryByTestId('rigged-base-viewer')).toBeNull()
-    expect(screen.getByTestId('surfer-style')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Novo visual 3D' }))
-    expect(rigged().styled).toBe(true)
-  })
-
-  test('creator changes appear on the real GLB without affecting gameplay', () => {
-    open()
-    expect(rigged().styled).toBe(true)
-    fireEvent.click(screen.getByRole('button', { name: 'Masculino' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Fish' }))
-    fireEvent.click(screen.getByRole('button', { name: 'auburn' }))
-    const preview = rigged()
-    expect(preview.style.character).toBe('male')
-    expect(preview.style.boardType).toBe('fish')
-    expect(preview.style.hairColor).toBe('auburn')
-    expect(screen.queryByRole('button', { name: 'Base GLB' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Modelo antigo' }))
-    expect(screen.getByTestId('surfer-style')).toBeTruthy()
-  })
-
-  test('creator switches genuine gender preview and standing / relaxed / surfing poses', () => {
-    open()
-    expect(rigged().style.character).toBe('male')
-    expect(rigged().pose).toBe('relaxed')
-    fireEvent.click(screen.getByRole('button', { name: 'Feminino' }))
-    expect(rigged().style.character).toBe('female')
+  test('only exposes real pose and board options; changes reach the viewer callbacks', () => {
+    const onPose = jest.fn(), onStyle = jest.fn()
+    render(<AthleteControls ready pose="surf" style={readAthleteStyle()} onPose={onPose} onStyle={onStyle} />)
+    expect(screen.getByRole('button', { name: 'A surfar' })).toHaveAttribute('aria-pressed', 'true')
     fireEvent.click(screen.getByRole('button', { name: 'Em pé' }))
-    expect(rigged().pose).toBe('standing')
-    fireEvent.click(screen.getByRole('button', { name: 'A surfar' }))
-    expect(rigged().pose).toBe('surfing')
-    fireEvent.click(screen.getByRole('button', { name: 'Relaxado' }))
-    expect(rigged().pose).toBe('relaxed')
-    fireEvent.click(screen.getByRole('button', { name: 'Guardar visual' }))
-    const saved = JSON.parse(window.localStorage.getItem('surf-king-surfer-preview-v1'))
-    expect(saved.character).toBe('female')
-    expect(saved).not.toHaveProperty('pose')
-    expect(saved).not.toHaveProperty('energy')
+    fireEvent.click(screen.getByRole('button', { name: 'Relaxada' }))
+    fireEvent.click(screen.getByRole('button', { name: 'fish' }))
+    fireEvent.click(screen.getByRole('button', { name: 'blue' }))
+    expect(onPose.mock.calls).toEqual([['standing'], ['relaxed']])
+    expect(onStyle.mock.calls).toEqual([['boardType', 'fish'], ['boardColor', 'blue']])
+    expect(screen.queryByRole('button', { name: /Modelo antigo|Base GLB|Masculino/i })).toBeNull()
   })
 
-  test('saving remains cosmetic-only and local to the browser', () => {
-    open()
-    fireEvent.click(screen.getByRole('button', { name: 'Longboard' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Guardar visual' }))
-    const saved = JSON.parse(window.localStorage.getItem('surf-king-surfer-preview-v1'))
-    expect(saved.boardType).toBe('longboard')
-    expect(saved).not.toHaveProperty('playerId')
-    expect(saved).not.toHaveProperty('energy')
-    expect(screen.getByRole('status').textContent).toMatch(/neste navegador/)
+  test('disables changes while the asset is loading', () => {
+    const onPose = jest.fn(), onStyle = jest.fn()
+    render(<AthleteControls ready={false} pose="surf" style={readAthleteStyle()} onPose={onPose} onStyle={onStyle} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Em pé' }))
+    expect(onPose).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'blue' })).toBeDisabled()
+  })
+})
+
+describe('approved character selection', () => {
+  test('selects both approved characters without a local file upload', () => {
+    const onCharacter = jest.fn()
+    const { rerender } = render(<AthleteCharacterControls character="female" onCharacter={onCharacter} />)
+    expect(screen.getByRole('button', { name: 'Feminina' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Masculino' }))
+    expect(onCharacter).toHaveBeenCalledWith('male')
+    rerender(<AthleteCharacterControls character="male" onCharacter={onCharacter} />)
+    expect(screen.getByRole('button', { name: 'Masculino' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Feminina' }))
+    expect(onCharacter).toHaveBeenCalledWith('female')
   })
 })

@@ -144,11 +144,29 @@ describe('shared real rigged surfer integration for the 3D board', () => {
       resolve({ scene: path.includes('-female-') ? new THREE.Group() : male.root })
     }) }
     loadRiggedBoardTemplates(success, failure, loader)
+    expect(loader.load).toHaveBeenCalledTimes(2)
     expect(success).toHaveBeenCalledTimes(1)
+    expect(success).toHaveBeenCalledWith('male', male.root)
+    expect(failure).toHaveBeenCalledTimes(1)
     expect(failure).toHaveBeenCalledWith('female', expect.any(Error))
     male.body.material.dispose()
     male.geometry.dispose()
   })
 
 
+})
+
+test('catalog opt-in selects both textured athlete assets', () => {
+  const male = makeSkinnedTemplate('male'), female = makeSkinnedTemplate('female')
+  const success = jest.fn(), failure = jest.fn()
+  const loader = { load: jest.fn((path, resolve) => resolve({ scene: path.includes('female-athlete') ? female.root : male.root })) }
+  loadRiggedBoardTemplates(success, failure, loader, { previewFemaleAthlete: true })
+  expect(loader.load.mock.calls.map(call => call[0])).toEqual([
+    expect.stringMatching(/man-base-character-rigged\.glb$/),
+    expect.stringMatching(/female-athlete-rigged-review\.glb$/)
+  ])
+  expect(success).toHaveBeenCalledWith('female', female.root)
+  expect(success).toHaveBeenCalledWith('male', male.root)
+  expect(failure).not.toHaveBeenCalled()
+  for (const model of [male, female]) { model.geometry.dispose(); model.body.material.dispose() }
 })

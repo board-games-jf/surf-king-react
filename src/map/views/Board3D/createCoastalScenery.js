@@ -65,7 +65,7 @@ export function createCoastalScenery(scene) {
   slopeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(slopeVertices, 3));
   slopeGeometry.setIndex(slopeIndices);
   slopeGeometry.computeVertexNormals();
-  const beachSlope = mesh(slopeGeometry, palette.sand, scene, { side: THREE.DoubleSide });
+  mesh(slopeGeometry, palette.sand, scene, { side: THREE.DoubleSide });
 
   for (let i = 0; i < 42; i++) {
     const segment = i / 42 * (backEdge.length - 1);

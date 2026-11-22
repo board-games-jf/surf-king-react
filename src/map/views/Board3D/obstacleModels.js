@@ -182,7 +182,6 @@ function cloudCluster(parent, sphere, color) {
 }
 
 function lightningShape(parent, helpers, variant) {
-  const { mesh } = helpers
   const bolt = new THREE.Group()
   parent.add(bolt)
   const points = []

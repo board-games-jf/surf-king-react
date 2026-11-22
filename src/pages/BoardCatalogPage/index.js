@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { BOARD_TYPES } from '../../map/views/Board3D/surferStyle'
 import Board3D from '../../map/views/Board3D/Board3D'
 import {
   CATALOG_TOOLS,
@@ -14,10 +15,17 @@ import './BoardCatalogPage.css'
 const SURFER_COLORS = ['Orange', 'Coral', 'Teal', 'Blue', 'Yellow', 'Purple', 'Green']
 
 export default function BoardCatalogPage() {
+  const location = useLocation()
+  const requestedType = location.state?.athleteBoardType
+  const athleteBoardType = BOARD_TYPES.includes(requestedType) ? requestedType : null
   const [catalog, setCatalog] = useState(createBoardCatalog)
   const [tool, setTool] = useState('Inspect')
   const [surferId, setSurferId] = useState('0')
-  const [selectedCellId, setSelectedCellId] = useState(null)
+  const requestedCharacter = location.state?.athleteCharacter
+  const [selectedCellId, setSelectedCellId] = useState(() =>
+    ['male', 'female'].includes(requestedCharacter)
+      ? catalog.surfers[requestedCharacter === 'male' ? '0' : '1'] ?? null
+      : null)
   const [error, setError] = useState(null)
 
   const snapshot = useMemo(
@@ -60,7 +68,6 @@ export default function BoardCatalogPage() {
         </div>
         <div className="board-catalog-header-links">
           <Link to="/obstacles">Individual models</Link>
-          <Link to="/surfers">Surfer gallery</Link>
           <Link to="/customize">Customize surfer</Link>
           <Link to="/local">Local game</Link>
         </div>
@@ -69,6 +76,8 @@ export default function BoardCatalogPage() {
       <div className="board-catalog-layout">
         <section className="board-catalog-stage" aria-label="Interactive 3D board catalog">
           <Board3D
+            previewFemaleAthlete
+            athleteBoardType={athleteBoardType}
             snapshot={snapshot}
             onCellSelect={onCellSelect}
             onUnavailable={setError}
@@ -81,11 +90,15 @@ export default function BoardCatalogPage() {
           <div className="board-catalog-panel-top">
             <h2>Place &amp; inspect</h2>
             <p>Choose a tool, then tap a hex. Inspect mode zooms to its contents.</p>
+            <button type="button" onClick={() => focusCell(catalog.surfers['1'])}
+              disabled={!Number.isInteger(catalog.surfers['1'])}>
+              Focus on the selected female surfer
+            </button>
             <button type="button" onClick={() => focusCell(catalog.surfers['0'])}
               disabled={!Number.isInteger(catalog.surfers['0'])}>
-              Focus on the new 3D surfer
+              Focus on the selected male surfer
             </button>
-            <p>Rigged GLB rider on a surfboard, with a procedural fallback if the model cannot load.</p>
+            <p>Both selected models on the actual board. Player board colors stay unique.</p>
           </div>
           <div className="board-catalog-tools" role="group" aria-label="Catalog tool">
             {CATALOG_TOOLS.map(id => (

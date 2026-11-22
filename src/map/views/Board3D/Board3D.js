@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 // The heavy Three.js scene is imported only after the 3D view is selected.
-export default function Board3D({ snapshot, onCellSelect, onUnavailable, focusCellId = null }) {
+export default function Board3D({ snapshot, onCellSelect, onUnavailable, focusCellId = null, previewFemaleAthlete = true, athleteBoardType = null }) {
     const container = useRef(null)
     const scene = useRef(null)
     const latestClick = useRef(onCellSelect)
@@ -28,7 +28,8 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable, focusCe
                 (message) => {
                     setError(message)
                     if (latestError.current) latestError.current(message)
-                }
+                },
+                { previewFemaleAthlete, athleteBoardType }
             )
             scene.current = instance
             instance.update(latestSnapshot.current)
@@ -47,7 +48,7 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable, focusCe
         }
         // Mount the GPU scene once; update game state separately.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [previewFemaleAthlete, athleteBoardType])
 
     useEffect(() => {
         if (scene.current) scene.current.update(snapshot)

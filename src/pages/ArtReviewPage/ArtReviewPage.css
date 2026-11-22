@@ -1,0 +1,89 @@
+.art-review {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: clamp(14px, 3vw, 36px);
+  background: linear-gradient(140deg, #b2ecea, #e6f7e7 60%, #f7e7bd);
+  color: #17464d;
+  font-family: system-ui, sans-serif;
+}
+.art-review-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 1360px;
+  margin: 0 auto 20px;
+}
+.art-review-header a {
+  color: #175b67;
+  font-weight: 700;
+  text-decoration: none;
+}
+.art-review-header h1 { margin: 0 0 4px; font-size: clamp(24px, 3vw, 34px); }
+.art-review-header p { margin: 0; }
+.art-review-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  max-width: 1360px;
+  margin: 0 auto;
+}
+.art-review-controls {
+  display: flex;
+  gap: 8px;
+}
+.art-review-controls button {
+  padding: 10px 24px;
+  border: 1px solid #aacdc6;
+  background: #fffdf5;
+  color: #17464d;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.art-review-controls button[aria-pressed="true"] {
+  background: #175b67;
+  color: white;
+}
+.art-review-controls button:disabled { opacity: .5; cursor: default; }
+.art-review-stage {
+  min-width: 0;
+  min-height: clamp(550px, 72vh, 820px);
+  overflow: hidden;
+  position: relative;
+  border: 2px solid #fff;
+  border-radius: 20px;
+  background: #ccecea;
+  box-shadow: 0 9px 22px #145a6225;
+}
+.art-review-canvas { position: absolute; inset: 0; }
+.art-review-status {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: #fffdf4e8;
+  padding: 10px;
+  border-radius: 12px;
+  pointer-events: none;
+}
+.art-review-footer {
+  max-width: 1360px;
+  margin: 18px auto 0;
+  font-size: 12px;
+}
+@media (max-width: 800px) {
+  .art-review-header { display: block; }
+  .art-review-header > a { display: inline-block; margin-bottom: 10px; }
+  .art-review-stage { min-height: 430px; }
+}
+
+.art-review-tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.art-review-controls { flex-wrap: wrap; align-items: center; border: 0; margin: 0; padding: 6px 0; min-width: 0; }
+.art-review-controls legend { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.art-review-controls button.art-review-swatch { background: var(--board-color); width: 36px; height: 36px; padding: 0; border-radius: 50%; }
+.art-review-controls button.art-review-swatch[aria-pressed="true"] { outline: 2px solid #175b67; outline-offset: 2px; }
+.art-review-footer a { color: #175b67; font-weight: 700; padding: 10px; }

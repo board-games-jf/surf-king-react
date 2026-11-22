@@ -22,6 +22,10 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-015 | Accepted | Distinguish male and female Surf King surfers using actual separately authored skinned bodies/facial geometry, and offer standing, relaxed and surfing poses driven by the existing humanoid skeleton. These are visual states only; surfing remains the shared board pose. | The owner wants noticeable facial/silhouette differences and no permanently outstretched T-pose, without changing gameplay balance or abandoning the existing rigged GLB art direction. | [#28](https://github.com/board-games-jf/surf-king-react/issues/28), [#26](https://github.com/board-games-jf/surf-king-react/issues/26) |
 
+| SK-DEC-019 | Accepted | Continue with the selected Female Athlete in a unified creator and 3D board preview, including pose selection and cosmetic customization; stop presenting alternative female models to the owner. | Owner explicitly requested integration of the chosen model on 2026-11-22. This is authorization to implement and review the adaptation, not final model/board acceptance or merge/deploy. SK-DEC-016–018 are recorded in draft PR #34; distinct male art remains required. | [#33](https://github.com/board-games-jf/surf-king-react/issues/33), [PR #36](https://github.com/board-games-jf/surf-king-react/pull/36) |
+
+| SK-DEC-020 | Accepted | Adopt the visually approved Grab3D Man Base Mesh rigged GLB as the male counterpart, selectable alongside Female Athlete in the creator and visible on the shared 3D board. Both relaxed poses should wave with the anatomical right hand; preserve standing and surf stances and gameplay-neutral board identity colors. | Owner approved the male candidate and requested integration and a greeting gesture on 2026-11-22. Final wave rendering and full runtime checks remain open; no merge/deployment authorization. | [#33](https://github.com/board-games-jf/surf-king-react/issues/33), [PR #36](https://github.com/board-games-jf/surf-king-react/pull/36) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.

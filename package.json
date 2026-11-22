@@ -36,7 +36,12 @@
         "dev": "concurrently \"yarn run client\" \"yarn run server\"",
         "client": "react-scripts start",
         "server": "node -r esm src/server/index.js",
-        "prepare": "husky install"
+        "prepare": "husky install",
+        "prepare:surfer-assets": "node scripts/prepare-surfer-assets.cjs",
+        "prestart": "npm run prepare:surfer-assets",
+        "prebuild": "npm run prepare:surfer-assets",
+        "pretest": "npm run prepare:surfer-assets",
+        "preclient": "npm run prepare:surfer-assets"
     },
     "eslintConfig": {
         "extends": [
@@ -65,5 +70,10 @@
     },
     "lint-staged": {
         "**/*": "prettier --write --ignore-unknown"
+    },
+    "jest": {
+        "transformIgnorePatterns": [
+            "node_modules/(?!three/examples/jsm/)"
+        ]
     }
 }
