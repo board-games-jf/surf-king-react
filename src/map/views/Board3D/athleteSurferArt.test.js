@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import * as THREE from 'three'
-import { sampleRiderMotion } from './surferMotion'
+import { sampleRiderMotion, sampleRemount } from './surferMotion'
 import { inspectRiggedAsset, reviewStanceFrame, reviewKneeTarget, reviewSurfDirections, reviewStandingArmDirections, createAthleteSurferArt } from './athleteSurferArt'
 
 describe('isolated external GLB art review', () => {
@@ -281,6 +281,47 @@ test.each(['shortboard', 'fish', 'longboard'])('fallen %s athlete and board cros
   expect(pivot.position.length()).toBeLessThan(1e-8)
   expect(art.surfboard.position.distanceTo(startPosition)).toBeLessThan(1e-8)
   expect(art.surfboard.quaternion.angleTo(startRotation)).toBeLessThan(1e-6)
+  art.dispose()
+  mesh.skeleton.dispose()
+  material.dispose()
+  geometry.dispose()
+})
+
+test.each(['shortboard', 'fish', 'longboard'])('independent %s remount reaches for the real deck and restores the riding pose', boardType => {
+  const { root, mesh, material, geometry } = makeAthleteRig()
+  const art = createAthleteSurferArt(root, { scale: .60, boardType })
+  const pivot = art.display.getObjectByName('athlete-rider-motion')
+  const hips = root.getObjectByName('Hips')
+  const rest = hips.position.clone()
+  const boardPosition = art.surfboard.position.clone()
+  const boardRotation = art.surfboard.quaternion.clone()
+  const waterOffset = -.145
+  const apply = sample => {
+    art.setBoardMotion({ ...sample, waterOffset })
+    art.display.updateMatrixWorld(true)
+  }
+  apply(sampleRiderMotion(1, 1, 0))
+  const floatingPosition = pivot.position.clone()
+  apply(sampleRemount(0))
+  expect(pivot.position.distanceTo(floatingPosition)).toBeLessThan(1e-6)
+  const sample = sampleRemount(.53)
+  const handDistance = () => ['Left', 'Right'].reduce((sum, side, i) => {
+    const target = art.surfboard.localToWorld(new THREE.Vector3(i === 0 ? .24 : -.24, .17, .095))
+    return sum + root.getObjectByName(side + 'Hand').getWorldPosition(new THREE.Vector3()).distanceTo(target)
+  }, 0)
+  apply({ ...sample, handContact: 0 })
+  const before = handDistance()
+  apply(sample)
+  expect(handDistance()).toBeLessThan(before)
+  expect(pivot.position.y).toBeGreaterThan(floatingPosition.y)
+  const press = root.getObjectByName('LeftArm').quaternion.clone()
+  apply(sampleRiderMotion(1 - .53, 1, 0, true))
+  expect(root.getObjectByName('LeftArm').quaternion.angleTo(press)).toBeGreaterThan(.05)
+  apply(sampleRemount(1))
+  expect(pivot.position.length()).toBeLessThan(1e-8)
+  expect(hips.position.distanceTo(rest)).toBeLessThan(1e-6)
+  expect(art.surfboard.position.distanceTo(boardPosition)).toBeLessThan(1e-8)
+  expect(art.surfboard.quaternion.angleTo(boardRotation)).toBeLessThan(1e-6)
   art.dispose()
   mesh.skeleton.dispose()
   material.dispose()
