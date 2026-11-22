@@ -7,6 +7,7 @@ import {
   createCatalogSnapshot,
   placeCatalogAsset,
   setCatalogSurferFallen,
+  nearbyCatalogCell,
 } from './catalogState'
 
 describe('interactive board catalog fixtures', () => {
@@ -86,4 +87,14 @@ test('catalog fall and remount preserve positions and stay isolated from other p
   expect(fallen.surfers).toEqual(original.surfers)
   expect(createCatalogSnapshot(setCatalogSurferFallen(fallen, '0', false)).players[0].fallen).toBe(false)
   expect(setCatalogSurferFallen(original, '9', true)).toBe(original)
+})
+
+test('glide preview picks a nearby vacant cell and never moves a fallen surfer automatically', () => {
+  const catalog = createBoardCatalog()
+  const next = nearbyCatalogCell(catalog, '0')
+  expect(Number.isInteger(next)).toBe(true)
+  expect(Object.values(catalog.surfers)).not.toContain(next)
+  expect(catalog.obstacles[next]).toBeUndefined()
+  expect(nearbyCatalogCell(setCatalogSurferFallen(catalog, '0', true), '0')).toBeNull()
+  expect(nearbyCatalogCell(catalog, '9')).toBeNull()
 })
