@@ -1,6 +1,6 @@
 // Presentation-only interpolation. Authoritative snapshots always win.
 export const FALL_SECONDS = 1.08
-export const REMOUNT_SECONDS = 1.35
+export const REMOUNT_SECONDS = 1.85
 export const MOVE_SECONDS = .95
 
 export const clamp01 = value => Math.min(1, Math.max(0, value))
@@ -11,14 +11,17 @@ export const ease = value => {
 
 export function createFallMotion(fallen = false) {
   const value = fallen ? 1 : 0
-  return { value, from: value, to: value, elapsed: 0, duration: 0 }
+  return { value, from: value, to: value, elapsed: 0, duration: 0, remount: false }
 }
 
 export function targetFallMotion(motion, fallen, immediate = false) {
   const to = fallen ? 1 : 0
   if (immediate) return createFallMotion(fallen)
   if (to === motion.to) return motion
-  return { value: motion.value, from: motion.value, to, elapsed: 0,
+  // Full water recovery follows its own path. Retarget an interrupted
+  // remount along that same path instead of jumping to a different pose.
+  const remount = motion.value > 0 && (motion.remount || (!fallen && motion.value === 1))
+  return { value: motion.value, from: motion.value, to, elapsed: 0, remount,
     duration: (fallen ? FALL_SECONDS : REMOUNT_SECONDS) * Math.abs(to - motion.value) }
 }
 
@@ -27,7 +30,7 @@ export function stepFallMotion(motion, dt, reducedMotion = false) {
   if (!motion.duration || motion.elapsed >= motion.duration) return motion
   const elapsed = Math.min(motion.duration, motion.elapsed + Math.max(0, dt))
   const value = motion.from + (motion.to - motion.from) * ease(elapsed / motion.duration)
-  return { ...motion, elapsed, value }
+  return { ...motion, elapsed, value, remount: motion.remount && elapsed < motion.duration }
 }
 
 export function sampleRiderMotion(fall, travel = 0, time = 0, reducedMotion = false, bank = 0) {
@@ -76,4 +79,23 @@ export function sampleCarve(travel = 1, time = 0, distance = 0, fall = 0, reduce
   return { progress, idle, idleForward: Math.sin(phase * 2) * .032 * (1 - envelope) * riding,
     travel: lateral, yaw,
     bank: -yaw * .81, lift: envelope * .025 * riding }
+}
+
+// Separate self-rescue choreography, from floating (0) to riding (1).
+// Flatten and stabilize the board first, then pull up and bring the feet under
+// the body. Contact fades out as the athlete rises from the crouch.
+export function sampleRemount(progress, time = 0, reducedMotion = false) {
+  const t = reducedMotion ? 1 : clamp01(progress)
+  const ramp = (start, end) => ease((t - start) / (end - start))
+  const immersion = 1 - ramp(.23, .71)
+  const boardRise = 1 - ramp(0, .30)
+  return {
+    fall: 1 - t, remount: t, immersion, boardRise,
+    riderAside: 1 - ramp(.28, .70),
+    boardAside: 1 - ramp(.06, .42),
+    handContact: ramp(.05, .27) * (1 - ramp(.69, .87)),
+    floatBob: reducedMotion ? 0 : Math.sin(time * 2.2) * .018 * immersion,
+    boardRoll: .085 * Math.sin(Math.PI * ramp(.23, .70)),
+    travelBank: 0, travelLift: 0, lean: 0, side: 0, sink: 0
+  }
 }
