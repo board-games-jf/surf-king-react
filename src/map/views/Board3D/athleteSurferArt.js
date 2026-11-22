@@ -3,6 +3,10 @@ import { createPremiumSurfboardProof } from './premiumSurfboardProof'
 import { BOARD_TYPES } from './surferStyle'
 
 export const ATHLETE_SURFER_PATH = '/assets/surfers/female-athlete-rigged-review.glb'
+export const ATHLETE_ASSET_PATHS = Object.freeze({
+  female: ATHLETE_SURFER_PATH,
+  male: '/assets/surfers/man-base-character-rigged.glb'
+})
 
 // Shared textured athlete inspection and anatomical stance geometry.
 export function inspectRiggedAsset(loaded) {
@@ -83,12 +87,18 @@ export function reviewStandingArmDirections({ lateral, forward, up }, lead, rela
     forearm: up.clone().negate().addScaledVector(lateral, sign * .08)
       .addScaledVector(forward, .30).normalize()
   }
-  // Relaxed: one softly bent arm near the hip, the other hanging naturally.
+  // Relaxed: the left arm stays loose and the anatomical right arm waves.
+  if (!lead) return {
+    upperArm: lateral.clone().multiplyScalar(-.82).addScaledVector(up, -.48)
+      .addScaledVector(forward, .16).normalize(),
+    forearm: up.clone().addScaledVector(lateral, -.18)
+      .addScaledVector(forward, .16).normalize()
+  }
   return {
-    upperArm: up.clone().negate().addScaledVector(lateral, sign * (lead ? .43 : .14))
-      .addScaledVector(forward, lead ? .05 : .02).normalize(),
-    forearm: up.clone().negate().addScaledVector(lateral, sign * (lead ? -.36 : .04))
-      .addScaledVector(forward, lead ? .58 : .14).normalize()
+    upperArm: up.clone().negate().addScaledVector(lateral, .14)
+      .addScaledVector(forward, .05).normalize(),
+    forearm: up.clone().negate().addScaledVector(lateral, .04)
+      .addScaledVector(forward, .12).normalize()
   }
 }
 
@@ -136,7 +146,9 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     })
     bones.set(node.name, node)
   })
+  let wave = null
   const setPose = pose => {
+    wave = null
     restorePose(bindPose)
     root.position.copy(rootPosition)
     reviewBoard.visible = pose !== 'base'
@@ -221,6 +233,11 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
         aimBone(side + 'ForeArm', side + 'Hand',
           point(side + 'ForeArm').addScaledVector(directions.forearm, lower))
       })
+      if (pose === 'relaxed') {
+        const bone = bones.get('RightForeArm')
+        const axis = forward.clone().applyQuaternion(bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert())
+        wave = { bone, axis, neutral: bone.quaternion.clone() }
+      }
       const ankleCenter = point('LeftFoot').add(point('RightFoot')).multiplyScalar(.5)
       reviewBoard.rotation.y = Math.atan2(-lateral.z, lateral.x)
       reviewBoard.position.set(ankleCenter.x, deckY - BOARD_CENTER_DECK, ankleCenter.z)
@@ -339,5 +356,12 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     }
     currentColor = paint
   }
-  return { display, get surfboard() { return reviewBoard }, setPose, setBoardStyle, animate() {}, dispose }
+  // Absolute local rotation avoids drift and is confined to the relaxed preview.
+  const waveRotation = new THREE.Quaternion()
+  const animate = (time, reduceMotion = false) => {
+    if (!wave) return
+    const angle = reduceMotion || !Number.isFinite(time) ? 0 : Math.sin(time * 5.5) * .19
+    wave.bone.quaternion.copy(wave.neutral).premultiply(waveRotation.setFromAxisAngle(wave.axis, angle))
+  }
+  return { display, get surfboard() { return reviewBoard }, setPose, setBoardStyle, animate, dispose }
 }
