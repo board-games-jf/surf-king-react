@@ -38,14 +38,14 @@ This static upload must not replace the existing avatar or be represented as the
 
 | Item | Inspection result |
 | --- | --- |
-| File | Owner-uploaded `1-female-athlete-rigged.glb`, copied unchanged to `public/assets/surfers/female-athlete-rigged-review.glb` for the isolated review page only. |
+| File | Owner-uploaded `1-female-athlete-rigged.glb`, copied unchanged to `public/assets/surfers/female-athlete-rigged-review.glb` for draft creator and 3D board integration. |
 | Identity | SHA-256 `c40e86e7e3566990b46472e231b21eb5e10581a1491fc453b49f062c45c332f6`; 13,418,392 bytes. |
 | Container | Valid self-contained glTF 2.0 GLB with one skinned mesh and one `Armature` skin. |
 | Skeleton | 24 joints plus inverse-bind matrices: hips, three spine bones, neck/head, left/right shoulder-arm-forearm-hand chains, legs, feet and toes. |
 | Animation | `walk` (1.0 second) and `run` (0.625 second). |
-| Status | Used only by the isolated review page; it has not been integrated into game avatars or accepted as a final production asset. |
+| Status | Selected by the owner as the female model foundation. Integrated into the creator and female board presets in draft PR #36; not merged, deployed or accepted as final production art. |
 
-The prior static GLB and this rigged GLB are different source variants. Any surf pose must be demonstrated with the rigged file and a surfboard in the free-orbit review page before integration is considered.
+The prior static GLB and this rigged GLB are different source variants. The owner reviewed an earlier real WebGL stance and selected the rigged file; the integrated poses, board fitting, customization, performance and licence chain still require validation before release.
 ## Rigged surfer evaluation asset (Issue #22)
 
 | Item | Provenance and validation |
