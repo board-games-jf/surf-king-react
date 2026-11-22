@@ -1,4 +1,6 @@
 import * as THREE from 'three'
+import { createPremiumSurfboardProof } from './premiumSurfboardProof'
+import { BOARD_TYPES } from './surferStyle'
 
 export const ATHLETE_SURFER_PATH = '/assets/surfers/female-athlete-rigged-review.glb'
 
@@ -70,41 +72,45 @@ export function reviewSurfDirections({ lateral, forward, up }, lead) {
   }
 }
 
-function createReviewBoard(THREE, color) {
-  const board = new THREE.Group()
-  board.name = 'isolated-review-surfboard'
-  const outline = new THREE.Shape()
-  outline.moveTo(-1.16, 0)
-  outline.bezierCurveTo(-1.02, -.22, -.62, -.31, 0, -.32)
-  outline.bezierCurveTo(.65, -.31, 1.02, -.22, 1.18, 0)
-  outline.bezierCurveTo(1.02, .22, .65, .31, 0, .32)
-  outline.bezierCurveTo(-.62, .31, -1.02, .22, -1.16, 0)
-  const hull = new THREE.Mesh(
-    new THREE.ExtrudeGeometry(outline, { depth: .12, bevelEnabled: true, bevelThickness: .025, bevelSize: .02, bevelSegments: 3, curveSegments: 24 }),
-    new THREE.MeshStandardMaterial({ color, roughness: .26, metalness: .08 })
-  )
-  hull.rotation.x = Math.PI / 2
-  board.add(hull)
-  const stripe = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.64, .055),
-    new THREE.MeshStandardMaterial({ color: '#f7fffb', roughness: .58 })
-  )
-  stripe.rotation.x = -Math.PI / 2
-  stripe.position.y = .028
-  board.add(stripe)
-  board.visible = false
+export const ATHLETE_POSES = Object.freeze(['standing', 'relaxed', 'surf'])
+
+export function reviewStandingArmDirections({ lateral, forward, up }, lead, relaxed) {
+  const sign = lead ? 1 : -1
+  return {
+    upperArm: up.clone().negate().addScaledVector(lateral, sign * (relaxed ? .22 : .12))
+      .addScaledVector(forward, relaxed ? .10 : .02).normalize(),
+    forearm: up.clone().negate().addScaledVector(lateral, sign * (relaxed ? .08 : .10))
+      .addScaledVector(forward, relaxed ? .30 : .04).normalize()
+  }
+}
+
+const BOARD_SCALE = 1.28
+const BOARD_CENTER_DECK = .167 * BOARD_SCALE
+const normalizedBoardType = type => BOARD_TYPES.includes(type) ? type : 'shortboard'
+
+function disposeBoard(board) {
+  board.traverse(node => {
+    node.geometry?.dispose()
+    node.material?.dispose()
+  })
+}
+
+function createAthleteBoard(type, color) {
+  const board = createPremiumSurfboardProof(type, color)
+  board.scale.setScalar(BOARD_SCALE)
   return board
 }
 
-
 // Pose an independently-owned skeleton at identity, before attaching the display to a scene actor.
 // Geometry and textures belong to the caller's GLB template; only the board and cloned skin are owned here.
-export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, initialPose = 'surf', ownsSkeleton = false } = {}) {
+export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, initialPose = 'surf', boardType = 'shortboard', ownsSkeleton = false } = {}) {
   if (!inspectRiggedAsset({ scene: root }).rigged) throw new Error('The athlete model has no skeleton.')
   const deckY = .12
   const display = new THREE.Group()
   display.name = 'textured-athlete-surfer'
-  const reviewBoard = createReviewBoard(THREE, color)
+  let currentType = normalizedBoardType(boardType)
+  let currentColor = color
+  let reviewBoard = createAthleteBoard(currentType, color)
   display.add(root, reviewBoard)
   const restorePose = bindPose => {
     bindPose.forEach(({ bone, position, quaternion }) => {
@@ -125,8 +131,8 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   const setPose = pose => {
     restorePose(bindPose)
     root.position.copy(rootPosition)
-    reviewBoard.visible = pose === 'surf'
-    if (pose !== 'surf') { root.updateMatrixWorld(true); return }
+    reviewBoard.visible = pose !== 'base'
+    if (pose === 'base') { root.updateMatrixWorld(true); return }
     root.updateMatrixWorld(true)
     const sides = ['Left', 'Right']
     const required = ['Hips', ...sides.flatMap(side =>
@@ -163,6 +169,26 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
         end.sub(start).normalize(), direction.normalize()
       )
       rotateWorld(bone, worldDelta)
+    }
+
+    if (pose !== 'surf') {
+      // Stand on the same board with arms lowered from the reference T-pose.
+      sides.forEach((side, i) => {
+        const shoulder = point(side + 'Arm')
+        const upper = shoulder.distanceTo(point(side + 'ForeArm'))
+        const lower = point(side + 'ForeArm').distanceTo(point(side + 'Hand'))
+        const directions = reviewStandingArmDirections(frame, i === 0, pose === 'relaxed')
+        aimBone(side + 'Arm', side + 'ForeArm', shoulder.addScaledVector(directions.upperArm, upper))
+        aimBone(side + 'ForeArm', side + 'Hand',
+          point(side + 'ForeArm').addScaledVector(directions.forearm, lower))
+      })
+      const ankleCenter = point('LeftFoot').add(point('RightFoot')).multiplyScalar(.5)
+      reviewBoard.rotation.y = Math.atan2(-lateral.z, lateral.x)
+      reviewBoard.position.set(ankleCenter.x, deckY - BOARD_CENTER_DECK, ankleCenter.z)
+      const bounds = new THREE.Box3().setFromObject(root, true)
+      root.position.y += deckY - bounds.min.y
+      root.updateMatrixWorld(true)
+      return
     }
 
     const legs = sides.map(side => {
@@ -228,7 +254,7 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     root.updateMatrixWorld(true)
     // Fit the board to the feet, not to a hard-coded world X/Z orientation.
     reviewBoard.rotation.y = Math.atan2(-lateral.z, lateral.x)
-    reviewBoard.position.set(ankleCenter.x, deckY - .025, ankleCenter.z)
+    reviewBoard.position.set(ankleCenter.x, deckY - BOARD_CENTER_DECK, ankleCenter.z)
     const feet = new THREE.Box3().setFromObject(root, true)
     root.position.y += deckY - feet.min.y
     root.updateMatrixWorld(true)
@@ -243,10 +269,7 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   const dispose = () => {
     if (disposed) return
     disposed = true
-    reviewBoard.traverse(node => {
-      node.geometry?.dispose()
-      node.material?.dispose()
-    })
+    disposeBoard(reviewBoard)
     if (ownsSkeleton) {
       const skeletons = new Set()
       root.traverse(node => { if (node.isSkinnedMesh) skeletons.add(node.skeleton) })
@@ -260,5 +283,22 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     throw error
   }
   display.scale.setScalar(scale)
-  return { display, surfboard: reviewBoard, setPose, animate() {}, dispose }
+  const setBoardStyle = (type, paint) => {
+    const next = normalizedBoardType(type)
+    if (next !== currentType) {
+      const old = reviewBoard
+      reviewBoard = createAthleteBoard(next, paint)
+      reviewBoard.position.copy(old.position)
+      reviewBoard.quaternion.copy(old.quaternion)
+      reviewBoard.visible = old.visible
+      display.add(reviewBoard)
+      old.removeFromParent()
+      disposeBoard(old)
+      currentType = next
+    } else if (paint !== currentColor) {
+      reviewBoard.getObjectByName('premium-board-hull').material.color.set(paint)
+    }
+    currentColor = paint
+  }
+  return { display, get surfboard() { return reviewBoard }, setPose, setBoardStyle, animate() {}, dispose }
 }
