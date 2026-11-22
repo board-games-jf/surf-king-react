@@ -142,6 +142,8 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   let floatingChestY = 0
   let motionFrames = null
   let carveFrames = null
+  let remountFrames = null
+  let remountHands = null
   let motionReady = false
   const restorePose = bindPose => {
     bindPose.forEach(({ bone, position, quaternion }) => {
@@ -169,6 +171,8 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     motionReady = false
     motionFrames = null
     carveFrames = null
+    remountFrames = null
+    remountHands = null
     riderPivot.position.set(0, 0, 0)
     riderPivot.quaternion.identity()
     riderPivot.updateMatrixWorld(true)
@@ -419,6 +423,45 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
       { at: .72, pose: poseFrame({ shift: .04, drop: .23, pitch: .43, roll: -.12, arms: -.42, asymmetry: .20, reach: .45 }) },
       { at: 1, pose: poseFrame({ shift: .015, drop: .075, pitch: .08, roll: -.07, arms: .32, asymmetry: .24, reach: .28 }) }
     ]
+    // Independent self-rescue poses: reach, press up, tuck the legs, stand.
+    // Reuse the exact floating endpoint and riding endpoint of the fall.
+    remountFrames = [
+      { at: 0, pose: motionFrames[motionFrames.length - 1].pose },
+      { at: .26, pose: poseFrame({ shift: -.035, drop: .045, pitch: .34, roll: -.28, twist: -.30, arms: .15, asymmetry: -.28, reach: .75 }) },
+      { at: .53, pose: poseFrame({ shift: .08, drop: .17, pitch: .65, roll: -.15, twist: -.18, arms: -.65, reach: .65 }) },
+      { at: .74, pose: poseFrame({ shift: .03, drop: .25, pitch: .40, roll: .04, arms: -.48, reach: .38 }) },
+      { at: 1, pose: rest }
+    ]
+    // Target the actual moving board deck in world coordinates. Clamp to
+    // reachable arm length and preserve the current elbow bending direction.
+    // This is visual IK, not a physics constraint or a finger grip.
+    const handTarget = new THREE.Vector3()
+    remountHands = weight => {
+      display.updateWorldMatrix(true, true)
+      sides.forEach((side, i) => {
+        const shoulder = point(side + 'Arm')
+        const elbow = point(side + 'ForeArm')
+        const hand = point(side + 'Hand')
+        const upper = shoulder.distanceTo(elbow)
+        const lower = elbow.distanceTo(hand)
+        if (upper < 1e-6 || lower < 1e-6) return
+        handTarget.set(i === 0 ? .24 : -.24, .17, .095)
+        reviewBoard.localToWorld(handTarget)
+        handTarget.lerp(hand, 1 - weight)
+        const direction = handTarget.clone().sub(shoulder)
+        const distance = direction.length()
+        if (distance < 1e-6) return
+        const reach = Math.max(Math.abs(upper - lower) + 1e-5,
+          Math.min(upper + lower - 1e-5, distance))
+        handTarget.copy(shoulder).addScaledVector(direction, reach / distance)
+        const pole = elbow.clone().sub(shoulder)
+        const bend = reviewKneeTarget(shoulder, handTarget, upper, lower, pole)
+        if (!bend) return
+        aimBone(side + 'Arm', side + 'ForeArm', bend)
+        aimBone(side + 'ForeArm', side + 'Hand', handTarget)
+      })
+    }
+    restore(motionFrames[motionFrames.length - 1].pose)
     // Derive a chest-level waterline from each model's actual joint heights.
     const head = bones.get('Head') || bones.get('Neck')
     const hipY = point('Hips').y
@@ -480,14 +523,15 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   const setBoardMotion = sample => {
     if (!motionReady) return
     const { fall, boardRoll: roll = 0, travelBank = 0, immersion = 0,
-      boardRise = 0, floatBob = 0, waterOffset = -.145 } = sample
+      boardRise = 0, floatBob = 0, waterOffset = -.145, remount,
+      riderAside = immersion, boardAside = boardRise, handContact = 0 } = sample
     const waterY = waterOffset / scale
     // The actor's logical cell never moves. Small opposite offsets separate
     // the rider and board inside that cell only after the initial stumble.
-    riderPivot.position.copy(motionAxis).multiplyScalar(.40 * immersion)
+    riderPivot.position.copy(motionAxis).multiplyScalar(.40 * riderAside)
     riderPivot.position.y = (waterY - floatingChestY) * immersion + floatBob / scale
     riderPivot.quaternion.identity()
-    reviewBoard.position.copy(boardRestPosition).addScaledVector(motionAxis, -.60 * boardRise)
+    reviewBoard.position.copy(boardRestPosition).addScaledVector(motionAxis, -.60 * boardAside)
     reviewBoard.position.y += (waterY - .065 - boardRestPosition.y) * boardRise
     // The longitudinal X axis pitches toward vertical, not merely rolling.
     reviewBoard.quaternion.copy(boardRest)
@@ -496,22 +540,26 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     const carve = Math.max(-1, Math.min(1, travelBank))
     const carveTarget = carveFrames[carve < 0 ? 0 : 2]
     const rest = carveFrames[1]
-    const upper = motionFrames.findIndex(frame => frame.at >= fall)
-    const next = motionFrames[Math.max(1, upper)]
-    const previous = motionFrames[Math.max(0, upper - 1)]
-    const t = Math.max(0, Math.min(1, (fall - previous.at) / (next.at - previous.at)))
+    const rescuing = Number.isFinite(remount)
+    const sequence = rescuing ? remountFrames : motionFrames
+    const progress = rescuing ? Math.max(0, Math.min(1, remount)) : fall
+    const upper = sequence.findIndex(frame => frame.at >= progress)
+    const next = sequence[Math.max(1, upper)]
+    const previous = sequence[Math.max(0, upper - 1)]
+    const t = Math.max(0, Math.min(1, (progress - previous.at) / (next.at - previous.at)))
     const eased = t * t * (3 - 2 * t)
-    const falling = Math.min(1, fall * 6)
+    const falling = rescuing ? 1 : Math.min(1, fall * 6)
     rest.forEach(({ bone, position, quaternion }, i) => {
       bone.position.copy(position).lerp(carveTarget[i].position, Math.abs(carve))
       bone.quaternion.copy(quaternion).slerp(carveTarget[i].quaternion, Math.abs(carve))
-      if (fall > 0) {
+      if (rescuing || fall > 0) {
         scratchPosition.copy(previous.pose[i].position).lerp(next.pose[i].position, eased)
         scratchQuaternion.copy(previous.pose[i].quaternion).slerp(next.pose[i].quaternion, eased)
         bone.position.lerp(scratchPosition, falling)
         bone.quaternion.slerp(scratchQuaternion, falling)
       }
     })
+    if (rescuing && handContact > 0) remountHands(handContact)
   }
   return { display, get surfboard() { return reviewBoard }, setPose, setBoardStyle, setBoardMotion, animate, dispose }
 }
