@@ -167,6 +167,10 @@ flowchart LR
 
 The catalog can receive the selected board shape from the creator; game board colors still identify players. The local 3D board uses both approved models for the corresponding presets, retaining procedural fallback. No changes to match rules or public snapshot schema. Hair, skin and clothing are baked into the current texture/mesh and are not yet independent customization options. This is draft branch behavior, pending tests and real WebGL acceptance.
 
+## Snapshot-driven board motion (Issue #37, review branch)
+
+The shared 3D scene uses a presentation-only sampler in `surferMotion.js` to interpolate authoritative cell changes with smooth acceleration/deceleration and a bounded S-shaped lateral offset. Idle carving is centered on each cell and blended with travel; tangent yaw and longitudinal board bank are visual only. The snapshot projects the engine's existing `fellOffTheBoard` marker to a public boolean. Each actor tracks a retargetable fall progress, and the athlete art separates the skeletal rider pivot from its board and blends bone reactions. Recovery returns to the approved surf pose; the first version does not simulate hand contact or water physics. Reduced motion resolves directly to target. The catalog supplies isolated preview state through the same snapshot contract, with controls for both riders. No game logic, private cards or legal move calculations are added to the renderer.
+
 ## Limits and validation
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.
