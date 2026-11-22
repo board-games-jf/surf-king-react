@@ -1,52 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ATHLETE_SURFER_PATH, ATHLETE_POSES, createAthleteSurferArt } from '../../map/views/Board3D/athleteSurferArt'
+import { ATHLETE_ASSET_PATHS, ATHLETE_POSES, createAthleteSurferArt } from '../../map/views/Board3D/athleteSurferArt'
 import { BOARD_TYPES, BOARD_COLORS, normalizeSurferStyle } from '../../map/views/Board3D/surferStyle'
 import './ArtReviewPage.css'
 
 export const ATHLETE_SAVE_KEY = 'surf-king-surfer-preview-v1'
 const POSE_LABELS = { standing: 'Em pé', relaxed: 'Relaxada', surf: 'A surfar' }
 
-// Exact source candidate inspected in GitHub Actions run 44971791188.
-// It is a local preview only, not an approved production or saved player asset.
-export const MALE_REVIEW_BYTES = 11354468
-export const MALE_REVIEW_SHA256 = '3038f56e1225d0ef9692189ed19ff688f1424e669281148a4cc6995fed568496'
-export function validateMaleReviewIdentity(bytes, sha256) {
-  if (bytes !== MALE_REVIEW_BYTES || sha256 !== MALE_REVIEW_SHA256) {
-    throw new Error('Seleciona a versão Rigged GLB masculina verificada.')
-  }
-}
-
-async function readMaleReviewFile(file) {
-  if (file.size !== MALE_REVIEW_BYTES) validateMaleReviewIdentity(file.size, '')
-  const data = await file.arrayBuffer()
-  if (!window.crypto?.subtle) throw new Error('Abre o criador em localhost ou HTTPS para verificar o modelo.')
-  const digest = await window.crypto.subtle.digest('SHA-256', data)
-  const sha256 = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
-  validateMaleReviewIdentity(data.byteLength, sha256)
-  return data
-}
-
-export function AthleteCandidateControls({ male, onFemale, onMaleFile }) {
+export function AthleteCharacterControls({ character, onCharacter }) {
   return <fieldset className="art-review-controls">
     <legend>Personagem</legend>
-    <button type="button" aria-pressed={!male} onClick={onFemale}>Feminina</button>
-    <p>Masculino · modelo em avaliação</p>
-    <label htmlFor="male-review-file">Carregar candidato masculino GLB</label>
-    <input id="male-review-file" type="file" accept=".glb,model/gltf-binary"
-      onChange={event => {
-        const file = event.target.files?.[0]
-        event.target.value = ''
-        if (file) onMaleFile(file)
-      }} />
-    <p><a href="https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb" target="_blank" rel="noopener noreferrer">Descarregar Rigged GLB masculino</a></p>
+    <button type="button" aria-pressed={character === 'female'} onClick={() => onCharacter('female')}>Feminina</button>
+    <button type="button" aria-pressed={character === 'male'} onClick={() => onCharacter('male')}>Masculino</button>
   </fieldset>
 }
 
 export function readAthleteStyle() {
   try {
     const saved = JSON.parse(window.localStorage.getItem(ATHLETE_SAVE_KEY) || 'null')
-    return normalizeSurferStyle({ boardColor: 'turquoise', ...saved, character: 'female' })
+    return normalizeSurferStyle({ boardColor: 'turquoise', ...saved })
   } catch (_) { return normalizeSurferStyle({ character: 'female', boardColor: 'turquoise' }) }
 }
 
@@ -104,20 +76,19 @@ export default function ArtReviewPage() {
   const [ready, setReady] = useState(false)
   const [selectedPose, setSelectedPose] = useState('surf')
   const [style, setStyle] = useState(readAthleteStyle)
-  const [maleFile, setMaleFile] = useState(null)
-  const male = Boolean(maleFile)
+  const characterType = style.character
   const initialStyle = useRef(style)
   initialStyle.current = style
-  const chooseCharacter = file => {
-    if (file === maleFile) return
+  const chooseCharacter = character => {
+    if (character === characterType) return
     active.current = null
     setReady(false)
     setSaved(false)
-    setMaleFile(file)
+    setStyle(current => normalizeSurferStyle({ ...current, character }))
   }
   const [saved, setSaved] = useState(false)
   const changeStyle = (key, value) => {
-    const next = normalizeSurferStyle({ ...style, [key]: value, character: 'female' })
+    const next = normalizeSurferStyle({ ...style, [key]: value })
     active.current?.setBoardStyle(next.boardType, BOARD_COLORS[next.boardColor])
     setStyle(next)
     setSaved(false)
@@ -194,8 +165,11 @@ export default function ArtReviewPage() {
       const loadedRoots = []
       let art = null
       let frameId = 0
+      const clock = new THREE.Clock()
+      const reduceMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
       const render = () => {
         frameId = requestAnimationFrame(render)
+        art?.animate(clock.getElapsedTime(), reduceMotion)
         controls.update()
         renderer.render(scene, camera)
       }
@@ -219,11 +193,7 @@ export default function ArtReviewPage() {
       }
 
       const loader = new GLTFLoader()
-      const data = maleFile ? await readMaleReviewFile(maleFile) : null
-      if (cancelled) return
-      const character = data
-        ? await loader.parseAsync(data, '')
-        : await loader.loadAsync((process.env.PUBLIC_URL || '') + ATHLETE_SURFER_PATH)
+      const character = await loader.loadAsync((process.env.PUBLIC_URL || '') + ATHLETE_ASSET_PATHS[characterType])
       if (cancelled) { disposeImported(character.scene); return }
       const root = character.scene
       loadedRoots.push(root)
@@ -235,7 +205,7 @@ export default function ArtReviewPage() {
         try { art.setPose(pose); setStatus(''); return true }
         catch (error) { art.setPose('base'); setStatus(error.message); return false }
       } }
-      renderer.domElement.dataset.athleteCharacter = maleFile ? 'male' : 'female'
+      renderer.domElement.dataset.athleteCharacter = characterType
       setStatus('')
       setReady(true)
       const fitted = new THREE.Box3().setFromObject(art.display, true)
@@ -257,21 +227,20 @@ export default function ArtReviewPage() {
       cancelled = true
       dispose()
     }
-  }, [maleFile])
+  }, [characterType])
 
   return (
     <main className="art-review">
       <header className="art-review-header">
         <Link to="/">← Início</Link>
         <div>
-          <h1>{male ? 'Surfista masculino · avaliação' : 'Cria a tua surfista'}</h1>
-          <p>{male ? 'Candidato local · Poses e prancha · Câmara livre' : 'Modelo selecionado · Personalização visual · Câmara livre'}</p>
+          <h1>Cria o teu surfista</h1>
+          <p>Modelos selecionados · Personalização visual · Câmara livre</p>
         </div>
       </header>
       <div className="art-review-grid">
         <div>
-          <AthleteCandidateControls male={male} onFemale={() => chooseCharacter(null)}
-            onMaleFile={chooseCharacter} />
+          <AthleteCharacterControls character={characterType} onCharacter={chooseCharacter} />
           <AthleteControls ready={ready} pose={selectedPose} style={style}
             onPose={pose => {
               if (active.current?.selectPose(pose)) setSelectedPose(pose)
@@ -285,9 +254,8 @@ export default function ArtReviewPage() {
       </div>
       <footer className="art-review-footer">
         <div className="art-review-controls">
-          <button type="button" disabled={!ready || male} onClick={save}>Guardar visual</button>
-          {!male && <Link to="/catalog" state={{ athleteBoardType: style.boardType }}>Ver no tabuleiro</Link>}
-          {male && <p>Pré-visualização masculina: ainda não substitui o personagem no tabuleiro.</p>}
+          <button type="button" disabled={!ready} onClick={save}>Guardar visual</button>
+          {ready && <Link to="/catalog" state={{ athleteBoardType: style.boardType, athleteCharacter: characterType }}>Ver no tabuleiro</Link>}
           <Link to="/local">Jogo local</Link>
         </div>
         {saved && <p role="status">Visual guardado neste navegador. Ainda não está associado a um jogador.</p>}
