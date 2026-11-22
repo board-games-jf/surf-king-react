@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import * as THREE from 'three'
-import { inspectRiggedAsset, reviewStanceFrame, reviewKneeTarget, reviewSurfDirections } from './athleteSurferArt'
+import { inspectRiggedAsset, reviewStanceFrame, reviewKneeTarget, reviewSurfDirections, reviewStandingArmDirections, createAthleteSurferArt } from './athleteSurferArt'
 
 describe('isolated external GLB art review', () => {
   test('reports real skinning, distinct joints, triangles and actual clip names', () => {
@@ -103,4 +103,80 @@ test('bundled athlete is the exact owner-supplied rigged GLB', () => {
   expect(joints).toHaveLength(24)
   expect(gltf.buffers.every(buffer => !buffer.uri)).toBe(true)
   expect(gltf.animations.map(clip => clip.name)).toEqual(expect.arrayContaining(['walk','run']))
+})
+
+
+function makeAthleteRig() {
+  const root = new THREE.Group()
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([-.2, .04, 0, .2, .04, 0, 0, 1.8, 0], 3))
+  geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 4))
+  geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], 4))
+  const material = new THREE.MeshStandardMaterial({ color: '#ff795e' })
+  const mesh = new THREE.SkinnedMesh(geometry, material)
+  const bones = []
+  const joint = (parent, name, x, y, z) => {
+    const bone = new THREE.Bone()
+    bone.name = name
+    bone.position.set(x, y, z)
+    parent.add(bone)
+    bones.push(bone)
+    return bone
+  }
+  const hips = joint(mesh, 'Hips', 0, 1.02, 0)
+  const spine = joint(hips, 'Spine', 0, .35, 0)
+  joint(spine, 'Head', 0, .35, 0)
+  for (const [side, sign] of [['Left', 1], ['Right', -1]]) {
+    const thigh = joint(hips, side + 'UpLeg', sign * .15, 0, 0)
+    const knee = joint(thigh, side + 'Leg', 0, -.48, 0)
+    const foot = joint(knee, side + 'Foot', 0, -.48, 0)
+    joint(foot, side + 'Toe', 0, 0, .14)
+    const arm = joint(spine, side + 'Arm', sign * .24, .15, 0)
+    const elbow = joint(arm, side + 'ForeArm', sign * .30, 0, 0)
+    joint(elbow, side + 'Hand', sign * .28, 0, 0)
+  }
+  root.add(mesh)
+  root.updateMatrixWorld(true)
+  mesh.bind(new THREE.Skeleton(bones))
+  return { root, mesh, material, geometry }
+}
+
+describe('shared athlete poses and cosmetics', () => {
+  test('standing and relaxed arms point down and remain on their anatomical sides', () => {
+    const frame = { lateral: new THREE.Vector3(1, 0, 0), forward: new THREE.Vector3(0, 0, 1), up: new THREE.Vector3(0, 1, 0) }
+    const relaxed = reviewStandingArmDirections(frame, true, true)
+    const standing = reviewStandingArmDirections(frame, true, false)
+    expect(standing.upperArm.dot(frame.up)).toBeLessThan(-.9)
+    expect(relaxed.forearm.dot(frame.forward)).toBeGreaterThan(standing.forearm.dot(frame.forward))
+    expect(reviewStandingArmDirections(frame, false, false).upperArm.dot(frame.lateral)).toBeLessThan(0)
+  })
+
+  test('switches actual joint poses and board geometry while preserving the textured character', () => {
+    const { root, mesh, material, geometry } = makeAthleteRig()
+    const arm = root.getObjectByName('LeftArm')
+    const art = createAthleteSurferArt(root, { initialPose: 'standing' })
+    const standing = arm.quaternion.clone()
+    art.setPose('relaxed')
+    expect(arm.quaternion.equals(standing)).toBe(false)
+    art.setPose('surf')
+    expect(arm.quaternion.equals(standing)).toBe(false)
+    expect(art.surfboard.visible).toBe(true)
+    const previous = art.surfboard
+    const previousPosition = previous.position.clone()
+    const oldHull = previous.getObjectByName('premium-board-hull')
+    const disposeOld = jest.spyOn(oldHull.geometry, 'dispose')
+    art.setBoardStyle('longboard', '#ef8290')
+    expect(art.surfboard).not.toBe(previous)
+    expect(art.surfboard.position.equals(previousPosition)).toBe(true)
+    expect(art.surfboard.getObjectByName('premium-board-hull').material.color.equals(new THREE.Color('#ef8290'))).toBe(true)
+    expect(disposeOld).toHaveBeenCalledTimes(1)
+    expect(mesh.material).toBe(material)
+    expect(mesh.geometry).toBe(geometry)
+    art.setPose('standing')
+    expect(arm.quaternion.angleTo(standing)).toBeLessThan(.001)
+    art.dispose()
+    mesh.skeleton.dispose()
+    material.dispose()
+    geometry.dispose()
+  })
 })
