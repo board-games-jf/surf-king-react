@@ -1,15 +1,7 @@
 import * as THREE from 'three'
-import { MAX_REVIEW_ASSET_BYTES, inspectRiggedAsset, validateReviewFile, reviewStanceFrame, reviewKneeTarget } from './artReviewUtils'
+import { inspectRiggedAsset, reviewStanceFrame, reviewKneeTarget, reviewSurfDirections } from './artReviewUtils'
 
 describe('isolated external GLB art review', () => {
-  test('requires a nonempty GLB no larger than the review limit', () => {
-    expect(validateReviewFile(null)).toMatch(/Choose/)
-    expect(validateReviewFile({ name: 'avatar.png', size: 50 })).toMatch(/\.glb/)
-    expect(validateReviewFile({ name: 'avatar.glb', size: 0 })).toMatch(/nonempty/)
-    expect(validateReviewFile({ name: 'avatar.glb', size: MAX_REVIEW_ASSET_BYTES + 1 })).toMatch(/40 MB/)
-    expect(validateReviewFile({ name: 'female-athlete-rigged.GLB', size: 13000000 })).toBeNull()
-  })
-
   test('reports real skinning, distinct joints, triangles and actual clip names', () => {
     const scene = new THREE.Group()
     const geometry = new THREE.BufferGeometry()
@@ -73,5 +65,25 @@ describe('anatomical surf pose geometry', () => {
     const frame = reviewStanceFrame(THREE, left, right, [toe])
     expect(frame.forward.dot(toe)).toBeCloseTo(1)
     expect(reviewKneeTarget(left, new THREE.Vector3(.2, -1, 0), .5, .5, frame.forward)).toBeNull()
+  })
+})
+
+describe('refined surf stance directions', () => {
+  test.each([0, Math.PI / 2, Math.PI, Math.PI * 1.5])('keeps anatomical sides at yaw %s', yaw => {
+    const up = new THREE.Vector3(0, 1, 0)
+    const lateral = new THREE.Vector3(1, 0, 0).applyAxisAngle(up, yaw)
+    const forward = new THREE.Vector3(0, 0, 1).applyAxisAngle(up, yaw)
+    const lead = reviewSurfDirections({ lateral, forward, up }, true)
+    const rear = reviewSurfDirections({ lateral, forward, up }, false)
+    expect(lead.toe.dot(lateral)).toBeGreaterThan(.4)
+    expect(Math.abs(rear.toe.dot(lateral))).toBeLessThan(.15)
+    for (const [directions, sign] of [[lead, 1], [rear, -1]]) {
+      expect(directions.toe.dot(up)).toBeCloseTo(0)
+      expect(directions.toe.dot(forward)).toBeGreaterThan(0)
+      expect(directions.upperArm.dot(lateral) * sign).toBeGreaterThan(0)
+      expect(directions.forearm.dot(lateral) * sign).toBeGreaterThan(0)
+      expect(directions.upperArm.dot(directions.forearm)).toBeLessThan(.8)
+    }
+    expect(lead.upperArm.dot(lead.forearm)).not.toBeCloseTo(rear.upperArm.dot(rear.forearm))
   })
 })

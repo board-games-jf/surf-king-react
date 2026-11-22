@@ -1,15 +1,4 @@
 // Isolated asset-review checks; never replace production player avatars.
-export const MAX_REVIEW_ASSET_BYTES = 40 * 1024 * 1024
-
-export function validateReviewFile(file) {
-  if (!file) return 'Choose a GLB file.'
-  if (!/\.glb$/i.test(file.name || '')) return 'Only .glb files are supported.'
-  if (!file.size || file.size > MAX_REVIEW_ASSET_BYTES) {
-    return 'GLB must be nonempty and at most 40 MB.'
-  }
-  return null
-}
-
 export function inspectRiggedAsset(loaded) {
   const scene = loaded?.scene
   if (!scene?.traverse) throw new Error('Missing GLB scene.')
@@ -63,4 +52,16 @@ export function reviewKneeTarget(hip, ankle, upper, lower, forward) {
   const along = (upper * upper - lower * lower + distance * distance) / (2 * distance)
   const bend = Math.sqrt(Math.max(0, upper * upper - along * along))
   return hip.clone().addScaledVector(axis, along).addScaledVector(pole, bend)
+}
+
+// All directions use the measured anatomical frame, independent of imported bone axes.
+export function reviewSurfDirections({ lateral, forward, up }, lead) {
+  const sign = lead ? 1 : -1
+  return {
+    toe: forward.clone().addScaledVector(lateral, lead ? .60 : -.10).normalize(),
+    upperArm: lateral.clone().multiplyScalar(sign * (lead ? .80 : .54))
+      .addScaledVector(forward, lead ? .20 : .18).addScaledVector(up, lead ? -.60 : -.78).normalize(),
+    forearm: lateral.clone().multiplyScalar(sign * (lead ? .36 : .83))
+      .addScaledVector(forward, lead ? .82 : .46).addScaledVector(up, lead ? .38 : .08).normalize()
+  }
 }

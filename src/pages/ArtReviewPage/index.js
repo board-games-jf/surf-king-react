@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { inspectRiggedAsset, validateReviewFile, reviewStanceFrame, reviewKneeTarget } from './artReviewUtils'
+import { inspectRiggedAsset, reviewStanceFrame, reviewKneeTarget, reviewSurfDirections } from './artReviewUtils'
 import './ArtReviewPage.css'
 
-const CANDIDATE = 'https://grab3d.com/models/characters/female-athlete/'
 const REVIEW_SURFER = '/assets/surfers/female-athlete-rigged-review.glb'
 
 function createReviewBoard(THREE) {
@@ -56,35 +55,16 @@ function disposeImported(root) {
 export default function ArtReviewPage() {
   const holder = useRef(null)
   const active = useRef(null)
-  const [surferFile, setSurferFile] = useState(null)
-  const [boardFile, setBoardFile] = useState(null)
-  const [status, setStatus] = useState('A carregar a surfista de revisão...')
-  const [report, setReport] = useState(null)
-  const [clips, setClips] = useState([])
-  const [selectedClip, setSelectedClip] = useState('')
-  const [selectedPose, setSelectedPose] = useState('base')
-
-  const changeFile = (event, setter) => {
-    const file = event.target.files?.[0] || null
-    // An empty input removes the corresponding model.
-    if (!file) { setter(null); return }
-    const error = validateReviewFile(file)
-    if (error) {
-      event.target.value = ''
-      setStatus(error)
-      return
-    }
-    setter(file)
-  }
+  const [status, setStatus] = useState('A carregar a surfista...')
+  const [ready, setReady] = useState(false)
+  const [selectedPose, setSelectedPose] = useState('surf')
 
   useEffect(() => {
     let cancelled = false
     let dispose = () => {}
     active.current = null
-    setReport(null)
-    setClips([])
-    setSelectedClip('')
-    setSelectedPose('base')
+    setReady(false)
+    setSelectedPose('surf')
 
     setStatus('A preparar a visualização 3D...')
     async function start() {
@@ -146,27 +126,15 @@ export default function ArtReviewPage() {
       else window.addEventListener('resize', resize)
 
       const loadedRoots = []
-      let mixer = null
-      let animationClips = []
       const restorePose = bindPose => {
         bindPose.forEach(({ bone, position, quaternion }) => {
           bone.position.copy(position)
           bone.quaternion.copy(quaternion)
         })
       }
-      const playClip = (name, bindPose) => {
-        if (!mixer) return
-        restorePose(bindPose)
-        mixer.stopAllAction()
-        const clip = animationClips.find(item => item.name === name)
-        if (clip) mixer.clipAction(clip).reset().play()
-      }
-      const clock = new THREE.Clock()
       let frameId = 0
       const render = () => {
         frameId = requestAnimationFrame(render)
-        const delta = Math.min(clock.getDelta(), .1)
-        if (mixer) mixer.update(delta)
         controls.update()
         renderer.render(scene, camera)
       }
@@ -177,7 +145,6 @@ export default function ArtReviewPage() {
         if (observer) observer.disconnect()
         else window.removeEventListener('resize', resize)
         controls.dispose()
-        mixer?.stopAllAction()
         loadedRoots.forEach(root => {
           root.removeFromParent()
           disposeImported(root)
@@ -194,189 +161,158 @@ export default function ArtReviewPage() {
       }
 
       const loader = new GLTFLoader()
-      const loadFile = async (file, fallbackUrl = null) => {
-        const buffer = file
-          ? await file.arrayBuffer()
-          : await fetch(fallbackUrl).then(response => {
-            if (!response.ok) throw new Error('Não foi possível carregar a surfista de revisão.')
-            return response.arrayBuffer()
-          })
-        if (cancelled) return null
-        return new Promise((resolve, reject) => {
-          loader.parse(buffer, '', resolve, reject)
-        })
-      }
+      const character = await loader.loadAsync(REVIEW_SURFER)
+      if (cancelled) { disposeImported(character.scene); return }
+      const root = character.scene
+      loadedRoots.push(root)
+      if (!inspectRiggedAsset(character).rigged) throw new Error('O modelo não tem esqueleto.')
 
-      let character = null
-      {
-        character = await loadFile(surferFile, REVIEW_SURFER)
-        if (cancelled || !character) return
-        const stats = inspectRiggedAsset(character)
-        const root = character.scene
-        const rootPosition = root.position.clone()
-        const bindPose = new Map()
-        const bones = new Map()
-        root.traverse(node => {
-          if (!node.isBone) return
-          bindPose.set(node, {
-            bone: node, position: node.position.clone(), quaternion: node.quaternion.clone()
-          })
-          bones.set(node.name, node)
+      const rootPosition = root.position.clone()
+      const bindPose = new Map()
+      const bones = new Map()
+      root.traverse(node => {
+        if (!node.isBone) return
+        bindPose.set(node, {
+          bone: node, position: node.position.clone(), quaternion: node.quaternion.clone()
         })
-        const setPose = pose => {
-          mixer?.stopAllAction()
+        bones.set(node.name, node)
+      })
+      const setPose = pose => {
+        restorePose(bindPose)
+        root.position.copy(rootPosition)
+        reviewBoard.visible = pose === 'surf'
+        setStatus('')
+        if (pose !== 'surf') { root.updateMatrixWorld(true); return true }
+        root.updateMatrixWorld(true)
+        const sides = ['Left', 'Right']
+        const required = ['Hips', ...sides.flatMap(side =>
+          ['UpLeg', 'Leg', 'Foot', 'Arm', 'ForeArm', 'Hand'].map(joint => side + joint))]
+        if (!required.every(name => bones.has(name))) {
+          reviewBoard.visible = false
+          setStatus('Esta pose requer o esqueleto compatível da surfista de revisão.')
+          return false
+        }
+
+        const point = name => bones.get(name).getWorldPosition(new THREE.Vector3())
+        const toes = sides.map(side => {
+          const toe = [...bones.keys()].find(name => name.startsWith(side) && /toe/i.test(name))
+          return toe ? point(toe).sub(point(side + 'Foot')).setY(0) : null
+        })
+        const frame = reviewStanceFrame(THREE, point('LeftUpLeg'), point('RightUpLeg'), toes.filter(Boolean))
+        if (!frame) { reviewBoard.visible = false; setStatus('Não foi possível orientar a pose.'); return false }
+        const { lateral, forward, up } = frame
+        const rotateWorld = (bone, worldDelta) => {
+          const parentWorld = bone.parent.getWorldQuaternion(new THREE.Quaternion())
+          const localDelta = parentWorld.clone().invert().multiply(worldDelta).multiply(parentWorld)
+          bone.quaternion.premultiply(localDelta)
+          root.updateMatrixWorld(true)
+        }
+        const turn = (bone, from, to) => {
+          if (bone) rotateWorld(bone, new THREE.Quaternion().setFromUnitVectors(from, to))
+        }
+        const aimBone = (name, childName, target) => {
+          const bone = bones.get(name)
+          const start = point(name)
+          const end = point(childName)
+          const direction = target.clone().sub(start)
+          if (direction.lengthSq() < 1e-8 || end.distanceToSquared(start) < 1e-8) return
+          const worldDelta = new THREE.Quaternion().setFromUnitVectors(
+            end.sub(start).normalize(), direction.normalize()
+          )
+          rotateWorld(bone, worldDelta)
+        }
+
+        const legs = sides.map(side => {
+          const hip = point(side + 'UpLeg')
+          const knee = point(side + 'Leg')
+          const ankle = point(side + 'Foot')
+          return { side, hip, ankle, upper: hip.distanceTo(knee), lower: knee.distanceTo(ankle),
+            footRotation: bones.get(side + 'Foot').getWorldQuaternion(new THREE.Quaternion()) }
+        })
+        const legLength = Math.min(...legs.map(leg => leg.upper + leg.lower))
+        if (legLength < 1e-6) { reviewBoard.visible = false; setStatus('Comprimento das pernas inválido.'); return false }
+        const ankleCenter = legs[0].ankle.clone().add(legs[1].ankle).multiplyScalar(.5)
+        const hips = bones.get('Hips')
+        const lowerHips = point('Hips').addScaledVector(up, -legLength * .29)
+          .addScaledVector(lateral, legLength * .055).addScaledVector(forward, -legLength * .04)
+        hips.position.copy(hips.parent.worldToLocal(lowerHips))
+        root.updateMatrixWorld(true)
+
+        // Left foot leads; both ankles are on the board's long axis.
+        const targets = legs.map((leg, i) => {
+          const sign = i === 0 ? 1 : -1
+          const ankle = ankleCenter.clone().addScaledVector(lateral, sign * legLength * .36)
+          const knee = reviewKneeTarget(point(leg.side + 'UpLeg'), ankle,
+            leg.upper, leg.lower, reviewSurfDirections(frame, i === 0).toe)
+          return { ...leg, ankle, knee }
+        })
+        if (targets.some(leg => !leg.knee)) {
           restorePose(bindPose)
-          root.position.copy(rootPosition)
-          reviewBoard.visible = pose === 'surf'
-          if (pose !== 'surf') return
           root.updateMatrixWorld(true)
-          const sides = ['Left', 'Right']
-          const required = ['Hips', ...sides.flatMap(side =>
-            ['UpLeg', 'Leg', 'Foot', 'Arm', 'ForeArm', 'Hand'].map(joint => side + joint))]
-          if (!required.every(name => bones.has(name))) {
-            reviewBoard.visible = false
-            setStatus('Esta pose requer o esqueleto compatível da surfista de revisão.')
-            return
-          }
-
-          const point = name => bones.get(name).getWorldPosition(new THREE.Vector3())
-          const toeDirections = sides.flatMap(side => {
-            const toe = [...bones.keys()].find(name => name.startsWith(side) && /toe/i.test(name))
-            return toe ? [point(toe).sub(point(side + 'Foot')).setY(0)] : []
-          })
-          const frame = reviewStanceFrame(THREE, point('LeftUpLeg'), point('RightUpLeg'), toeDirections)
-          if (!frame) { reviewBoard.visible = false; return }
-          const { lateral, forward, up } = frame
-          const aimBone = (name, childName, target) => {
-            const bone = bones.get(name)
-            const start = point(name)
-            const end = point(childName)
-            const direction = target.clone().sub(start)
-            if (direction.lengthSq() < 1e-8 || end.distanceToSquared(start) < 1e-8) return
-            const worldDelta = new THREE.Quaternion().setFromUnitVectors(
-              end.sub(start).normalize(), direction.normalize()
-            )
-            const parentWorld = bone.parent.getWorldQuaternion(new THREE.Quaternion())
-            const localDelta = parentWorld.clone().invert().multiply(worldDelta).multiply(parentWorld)
-            bone.quaternion.premultiply(localDelta)
-            root.updateMatrixWorld(true)
-          }
-
-          const legs = sides.map(side => {
-            const hip = point(side + 'UpLeg')
-            const knee = point(side + 'Leg')
-            const ankle = point(side + 'Foot')
-            return { side, hip, ankle, upper: hip.distanceTo(knee), lower: knee.distanceTo(ankle),
-              footRotation: bones.get(side + 'Foot').getWorldQuaternion(new THREE.Quaternion()) }
-          })
-          const legLength = Math.min(...legs.map(leg => leg.upper + leg.lower))
-          if (legLength < 1e-6) { reviewBoard.visible = false; return }
-          const ankleCenter = legs[0].ankle.clone().add(legs[1].ankle).multiplyScalar(.5)
-          const hips = bones.get('Hips')
-          const lowerHips = point('Hips').addScaledVector(up, -legLength * .23)
-          hips.position.copy(hips.parent.worldToLocal(lowerHips))
-          root.updateMatrixWorld(true)
-
-          // Left foot leads; both ankles are on the board's long axis.
-          const targets = legs.map((leg, i) => {
-            const sign = i === 0 ? 1 : -1
-            const ankle = ankleCenter.clone().addScaledVector(lateral, sign * legLength * .36)
-            const knee = reviewKneeTarget(point(leg.side + 'UpLeg'), ankle,
-              leg.upper, leg.lower, forward)
-            return { ...leg, ankle, knee }
-          })
-          if (targets.some(leg => !leg.knee)) {
-            restorePose(bindPose)
-            root.updateMatrixWorld(true)
-            reviewBoard.visible = false
-            setStatus('Não foi possível ajustar os pés deste esqueleto à pose de surf.')
-            return
-          }
-          targets.forEach(({ side, ankle, knee, footRotation }) => {
-            aimBone(side + 'UpLeg', side + 'Leg', knee)
-            aimBone(side + 'Leg', side + 'Foot', ankle)
-            const foot = bones.get(side + 'Foot')
-            // Keep the original shoe orientation rather than rolling it with the shin.
-            foot.quaternion.copy(foot.parent.getWorldQuaternion(new THREE.Quaternion())
-              .invert().multiply(footRotation))
-            root.updateMatrixWorld(true)
-          })
-
-          // Each arm remains on its anatomical side, with asymmetric bent elbows.
-          sides.forEach((side, i) => {
-            const sign = i === 0 ? 1 : -1
-            const shoulder = point(side + 'Arm')
-            const upper = shoulder.distanceTo(point(side + 'ForeArm'))
-            const lower = point(side + 'ForeArm').distanceTo(point(side + 'Hand'))
-            const elbowDirection = lateral.clone().multiplyScalar(sign)
-              .addScaledVector(forward, i === 0 ? .52 : .24).addScaledVector(up, -.35).normalize()
-            aimBone(side + 'Arm', side + 'ForeArm', shoulder.addScaledVector(elbowDirection, upper))
-            const handDirection = lateral.clone().multiplyScalar(sign)
-              .addScaledVector(forward, i === 0 ? .75 : .45)
-              .addScaledVector(up, i === 0 ? .12 : -.28).normalize()
-            aimBone(side + 'ForeArm', side + 'Hand',
-              point(side + 'ForeArm').addScaledVector(handDirection, lower))
-          })
-          root.updateMatrixWorld(true)
-          // Fit the board to the feet, not to a hard-coded world X/Z orientation.
-          reviewBoard.rotation.y = Math.atan2(-lateral.z, lateral.x)
-          reviewBoard.position.set(ankleCenter.x, .12, ankleCenter.z)
-          const feet = new THREE.Box3().setFromObject(root, true)
-          root.position.y += .12 - feet.min.y
-          root.updateMatrixWorld(true)
+          reviewBoard.visible = false
+          setStatus('Não foi possível ajustar os pés deste esqueleto à pose de surf.')
+          return false
         }
-        const bounds = new THREE.Box3().setFromObject(root)
-        if (bounds.isEmpty()) throw new Error('A surfista GLB está vazia.')
-        root.position.set(
-          -bounds.getCenter(new THREE.Vector3()).x,
-          .12 - bounds.min.y,
-          -bounds.getCenter(new THREE.Vector3()).z
-        )
-        rootPosition.copy(root.position)
-        scene.add(root)
-        loadedRoots.push(root)
-        mixer = new THREE.AnimationMixer(root)
-        animationClips = character.animations || []
-        active.current = {
-          selectClip: name => { setPose('base'); playClip(name, bindPose) },
-          selectPose: setPose
-        }
-        setPose('base')
-        setReport(stats)
-        const available = stats.animations.filter(Boolean)
-        setClips(available)
-        setSelectedClip('')
-      }
+        targets.forEach(({ side, ankle, knee, footRotation }, i) => {
+          aimBone(side + 'UpLeg', side + 'Leg', knee)
+          aimBone(side + 'Leg', side + 'Foot', ankle)
+          const foot = bones.get(side + 'Foot')
+          // Rotate the original flat shoe around the vertical axis only.
+          const originalToe = toes[i]?.lengthSq() > 1e-8 ? toes[i].clone().normalize() : forward
+          const toe = reviewSurfDirections(frame, i === 0).toe
+          const yaw = new THREE.Quaternion().setFromUnitVectors(originalToe, toe)
+          const desired = yaw.multiply(footRotation)
+          foot.quaternion.copy(foot.parent.getWorldQuaternion(new THREE.Quaternion())
+            .invert().multiply(desired))
+          root.updateMatrixWorld(true)
+        })
 
-      if (boardFile) {
-        const board = await loadFile(boardFile)
-        if (cancelled || !board) return
-        const root = board.scene
-        const box = new THREE.Box3().setFromObject(root)
-        if (box.isEmpty()) throw new Error('A prancha GLB está vazia.')
-        const size = box.getSize(new THREE.Vector3())
-        const boardLength = Math.max(size.x, size.z)
-        if (!boardLength) throw new Error('A prancha não tem dimensões válidas.')
-        root.scale.setScalar(1.85 / boardLength)
-        const fittedBox = new THREE.Box3().setFromObject(root)
-        const center = fittedBox.getCenter(new THREE.Vector3())
-        root.position.set(-center.x, .04 - fittedBox.min.y, -center.z)
-        scene.add(root)
-        loadedRoots.push(root)
-      }
+        // Open the chest toward the nose, then turn the head farther in that direction.
+        const chestForward = forward.clone().addScaledVector(lateral, .34).normalize()
+        const gaze = forward.clone().addScaledVector(lateral, 1.05).normalize()
+        turn(bones.get('Spine') || bones.get('Spine01'), forward, chestForward)
+        turn(bones.get('Head') || bones.get('Neck'), chestForward, gaze)
 
-      const subject = new THREE.Group()
-      loadedRoots.forEach(root => subject.add(root))
-      const fitted = new THREE.Box3().setFromObject(subject)
+        // Keep hands on their own sides while the lead elbow bends more deeply.
+        sides.forEach((side, i) => {
+          const shoulder = point(side + 'Arm')
+          const upper = shoulder.distanceTo(point(side + 'ForeArm'))
+          const lower = point(side + 'ForeArm').distanceTo(point(side + 'Hand'))
+          const { upperArm, forearm: handDirection } = reviewSurfDirections(frame, i === 0)
+          aimBone(side + 'Arm', side + 'ForeArm', shoulder.addScaledVector(upperArm, upper))
+          aimBone(side + 'ForeArm', side + 'Hand',
+            point(side + 'ForeArm').addScaledVector(handDirection, lower))
+        })
+        root.updateMatrixWorld(true)
+        // Fit the board to the feet, not to a hard-coded world X/Z orientation.
+        reviewBoard.rotation.y = Math.atan2(-lateral.z, lateral.x)
+        reviewBoard.position.set(ankleCenter.x, .12, ankleCenter.z)
+        const feet = new THREE.Box3().setFromObject(root, true)
+        root.position.y += .12 - feet.min.y
+        root.updateMatrixWorld(true)
+        return true
+      }
+      const bounds = new THREE.Box3().setFromObject(root)
+      if (bounds.isEmpty()) throw new Error('A surfista GLB está vazia.')
+      root.position.set(
+        -bounds.getCenter(new THREE.Vector3()).x,
+        .12 - bounds.min.y,
+        -bounds.getCenter(new THREE.Vector3()).z
+      )
+      rootPosition.copy(root.position)
+      scene.add(root)
+      active.current = { selectPose: setPose }
+      if (!setPose('surf')) setSelectedPose('base')
+      setReady(true)
+
+      const fitted = new THREE.Box3().setFromObject(root, true)
+      fitted.union(new THREE.Box3().setFromObject(reviewBoard, true))
       const center = fitted.getCenter(new THREE.Vector3())
       const height = Math.max(fitted.getSize(new THREE.Vector3()).y, 1.4)
       const distance = Math.max(height * 2.5, 3.8)
       controls.target.set(0, center.y, 0)
       camera.position.set(distance * .58, center.y + distance * .28, distance * .85)
       controls.update()
-      // Return models to the scene so disposal does not affect the temporary group.
-      loadedRoots.forEach(root => scene.add(root))
-      setStatus('GLB real carregado. Roda com o rato ou o dedo; aproxima com scroll/pinch.')
     }
     start().catch(error => {
       if (!cancelled) {
@@ -389,62 +325,33 @@ export default function ArtReviewPage() {
       cancelled = true
       dispose()
     }
-  }, [surferFile, boardFile])
+  }, [])
 
   return (
     <main className="art-review">
       <header className="art-review-header">
         <Link to="/customize">← Criador de surfistas</Link>
         <div>
-          <h1>Laboratório de modelos 3D</h1>
-          <p>Inspeção técnica isolada. Não modifica o surfista do jogo.</p>
+          <h1>Surfista 3D</h1>
+          <p>Roda para veres a postura de todos os ângulos.</p>
         </div>
       </header>
       <div className="art-review-grid">
-        <section className="art-review-controls" aria-label="Importar ficheiros GLB">
-          <h2>Modelos para avaliar</h2>
-          <p>A <a href={CANDIDATE} target="_blank" rel="noopener noreferrer">Female Athlete do Grab3D</a> rigged está carregada para a prova. Podes substituir por outro <strong>Rigged GLB</strong> abaixo.</p>
-          <label htmlFor="art-review-surfer">Surfista GLB</label>
-          <input id="art-review-surfer" type="file" accept=".glb,model/gltf-binary"
-            onChange={event => changeFile(event, setSurferFile)} />
-          <label htmlFor="art-review-board">Prancha GLB (opcional)</label>
-          <input id="art-review-board" type="file" accept=".glb,model/gltf-binary"
-            onChange={event => changeFile(event, setBoardFile)} />
-          <p className="art-review-note">A surfista de revisão vem incluída neste laboratório. Ficheiros escolhidos manualmente ficam no navegador e não são enviados para servidores. A pose de surf é uma prova isolada, não uma integração no jogo.</p>
-          {report && <div className="art-review-report">
-            <h2>Inspeção do ficheiro</h2>
-            <p><strong>{report.rigged ? 'Articulada' : 'Sem articulação detetada'}</strong> · {report.skinnedMeshes} malhas com rig · {report.bones} ossos · {report.triangles.toLocaleString()} triângulos</p>
-            <label htmlFor="art-review-animation">Animação do GLB</label>
-            <select id="art-review-animation" value={selectedClip}
-              onChange={event => {
-                const name = event.target.value
-                setSelectedPose('base')
-                setSelectedClip(name)
-                active.current?.selectClip(name)
-              }}>
-              <option value="">Sem animação</option>
-              {clips.map(clip => <option key={clip} value={clip}>{clip}</option>)}
-            </select>
-            <label htmlFor="art-review-pose">Pose estática</label>
-            <select id="art-review-pose" value={selectedPose}
-              onChange={event => {
-                const pose = event.target.value
-                setSelectedClip('')
-                setSelectedPose(pose)
-                active.current?.selectPose(pose)
-              }}>
-              <option value="base">Base</option>
-              <option value="surf">Surf (prova)</option>
-            </select>
-            {!clips.length && <p>Este ficheiro não inclui animações exportadas.</p>}
-          </div>}
-        </section>
+        <div className="art-review-controls" role="group" aria-label="Pose da surfista">
+          {[['surf', 'Surf'], ['base', 'Base']].map(([pose, label]) => (
+            <button key={pose} type="button" disabled={!ready} aria-pressed={selectedPose === pose}
+              onClick={() => {
+                if (active.current?.selectPose(pose)) setSelectedPose(pose)
+                else setSelectedPose('base')
+              }}>{label}</button>
+          ))}
+        </div>
         <section className="art-review-stage" aria-label="Pré-visualização 3D real">
           <div className="art-review-canvas" ref={holder} />
-          <div className="art-review-status" role="status">{status}</div>
+          {status && <div className="art-review-status" role="status">{status}</div>}
         </section>
       </div>
-      <footer className="art-review-footer">Prova da issue #33 · Sem substituição do modelo de produção · Sem aprovação de qualidade implícita</footer>
+      <footer className="art-review-footer">Pré-visualização · Arrasta para rodar · Scroll ou pinça para aproximar</footer>
     </main>
   )
 }

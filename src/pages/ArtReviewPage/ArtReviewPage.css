@@ -22,50 +22,33 @@
 .art-review-header p { margin: 0; }
 .art-review-grid {
   display: grid;
-  grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
   max-width: 1360px;
-  min-height: min(72vh, 760px);
   margin: 0 auto;
 }
 .art-review-controls {
-  padding: 22px;
-  background: #fffdf5f2;
-  border: 1px solid #b5cfcb;
-  border-radius: 20px;
-  box-shadow: 0 9px 22px #145a6225;
+  display: flex;
+  gap: 8px;
 }
-.art-review-controls h2 { margin: 0 0 12px; font-size: 19px; }
-.art-review-controls p { font-size: 14px; line-height: 1.55; }
-.art-review-controls a { color: #096477; }
-.art-review-controls label {
-  display: block;
-  margin: 17px 0 7px;
-  font-weight: 750;
-}
-.art-review-controls input,
-.art-review-controls select {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 11px;
+.art-review-controls button {
+  padding: 10px 24px;
   border: 1px solid #aacdc6;
-  border-radius: 10px;
-  background: #fff;
+  background: #fffdf5;
   color: #17464d;
-}
-.art-review-note {
-  padding: 12px;
   border-radius: 10px;
-  background: #e4f4ef;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
-.art-review-report {
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid #b9d8d1;
+.art-review-controls button[aria-pressed="true"] {
+  background: #175b67;
+  color: white;
 }
+.art-review-controls button:disabled { opacity: .5; cursor: default; }
 .art-review-stage {
   min-width: 0;
-  min-height: 550px;
+  min-height: clamp(550px, 72vh, 820px);
   overflow: hidden;
   position: relative;
   border: 2px solid #fff;
@@ -95,6 +78,5 @@
 @media (max-width: 800px) {
   .art-review-header { display: block; }
   .art-review-header > a { display: inline-block; margin-bottom: 10px; }
-  .art-review-grid { grid-template-columns: minmax(0, 1fr); }
   .art-review-stage { min-height: 430px; }
 }
