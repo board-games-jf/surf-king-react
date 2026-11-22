@@ -26,6 +26,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-020 | Accepted | Adopt the visually approved Grab3D Man Base Mesh rigged GLB as the male counterpart, selectable alongside Female Athlete in the creator and visible on the shared 3D board. Both relaxed poses should wave with the anatomical right hand; preserve standing and surf stances and gameplay-neutral board identity colors. | Owner approved the male candidate and requested integration and a greeting gesture on 2026-11-22. Final wave rendering and full runtime checks remain open; no merge/deployment authorization. | [#33](https://github.com/board-games-jf/surf-king-react/issues/33), [PR #36](https://github.com/board-games-jf/surf-king-react/pull/36) |
 
+| SK-DEC-021 | Accepted | On the 3D board, idle surfers maintain a subtle S-like carving motion within their cell; movement between cells continues the S with acceleration/deceleration and banking. Show fallen and remounting riders using the existing gameplay state. | Owner requested visual motion on 2026-11-22. Preserve gameplay positions/rules, shared renderer and free orbit. Exact amplitudes, durations and recovery choreography are review parameters. | [#37](https://github.com/board-games-jf/surf-king-react/issues/37) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
