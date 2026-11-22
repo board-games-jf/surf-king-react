@@ -1,7 +1,7 @@
 // Presentation-only interpolation. Authoritative snapshots always win.
 export const FALL_SECONDS = .72
 export const REMOUNT_SECONDS = 1.05
-export const MOVE_SECONDS = .65
+export const MOVE_SECONDS = .95
 
 export const clamp01 = value => Math.min(1, Math.max(0, value))
 export const ease = value => {
@@ -62,8 +62,10 @@ export function sampleCarve(travel = 1, time = 0, distance = 0, fall = 0, reduce
   const amplitude = Math.min(.26, Math.max(0, distance) * .12)
   const idle = idleWave * .075 * (1 - envelope) * riding
   const lateral = travelWave * envelope * amplitude * riding
-  const turn = (Math.cos(phase) * (1 - envelope) + Math.cos(2 * Math.PI * progress) * envelope * 1.4) * riding
+  const slope = amplitude * Math.PI * (2 * Math.cos(2 * Math.PI * progress) * envelope + travelWave ** 2)
+  const tangentYaw = distance > 1e-6 ? Math.max(-.22, Math.min(.22, -Math.atan2(slope, distance))) : 0
+  const yaw = (Math.cos(phase) * (1 - envelope) * .105 + tangentYaw) * riding
   return { progress, idle, idleForward: Math.sin(phase * 2) * .032 * (1 - envelope) * riding,
-    travel: lateral, yaw: turn * .105,
-    bank: -turn * .085, lift: envelope * .025 * riding }
+    travel: lateral, yaw,
+    bank: -yaw * .81, lift: envelope * .025 * riding }
 }
