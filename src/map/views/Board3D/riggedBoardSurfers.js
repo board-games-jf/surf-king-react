@@ -14,7 +14,7 @@ export const PLAYER_BOARD_COLORS = Object.freeze([
   '#e4c45a', '#b17bb6', '#83c16e'
 ])
 
-export function createRiggedBoardSurfer(templates, playerId, { previewFemaleAthlete = false } = {}) {
+export function createRiggedBoardSurfer(templates, playerId, { previewFemaleAthlete = false, athleteBoardType = null } = {}) {
   const id = Number(playerId)
   const index = Number.isInteger(id) && id >= 0 ? id % PLAYER_BOARD_COLORS.length : 0
   const style = PRESET_SURFERS[index % PRESET_SURFERS.length]
@@ -24,7 +24,7 @@ export function createRiggedBoardSurfer(templates, playerId, { previewFemaleAthl
   const independentRig = cloneSkinned(template)
   if (previewFemaleAthlete && character === 'female') {
     const art = createAthleteSurferArt(independentRig, {
-      color: PLAYER_BOARD_COLORS[index], boardType: style.boardType, scale: .60, ownsSkeleton: true
+      color: PLAYER_BOARD_COLORS[index], boardType: athleteBoardType || style.boardType, scale: .60, ownsSkeleton: true
     })
     art.display.userData.character = character
     art.display.userData.athletePreview = true
