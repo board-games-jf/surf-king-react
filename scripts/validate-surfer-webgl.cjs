@@ -17,8 +17,12 @@ async function main() {
     page.setDefaultTimeout(60000)
     const errors = []
     page.on('pageerror', error => errors.push(error.message))
-    if (candidate) await page.route('**/assets/surfers/female-athlete-rigged-review.glb', route => route.fulfill({ path: candidate, contentType: 'model/gltf-binary' }))
     await page.goto('http://127.0.0.1:4173/#/customize')
+    await page.locator('canvas[data-athlete-character="female"]').waitFor({state:'visible'})
+    if (candidate) {
+      await page.getByLabel('Carregar candidato masculino GLB').setInputFiles(candidate)
+      await page.locator('canvas[data-athlete-character="male"]').waitFor({state:'visible'})
+    }
     const canvas = page.locator('.art-review-canvas canvas')
     const surf = page.getByRole('button', { name: /^(Surf|A surfar)$/ }).first()
     await page.waitForFunction(() => Array.from(document.querySelectorAll('button')).some(button => /^(Surf|A surfar)$/.test(button.textContent.trim()) && !button.disabled))
@@ -44,6 +48,10 @@ async function main() {
       await capture(page,canvas,'desktop-orbit-'+(index+1))
     }
     if (candidate) {
+      assert.equal(await page.getByRole('button', {name: 'Guardar visual'}).isDisabled(), true)
+      await page.getByRole('button', {name: 'Feminina'}).click()
+      await page.locator('canvas[data-athlete-character="female"]').waitFor({state:'visible'})
+      await capture(page, canvas, 'female-restored')
       assert.deepEqual(errors,[])
       console.log('Male candidate loaded with the shared anatomical pose solver; screenshots need visual approval.')
       return
