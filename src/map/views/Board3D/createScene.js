@@ -313,10 +313,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       const bank=carve.bank
       // Roll around the board's own longitudinal axis, not a fixed world axis.
       a.g.rotateOnAxis(a.rollAxis,bank)
-      const sample=sampleRiderMotion(fall,a.t,phase,reduce)
+      const sample=sampleRiderMotion(fall,a.t,phase,reduce,bank)
       if(a.avatar?.setBoardMotion) a.avatar.setBoardMotion(sample)
       else if(!a.avatar&&a.legacyBody){
-        a.legacyBody.position.set(sample.side,-sample.fall*.20+.075,0)
+        a.legacyBody.position.set(0,.075,0)
         a.legacyBody.rotation.z=-sample.lean
       }
       a.animate(elapsed,Number(a.id),bank)
