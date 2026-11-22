@@ -25,6 +25,7 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
         })),
         players: Object.values(G.players || {}).map((player) => ({
             id: String(player.position),
+            fallen: Number.isInteger(player.fellOffTheBoard) && player.fellOffTheBoard >= 0 && player.fellOffTheBoard <= G.turn,
             cellId: Number.isInteger(player.cellPosition) && player.cellPosition >= 0 && player.cellPosition < 53
                 ? player.cellPosition : null,
         })),
