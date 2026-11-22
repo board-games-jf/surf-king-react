@@ -54,7 +54,7 @@ export function sampleCarve(travel = 1, time = 0, distance = 0, fall = 0, reduce
   const t = clamp01(travel)
   const progress = ease(t)
   const riding = 1 - clamp01(fall)
-  if (reducedMotion) return { progress: 1, idle: 0, travel: 0, yaw: 0, bank: 0, lift: 0 }
+  if (reducedMotion) return { progress: 1, idle: 0, idleForward: 0, travel: 0, yaw: 0, bank: 0, lift: 0 }
   const envelope = Math.sin(Math.PI * progress) ** 2
   const phase = time * 2.1
   const idleWave = Math.sin(phase)
@@ -63,6 +63,7 @@ export function sampleCarve(travel = 1, time = 0, distance = 0, fall = 0, reduce
   const idle = idleWave * .075 * (1 - envelope) * riding
   const lateral = travelWave * envelope * amplitude * riding
   const turn = (Math.cos(phase) * (1 - envelope) + Math.cos(2 * Math.PI * progress) * envelope * 1.4) * riding
-  return { progress, idle, travel: lateral, yaw: turn * .105,
+  return { progress, idle, idleForward: Math.sin(phase * 2) * .032 * (1 - envelope) * riding,
+    travel: lateral, yaw: turn * .105,
     bank: -turn * .085, lift: envelope * .025 * riding }
 }
