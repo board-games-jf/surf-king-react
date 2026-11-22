@@ -28,6 +28,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-021 | Accepted | On the 3D board, idle surfers maintain a subtle S-like carving motion within their cell; movement between cells continues the S with acceleration/deceleration and banking. Show fallen and remounting riders using the existing gameplay state. | Owner requested visual motion on 2026-11-22. Preserve gameplay positions/rules, shared renderer and free orbit. Exact amplitudes, durations and recovery choreography are review parameters. | [#37](https://github.com/board-games-jf/surf-king-react/issues/37) |
 
+| SK-DEC-022 | Accepted | Preserve the reviewed S-shaped travel and enrich skeletal surfing motion. Represent a fall by a loss-of-balance reaction within the same cell, without sliding the character away or rigidly rotating the whole body into the water. | Owner rejected the first fall animation and requested in-place imbalance on 2026-11-22. Exact choreography and recovery remain reviewable visual choices; gameplay unchanged. | [#37](https://github.com/board-games-jf/surf-king-react/issues/37) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
