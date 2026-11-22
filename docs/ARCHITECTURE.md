@@ -154,7 +154,7 @@ flowchart LR
 The female GLB is separately authored from the same CC0 pack; source and texture-free packaging are documented in `DATA_SOURCES.md`. This is **not** a validated motion-capture animation set, final facial-expression system or gameplay ability mechanic. Browser/WebGL bone-axis and foot-to-board alignment remain pending.
 ## Selected athlete integration (Issue #33, draft PR #36)
 
-`/#/customize` is the single visible surfer creator; older gallery and review URLs redirect to it. It loads the unchanged textured Female Athlete GLB and uses `athleteSurferArt.js` for standing, relaxed and surfing poses and the curved board factory from PR #35. Geometry and textures are preserved. Board shape and paint are cosmetic, and the saved browser style is not a player profile.
+`/#/customize` is the single visible surfer creator; older gallery and review URLs redirect to it. It loads the unchanged textured Female Athlete GLB by default and uses `athleteSurferArt.js` for standing, relaxed and surfing poses and the curved board factory from PR #35. The opt-in male candidate control verifies the exact CI-inspected GLB length and SHA-256 before local parsing, then reuses that same art pipeline. Candidate previews cannot overwrite the saved female style or enter the catalog as a male; returning to the female reloads the bundled asset. No external runtime fetch or male asset-registry change is required. Geometry and textures are preserved. Board shape and paint are cosmetic, and the saved browser style is not a player profile.
 
 ```mermaid
 flowchart LR
