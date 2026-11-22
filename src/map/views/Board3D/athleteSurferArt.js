@@ -401,9 +401,9 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   }
   const setBoardMotion = sample => {
     if (!motionReady) return
-    const { fall, lean, side, sink, boardRoll: roll, travelLift } = sample
+    const { fall, lean, side, sink, boardRoll: roll } = sample
     riderPivot.position.copy(motionSide).multiplyScalar(side)
-    riderPivot.position.y = sink + travelLift
+    riderPivot.position.y = sink
     riderPivot.quaternion.setFromAxisAngle(motionAxis, lean)
     reviewBoard.quaternion.copy(boardRest).premultiply(boardRoll.setFromAxisAngle(motionAxis, -roll))
     bendTargets.forEach(({ bone, rest, target }) => bone.quaternion.copy(rest).slerp(target, fall))
