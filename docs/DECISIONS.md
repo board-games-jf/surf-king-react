@@ -32,6 +32,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-023 | Accepted | Extend the approved in-place balance-loss reaction (SK-DEC-022) into a final water state: the surfer and a near-upright board remain side by side, both partly submerged in the same cell. On recovery the board returns flat and the surfer resumes riding. | Owner approved this refinement on 2026-11-22. Preserve carving, both approved models and authoritative gameplay rules. Exact waterline, tilt, timing and choreography are visual review parameters. The previous low stance alone is no longer the final fallen state. | [#37](https://github.com/board-games-jf/surf-king-react/issues/37) |
 
+| SK-DEC-024 | Accepted | Recovery from the approved fallen water state must have a dedicated remount animation, not a reversed fall: flatten the board, reach and press up, bring the legs onto the deck, crouch and resume surfing. | Owner approved the fall and requested separate recovery on 2026-11-22. Shared rigs and carving remain unchanged; exact timing and hand/foot contact require visual review. | [#37](https://github.com/board-games-jf/surf-king-react/issues/37) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
