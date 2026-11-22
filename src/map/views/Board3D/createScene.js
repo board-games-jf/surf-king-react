@@ -323,7 +323,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         a.legacyBody.rotation.z=-sample.lean*(1-immersion)
         // Procedural board has its long axis along Z.
         a.legacy.board.position.set(-.48*sample.boardRise,(sample.waterOffset/.65-.05)*sample.boardRise,0)
-        a.legacy.board.rotation.x=sample.boardRise*1.32+sample.boardRoll
+        a.legacy.board.rotation.x=THREE.MathUtils.lerp(a.legacy.board.rotation.x,1.32,sample.boardRise)+sample.boardRoll
         a.legacy.board.rotation.z=bank*.05
       }
       a.g.userData.motionState=fall>0?(a.fallMotion.to===0?'remounting':fall>=1?'fallen':'falling'):(a.t<1?'moving':'riding')
