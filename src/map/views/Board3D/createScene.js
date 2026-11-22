@@ -330,6 +330,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       }
       a.g.userData.motionState=fall>0?(a.fallMotion.to===0?'remounting':fall>=1?'fallen':'falling'):(a.t<1?'moving':'riding')
       renderer.domElement.dataset['surferMotion'+a.id]=a.g.userData.motionState
+      if(sample.remount!==undefined) renderer.domElement.dataset['surferRemount'+a.id]=sample.handContact>.9?'press':sample.remount>.7?'stand':'reach'
+      else delete renderer.domElement.dataset['surferRemount'+a.id]
     }
     for(const g of obstacles.values())g.userData.animate?.(elapsed)
     animateCamera(now)
