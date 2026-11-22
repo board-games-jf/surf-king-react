@@ -6,6 +6,7 @@ import {
   createEmptyBoardCatalog,
   createCatalogSnapshot,
   placeCatalogAsset,
+  setCatalogSurferFallen,
 } from './catalogState'
 
 describe('interactive board catalog fixtures', () => {
@@ -22,7 +23,7 @@ describe('interactive board catalog fixtures', () => {
     expect(snapshot.cells).toHaveLength(BOARD_LAYOUT.length)
     expect(snapshot.cells.map(cell => cell.id)).toEqual(BOARD_LAYOUT.map(cell => cell.id))
     expect(snapshot.cells[8]).toEqual({ id: 8, obstacleType: 'Shark', remainingTurns: null })
-    expect(snapshot.players).toEqual([{ id: '0', cellId: 1 }, { id: '1', cellId: 51 }])
+    expect(snapshot.players).toEqual([{ id: '0', cellId: 1, fallen: false }, { id: '1', cellId: 51, fallen: false }])
     expect(snapshot.selectedCellId).toBe(8)
     expect(snapshot.maneuverDestinations).toEqual([])
     expect(snapshot.activePlayerId).toBeNull()
@@ -76,4 +77,13 @@ describe('interactive board catalog fixtures', () => {
     expect(CATALOG_TOOLS).toContain('Inspect')
     expect(createCatalogSnapshot(initial, 53).selectedCellId).toBeNull()
   })
+})
+
+test('catalog fall and remount preserve positions and stay isolated from other players', () => {
+  const original = createBoardCatalog()
+  const fallen = setCatalogSurferFallen(original, '0', true)
+  expect(createCatalogSnapshot(fallen).players.map(p => p.fallen)).toEqual([true, false])
+  expect(fallen.surfers).toEqual(original.surfers)
+  expect(createCatalogSnapshot(setCatalogSurferFallen(fallen, '0', false)).players[0].fallen).toBe(false)
+  expect(setCatalogSurferFallen(original, '9', true)).toBe(original)
 })
