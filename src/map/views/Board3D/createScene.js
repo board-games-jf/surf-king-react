@@ -9,6 +9,7 @@ import { PLAYER_BOARD_COLORS, createRiggedBoardSurfer, loadRiggedBoardTemplates 
 import { PRESET_SURFERS } from './surferStyle'
 import { createObstacleModel } from './obstacleModels'
 import { createHexDepth } from './hexDepth'
+import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleCarve, shortestHeading, MOVE_SECONDS } from './surferMotion'
 
 // This renderer receives public state and never validates moves or changes rules.
 const R = layoutManifest.hexRadius
@@ -177,6 +178,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       actor.g.add(avatar.display)
       actor.legacy.group.visible = false
       actor.avatar = avatar
+      if (avatar.surfboard) actor.boardYaw = avatar.surfboard.rotation.y
       if (avatar.display.userData.athletePreview) {
         renderer.domElement.dataset.athleteReady = 'true'
         renderer.domElement.dataset[avatar.display.userData.character === 'male' ? 'athleteMaleReady' : 'athleteFemaleReady'] = 'true'
@@ -197,6 +199,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     const actor = {
       g: group, legacy: model, avatar: null, id,
       cellId: null, from: null, to: null, t: 1,
+      anchor: new THREE.Vector3(), heading: 0, startHeading: 0, endHeading: 0,
+      boardYaw: model.group.rotation.y + Math.PI / 2,
+      dx: 0, dz: 0, distance: 0, fallMotion: createFallMotion(),
+      legacyBody: model.group.getObjectByName('surfer-stance'),
       animate(seconds, phase, bank) {
         if (this.avatar) this.avatar.animate(seconds + phase * .37, reducedMotion.matches)
         else this.legacy.animate(seconds, phase, bank)
@@ -251,10 +257,19 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     })
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
-      const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell;if(!cell){a.cellId=null;continue}
+      const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell
+      if(!cell){a.cellId=null;a.from=null;a.to=null;continue}
       const target=new THREE.Vector3(cell.x,.13,cell.z)
-      if(a.cellId===null){a.g.position.copy(target);a.from=null;a.to=null}
-      else if(a.cellId!==p.cellId){a.from=a.g.position.clone();a.to=target;a.t=0}
+      const immediate = a.cellId === null || reducedMotion.matches
+      a.fallMotion = targetFallMotion(a.fallMotion, p.fallen === true, immediate)
+      if(immediate){a.anchor.copy(target);a.g.position.copy(target);a.from=null;a.to=null;a.t=1}
+      else if(a.cellId!==p.cellId){
+        a.from=a.anchor.clone();a.to=target;a.t=0
+        a.dx=target.x-a.from.x;a.dz=target.z-a.from.z
+        a.distance=Math.hypot(a.dx,a.dz)
+        a.startHeading=a.heading
+        a.endHeading=shortestHeading(a.heading,Math.atan2(-a.dz,a.dx)-a.boardYaw)
+      }
       a.cellId=p.cellId
     }
     for(const [id,a] of actors)if(!live.has(id)){removeSurfer(a);actors.delete(id)}
@@ -265,7 +280,44 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   let elapsed=0,last=performance.now(),raf=0,disposed=false
   function frame(now){if(disposed)return;const dt=Math.min((now-last)/1000,.1);last=now;elapsed+=dt
     animateScenery(elapsed)
-    for(const a of actors.values()){if(a.from&&a.to){a.t=Math.min(1,a.t+dt*2);const t=a.t*a.t*(3-2*a.t);a.g.position.lerpVectors(a.from,a.to,t);if(a.t===1){a.from=null;a.to=null}}a.g.position.y=.13+Math.sin(elapsed*1.6+Number(a.id))*.015;const bank=Math.sin(elapsed*1.2+Number(a.id))*.045;a.g.rotation.z=bank;a.animate(elapsed,Number(a.id),bank)}
+    const reduce = reducedMotion.matches
+    for(const a of actors.values()){
+      if(a.cellId===null) continue
+      const phase=elapsed+Number(a.id)*.71
+      a.fallMotion=stepFallMotion(a.fallMotion,dt,reduce)
+      const fall=a.fallMotion.value
+      if(a.from&&a.to) a.t=reduce?1:Math.min(1,a.t+dt/MOVE_SECONDS)
+      const carve=sampleCarve(a.t,phase,a.distance,fall,reduce)
+      if(a.from&&a.to){
+        a.anchor.lerpVectors(a.from,a.to,carve.progress)
+        if(a.distance>1e-6){
+          a.anchor.x+=-a.dz/a.distance*carve.travel
+          a.anchor.z+=a.dx/a.distance*carve.travel
+        }
+        a.heading=a.startHeading+(a.endHeading-a.startHeading)*carve.progress
+        if(a.t===1){a.anchor.copy(a.to);a.from=null;a.to=null}
+      }
+      const heading=a.heading+a.boardYaw
+      a.g.position.copy(a.anchor)
+      a.g.position.x+=Math.sin(heading)*carve.idle
+      a.g.position.z+=Math.cos(heading)*carve.idle
+      a.g.position.x+=Math.cos(heading)*carve.idleForward
+      a.g.position.z-=Math.sin(heading)*carve.idleForward
+      a.g.position.y=.13+carve.lift+(reduce?0:Math.sin(phase*1.6)*.012)
+      a.g.rotation.set(0,a.heading+carve.yaw,0)
+      const bank=carve.bank
+      // Roll around the board's own longitudinal axis, not a fixed world axis.
+      a.g.rotateOnAxis(new THREE.Vector3(Math.cos(a.boardYaw),0,-Math.sin(a.boardYaw)),bank)
+      const sample=sampleRiderMotion(fall,a.t,phase,reduce)
+      if(a.avatar?.setBoardMotion) a.avatar.setBoardMotion(sample)
+      else if(!a.avatar&&a.legacyBody){
+        a.legacyBody.position.set(sample.side,-sample.fall*.20+.075,0)
+        a.legacyBody.rotation.z=-sample.lean
+      }
+      a.animate(elapsed,Number(a.id),bank)
+      a.g.userData.motionState=fall>0?(a.fallMotion.to===0?'remounting':fall>=1?'fallen':'falling'):(a.t<1?'moving':'riding')
+      renderer.domElement.dataset['surferMotion'+a.id]=a.g.userData.motionState
+    }
     for(const g of obstacles.values())g.userData.animate?.(elapsed)
     animateCamera(now)
     controls.update();renderer.render(scene,camera);raf=requestAnimationFrame(frame)
