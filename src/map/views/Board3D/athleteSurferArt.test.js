@@ -1,3 +1,6 @@
+import fs from 'fs'
+import path from 'path'
+import crypto from 'crypto'
 import * as THREE from 'three'
 import { inspectRiggedAsset, reviewStanceFrame, reviewKneeTarget, reviewSurfDirections } from './athleteSurferArt'
 
@@ -86,4 +89,18 @@ describe('refined surf stance directions', () => {
     }
     expect(lead.upperArm.dot(lead.forearm)).not.toBeCloseTo(rear.upperArm.dot(rear.forearm))
   })
+})
+
+test('bundled athlete is the exact owner-supplied rigged GLB', () => {
+  const data = fs.readFileSync(path.join(process.cwd(), 'public/assets/surfers/female-athlete-rigged-review.glb'))
+  expect(data.subarray(0, 4).toString('ascii')).toBe('glTF')
+  expect(data.readUInt32LE(4)).toBe(2)
+  expect(data.readUInt32LE(8)).toBe(data.length)
+  expect(crypto.createHash('sha256').update(data).digest('hex')).toBe('c40e86e7e3566990b46472e231b21eb5e10581a1491fc453b49f062c45c332f6')
+  const gltf = JSON.parse(data.subarray(20, 20 + data.readUInt32LE(12)).toString('utf8'))
+  const joints = gltf.skins[0].joints.map(index => gltf.nodes[index].name)
+  expect(joints).toEqual(expect.arrayContaining(['Hips','LeftUpLeg','RightUpLeg','LeftFoot','RightFoot','LeftArm','RightArm','LeftHand','RightHand']))
+  expect(joints).toHaveLength(24)
+  expect(gltf.buffers.every(buffer => !buffer.uri)).toBe(true)
+  expect(gltf.animations.map(clip => clip.name)).toEqual(expect.arrayContaining(['walk','run']))
 })

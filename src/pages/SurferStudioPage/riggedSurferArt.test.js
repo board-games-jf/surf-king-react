@@ -40,6 +40,8 @@ describe('styled rigged avatar preview — cosmetic geometry only', () => {
 
   test.each(['shortboard', 'fish', 'longboard'])('builds a real %s alongside the skinned body', type => {
     const { root, model, geometry, material } = makeMockRig()
+    const arm = root.getObjectByName('upperarm_l')
+    const referencePose = arm.quaternion.clone()
     const art = decorateRiggedSurfer(root, { ...baseStyle, boardType: type })
     expect(model.isSkinnedMesh).toBe(true)
     expect(art.display.getObjectByName('SuperHero_Male')).toBe(model)
@@ -50,10 +52,9 @@ describe('styled rigged avatar preview — cosmetic geometry only', () => {
     expect(art.display.getObjectByName('styled-board-hull')).toBeTruthy()
     expect(art.display.getObjectByName('styled-board-deck-stripe')).toBeTruthy()
     expect(art.display.getObjectByName('styled-board-fin')).toBeTruthy()
-    const arm = root.getObjectByName('upperarm_l')
-    const referencePose = arm.quaternion.clone()
+    const initialAnimatedPose = arm.quaternion.clone()
     expect(() => art.animate(1.5)).not.toThrow()
-    expect(arm.quaternion.equals(referencePose)).toBe(false)
+    expect(arm.quaternion.equals(initialAnimatedPose)).toBe(false)
     expect(() => art.dispose()).not.toThrow()
     expect(arm.quaternion.equals(referencePose)).toBe(true)
     expect(model.geometry).toBe(geometry)

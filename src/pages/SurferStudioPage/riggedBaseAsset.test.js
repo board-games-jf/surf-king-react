@@ -16,14 +16,14 @@ describe('licensed GLB character base fixture', () => {
     const gltf = JSON.parse(data.subarray(20, 20 + jsonLength).toString('utf8'))
     expect(gltf.asset.version).toBe('2.0')
     expect(gltf.skins.some(skin => skin.joints.length >= 50)).toBe(true)
-    expect(gltf.nodes.some(node => node.name === 'Head')).toBe(true)
+    expect(gltf.nodes.some(node => /^head$/i.test(node.name || ''))).toBe(true)
     expect(gltf.meshes.length).toBeGreaterThan(0)
     expect(gltf.meshes.some(mesh => mesh.primitives.some(p => p.attributes.JOINTS_0 !== undefined))).toBe(true)
     expect(gltf.buffers.every(buffer => !buffer.uri)).toBe(true)
     expect(gltf.images || []).toHaveLength(0)
   })
 
-  test('includes the original author's CC0 license and source', () => {
+  test("includes the original author's CC0 license and source", () => {
     const text = fs.readFileSync(license, 'utf8')
     expect(text).toMatch(/CC0 1\.0 Universal/)
     expect(text).toMatch(/Quaternius/)

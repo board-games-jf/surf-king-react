@@ -65,5 +65,10 @@
     },
     "lint-staged": {
         "**/*": "prettier --write --ignore-unknown"
+    },
+    "jest": {
+        "transformIgnorePatterns": [
+            "node_modules/(?!three/examples/jsm/)"
+        ]
     }
 }
