@@ -2,6 +2,12 @@
 
 **Created 2026-11-23; planning artifact only.** No facilitated human matches have taken place. The owner wants Surf King to be **fast, fun and meaningfully interactive between people** while validating all core mechanics and cards before software implementation. Follow [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11), [draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12) and prior independent-model [iterations H](OPENING_INTERACTION_STUDY.md), [I](CROSSLANE_INTERACTION_STUDY.md), [J](CATCHUP_CARD_STUDY.md), and [K](FINISH_ORDER_STUDY.md).
 
+## Ready-to-use R0 manual handoff (2026-11-23)
+
+**Owner's explicit division of labor:** the assistant's simulations/model validation are valuable; **the owner will personally conduct the manual human matches**. No actual human session has been reported. This document stays the broader evaluation protocol; for the first real sessions, use the concrete single-version **[R0 tabletop rules](PLAYTEST_R0_RULES.md)**, **[60-card R0 card reference](PLAYTEST_R0_CARDS.md)**, and **[blank short scorecard](PLAYTEST_R0_SCORECARD.md)**. [R0 mechanical fixture results](PLAYTEST_R0_CHECK_RESULTS.md) report **42/42 model-level checks passed**, not human or application-engine tests.
+
+**Suggested first sequence:** two games with 2 players (swap starting order), one with 4 players, then one with 7 when the first games are mechanically understandable. These are logistical suggestions, not sufficient proof of balance. Record actual minutes, co-finishes, meaningful rival-directed choices, card counterplay and anonymous subjective ratings. The assistant should analyze real logs when shared and run follow-up targeted simulations, recording each iteration on GitHub. **Do not mark this protocol's human testing as executed until the owner actually supplies observations.**
+
 ## Evidence-informed hypotheses (not approved acceptance criteria)
 
 1. **Short and engaging**: most actual games end after roughly 7–10 complete rounds; **measure elapsed minutes rather than assuming** a particular duration, including time reading cards and waiting for other players.
