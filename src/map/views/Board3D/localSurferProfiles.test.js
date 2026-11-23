@@ -1,5 +1,5 @@
 import {
-  LOCAL_SURFER_PROFILES_KEY, LOCAL_PLAYER_COUNT, normalizeLocalPlayerId,
+  LOCAL_SURFER_PROFILES_KEY, LOCAL_PLAYER_COUNT, normalizeLocalPlayerId, readLastLocalSurferPlayer,
   readLocalSurferProfiles, saveLocalSurferProfile
 } from './localSurferProfiles'
 
@@ -25,6 +25,7 @@ describe('local player appearance profiles', () => {
     const store = storage()
     saveLocalSurferProfile(0, { character: 'female', boardType: 'fish', skinTone: 'tan', boardColor: 'pink' }, store)
     saveLocalSurferProfile('4', { character: 'male', boardType: 'longboard' }, store)
+    expect(readLastLocalSurferPlayer(store)).toBe('4')
     expect(readLocalSurferProfiles(store)).toEqual({
       '0': { character: 'female', boardType: 'fish' },
       '4': { character: 'male', boardType: 'longboard' }
@@ -44,6 +45,7 @@ describe('local player appearance profiles', () => {
     const store = storage()
     store.setItem(LOCAL_SURFER_PROFILES_KEY, '{bad JSON')
     expect(readLocalSurferProfiles(store)).toEqual({})
+    expect(readLastLocalSurferPlayer(store)).toBe('0')
     store.setItem(LOCAL_SURFER_PROFILES_KEY, JSON.stringify({
       version: 1,
       players: {
