@@ -27,7 +27,11 @@ const LITE10 = Object.freeze({...LITE12,'Energy':'Energy x2','Swimming Fin':'Lif
 const LITE10_GUARD = Object.freeze({
  ...LITE10,'Change':'Sunburn','Tsunami':'Amulet'
 })
-const DECK_MAPS = Object.freeze({b60:null,lite12:LITE12,lite10:LITE10,lite10Guard:LITE10_GUARD})
+// Final bounded quantity probe: one more direct-attack copy, one fewer defense.
+const LITE10_ACTIVE = Object.freeze({
+ ...LITE10,'Change':'Amulet','Tsunami':'Sunburn'
+})
+const DECK_MAPS = Object.freeze({b60:null,lite12:LITE12,lite10:LITE10,lite10Guard:LITE10_GUARD,lite10Active:LITE10_ACTIVE})
 const deckTypes = profile => {
   if(!Object.prototype.hasOwnProperty.call(DECK_MAPS,profile))throw Error('Unknown deck profile '+profile)
   return TYPES.reduce((out,[name,count])=>{
