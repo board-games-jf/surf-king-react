@@ -32,7 +32,7 @@ const randomGenerator = seed => {
  let s=seed>>>0
  return ()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}
 }
-function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first'){
+function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first',positionComp='none'){
  const rnd=randomGenerator((seed*7919+n*101+5)>>>0)
  const shuffle=a=>{for(let i=a.length-1;i>0;i--){let j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
  const choice=a=>a[Math.floor(rnd()*a.length)]
@@ -49,7 +49,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
    beachSameRound:0,totalTurns:0,moves:0,forcedBlocks:0,falls:0,sharkFalls:0,terrainFalls:0,
    playerFalls:0,stolen:0,hazardDiscard:0,emptyFall:0,attackActions:0,damageHits:0,
    defendedHits:0,dropIns:0,swaps:0,forcedDisplacements:0,opponentActions:0,
-   targeted:Array(n).fill(0),attackedDistinct:0,fallsBySeat:Array(n).fill(0),
+   targeted:Array(n).fill(0),attackedDistinct:0,fallsBySeat:Array(n).fill(0),hitsBySeat:Array(n).fill(0),sharkFallsBySeat:Array(n).fill(0),attackFallsBySeat:Array(n).fill(0),
    positions:Array(n).fill(0),draws:0,rescue:0,rescueChoices:{free:0,fin:0,float:0},
    noTactic:0,overflow:0,uses:{},byTypeDraw:{},openingAttacks:0,leadChanges:0,
    nominalFinishActor:0,blockedByRound:Array(16).fill(0),cardConservationChecks:0,preFirstFalls:0}
@@ -72,7 +72,21 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
  if(openingBonus==='last1'||openingBonus==='lastTwo1'||openingBonus==='lastPlus2')draw(players[order[n-1]])
  if(openingBonus==='lastTwo1'&&n>2)draw(players[order[n-2]])
  if(openingBonus==='lastPlus2')draw(players[order[n-1]])
- st.startCells=initialStarts.slice();st.openingCardCounts=players.map(p=>p.hand.length);st.bonus=openingBonus;st.startMode=startMode
+ if(!['none','inner1','inner2','riskTier1','innerDraft','innerEnergy1'].includes(positionComp))throw Error('Unknown position compensation '+positionComp)
+ for(const p of players){
+   const inner=p.pos===1||p.pos===2
+   if(positionComp==='inner1'&&inner)draw(p)
+   if(positionComp==='inner2'&&inner){draw(p);draw(p)}
+   if(positionComp==='riskTier1'&&p.pos<=3)draw(p)
+   if(positionComp==='innerDraft'&&inner){
+     if(p.hand.length<5)draw(p)
+     const weak={'Energy':1,'Hang Loose':2,'Storm':2,'Cyclone':2,'Island':2,'Sunburn':4,'Energy x2':4,'Swimming Fin':3,'Lifeguard Float':4,'Stone':3,'Tsunami':4,'Jumping':3,'Amulet':6,'Change':6,'Big Wave':7,'Coconut':6,'Surf Current':8}
+     const worst=p.hand.reduce((idx,card,i)=>((weak[card.t]??3)<(weak[p.hand[idx].t]??3)?i:idx),0)
+     discard.push(p.hand.splice(worst,1)[0])
+   }
+   if(positionComp==='innerEnergy1'&&inner)p.e=3
+ }
+ st.startCells=initialStarts.slice();st.openingCardCounts=players.map(p=>p.hand.length);st.bonus=openingBonus;st.startMode=startMode;st.positionComp=positionComp
  function use(p,t,location='discard'){
    const index=p.hand.findIndex(c=>c.t===t);if(index===-1)throw Error('missing '+t)
    const c=p.hand.splice(index,1)[0];st.uses[t]=(st.uses[t]||0)+1
@@ -96,11 +110,11 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
  function hurt(p,damage,kind,attacker=null){
    if(p.down||damage<=0)return false
    if(kind==='attack' && amulet(p)){st.defendedHits++;return false}
-   p.e=Math.max(0,p.e-damage);st.damageHits++
+   p.e=Math.max(0,p.e-damage);st.damageHits++;st.hitsBySeat[p.id]++
    if(!p.e){p.down=true;st.falls++;st.fallsBySeat[p.id]++;if(p.own===0)st.preFirstFalls++
-     if(kind==='shark')st.sharkFalls++
+     if(kind==='shark'){st.sharkFalls++;st.sharkFallsBySeat[p.id]++}
      else if(kind==='terrain')st.terrainFalls++
-     else st.playerFalls++
+     else {st.playerFalls++;st.attackFallsBySeat[p.id]++}
      missingFallCard(p,attacker)
    }
    return true
