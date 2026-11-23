@@ -32,6 +32,14 @@ export function readLocalSurferProfiles(storage) {
   }
 }
 
+export function readLastLocalSurferPlayer(storage) {
+  try {
+    const store = storage || window.localStorage
+    const saved = JSON.parse(store.getItem(LOCAL_SURFER_PROFILES_KEY) || 'null')
+    return saved?.version === 1 ? (normalizeLocalPlayerId(saved.activePlayer) || '0') : '0'
+  } catch (_) { return '0' }
+}
+
 export function saveLocalSurferProfile(playerId, style, storage) {
   const id = normalizeLocalPlayerId(playerId)
   const profile = validProfile(style)
@@ -40,6 +48,7 @@ export function saveLocalSurferProfile(playerId, style, storage) {
   const players = readLocalSurferProfiles(store)
   store.setItem(LOCAL_SURFER_PROFILES_KEY, JSON.stringify({
     version: 1,
+    activePlayer: id,
     players: { ...players, [id]: profile }
   }))
   return profile
