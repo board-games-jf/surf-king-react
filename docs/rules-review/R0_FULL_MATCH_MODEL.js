@@ -32,7 +32,9 @@ const randomGenerator = seed => {
  let s=seed>>>0
  return ()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}
 }
-function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first',positionComp='none',orderComp='none'){
+function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first',positionComp='none',orderComp='none',firstTurnAttacks='restricted',dropSwap='on'){
+ if(!['restricted','open'].includes(firstTurnAttacks))throw Error('Unknown first-turn attack setting '+firstTurnAttacks)
+ if(!['on','off'].includes(dropSwap))throw Error('Unknown Drop In swap setting '+dropSwap)
  const rnd=randomGenerator((seed*7919+n*101+5)>>>0)
  const shuffle=a=>{for(let i=a.length-1;i>0;i--){let j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
  const choice=a=>a[Math.floor(rnd()*a.length)]
@@ -279,7 +281,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
    st.dropIns++;st.attackActions++;st.opponentActions++;st.targeted[q.id]++;q.targeted++
    const atk=roll(p.e),def=roll(q.e)
    if(atk>def){hurt(q,1,'attack',p)
-     if(!p.down&&!q.down&&D[q.pos]<D[p.pos]&&(mode==='aggressive'||rnd()<.80)){
+     if(dropSwap==='on'&&!p.down&&!q.down&&D[q.pos]<D[p.pos]&&(mode==='aggressive'||rnd()<.80)){
        relocateSwap(p,q,p);st.swaps++;return 'moveSpent'
      }
    }else if(def>atk)hurt(p,1,'attack',q)
@@ -347,7 +349,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
      const rescued=recover(p)
      const moveBefore=st.moves
      let tactic=false
-     if(!tail&&!rescued&&!p.down){tactic=tactical(p,p.own>1)}
+     if(!tail&&!rescued&&!p.down){tactic=tactical(p,firstTurnAttacks==='open'||p.own>1)}
      if(!p.down&&!BEACH.has(p.pos)&&tactic!=='moveSpent')navigation(p)
      if(!tail&&!p.down&&st.moves>moveBefore)draw(p)
      if(BEACH.has(p.pos)){
