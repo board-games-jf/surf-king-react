@@ -53,6 +53,25 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
    const reserved=startMode==='lateSafe1'?1:startMode==='lateSafe2'?Math.min(2,n):n
    for(let slot=n-1;slot>=n-reserved;slot--)initialStarts[order[slot]]=takePreferred()
    for(let slot=0;slot<n-reserved;slot++)initialStarts[order[slot]]=pool.shift()
+ }else if(['weighted1p5','weighted2','weightedLate1p5','weightedLate2'].includes(startMode)){
+   // Reverse weighted lottery: positive weights preserve EVERY start option for
+   // EVERY actor slot. Bias favors the Shark-free 7-step cells 4/5/6.
+   // This uses a separate seeded RNG; no card/tactic random stream is consumed.
+   const pool=startChoices.slice()
+   const maximum=startMode.endsWith('1p5')?1.5:2
+   const lateOnly=startMode.includes('Late')
+   for(let slot=n-1;slot>=0;slot--){
+     const bias=lateOnly?(slot===n-1?maximum:slot===n-2?1+(maximum-1)/2:1)
+       :1+(maximum-1)*(n===1?0:slot/(n-1))
+     const weights=pool.map(cell=>cell>=4?bias:1)
+     const total=weights.reduce((a,b)=>a+b,0)
+     let ticket=startRng()*total,at=pool.length-1
+     for(let k=0;k<pool.length;k++){
+       ticket-=weights[k]
+       if(ticket<0){at=k;break}
+     }
+     initialStarts[order[slot]]=pool.splice(at,1)[0]
+   }
  }else throw Error('Unknown starting allocation '+startMode)
  assert.equal(new Set(initialStarts).size,n,'duplicate starting cell')
  assert(initialStarts.every(c=>c>=0&&c<7),'invalid starting cell')
