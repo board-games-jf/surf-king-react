@@ -39,10 +39,24 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
  const deck=shuffle(ALL_CARDS.slice()),discard=[],board=new Map()
  const startRng=randomGenerator((Math.imul(seed,9719)+n*1823+91)>>>0)
  const startChoices=Array.from({length:7},(_,i)=>i)
- if(startMode==='random')for(let i=6;i>0;i--){const j=Math.floor(startRng()*(i+1));[startChoices[i],startChoices[j]]=[startChoices[j],startChoices[i]]}
- const initialStarts=startMode==='random'?startChoices.slice(0,n):Array.from({length:n},(_,i)=>i)
- const players=Array.from({length:n},(_,i)=>({id:i,pos:initialStarts[i],e:2,down:false,hand:[],active:[],own:0,wasHit:0,targeted:0,act:0,wasDownAtStart:0}))
+ if(startMode!=='fixed')for(let i=6;i>0;i--){const j=Math.floor(startRng()*(i+1));[startChoices[i],startChoices[j]]=[startChoices[j],startChoices[i]]}
  const order=Array.from({length:n},(_,k)=>(k+shift)%n)
+ const initialStarts=Array(n).fill(-1)
+ if(startMode==='fixed')for(let p=0;p<n;p++)initialStarts[p]=p
+ else if(startMode==='random')for(let p=0;p<n;p++)initialStarts[p]=startChoices[p]
+ else if(['lateSafe1','lateSafe2','reverseTier'].includes(startMode)){
+   const pool=startChoices.slice()
+   const takePreferred=()=>{
+     const i=pool.findIndex(cell=>cell>=4&&cell<=6)
+     return pool.splice(i>=0?i:0,1)[0]
+   }
+   const reserved=startMode==='lateSafe1'?1:startMode==='lateSafe2'?Math.min(2,n):n
+   for(let slot=n-1;slot>=n-reserved;slot--)initialStarts[order[slot]]=takePreferred()
+   for(let slot=0;slot<n-reserved;slot++)initialStarts[order[slot]]=pool.shift()
+ }else throw Error('Unknown starting allocation '+startMode)
+ assert.equal(new Set(initialStarts).size,n,'duplicate starting cell')
+ assert(initialStarts.every(c=>c>=0&&c<7),'invalid starting cell')
+ const players=Array.from({length:n},(_,i)=>({id:i,pos:initialStarts[i],e:2,down:false,hand:[],active:[],own:0,wasHit:0,targeted:0,act:0,wasDownAtStart:0}))
  const first=order[0], initialCount=ALL_CARDS.length
  const eligible=q=>finishRule==='first'||!BEACH.has(q.pos)
  const st={n,seed,shift,mode,first,winner:-1,winActorIndex:-1,rounds:16,finished:false,
