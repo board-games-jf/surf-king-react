@@ -14,6 +14,8 @@ const definitions={
   coreRoundLastCard:{start:'random',last:'last1',inner:'none',finish:'roundEnergy',opening:'open',swap:'off'},
   coreRoundLastProtected:{start:'random',last:'last1',inner:'none',finish:'roundEnergy',opening:'restricted',swap:'off'},
   coreRoundSwap:{start:'random',last:'none',inner:'none',finish:'roundEnergy',opening:'open',swap:'on'},
+  coreSnake:{start:'random',last:'none',inner:'none',finish:'roundEnergy',opening:'open',swap:'off',order:'snake'},
+  coreSnakeProtected:{start:'random',last:'none',inner:'none',finish:'roundEnergy',opening:'restricted',swap:'off',order:'snake'},
   referenceComplex:{start:'weighted2',last:'last1',inner:'inner1',finish:'roundEnergy',opening:'restricted',swap:'on'}
 }
 const parseList=(name,fallback)=>String(process.env[name]||fallback).split(',').filter(Boolean)
@@ -39,7 +41,7 @@ for(const n of players)for(const policy of policies)for(const variant of variant
  const cardUses=Object.fromEntries(TYPES.map(([t])=>[t,0]))
  for(let i=1;i<=seeds;i++){
    const seed=offset+i,shift=(seed*13+Math.floor(seed/n))%n
-   const g=play(n,seed,policy,shift,'fixed',cfg.start,cfg.last,cfg.finish,cfg.inner,'none',cfg.opening,cfg.swap)
+   const g=play(n,seed,policy,shift,cfg.order||'fixed',cfg.start,cfg.last,cfg.finish,cfg.inner,'none',cfg.opening,cfg.swap)
    assert(g.finished,'Unfinished game')
    assert.strictEqual(new Set(g.startCells).size,n,'Overlapping start')
    assert(g.cardConservationChecks>=n,'No conservation assertions')
