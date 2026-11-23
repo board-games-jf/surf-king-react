@@ -1,56 +1,30 @@
 # Project Handoff
 
-**Last verified:** 2026-11-15
-**Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)
-**Verified `main` commit:** `4aed28226bed07477ee92377174373600aee47a4` (2026-11-15; provisional layout PR #8 merged)
+**Last GitHub verification:** 2026-11-22  
+**Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)  
+**Main before PR #38 integration:** `b51c9854262cf0289b693343d47d67e5a8dd6b99` (PR #36 merged; verification run 44995028044 passed; deployment not established).
 
-This is a static recovery snapshot. Check GitHub for new commits, open Issues, Pull Requests, and deployed systems at the start of every task.
+## Current focus — character phase accepted; further work deferred
 
-## Implemented code (runtime not yet verified)
+- Owner accepted the male/female athlete baseline, S carving, fall into water with raised board and separate board-facing remount, and explicitly authorized merging [PR #38](https://github.com/board-games-jf/surf-king-react/pull/38) on 2026-11-22. Check the linked PR for the actual integration commit and status; merge is not deployment.
+- PR #36 delivered the approved distinct textured athletes, unified `/#/customize`, free orbit, standing/relaxed (right-hand wave)/surfing poses, cosmetic board shapes and colors, and shared board/catalog assets. PR #38 delivers articulated S-shaped idle/travel, acceleration and braking, staged water entry with the board partly submerged beside the rider, and distinct 2.20 s recovery facing the near rail. `/#/catalog` exposes glide, fall and remount preview controls. Motion follows the public fallen marker; authoritative rules/cells and 2D rendering are unchanged.
+- Verified final code revision `3ddf4aa4071efa06f6f03ac0a559556b1fdbc2d7`: [CI run 44998838137](https://github.com/board-games-jf/surf-king-react/actions/runs/44998838137) completed successfully (36 suites and 280 tests passed; 1 suite and 2 tests skipped; strict build; actual female/male WebGL). Owner accepted the current art and motion. Hand/foot contacts and buoyancy remain approximations.
+- **Pause character development.** [Issue #33](https://github.com/board-games-jf/surf-king-react/issues/33) consolidates the accepted phase and deferred customization/animation backlog: limited Sims-like appearance options on the approved models, player-specific cosmetic profile linkage, further animation/contact polish and additional gestures subject to review, permanent male asset bundling, licensing/reference and performance validation. No new implementation authorized. The male binary is still locally prepared and hash-pinned; hair/skin/surfwear are baked into the current assets.
+- Issue #37 tracks the completed motion scope and its merge verification. Historical issues #20/#22/#24/#26/#28/#30 and overlapping draft PRs #34/#35 must be reconciled against #33, not blindly merged or marked complete. No deployment authorized. Resume other project work from current main and the appropriate approved issue; gameplay rules review #11 / PR #12 is independent.
 
-- React 18 / Create React App 5 with JavaScript and routing in `src/Routes.js`.
-- A local `boardgame.io` client in `src/pages/LocalPage/index.js`. Online and AI routes are commented out.
-- A separate `boardgame.io` server entry point at `src/server/index.js`; its production readiness and use by the frontend are not established.
-- Game state and rules in `src/game/SurfKingGame.js`, including 53 logical cells, cards, turns, energy, moves, attacks, obstacles, and win conditions.
-- The local 2D and 3D views use the same 53 cell IDs and centers. Flat-top hexes share an edge along the straight maneuver direction. Browser verification of the updated 2D view is pending.
-- 21 test files exist (20 game-focused and one app test). None has been executed in this recovery effort.
+## Integrated main baseline
 
-## Latest relevant main commits
+- Local boardgame.io play, shared 53-cell 2D/3D board, interactive 3D catalog and obstacle visuals remain in place; online multiplayer is not active.
+- PRs #25/#27/#29/#31/#32 integrated Quaternius-based styled male/female GLBs, cosmetic studio, shared board renderer, pose presets, hair and procedural fallback. These are still used in main and are not removed by PR #36. Owner rejection of the earlier art quality and pose led to #33; related issues #20/#22/#24/#26/#28/#30 remain open until their actual criteria are reviewed.
+- Seven player board colors, gameplay-neutral cosmetics and local-only visual drafts are unchanged. Gameplay/rules review #11 / PR #12 is independent.
+- Historical provenance and earlier validations are preserved in DATA_SOURCES.md, relevant issues/PRs and Git history. Maintain regression coverage and measure production/mobile performance before release. Run `CI=true npm test -- --watchAll=false` and `npm run build` in an updated dependency-enabled checkout.
 
-- `4aed2822` (2026-11-15): provisional 53-cell mapping PR #8 merged; no game runtime changes.
-- `53dc315c` (2026-11-14): map rendering contract PR #6 merged; no runtime changes.
-- `aff1274b` (2026-11-14): governance PR #4 merged; no application runtime changes.
-- `76f1a673` (2022-09-25): cyclone-related win condition.
-- `e712de158` (2022-09-22): card replenishment fix.
+Character phase is paused; #33 remains the continuation issue. No deployment is authorized.
 
-## Active work
+## Separate gameplay-design research (Issue #11 / draft PR #12, 2026-11-23)
 
-- [Issue #7](https://github.com/board-games-jf/surf-king-react/issues/7): integrate the owner's visual 3D direction into the existing local boardgame.io match.
-- Branch `feat/7-live-3d-gameplay`: [draft PR #9](https://github.com/board-games-jf/surf-king-react/pull/9) proposes an experimental 2D/3D selector, public state adapter, Three.js scene with camera controls, dynamic surfer/obstacle state, cell picking, and 2D fallback.
-- [PR #8](https://github.com/board-games-jf/surf-king-react/pull/8) was merged into `main` at `4aed2822`. The new gameplay branch is unmerged and is not a deployed release.
-- No application Jest suite, full build, or live WebGL gameplay session has been verified. Keep these as review gates, not completed work.
-
-## Blockers and validation gaps
-
-- The canonical rulebook and original Figma source have not been verified against this repository.
-- The standalone Three.js visual ZIP uses provisional cell numbering and fixture-based obstacle placements; its layout is not an authoritative game-state mapping.
-- `package.json` names `loadsh` while the engine imports `lodash`; actual dependency failure is untested.
-- Docker uses Node 16.17 and starts the client only. Server connectivity and hosting are not validated.
-- Stone card initial `RemaningTurn` value is 3; reconcile with the approved four-round rule before changing behavior.
-- No GitHub Actions workflows, shipped 3D models, or verified online hosting were found in the repository tree.
-- Authentication, persistence, reconnection, and multiplayer authority are not established.
-- MVP acceptance criteria and exclusions still require product-owner approval.
-
-## Integration validation still required
-
-- Run the CRA/Jest suite and production build after installing the pinned Three.js dependency, and test WebGL in actual desktop/mobile browsers.
-- Verify the provisional engine-ID-to-layout mapping against the approved original board, including clickable hex positions.
-- Check visual accuracy against the uploaded ZIP. This first gameplay-focused port reuses its coastal art direction but does not reproduce every visual detail or animation.
-- Review gameplay flows for movement, drop-in, all card targets, obstacle timers and winning moves before requesting a merge.
-- The server, lobby, online multiplayer and deployment remain unchanged.
-
-## Next smallest action
-
-1. Install dependencies in a compatible React 18 / CRA environment and run the full Jest suite and production build.
-2. Manually verify the selected game cell matches the approved 2D/3D layout, then play movement, drop-in, each card target, and victory flows.
-3. Review the open gameplay integration PR, fix regressions, and request separate explicit owner authorization before any merge. Do not deploy.
+- The owner prefers a fast, accessible, interactive surf race over perfect mathematical fairness or setup exception stacking. Design work remains **documentation/simulation-only**, independent of the approved 3D character milestone and the live `SurfKingGame.js` rules.
+- [Experimental minimal R1 playtest guide](rules-review/PLAYTEST_MINIMAL_R1_RULES.md) and [394,000-game full-match research report](rules-review/R0_MINIMAL_RULES_STUDY.md) (14,517,391 passed model invariants) propose a small rule core: random starts, 2 starting energy/2 cards, zero-cost mandatory movement, one card action, immediate next-turn recovery after losing a random hand card, first round without direct opponent attacks, **rotate first player each round**, no standing Drop In swap and full-round highest-energy finish. No positional or initiative compensation.
+- **Not approved or implemented:** the 17 experimental B60 card effects, one-page R1 trial, changing start player each round, round-end finish, fall/steal tuning and any other experimental R0/R1 mechanics. Human game enjoyment and actual duration remain unmeasured; the owner conducts manual tests. In 2P, rotation creates consecutive turns across some round boundaries. 7P actor×start worst-case mismatch is not eliminated.
+- On 2026-11-23, latest checked `main`: `c6fd08e2da82ca223740e3aa944c47f87aa84f16`. Issue #11 open, draft PR #12 open/unmerged. **Before any future merge**, reconcile the draft SK-DEC-019–024 gameplay IDs with `main`'s already accepted visual IDs and review the rest of the branch diff. No production-game tests, merge or deployment in this gameplay research.
+- **Next small task:** owner manually tests the short R1 guide; separately audit card-text clarity and redundant B60 effects, then freeze a single approved rulebook before creating an implementation task. Avoid adding more setup compensation unless a specific repeatable human-play problem justifies it.
