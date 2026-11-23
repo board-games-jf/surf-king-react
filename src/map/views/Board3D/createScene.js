@@ -5,8 +5,8 @@ import { BOARD_LAYOUT } from '../../layout/boardLayout'
 import { createCoastalScenery, sampleOceanHeight } from './createCoastalScenery'
 import { createScenePrimitives, palette } from './scenePrimitives'
 import { createSurferModel } from './surfModels'
-import { PLAYER_BOARD_COLORS, createRiggedBoardSurfer, loadRiggedBoardTemplates } from './riggedBoardSurfers'
-import { PRESET_SURFERS } from './surferStyle'
+import { PLAYER_BOARD_COLORS, createRiggedBoardSurfer, loadRiggedBoardTemplates, resolveBoardSurferStyle } from './riggedBoardSurfers'
+import { readLocalSurferProfiles } from './localSurferProfiles'
 import { createObstacleModel } from './obstacleModels'
 import { createHexDepth } from './hexDepth'
 import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, shortestHeading, MOVE_SECONDS } from './surferMotion'
@@ -167,14 +167,17 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   renderer.domElement.addEventListener('pointerleave',leave)
   const actors=new Map(),obstacles=new Map()
   const riggedTemplates = {}
+  const localProfiles = previewFemaleAthlete ? readLocalSurferProfiles() : {}
   function upgradeSurfer(actor) {
     const id = Number(actor.id)
-    const style = PRESET_SURFERS[(Number.isInteger(id) && id >= 0 ? id : 0) % PRESET_SURFERS.length]
+    const style = resolveBoardSurferStyle(id, localProfiles[String(id)])
     if (!riggedTemplates[style.character] || actor.avatar) return
     try {
       // One independent bone hierarchy per rider; keep the existing procedural
       // model invisible as a safe fallback if GLB parsing or styling fails.
-      const avatar = createRiggedBoardSurfer(riggedTemplates, actor.id, { previewFemaleAthlete, athleteBoardType })
+      const avatar = createRiggedBoardSurfer(riggedTemplates, actor.id, {
+        previewFemaleAthlete, athleteBoardType, localProfile: localProfiles[String(id)]
+      })
       actor.g.add(avatar.display)
       actor.legacy.group.visible = false
       actor.avatar = avatar
