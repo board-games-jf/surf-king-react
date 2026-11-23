@@ -38,6 +38,12 @@ With two random starts, **6 of 21 unordered pairs (28.571%)** are already normal
 
 **Fair-start subset for small games:** If 2P or 4P starts are drawn only among cells 0–3 (12/24 ordered assignments), every entrant has the **same 7-step shortest** and **8-step Shark-free shortest** route length; this removes *that specific* safe-route-length disparity. It does **not** eliminate initiative advantage, asymmetric edges, encounter proximity, or the distinct route options. For seven players this subset is impossible.
 
+## Focused experimental 2P setup candidate: random balanced close pairs
+
+A **candidate**, not an approved rule: to preserve initial cross-lane contact **and** avoid giving only one opponent a seven-step Shark-free lane, randomly choose one of these five unordered pairs of start cells: **(0,1), (1,2), (2,3), (4,5), (5,6)**. Randomly assign the two players to the pair, and independently randomize who takes the first action. Each pair has **exactly two true-edge steps between starting cells** (candidate Big Wave range; not normal adjacent Drop In), and its members share the **same Shark-free shortest route length**. The five pairs comprise all same-risk and ≤2-edge pairs among 0–6, found by exact graph enumeration.
+
+**Advantages under static geometry:** neither player gets the **shorter-safe-path tier** within that match, and two-player starting positions remain within card-interaction range (unlike nearly half of completely random 0–6 pairs). **Limitations:** does not eliminate first-actor win advantage, unequal specific path options or potential early targeted card effects; pair selection introduces a non-uniform physical-position distribution and must be tested as its own setup fixture using the complete 17-type R0 card model. At 4P, the four 0–3 positions are the simplest same-tier *candidate* pool; at 7P, the full mixed pool still requires a separate fairness remedy.
+
 ## Why a naive Catan-like reverse start pick is not sufficient
 
 Tested an illustrative **single-position reverse-selection** fixture: last actor picks a free start first, always preferring a Shark-free seven-step starting cell; ties break by cell ID. This is **not Catan's complete two-settlement setup rule**, just a comparable board-game design idea.
