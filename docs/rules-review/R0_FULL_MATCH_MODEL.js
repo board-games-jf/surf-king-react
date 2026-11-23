@@ -32,12 +32,16 @@ const randomGenerator = seed => {
  let s=seed>>>0
  return ()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}
 }
-function play(n,seed,mode='balanced',shift=0,roundOrder='fixed'){
+function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none'){
  const rnd=randomGenerator((seed*7919+n*101+5)>>>0)
  const shuffle=a=>{for(let i=a.length-1;i>0;i--){let j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
  const choice=a=>a[Math.floor(rnd()*a.length)]
  const deck=shuffle(ALL_CARDS.slice()),discard=[],board=new Map()
- const players=Array.from({length:n},(_,i)=>({id:i,pos:i,e:2,down:false,hand:[],active:[],own:0,wasHit:0,targeted:0,act:0,wasDownAtStart:0}))
+ const startRng=randomGenerator((Math.imul(seed,9719)+n*1823+91)>>>0)
+ const startChoices=Array.from({length:7},(_,i)=>i)
+ if(startMode==='random')for(let i=6;i>0;i--){const j=Math.floor(startRng()*(i+1));[startChoices[i],startChoices[j]]=[startChoices[j],startChoices[i]]}
+ const initialStarts=startMode==='random'?startChoices.slice(0,n):Array.from({length:n},(_,i)=>i)
+ const players=Array.from({length:n},(_,i)=>({id:i,pos:initialStarts[i],e:2,down:false,hand:[],active:[],own:0,wasHit:0,targeted:0,act:0,wasDownAtStart:0}))
  const order=Array.from({length:n},(_,k)=>(k+shift)%n)
  const first=order[0], initialCount=ALL_CARDS.length
  const st={n,seed,shift,mode,first,winner:-1,winActorIndex:-1,rounds:16,finished:false,
@@ -64,6 +68,10 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed'){
    st.byTypeDraw[card.t]=(st.byTypeDraw[card.t]||0)+1
  }
  for(const p of players){draw(p);draw(p)}
+ if(openingBonus==='last1'||openingBonus==='lastTwo1'||openingBonus==='lastPlus2')draw(players[order[n-1]])
+ if(openingBonus==='lastTwo1'&&n>2)draw(players[order[n-2]])
+ if(openingBonus==='lastPlus2')draw(players[order[n-1]])
+ st.startCells=initialStarts.slice();st.openingCardCounts=players.map(p=>p.hand.length);st.bonus=openingBonus;st.startMode=startMode
  function use(p,t,location='discard'){
    const index=p.hand.findIndex(c=>c.t===t);if(index===-1)throw Error('missing '+t)
    const c=p.hand.splice(index,1)[0];st.uses[t]=(st.uses[t]||0)+1
