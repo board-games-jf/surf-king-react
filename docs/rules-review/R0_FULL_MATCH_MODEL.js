@@ -339,7 +339,11 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
  let firstRoundWinner=null
  for(let round=1;round<=16;round++){
    const beforeLead=[...players].sort((a,b)=>D[a.pos]-D[b.pos])[0]?.id
-   const activeOrder=roundOrder==='snake' && round%2===0 ? [...order].reverse() : order
+   // Round-robin first-player token is a simpler alternative to reverse-turn
+     // ("snake") order: 2,3,...,N,1 follows 1,2,...,N, without a double turn.
+     const activeOrder=roundOrder==='rotate'
+       ?order.slice((round-1)%n).concat(order.slice(0,(round-1)%n))
+       :roundOrder==='snake'&&round%2===0?[...order].reverse():order
    for(let actorIndex=0;actorIndex<n;actorIndex++){
      const p=players[activeOrder[actorIndex]]
      if(BEACH.has(p.pos))continue
