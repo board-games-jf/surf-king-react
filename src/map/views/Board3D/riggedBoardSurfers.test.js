@@ -173,7 +173,7 @@ test('catalog opt-in selects both textured athlete assets', () => {
 
 
 describe('player-specific approved athlete selection', () => {
-  test('overrides only the selected player's character and board silhouette', () => {
+  test("overrides only the selected player's character and board silhouette", () => {
     const defaultPlayer = resolveBoardSurferStyle(0)
     expect(defaultPlayer).toEqual(PRESET_SURFERS[0])
     const selected = resolveBoardSurferStyle(0, { character: 'female', boardType: 'fish' })
