@@ -49,7 +49,10 @@ function analyzeSetup(layout){
     return {players:n,positionsInActingOrder:positions,firstActingWinnerUnderSafeOnly:safest.indexOf(Math.min(...safest))===0,winnerActingIndex:safest.indexOf(Math.min(...safest)),note:"illustrative greedy one-position reverse choice, not a gameplay policy or statistically balanced method"};
   });
   const nPairs=starts.flatMap((a,i)=>starts.slice(i+1).map(b=>({a,b,d:graph[a][b]})));
-  return {layout:{n:c.length,radius:r,shark:[...sharks],beach},starts:distances,reverseSelection,pairCounts:{total:nPairs.length,adjacent:nPairs.filter(p=>p.d===1).length,cardRange2:nPairs.filter(p=>p.d<=2).length},samples:dataset,
+  // Candidate 2P balanced close-pair draw: equal Shark-free route length and <=2 true-edge distance.
+  const fairCloseTwoPlayerPairs=nPairs.filter(p=>p.d<=2&&distances[p.a].sharkFree===distances[p.b].sharkFree)
+    .map(p=>({cells:[p.a,p.b],distance:p.d,sharkFreeMoves:distances[p.a].sharkFree}));
+  return {layout:{n:c.length,radius:r,shark:[...sharks],beach},starts:distances,reverseSelection,fairCloseTwoPlayerPairs,pairCounts:{total:nPairs.length,adjacent:nPairs.filter(p=>p.d===1).length,cardRange2:nPairs.filter(p=>p.d<=2).length},samples:dataset,
     caveat:"Exact permutations under deterministic safest shortest-route, earliest arrival wins; no card tactics, no blockers, no shuffle deck, no real matches."};
 }
 const layout=JSON.parse(fs.readFileSync(path.join(__dirname,'../../src/map/layout/board-layout.json'),'utf8'))
