@@ -66,4 +66,4 @@ function runBoundaryTests(layout){
  const failures=cases.filter(x=>x.status!=="PASS"),count=cases.length;return {count,passes:count-failures.length,failures,cases,neighbors21:adj[21],sample:[...cases.filter(c=>["Change","Cyclone","Tsunami","Stone","SurfCurrent","Card transfer"].includes(c.card)).map(c=>`${c.card}: ${c.scenario}: ${c.status}`)]}
 }
 
-// Call runBoundaryTests(JSON.parse(boardLayoutJson)) to execute 45 fixture assertions.
+// Call runBoundaryTests(JSON.parse(boardLayoutJson)) to execute 44 fixture cases.
