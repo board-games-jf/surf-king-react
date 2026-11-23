@@ -32,7 +32,7 @@ const randomGenerator = seed => {
  let s=seed>>>0
  return ()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}
 }
-function play(n,seed,mode='balanced',shift=0){
+function play(n,seed,mode='balanced',shift=0,roundOrder='fixed'){
  const rnd=randomGenerator((seed*7919+n*101+5)>>>0)
  const shuffle=a=>{for(let i=a.length-1;i>0;i--){let j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
  const choice=a=>a[Math.floor(rnd()*a.length)]
@@ -270,8 +270,9 @@ function play(n,seed,mode='balanced',shift=0){
  let firstRoundWinner=null
  for(let round=1;round<=16;round++){
    const beforeLead=[...players].sort((a,b)=>D[a.pos]-D[b.pos])[0]?.id
+   const activeOrder=roundOrder==='snake' && round%2===0 ? [...order].reverse() : order
    for(let actorIndex=0;actorIndex<n;actorIndex++){
-     const p=players[order[actorIndex]]
+     const p=players[activeOrder[actorIndex]]
      if(BEACH.has(p.pos))continue
      st.totalTurns++
      p.own++;expire(p)
@@ -306,7 +307,7 @@ function aggregate(games){
  const uses=Object.fromEntries(TYPES.map(([k])=>[k,games.reduce((s,g)=>s+(g.uses[k]||0),0)]))
  const wins=Array(n).fill(0),finish=games.filter(g=>g.finished).length
  for(const g of games)if(g.winner>=0)wins[g.winner]++
- const earliest=games.filter(g=>g.finished&&g.winActorIndex===0).length
+ const earliest=games.filter(g=>g.finished&&g.winner===g.first).length
  const multipleFinish=games.filter(g=>g.beachSameRound>=2).length
  return {games:games.length,n,finished:finish,firstActorPct:Math.round(earliest/games.length*1000)/10,cofinishPct:Math.round(multipleFinish/games.length*1000)/10,
   wins,means,uses,unplayedTypes:Object.keys(uses).filter(x=>uses[x]===0),maxCardIntegrityChecks:Math.min(...games.map(x=>x.cardConservationChecks))}
