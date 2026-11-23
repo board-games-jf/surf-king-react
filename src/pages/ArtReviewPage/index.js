@@ -2,10 +2,23 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ATHLETE_ASSET_PATHS, ATHLETE_POSES, createAthleteSurferArt } from '../../map/views/Board3D/athleteSurferArt'
 import { BOARD_TYPES, BOARD_COLORS, normalizeSurferStyle } from '../../map/views/Board3D/surferStyle'
+import { LOCAL_PLAYER_COUNT, readLocalSurferProfiles, saveLocalSurferProfile } from '../../map/views/Board3D/localSurferProfiles'
 import './ArtReviewPage.css'
 
 export const ATHLETE_SAVE_KEY = 'surf-king-surfer-preview-v1'
 const POSE_LABELS = { standing: 'Em pé', relaxed: 'Relaxada', surf: 'A surfar' }
+
+export function LocalPlayerControls({ playerId, onPlayerChange }) {
+  return <label className="art-review-player">
+    Jogador local
+    <select aria-label="Jogador local" value={playerId}
+      onChange={event => onPlayerChange(event.target.value)}>
+      {Array.from({ length: LOCAL_PLAYER_COUNT }, (_, id) => (
+        <option key={id} value={String(id)}>Jogador {id + 1}</option>
+      ))}
+    </select>
+  </label>
+}
 
 export function AthleteCharacterControls({ character, onCharacter }) {
   return <fieldset className="art-review-controls">
@@ -76,6 +89,7 @@ export default function ArtReviewPage() {
   const [ready, setReady] = useState(false)
   const [selectedPose, setSelectedPose] = useState('surf')
   const [style, setStyle] = useState(readAthleteStyle)
+  const [playerId, setPlayerId] = useState('0')
   const characterType = style.character
   const initialStyle = useRef(style)
   initialStyle.current = style
@@ -86,6 +100,16 @@ export default function ArtReviewPage() {
     setSaved(false)
     setStyle(current => normalizeSurferStyle({ ...current, character }))
   }
+  const choosePlayer = id => {
+    setPlayerId(id)
+    const profile = readLocalSurferProfiles()[id]
+    if (profile) {
+      const next = normalizeSurferStyle({ ...style, ...profile })
+      active.current?.setBoardStyle(next.boardType, BOARD_COLORS[next.boardColor])
+      setStyle(next)
+    }
+    setSaved(false)
+  }
   const [saved, setSaved] = useState(false)
   const changeStyle = (key, value) => {
     const next = normalizeSurferStyle({ ...style, [key]: value })
@@ -94,7 +118,11 @@ export default function ArtReviewPage() {
     setSaved(false)
   }
   const save = () => {
-    try { window.localStorage.setItem(ATHLETE_SAVE_KEY, JSON.stringify(style)); setSaved(true) }
+    try {
+      window.localStorage.setItem(ATHLETE_SAVE_KEY, JSON.stringify(style))
+      saveLocalSurferProfile(playerId, style, window.localStorage)
+      setSaved(true)
+    }
     catch (_) { setStatus('Não foi possível guardar neste navegador.') }
   }
 
@@ -240,6 +268,7 @@ export default function ArtReviewPage() {
       </header>
       <div className="art-review-grid">
         <div>
+          <LocalPlayerControls playerId={playerId} onPlayerChange={choosePlayer} />
           <AthleteCharacterControls character={characterType} onCharacter={chooseCharacter} />
           <AthleteControls ready={ready} pose={selectedPose} style={style}
             onPose={pose => {
@@ -254,12 +283,12 @@ export default function ArtReviewPage() {
       </div>
       <footer className="art-review-footer">
         <div className="art-review-controls">
-          <button type="button" disabled={!ready} onClick={save}>Guardar visual</button>
-          {ready && <Link to="/catalog" state={{ athleteBoardType: style.boardType, athleteCharacter: characterType }}>Ver no tabuleiro</Link>}
+          <button type="button" disabled={!ready} onClick={save}>Guardar para jogador {Number(playerId) + 1}</button>
+          {ready && <Link to="/catalog" state={{ athletePlayerId: playerId }}>Ver no tabuleiro</Link>}
           <Link to="/local">Jogo local</Link>
         </div>
-        {saved && <p role="status">Visual guardado neste navegador. Ainda não está associado a um jogador.</p>}
-        <p>Roupa, pele e cabelo ainda fazem parte da textura original. Arrasta para rodar; scroll ou pinça para aproximar.</p>
+        {saved && <p role="status">Visual associado ao jogador {Number(playerId) + 1} neste navegador. Abre novamente o tabuleiro 3D para o veres.</p>}
+        <p>No jogo, a cor da prancha continua a identificar cada jogador. O modelo e o formato são pessoais após guardar. Cabelo, pele e roupa continuam na textura original. Arrasta para rodar.</p>
       </footer>
     </main>
   )
