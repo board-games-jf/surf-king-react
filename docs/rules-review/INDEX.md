@@ -6,6 +6,10 @@
 **Current single complete-match design reference (NOT approved):** [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md) — recommended v0.1 loop, decisions, illustrative 3-player race, interdependencies and playtest gates.
 **Latest checked main:** `c6fd08e2da82ca223740e3aa944c47f87aa84f16` (reverified 2026-11-23). These experimental gameplay rules are **not** implemented in the running application.
 
+## Iteration M — 2026-11-23: R0 early focus-fire/congestion checks (newest)
+
+[Report](OPENING_FOCUS_PRESSURE_STUDY.md) and [reproducible Node fixture](OPENING_FOCUS_PRESSURE_REPRODUCTION.js): **120,000** physical-deck opening-hand and **120,000** route-choice snapshot samples across 2/4/7 players and both ascending/descending initiative. These are **independent partial models, not active-card matches or engine/human tests**. With first-turn Amulet automatically used when held, the **seventh-player normal-order seat 5** had a **76.34% chance of at least one unblocked potential incoming Big Wave/Sunburn card holder** before its second own turn, **36.80%** for possible Big Wave, and **37.57%** for two or more potential attackers. **These are opportunities, not realized attack, fall or win rates**. In reverse seven-player order, **12.02%** of random tied-shortest first-round routes blocked starting seat 0; regular order **0%** in that narrow policy. No final deck/initiative change is authorized. **Next:** actual full-effect R0 interaction rounds with matched seeds and counterplay, then owner-run human scorecards.
+
 ## Latest handoff — unified R0 tabletop pilot (2026-11-23)
 
 **Owner confirmed the split:** the assistant runs/records **simulations and mechanical validations**, and the **owner personally plays the human sessions**. No human sessions have happened or been verified.
