@@ -283,7 +283,7 @@ export default function ArtReviewPage() {
       </div>
       <footer className="art-review-footer">
         <div className="art-review-controls">
-          <button type="button" disabled={!ready} onClick={save}>Guardar para jogador {Number(playerId) + 1}</button>
+          <button type="button" disabled={!ready} onClick={save}>Guardar visual</button>
           {ready && <Link to="/catalog" state={{ athletePlayerId: playerId }}>Ver no tabuleiro</Link>}
           <Link to="/local">Jogo local</Link>
         </div>
