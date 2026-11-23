@@ -171,6 +171,19 @@ The catalog can receive the selected board shape from the creator; game board co
 
 The shared 3D scene uses a presentation-only sampler in `surferMotion.js` to interpolate authoritative cell changes with smooth acceleration/deceleration and a bounded S-shaped lateral offset. Idle carving is centered on each cell and blended with travel; tangent yaw and longitudinal board bank are visual only. The snapshot projects the engine's existing `fellOffTheBoard` marker to a public boolean. Each actor tracks a retargetable fall progress. Shared athlete art interpolates precomputed local skeletal poses: alternating weight transfer during carving and staged loss of balance on a fixed rider pivot during falls. Hip shifts use leg IK to retain original ankle positions at keyframes. The initial board rocks and anchored stumble transition into chest-level water immersion and an independently pitched board beside the rider. The ocean height sampler mirrors the existing vertex shader; the actual opaque ocean hides geometry below its surface. Small visual offsets are applied only within the logical cell. Full water recovery selects a separate remount timeline, with independent board flattening, a curved near-rail approach, shoulder-derived local yaw to face the board before support, rider elevation, alternating lifted-leg targets and a crouch-to-riding sequence. The local yaw fades back to the approved surf stance; the fall pose is unchanged. A bounded two-bone arm IK correction targets the moving near-side deck during the press phase, then releases. Physical grip, exact hand/foot contact and buoyancy are not simulated. Reduced motion resolves directly to target. The catalog supplies isolated preview state through the same snapshot contract, with controls for both riders. No game logic, private cards or legal move calculations are added to the renderer.
 
+## Browser-local athlete appearance mapping (Issue #40, draft)
+
+`localSurferProfiles.js` stores only a validated `{character, boardType}` mapping for local player IDs 0–6, plus the last edited player. The unified creator continues to store its older global preview draft for compatibility. At 3D scene creation, the existing board pipeline resolves a player's saved appearance before choosing the independent approved male/female skinned clone and board silhouette. The seven player board colors remain fixed; no saved profile enters the public snapshot or game engine. Changes become visible when the 3D scene remounts. Missing/invalid storage preserves existing presets. Appearance beyond character and board shape requires separately authored materials and is not provided here.
+
+```mermaid
+flowchart LR
+  Creator[Unified creator] --> Local[Browser-local cosmetic mapping]
+  Local --> Board[Existing 3D scene and catalog]
+  Board --> Rig[Approved male or female rig clone]
+  Board --> Shape[Cosmetic board silhouette]
+  Game[Authoritative game state] --> Board
+```
+
 ## Limits and validation
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.
