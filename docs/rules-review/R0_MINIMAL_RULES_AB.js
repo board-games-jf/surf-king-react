@@ -16,6 +16,8 @@ const definitions={
   coreRoundSwap:{start:'random',last:'none',inner:'none',finish:'roundEnergy',opening:'open',swap:'on'},
   coreSnake:{start:'random',last:'none',inner:'none',finish:'roundEnergy',opening:'open',swap:'off',order:'snake'},
   coreSnakeProtected:{start:'random',last:'none',inner:'none',finish:'roundEnergy',opening:'restricted',swap:'off',order:'snake'},
+  coreRotate:{start:'random',last:'none',inner:'none',finish:'roundEnergy',opening:'open',swap:'off',order:'rotate'},
+  coreRotateProtected:{start:'random',last:'none',inner:'none',finish:'roundEnergy',opening:'restricted',swap:'off',order:'rotate'},
   referenceComplex:{start:'weighted2',last:'last1',inner:'inner1',finish:'roundEnergy',opening:'restricted',swap:'on'}
 }
 const parseList=(name,fallback)=>String(process.env[name]||fallback).split(',').filter(Boolean)
