@@ -37,7 +37,9 @@ for(const n of populations)for(const policy of policies)for(const allocation of 
    assert.strictEqual(new Set(g.startCells).size,n,'overlapping starts')
    assert(g.startCells.every(cell=>Number.isInteger(cell)&&cell>=0&&cell<7),'off-board start')
    assert(g.cardConservationChecks>=n,'missing invariant checks')
-   assert.strictEqual(g.openingCardCounts[(shift+n-1)%n],3+(positionComp==='inner2'&&[1,2].includes(g.startCells[(shift+n-1)%n])?2:0))
+   const lastCell=g.startCells[(shift+n-1)%n]
+   const extra=([1,2].includes(lastCell)?({none:0,inner1:1,inner2:2}[positionComp]):0)
+   assert.strictEqual(g.openingCardCounts[(shift+n-1)%n],3+extra,'last opening hand size')
    const winnerSlot=(g.winner-shift+n)%n
    const winningCell=g.startCells[g.winner]
    wins[winnerSlot]++;byCellWin[winningCell]++
