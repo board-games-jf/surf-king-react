@@ -70,7 +70,7 @@ for(const n of populations)for(const policy of policies)for(const allocation of 
  const combinations=jointCount.flatMap((row,slot)=>row.map((v,cell)=>({
    slot:slot+1,cell,seen:v,wins:jointWins[slot][cell],winPct:pct(jointWins[slot][cell],v)
  })))
- const supported=combinations.filter(item=>item.seen>=Math.max(100,Math.floor(seeds/20)))
+ const supported=combinations.filter(item=>item.seen>=Math.min(100,Math.max(1,Math.floor(seeds/20))))
  const max=supported.reduce((x,y)=>y.winPct>x.winPct?y:x)
  const min=supported.reduce((x,y)=>y.winPct<x.winPct?y:x)
  results.push({
