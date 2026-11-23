@@ -32,7 +32,7 @@ const randomGenerator = seed => {
  let s=seed>>>0
  return ()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}
 }
-function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first',positionComp='none'){
+function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first',positionComp='none',orderComp='none'){
  const rnd=randomGenerator((seed*7919+n*101+5)>>>0)
  const shuffle=a=>{for(let i=a.length-1;i>0;i--){let j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
  const choice=a=>a[Math.floor(rnd()*a.length)]
@@ -86,7 +86,18 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
    }
    if(positionComp==='innerEnergy1'&&inner)p.e=3
  }
- st.startCells=initialStarts.slice();st.openingCardCounts=players.map(p=>p.hand.length);st.bonus=openingBonus;st.startMode=startMode;st.positionComp=positionComp
+ if(!['none','lateInnerEnergy1','lateAllEnergy1','lastEnergy1'].includes(orderComp))throw Error('Unknown order compensation '+orderComp)
+ if(orderComp!=='none'){
+   for(let slot=0;slot<n;slot++){
+     const p=players[order[slot]]
+     const isLate=slot>=n-2
+     const isLast=slot===n-1
+     if((orderComp==='lateInnerEnergy1'&&isLate&&(p.pos===1||p.pos===2))
+       ||(orderComp==='lateAllEnergy1'&&isLate)
+       ||(orderComp==='lastEnergy1'&&isLast))p.e=Math.min(5,p.e+1)
+   }
+ }
+ st.startCells=initialStarts.slice();st.openingCardCounts=players.map(p=>p.hand.length);st.openingEnergy=players.map(p=>p.e);st.bonus=openingBonus;st.startMode=startMode;st.positionComp=positionComp;st.orderComp=orderComp
  function use(p,t,location='discard'){
    const index=p.hand.findIndex(c=>c.t===t);if(index===-1)throw Error('missing '+t)
    const c=p.hand.splice(index,1)[0];st.uses[t]=(st.uses[t]||0)+1
