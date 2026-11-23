@@ -20,7 +20,8 @@ assert(populations.every(n=>[2,4,7].includes(n)))
 const scenarios={
  base:{openingBonus:'last1',positionComp:'none'},
  inner2:{openingBonus:'last1',positionComp:'inner2'},
- inner2Last2:{openingBonus:'lastPlus2',positionComp:'inner2'}
+ inner2Last2:{openingBonus:'lastPlus2',positionComp:'inner2'},
+ inner2LastTwo:{openingBonus:'lastTwo1',positionComp:'inner2'}
 }
 assert(variants.every(v=>scenarios[v]))
 const pct=(a,b)=>b?+(100*a/b).toFixed(2):null
