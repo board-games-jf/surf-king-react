@@ -22,7 +22,12 @@ const LITE12 = Object.freeze({
   'Tsunami':'Sunburn','Hang Loose':'Amulet'
 })
 const LITE10 = Object.freeze({...LITE12,'Energy':'Energy x2','Swimming Fin':'Lifeguard Float'})
-const DECK_MAPS = Object.freeze({b60:null,lite12:LITE12,lite10:LITE10})
+// More defense instead of upgrading removed forced-displacement cards into
+// direct damage. All ten effects are already defined by the R0 model.
+const LITE10_GUARD = Object.freeze({
+ ...LITE10,'Change':'Sunburn','Tsunami':'Amulet'
+})
+const DECK_MAPS = Object.freeze({b60:null,lite12:LITE12,lite10:LITE10,lite10Guard:LITE10_GUARD})
 const deckTypes = profile => {
   if(!Object.prototype.hasOwnProperty.call(DECK_MAPS,profile))throw Error('Unknown deck profile '+profile)
   return TYPES.reduce((out,[name,count])=>{
