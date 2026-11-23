@@ -6,6 +6,18 @@
 **Current single complete-match design reference (NOT approved):** [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md) — recommended v0.1 loop, decisions, illustrative 3-player race, interdependencies and playtest gates.
 **Latest checked main:** `c6fd08e2da82ca223740e3aa944c47f87aa84f16` (reverified 2026-11-23). These experimental gameplay rules are **not** implemented in the running application.
 
+## Latest handoff — unified R0 tabletop pilot (2026-11-23)
+
+**Owner confirmed the split:** the assistant runs/records **simulations and mechanical validations**, and the **owner personally plays the human sessions**. No human sessions have happened or been verified.
+
+- **[R0 candidate rules](PLAYTEST_R0_RULES.md)** — one coherent provisional 2/4/7-player setup/turn/fall/Drop In/finish sequence; approved gameplay foundations preserved, all unresolved mechanics explicitly marked **pilot-only, not final**.
+- **[R0 60-card reference](PLAYTEST_R0_CARDS.md)** — 60 physical copies across 17 types, candidate effects, ranges, placements and protection timing; *not approved final deck*.
+- **[Blank owner scorecard](PLAYTEST_R0_SCORECARD.md)** — short reproducible seat/round/time/agency/fairness/interaction log with anonymous five-question feedback.
+- **[Iteration L validation](PLAYTEST_R0_CHECK_RESULTS.md)** and **[executable checks](PLAYTEST_R0_CHECKS.js)** — **42/42 independent tabletop-model operational smoke checks passed**, source-derived 53 cells; **not** game-engine, Jest/build, UI or human tests.
+- **[Human playtest protocol](HUMAN_PLAYTEST_PROTOCOL.md)** — owner-run 2-player paired opening/initiative sessions first, then 4/7 players, one variable at a time. No claim any session has been run.
+
+**R0 is a ready-to-try fixture, not a ruleset ratification or implementation order.** The pilot's 60-card mix, no-direct-damage first personal turn, optional standing exchange for winning Drop In, speed card, draw/hand cap, opponent-forced-hazard attribution and provisional first-beach winner with co-finish observation all remain unapproved details. The purpose is to generate **real human evidence** to weigh alongside model studies A–K. All related gameplay-vs-visual decision ID collisions remain unresolved; do not merge this documentation into `main` without reconciliation and explicit owner approval.
+
 ## Latest evidence — iterations H–K (2026-11-23)
 
 The owner authorized further **fast, fun and human-interactive** design validation before implementation, with **every iteration documented on GitHub**:
@@ -151,12 +163,12 @@ The newest comprehensive synthesis is [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT
 
 **2026-11-19 recovery decision:** SK-DEC-023 explicitly **generalizes the approved Shark recovery to all zero-energy falls** at their final cell, including Big Wave and combat, with next-own-turn **1 / 2 / 3 energy**. The controlled [card comparison](CARD_AND_PLAYER_COUNT_STUDY.md) historically stopped a Big Wave branch because the rule was not defined *at that time*. The new decision resolves that design gap, **but no new match simulation was executed**. Earlier sea-ward-fallback P-12/P-13 proposals remain superseded.
 
-**Next decisive design action (2026-11-23):** **Do not implement yet.** Iterations A–K are recorded under Issue #11/draft PR #12. The evidence confirms that attacks/Stone can increase opponent-facing actions while **2-player first-actor bias remains ~99%**; 7-player tactical density may be too high. **Immediate next gate:** compare turn-order-aware catch-up/round-end tie-breaking with concrete candidate positional actions in two-player matched scenarios, while limiting opening Big Wave snowballing and ensuring accessible Jumping/Amulet responses. Then use the [prepared human tabletop protocol](HUMAN_PLAYTEST_PROTOCOL.md) with 2/4/7 players to measure real time, fun, agency and frustration—**not yet executed**. Set final card counts/effects and a single short ruleset only after reviewing human feedback. Reconcile overlapping SK-DEC-019–024 visual/gameplay IDs before any integration. No app code/Jest/build, merge or deployment authorized.
+**Next decisive design action (2026-11-23):** **R0 manual playtest kit prepared and source-grounded smoke-tested (42/42 passed) as Iteration L**. Owner personally runs 2-player manual paired trials first (rotate first actor; record duration, card encounters, position/tactic changes and first-beach/co-finishing) with the single [R0 rules](PLAYTEST_R0_RULES.md), [60-card reference](PLAYTEST_R0_CARDS.md) and [short scorecard](PLAYTEST_R0_SCORECARD.md); then 4/7-player sessions as feasible. Assistant continues reproducible modeling and logs **each iteration on GitHub**, then analyzes owner-supplied anonymized human records. **No human tests were performed** and no B60/Surf Current/first-turn limitation/positional Drop In or final victory rule is newly approved. Main gameplay engine unchanged; reconcile accepted visual and draft gameplay SK-DEC-019–024 IDs before integration. No app/Jest/build, merge or deployment.
 
 ## 8. How to resume in a new conversation
 
 1. Read the latest [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11), including its chronological comments.
-2. Read this INDEX, **[HUMAN_PLAYTEST_PROTOCOL.md](HUMAN_PLAYTEST_PROTOCOL.md)**, **[FINISH_ORDER_STUDY.md](FINISH_ORDER_STUDY.md)**, **[CATCHUP_CARD_STUDY.md](CATCHUP_CARD_STUDY.md)**, **[CROSSLANE_INTERACTION_STUDY.md](CROSSLANE_INTERACTION_STUDY.md)**, **[OPENING_INTERACTION_STUDY.md](OPENING_INTERACTION_STUDY.md)**, then the linked earlier [A–G studies](DECK_ITERATION_A.md) and [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md) on this draft PR. Review additional supporting documents only when their specific decision is involved.
+2. Begin with **[PLAYTEST_R0_RULES.md](PLAYTEST_R0_RULES.md)**, **[PLAYTEST_R0_CARDS.md](PLAYTEST_R0_CARDS.md)**, **[PLAYTEST_R0_SCORECARD.md](PLAYTEST_R0_SCORECARD.md)**, **[PLAYTEST_R0_CHECK_RESULTS.md](PLAYTEST_R0_CHECK_RESULTS.md)** and **[HUMAN_PLAYTEST_PROTOCOL.md](HUMAN_PLAYTEST_PROTOCOL.md)**. For detailed models read [A–K reports](DECK_ITERATION_A.md) and [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md) as relevant.
 3. Recheck GitHub `main`, `AGENTS.md`, mandatory docs, current issue/PR status and relevant code/tests before technical decisions.
 4. Continue from the **Next action** above; report owner decisions in Portuguese and update Issue #11 comments and affected English draft Markdown for each material interaction.
 5. Never modify gameplay, merge, deploy or publish under this design-review epic. A separate scoped implementation issue and explicit owner approval will be needed after game rules are settled.
