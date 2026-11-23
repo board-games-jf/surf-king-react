@@ -40,8 +40,16 @@ function analyzeSetup(layout){
     }
     dataset.push({players:n,randomSeven:stats(setups,"random among seven distinct starts"),rowZero:n<=4?stats(safest,"random among 0..3"):null});
   }
+  // Naive one-start reverse choice: last actor picks first, always chooses a Shark-free shortest route if possible.
+  const reverseSelection=[2,4,7].map(n=>{
+    const priority=[4,5,6,0,1,2,3];
+    const positions=Array(n).fill(null);
+    for(let acting=n-1,index=0;acting>=0;acting--,index++)positions[acting]=priority[index];
+    const safest=positions.map(i=>distances[i].sharkFree);
+    return {players:n,positionsInActingOrder:positions,firstActingWinnerUnderSafeOnly:safest.indexOf(Math.min(...safest))===0,winnerActingIndex:safest.indexOf(Math.min(...safest)),note:"illustrative greedy one-position reverse choice, not a gameplay policy or statistically balanced method"};
+  });
   const nPairs=starts.flatMap((a,i)=>starts.slice(i+1).map(b=>({a,b,d:graph[a][b]})));
-  return {layout:{n:c.length,radius:r,shark:[...sharks],beach},starts:distances,pairCounts:{total:nPairs.length,adjacent:nPairs.filter(p=>p.d===1).length,cardRange2:nPairs.filter(p=>p.d<=2).length},samples:dataset,
+  return {layout:{n:c.length,radius:r,shark:[...sharks],beach},starts:distances,reverseSelection,pairCounts:{total:nPairs.length,adjacent:nPairs.filter(p=>p.d===1).length,cardRange2:nPairs.filter(p=>p.d<=2).length},samples:dataset,
     caveat:"Exact permutations under deterministic safest shortest-route, earliest arrival wins; no card tactics, no blockers, no shuffle deck, no real matches."};
 }
 const layout=JSON.parse(fs.readFileSync(path.join(__dirname,'../../src/map/layout/board-layout.json'),'utf8'))
