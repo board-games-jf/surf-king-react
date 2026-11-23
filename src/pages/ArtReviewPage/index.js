@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ATHLETE_ASSET_PATHS, ATHLETE_POSES, createAthleteSurferArt } from '../../map/views/Board3D/athleteSurferArt'
-import { BOARD_TYPES, BOARD_COLORS, normalizeSurferStyle } from '../../map/views/Board3D/surferStyle'
+import { BOARD_TYPES, BOARD_COLORS, PRESET_SURFERS, normalizeSurferStyle } from '../../map/views/Board3D/surferStyle'
 import { LOCAL_PLAYER_COUNT, readLastLocalSurferPlayer, readLocalSurferProfiles, saveLocalSurferProfile } from '../../map/views/Board3D/localSurferProfiles'
 import './ArtReviewPage.css'
 
@@ -103,11 +103,10 @@ export default function ArtReviewPage() {
   const choosePlayer = id => {
     setPlayerId(id)
     const profile = readLocalSurferProfiles()[id]
-    if (profile) {
-      const next = normalizeSurferStyle({ ...style, ...profile })
-      active.current?.setBoardStyle(next.boardType, BOARD_COLORS[next.boardColor])
-      setStyle(next)
-    }
+    const preset = PRESET_SURFERS[Number(id) % PRESET_SURFERS.length]
+    const next = normalizeSurferStyle({ ...preset, ...profile })
+    active.current?.setBoardStyle(next.boardType, BOARD_COLORS[next.boardColor])
+    setStyle(next)
     setSaved(false)
   }
   const [saved, setSaved] = useState(false)
