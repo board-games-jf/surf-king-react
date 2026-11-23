@@ -27,7 +27,8 @@ for(const n of populations)for(const policy of policies)for(const allocation of 
  const jointWins=Array.from({length:n},()=>Array(7).fill(0))
  const jointCount=Array.from({length:n},()=>Array(7).fill(0))
  let rounds=0,falls=0,actions=0,coFinish=0,checks=0,draws=0,distinctSets=new Set(),safeStartsInLastTwo=0
- const positionComp=n===2?'none':'inner2'
+ const positionComp=n===2?'none':(process.env.SK_ALLOC_COMP||'inner2')
+ assert(['none','inner1','inner2'].includes(positionComp),'unsupported position compensation')
  for(let z=1;z<=seeds;z++){
    const seed=offset+z
    const shift=(seed*13+Math.floor(seed/n))%n
