@@ -63,7 +63,7 @@ for(const n of players)for(const policy of policies)for(const variant of variant
  if(cfg.start==='random'&&seeds>=200)assert(comboSeen.every(row=>row.every(c=>c>0)),'All actor×cell assignments should occur')
  const combos=comboSeen.flatMap((row,actor)=>row.map((count,cell)=>({
     actor:actor+1,cell,seen:count,wins:comboWin[actor][cell],winPct:pct(comboWin[actor][cell],count)
- }))
+ })))
  const eligible=combos.filter(x=>x.seen>=Math.max(1,Math.floor(seeds/(n*7*2))))
  const worst=eligible.reduce((a,b)=>a.winPct<b.winPct?a:b)
  const best=eligible.reduce((a,b)=>a.winPct>b.winPct?a:b)
