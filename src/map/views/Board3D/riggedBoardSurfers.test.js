@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { createRiggedBoardSurfer, loadRiggedBoardTemplate, loadRiggedBoardTemplates, RIGGED_SURFER_ASSETS, PLAYER_BOARD_COLORS } from './riggedBoardSurfers'
+import { createRiggedBoardSurfer, resolveBoardSurferStyle, loadRiggedBoardTemplate, loadRiggedBoardTemplates, RIGGED_SURFER_ASSETS, PLAYER_BOARD_COLORS } from './riggedBoardSurfers'
 import { PRESET_SURFERS } from './surferStyle'
 
 function makeSkinnedTemplate(character = 'male') {
@@ -169,4 +169,23 @@ test('catalog opt-in selects both textured athlete assets', () => {
   expect(success).toHaveBeenCalledWith('male', male.root)
   expect(failure).not.toHaveBeenCalled()
   for (const model of [male, female]) { model.geometry.dispose(); model.body.material.dispose() }
+})
+
+
+describe('player-specific approved athlete selection', () => {
+  test('overrides only the selected player's character and board silhouette', () => {
+    const defaultPlayer = resolveBoardSurferStyle(0)
+    expect(defaultPlayer).toEqual(PRESET_SURFERS[0])
+    const selected = resolveBoardSurferStyle(0, { character: 'female', boardType: 'fish' })
+    expect(selected.character).toBe('female')
+    expect(selected.boardType).toBe('fish')
+    expect(selected.boardColor).toBe(defaultPlayer.boardColor)
+    expect(resolveBoardSurferStyle(1)).toEqual(PRESET_SURFERS[1])
+  })
+
+  test('ignores malformed imported choices and retains the approved defaults', () => {
+    const defaultPlayer = resolveBoardSurferStyle(3)
+    expect(resolveBoardSurferStyle(3, { character: 'unknown', boardType: 'invalid' }))
+      .toEqual(defaultPlayer)
+  })
 })
