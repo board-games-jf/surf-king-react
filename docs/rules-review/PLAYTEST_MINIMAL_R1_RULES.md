@@ -10,7 +10,7 @@ The goal is to race across the **53 edge-connected hexes** to the beach (**49–
 
 ## Your turn
 
-1. **Recover, if fallen:** Stand in the same hex with **1 energy**, free. Instead, spend a *Swimming Fin* to stand at **2 energy** or a *Lifeguard Float* at **3**; either uses your action. **Never skip a turn because of a fall.**
+1. **Recover, if fallen:** Stand in the same hex with **1 energy**, free. Alternatively, use a *Lifeguard Float* to stand at **3 energy**; this uses your one optional action. **Never skip a turn because of a fall.**
 2. **One optional action:** Play **one card**, attempt **one Drop In** against an edge-adjacent upright rival, or do neither. Card effects are written in the [R1 card sheet](PLAYTEST_MINIMAL_R1_CARDS.md). **First round: no attacks or forced displacement of opponents**, but preparations/defenses are allowed. For Drop In, each rolls **one d6 at energy 1, otherwise two d6**, using their highest die. Higher result wins; loser takes **−1 energy**; a tie does nothing. **No Drop In position swap.**
 3. **Move, then draw:** If upright and an edge-adjacent free hex exists, **move exactly one hex**, free; you cannot voluntarily pass or share a hex. Cards/terrain may modify this as printed. Resolve effects **on entry**. If you finish a successful maneuver upright and hold fewer than **5 cards**, draw **one**. No legal exit means no move/draw.
 
@@ -26,4 +26,4 @@ When someone reaches a beach hex, **finish the current round**. Already-finished
 
 ---
 
-**Testing notes (not rules):** Record actual game minutes, fun, confusing cards, falls, and whether changing the first player feels natural. At 2P, rotation can create two consecutive turns across round boundaries; assess this manually. The **10-type / 60-card R1 deck** is provisional; the old 17-type pilot was retained only for comparison. [Simulation evidence](R0_MINIMAL_RULES_STUDY.md). No production-game changes, accepted rules, merge or deploy.
+**Testing notes (not rules):** Record actual game minutes, fun, confusing cards, falls, and whether changing the first player feels natural. At 2P, rotation can create two consecutive turns across round boundaries; assess this manually. The **10-type / 60-card R1 deck** is provisional; the old 17-type pilot was retained only for comparison. [Rule simulations](R0_MINIMAL_RULES_STUDY.md) and [deck comparison](R0_MINIMAL_DECK_STUDY.md). No production-game changes, accepted rules, merge or deploy.
