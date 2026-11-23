@@ -32,7 +32,7 @@ const randomGenerator = seed => {
  let s=seed>>>0
  return ()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}
 }
-function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none'){
+function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first'){
  const rnd=randomGenerator((seed*7919+n*101+5)>>>0)
  const shuffle=a=>{for(let i=a.length-1;i>0;i--){let j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
  const choice=a=>a[Math.floor(rnd()*a.length)]
@@ -44,6 +44,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
  const players=Array.from({length:n},(_,i)=>({id:i,pos:initialStarts[i],e:2,down:false,hand:[],active:[],own:0,wasHit:0,targeted:0,act:0,wasDownAtStart:0}))
  const order=Array.from({length:n},(_,k)=>(k+shift)%n)
  const first=order[0], initialCount=ALL_CARDS.length
+ const eligible=q=>finishRule==='first'||!BEACH.has(q.pos)
  const st={n,seed,shift,mode,first,winner:-1,winActorIndex:-1,rounds:16,finished:false,
    beachSameRound:0,totalTurns:0,moves:0,forcedBlocks:0,falls:0,sharkFalls:0,terrainFalls:0,
    playerFalls:0,stolen:0,hazardDiscard:0,emptyFall:0,attackActions:0,damageHits:0,
@@ -132,7 +133,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
    arrival(q,to,from,q===initiator?null:initiator)
    return true
  }
- function exposed(p){return players.filter(q=>q!==p&&!q.down&&DIST[p.pos][q.pos]<=3)}
+ function exposed(p){return players.filter(q=>q!==p&&!q.down&&eligible(q)&&DIST[p.pos][q.pos]<=3)}
  function expire(p){
    for(let i=p.active.length-1;i>=0;i--)if(p.active[i].expires<=p.own){discard.push(p.active.splice(i,1)[0].card)}
    for(const [v,placed] of board)if(placed.owner===p.id&&placed.expires<=p.own){board.delete(v);discard.push(placed.card)}
@@ -153,7 +154,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
   for(let to=7;to<49;to++){
    if(SHARK.has(to)||occupied(to)||board.has(to)||to===p.pos||DIST[p.pos][to]>2)continue
    let score=-1
-   const others=players.filter(q=>q!==p&&!q.down)
+   const others=players.filter(q=>q!==p&&!q.down&&eligible(q))
    if(t==='Stone'){score=Math.max(...others.map(q=>(D[to]<D[q.pos]&&ADJ[q.pos].includes(to)?5:0))) -Math.abs(D[p.pos]-D[to])*.1}
    if(t==='Storm'){score=Math.max(...others.map(q=>ADJ[q.pos].includes(to)?3:0))}
    if(t==='Island'){score=ADJ[p.pos].includes(to)&&D[to]<D[p.pos]?4:0}
@@ -175,7 +176,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
  }
  function direct(p,type){
    const dmg=type==='Big Wave'?2:1,range=type==='Big Wave'?2:3
-   const qs=players.filter(q=>q!==p&&!q.down&&!amulet(q)&&DIST[p.pos][q.pos]<=range)
+   const qs=players.filter(q=>q!==p&&!q.down&&eligible(q)&&!amulet(q)&&DIST[p.pos][q.pos]<=range)
    if(!qs.length)return false
    qs.sort((a,b)=>(a.e<=dmg?0:1)-(b.e<=dmg?0:1)||D[a.pos]-D[b.pos]||a.id-b.id)
    const q= mode==='aggressive' ? qs[0] : (rnd()<.20 ? choice(qs) : qs[0])
@@ -184,7 +185,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
    hurt(q,dmg,'attack',p);return true
  }
  function change(p){
-   const qs=players.filter(q=>q!==p&&!q.down&&!amulet(q)&&DIST[p.pos][q.pos]<=2&&D[q.pos]<D[p.pos])
+   const qs=players.filter(q=>q!==p&&!q.down&&eligible(q)&&!amulet(q)&&DIST[p.pos][q.pos]<=2&&D[q.pos]<D[p.pos])
    if(!qs.length)return false
    qs.sort((a,b)=>D[a.pos]-D[b.pos]);const q=qs[0]
    use(p,'Change');st.opponentActions++;st.targeted[q.id]++;q.targeted++
@@ -194,14 +195,14 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
   const candidate=[]
   for(let row=1;row<14;row++){
    if(!layout.cells.some(c=>c.row===row&&DIST[p.pos][c.id]<=2))continue
-   const opponents=players.filter(q=>q!==p&&!q.down&&!amulet(q)&&ROW[q.pos]===row)
+   const opponents=players.filter(q=>q!==p&&!q.down&&eligible(q)&&!amulet(q)&&ROW[q.pos]===row)
    const movable=opponents.filter(q=>ADJ[q.pos].some(to=>ROW[to]<ROW[q.pos]&&!occupied(to,q.id)&&board.get(to)?.card.t!=='Stone'))
    if(movable.length)candidate.push({row,movable})
   }
   if(!candidate.length)return false
   candidate.sort((a,b)=>b.movable.length-a.movable.length)
   const row=candidate[0].row;use(p,'Tsunami')
-  const targets=players.filter(q=>q!==p&&!q.down&&!amulet(q)&&ROW[q.pos]===row).sort((a,b)=>a.pos-b.pos)
+  const targets=players.filter(q=>q!==p&&!q.down&&eligible(q)&&!amulet(q)&&ROW[q.pos]===row).sort((a,b)=>a.pos-b.pos)
   let pushed=0
   for(const q of targets){
     const opts=ADJ[q.pos].filter(to=>ROW[to]<ROW[q.pos]&&!occupied(to,q.id)&&board.get(to)?.card.t!=='Stone')
@@ -213,7 +214,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
   return true
  }
  function drop(p){
-   const qs=players.filter(q=>q!==p&&!q.down&&!amulet(q)&&!loose(q)&&ADJ[p.pos].includes(q.pos))
+   const qs=players.filter(q=>q!==p&&!q.down&&eligible(q)&&!amulet(q)&&!loose(q)&&ADJ[p.pos].includes(q.pos))
    if(!qs.length)return false
    qs.sort((a,b)=>D[a.pos]-D[b.pos]);const q=qs[0]
    const roll=e=>Math.max(...Array.from({length:e===1?1:2},()=>1+Math.floor(rnd()*6)))
@@ -239,10 +240,10 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
    // Full candidate card palette; chosen according to fixed transparent scripted priorities.
    if(allowAttacks){
     for(const t of ['Big Wave','Sunburn'])if(contains(p,t)){const range=t==='Big Wave'?2:3,dmg=t==='Big Wave'?2:1
-      if(players.some(q=>q!==p&&!q.down&&!amulet(q)&&DIST[p.pos][q.pos]<=range))actions.push({key:t,score:mode==='aggressive'?8:5+(players.some(q=>q!==p&&!q.down&&!amulet(q)&&DIST[p.pos][q.pos]<=range&&q.e<=dmg)?3:0)})}
-    if(contains(p,'Change')&&players.some(q=>q!==p&&!q.down&&!amulet(q)&&DIST[p.pos][q.pos]<=2&&D[q.pos]<D[p.pos]))actions.push({key:'Change',score:9})
-    if(contains(p,'Tsunami')&&players.some(q=>q!==p&&!q.down&&!amulet(q)&&ROW[q.pos]>0&&ROW[q.pos]<14&&DIST[p.pos][q.pos]<=2))actions.push({key:'Tsunami',score:3})
-    if(players.some(q=>q!==p&&!q.down&&!amulet(q)&&ADJ[p.pos].includes(q.pos)&&!loose(q)&&!amulet(q)))actions.push({key:'Drop In',score:mode==='aggressive'?7:3})
+      if(players.some(q=>q!==p&&!q.down&&eligible(q)&&!amulet(q)&&DIST[p.pos][q.pos]<=range))actions.push({key:t,score:mode==='aggressive'?8:5+(players.some(q=>q!==p&&!q.down&&eligible(q)&&!amulet(q)&&DIST[p.pos][q.pos]<=range&&q.e<=dmg)?3:0)})}
+    if(contains(p,'Change')&&players.some(q=>q!==p&&!q.down&&eligible(q)&&!amulet(q)&&DIST[p.pos][q.pos]<=2&&D[q.pos]<D[p.pos]))actions.push({key:'Change',score:9})
+    if(contains(p,'Tsunami')&&players.some(q=>q!==p&&!q.down&&eligible(q)&&!amulet(q)&&ROW[q.pos]>0&&ROW[q.pos]<14&&DIST[p.pos][q.pos]<=2))actions.push({key:'Tsunami',score:3})
+    if(players.some(q=>q!==p&&!q.down&&eligible(q)&&!amulet(q)&&ADJ[p.pos].includes(q.pos)&&!loose(q)&&!amulet(q)))actions.push({key:'Drop In',score:mode==='aggressive'?7:3})
    }
    if(contains(p,'Surf Current')&&D[p.pos]>=2)actions.push({key:'Surf Current',score:mode==='aggressive'?8:7})
    for(const [key,amount] of [['Coconut',5],['Energy x2',2],['Energy',1]])if(contains(p,key)&&p.e<=(key==='Coconut'?3:key==='Energy x2'?3:2))actions.push({key,score:p.e<=1?8:4})
@@ -284,7 +285,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
      if(BEACH.has(p.pos))continue
      st.totalTurns++
      p.own++;expire(p)
-     const tail=st.finished
+     const tail=st.finished&&finishRule==='first'
      const rescued=recover(p)
      const moveBefore=st.moves
      let tactic=false
@@ -298,11 +299,28 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
      verify()
    }
    verify()
-   if(st.finished){st.beachSameRound=observedFinishers.size;break}
+   if(st.finished){
+     st.beachSameRound=observedFinishers.size
+     st.finishers=[...observedFinishers]
+     if(finishRule!=='first'){
+       const entrants=st.finishers.slice()
+       const lottery=randomGenerator((Math.imul(seed,33331)+n*991+shift*37+8277)>>>0)
+       if(finishRule==='roundRandom')st.winner=entrants[Math.floor(lottery()*entrants.length)]
+       else if(finishRule==='roundReverse')st.winner=entrants.reduce((v,u)=>order.indexOf(u)>order.indexOf(v)?u:v)
+       else if(finishRule==='roundEnergy'){
+         const maxEnergy=Math.max(...entrants.map(id=>players[id].e))
+         const tied=entrants.filter(id=>players[id].e===maxEnergy)
+         st.winner=tied[Math.floor(lottery()*tied.length)]
+       }else throw Error('Unknown finish rule '+finishRule)
+       st.winActorIndex=activeOrder.indexOf(st.winner)
+     }
+     break
+   }
    const afterLead=[...players].sort((a,b)=>D[a.pos]-D[b.pos])[0]?.id
    if(beforeLead!==afterLead)st.leadChanges++
  }
  if(!st.finished)st.beachSameRound=0
+ st.finishRule=finishRule
  st.positions=players.map(p=>p.pos)
  st.attackedDistinct=st.targeted.filter(v=>v>0).length
  st.maxTargetShare=st.opponentActions?Math.max(...st.targeted)/st.opponentActions:0
