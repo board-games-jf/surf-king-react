@@ -71,6 +71,29 @@ The two opening hand variants were everyone 2 cards and the last acting player w
 - **Winner's remaining energy is a tactical tiebreak, not an inherently fair universal scoring rule**. Energy restoration (Coconut/Island), Shark routes and reactive attacker cards may bias it. It must be tested with real players for clarity, agency and satisfaction. Random lottery among equal-energy finishers is still a chance mechanism.
 - No extra movement, repeated turns or instant energy bonuses were added. This avoids the documented snake initiative no-response double turn. The role of the fixed initiative order, 2P path choices and 7P congestion remains unresolved.
 
+## Additional 7P stress: starting-cell fairness is still not fixed
+
+**Executed an additional 4,000 seeded 7P games per condition** × balanced/aggressive × first-arrival/end-round-energy, **16,000 game executions** total. These overlap the first 1,000 seeds of the main 48,000-game A/B and **must not be added as statistically independent 64,000 observations**. They use randomized start positions, randomized first actor, fixed order, last+1 card and the same complete R0 model/invariants.
+
+| Seven players, 4,000 seeds | First-arrival rule: first / last | End-round-energy rule: first / last |
+| --- | --- | --- |
+| Balanced | **28.10% / 7.85%** | **19.05% / 12.38%** |
+| Aggressive | **28.07% / 6.78%** | **18.63% / 11.43%** |
+
+The end-round-energy procedure reduces **initiative bias** in both policies, but **position selection still matters a lot**:
+
+| Starting cell (all 7 occupied) | Balanced 7P, first-arrival win share | Balanced 7P, end-round-energy win share |
+| --- | ---: | ---: |
+| 0 | 14.85% | 14.50% |
+| **1** | **10.57%** | **9.60%** |
+| **2** | **9.43%** | **8.57%** |
+| 3 | 14.85% | 15.57% |
+| 4 | 16.98% | 17.57% |
+| 5 | 15.82% | 16.27% |
+| 6 | 17.50% | 17.90% |
+
+Thus the candidate **cannot yet be called fair for seven players**: starts **1/2 appear relatively disadvantaged** and 4/6 relatively favored in this model. Randomizing starts makes assignment fair *across repeated games*, but within-match variance persists. Do not respond by moving Sharks without testing the owner's intended peripheral hazard; instead isolate why 1/2 fare poorly under pressure and whether a **small position-sensitive, card-driven compensation** could preserve interaction without making any cell automatically winning. Also examine spawn-relative attack exposure and whether the higher-energy tiebreak rewards avoiding Shark too strongly. This subgroup remains an approximation under scripted policies, not human causal evidence.
+
 ## Decision / targeted next step
 
 **Working candidate for owner review, NOT an approved rule:** **fixed turn order**, randomized first actor and distinct random starting cells, **last actor +1 opening card**, and **finish the current round after the first beach arrival; among same-round beach finishers, highest remaining energy wins; roll/draw only for an energy tie**. This reduced balanced 7P modeled first-last gap from **22.7 percentage points to 6.1 pp**, balanced 2P from **42.0 pp to 2.2 pp**, and 4P from **32.8 pp to 4.2 pp**. These results are promising but **not complete fairness**, especially with 7P (17.7% first vs 11.6% last). Players can still lose before the final round through card play, so a second A/B is warranted.
