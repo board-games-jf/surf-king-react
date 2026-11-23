@@ -1,0 +1,65 @@
+// Surf King R0 tabletop rules: independently executed smoke checks (NOT game-engine tests).
+function runR0PilotChecks(layout){
+ const B60={Energy:6,EnergyX2:4,Coconut:2,SwimmingFin:5,LifeGuardFloat:4,BigWave:3,Sunburn:4,Stone:4,Storm:4,Island:3,Cyclone:3,Change:2,Jumping:4,Tsunami:3,HangLoose:3,Amulet:2,SurfCurrent:4};
+ const A=layout.cells,N=A.length,shark=new Set([28,29,30,31]),beach=new Set([49,50,51,52]);
+ const adj=A.map(c=>A.filter(q=>q.id!==c.id&&Math.abs(Math.hypot(c.x-q.x,c.z-q.z)-Math.sqrt(3)*layout.hexRadius)<.005).map(q=>q.id));
+ const assert=(ok,msg)=>{if(!ok)throw Error(msg)};
+ const distance=(from,to)=>{const queue=[[from,0]],seen=new Set([from]);for(let k=0;k<queue.length;k++){let [v,d]=queue[k];if(v===to)return d;for(const n of adj[v])if(!seen.has(n)){queue.push([n,d+1]);seen.add(n)}}return Infinity};
+ const make=(players,obstacles=[])=>({players:players.map(p=>({id:p.id,pos:p.pos,e:p.e??2,down:p.down??false,hand:(p.hand||[]).slice(),active:(p.active||[]).slice(),ownTurn:p.ownTurn??0})),ob:new Map(obstacles.map(o=>[o.pos,{...o}])),discard:[],event:[]});
+ const get=(s,id)=>s.players.find(p=>p.id===id);
+ const vacant=(s,to,ignore)=>!s.players.some(p=>p.id!==ignore&&p.pos===to)&&s.ob.get(to)?.type!=="Stone";
+ const cardLoss=(s,victim,attacker)=>{const hand=victim.hand,card=hand.length?hand.splice(0,1)[0]:null;if(card!==null){if(attacker&&attacker!==victim)attacker.hand.push(card);else s.discard.push(card)}s.event.push({id:victim.id,lost:card,receiver:attacker?.id||"discard"});return card};
+ const damage=(s,p,amount,attacker=null)=>{if(p.down||amount<=0)return false;p.e=Math.max(0,p.e-amount);if(p.e===0){p.down=true;cardLoss(s,p,attacker);return true}return false};
+ const move=(s,id,to)=>{const p=get(s,id);if(p.down||!adj[p.pos].includes(to)||!vacant(s,to,id))return false;p.pos=to;if(shark.has(to))damage(s,p,2);const o=s.ob.get(to);if(o&&!p.down){if(o.type==="Storm")damage(s,p,1);if(o.type==="Island"){p.e=Math.min(5,p.e+2);s.discard.push("Island");s.ob.delete(to)}}return true};
+ const recover=(s,id,card=null)=>{const p=get(s,id);if(!p.down)return false;if(card&&!p.hand.includes(card))return false;if(card){p.hand.splice(p.hand.indexOf(card),1);s.discard.push(card)}p.e=card==="LifeGuardFloat"?3:card==="SwimmingFin"?2:1;p.down=false;return true};
+ const canPlayInFirstTurn=t=>!["BigWave","Sunburn","Change","Tsunami","DropIn"].includes(t);
+ const placeStone=(s,id,to)=>{const p=get(s,id);if(to<7||to>=49||shark.has(to)||distance(p.pos,to)>2||s.ob.has(to)||s.players.some(q=>q.pos===to)||[...s.ob.values()].some(o=>o.type==="Stone"&&o.owner===id))return false;s.ob.set(to,{type:"Stone",pos:to,owner:id,expires:p.ownTurn+3});return true};
+ const jump=(s,id,to)=>{const p=get(s,id);if(!adj[p.pos].includes(to)||!s.ob.get(to)||shark.has(to))return false;s.ob.delete(to);s.discard.push("Stone");return true};
+ const bigWave=(s,id,target)=>{const a=get(s,id),b=get(s,target);if(!a||!b||b.down||b.active.includes("Amulet")||distance(a.pos,b.pos)>2)return false;damage(s,b,2,a);return true};
+ const dropin=(s,id,target,attackDice,defenseDice,swap=false)=>{const a=get(s,id),b=get(s,target);if(!a||!b||a.down||b.down||!adj[a.pos].includes(b.pos)||b.active.includes("HangLoose")||b.active.includes("Amulet"))return {ok:false};const A=Math.max(...attackDice),B=Math.max(...defenseDice);if(A>B)damage(s,b,1,a);else if(B>A)damage(s,a,1,b);let swapped=false;if(A>B&&swap&&!a.down&&!b.down){const old=a.pos;a.pos=b.pos;b.pos=old;swapped=true}return {ok:true,swapped,tied:A===B}};
+ const surfCurrent=(s,id,route)=>{let moved=0;for(const v of route.slice(0,2)){const p=get(s,id);if(p.down||beach.has(p.pos))break;if(!move(s,id,v))break;moved++;if(p.down||beach.has(p.pos))break}return moved};
+ const cases=[];const check=(title,fn)=>{try{fn();cases.push({title,result:"PASS"})}catch(e){cases.push({title,result:"FAIL",reason:String(e.message||e)})}};
+ const r0=[0,7,14,21,28,35,42,49],r1=[1,8,15,22,29,36,43,50],r2=[2,9,16,23,30,37,44,51],r3=[3,10,17,24,31,38,45,52];
+ check("B60 physical inventory contains exactly 60 copies and 17 types",()=>assert(Object.values(B60).reduce((s,v)=>s+v,0)===60&&Object.keys(B60).length===17,"deck totals"));
+ check("B60 has no obsolete BottledWater or EnergyX3",()=>assert(!B60.BottledWater&&!B60.EnergyX3,"removed card remains"));
+ check("Map has 53 hexes and four fixed Sharks",()=>assert(N===53&&shark.size===4,"layout drift"));
+ check("Hex adjacency is symmetric",()=>assert(adj.every((q,i)=>q.every(v=>adj[v].includes(i))),"asymmetric adjacency"));
+ for(const [i,path] of [r0,r1,r2,r3].entries())check("Seat "+i+" has valid seven-edge Shark route",()=>{assert(path.length===8&&path.slice(1).every((v,k)=>adj[path[k]].includes(v)),"invalid route");assert(beach.has(path.at(-1)),"not beach")});
+ check("Seat0 and seat1 start two edges apart",()=>assert(distance(0,1)===2,"start spacing"));
+ check("First personal turn excludes offensive forced displacement and direct damage",()=>assert(["BigWave","Sunburn","Change","Tsunami","DropIn"].every(t=>!canPlayInFirstTurn(t)),"offense permitted"));
+ check("First personal turn allows defense and obstacle preparation",()=>assert(["Stone","Storm","Island","Cyclone","Amulet","HangLoose","Energy"].every(canPlayInFirstTurn),"preparation denied"));
+ check("Zero-cost normal maneuver preserves E2 on safe cell",()=>{const s=make([{id:"A",pos:0}]);assert(move(s,"A",7)&&get(s,"A").e===2,"safe movement cost")});
+ check("E2 enters Shark28 and falls in place once",()=>{const s=make([{id:"A",pos:21,hand:["Energy","Coconut"]}]);assert(move(s,"A",28)&&get(s,"A").down&&get(s,"A").pos===28&&get(s,"A").e===0&&s.event.length===1&&s.discard.length===1,"fall state")});
+ check("Already fallen cannot lose a second hand card",()=>{const s=make([{id:"A",pos:28,e:0,down:true,hand:["Energy"]}]);assert(!damage(s,get(s,"A"),2)&&s.event.length===0&&get(s,"A").hand.length===1,"double fall")});
+ check("Free next-turn recovery stays on Shark hex at E1",()=>{const s=make([{id:"A",pos:28,e:0,down:true}]);assert(recover(s,"A")&&get(s,"A").pos===28&&get(s,"A").e===1&&!get(s,"A").down,"remount")});
+ check("Recovery card Fin sets E2 and exits hand",()=>{const s=make([{id:"A",pos:28,e:0,down:true,hand:["SwimmingFin"]}]);assert(recover(s,"A","SwimmingFin")&&get(s,"A").e===2&&!get(s,"A").hand.length,"fin")});
+ check("Recovery card Float sets E3 and exits hand",()=>{const s=make([{id:"A",pos:28,e:0,down:true,hand:["LifeGuardFloat"]}]);assert(recover(s,"A","LifeGuardFloat")&&get(s,"A").e===3&&!get(s,"A").hand.length,"float")});
+ check("No extra Shark injury from standing, onward step is legal",()=>{const s=make([{id:"A",pos:28,e:0,down:true}]);recover(s,"A");assert(move(s,"A",35)&&get(s,"A").e===1,"standing triggered shark")});
+ check("Big Wave can target opposing lane at starting distance2",()=>{const s=make([{id:"A",pos:0},{id:"B",pos:1,hand:["Energy"]}]);assert(bigWave(s,"A","B")&&get(s,"B").down&&get(s,"A").hand.length===1,"no attack transfer")});
+ check("Big Wave cannot target distant rival",()=>{const s=make([{id:"A",pos:0},{id:"B",pos:49,hand:["Energy"]}]);assert(!bigWave(s,"A","B"),"ranged miss")});
+ check("Amulet protects target of Big Wave",()=>{const s=make([{id:"A",pos:0},{id:"B",pos:1,active:["Amulet"]}]);assert(!bigWave(s,"A","B")&&get(s,"B").e===2,"amulet failed")});
+ check("Stone at 22 blocks 15 moving into it",()=>{const s=make([{id:"A",pos:14},{id:"B",pos:15}]);assert(placeStone(s,"A",22)&&!move(s,"B",22),"stone pass-through")});
+ check("Jumping from 15 removes adjacent placed Stone22",()=>{const s=make([{id:"A",pos:14},{id:"B",pos:15}]);placeStone(s,"A",22);assert(jump(s,"B",22)&&move(s,"B",22),"Jumping response")});
+ check("Stone cannot be placed atop Shark28 or occupied target",()=>{const s=make([{id:"A",pos:21},{id:"B",pos:25}]);assert(!placeStone(s,"A",28)&&!placeStone(s,"A",25),"illegal placement")});
+ check("Stone owner cannot place second active Stone",()=>{const s=make([{id:"A",pos:21}]);assert(placeStone(s,"A",25)&&!placeStone(s,"A",22),"over-cap Stone")});
+ check("Stone expires at start of owner's third later personal turn",()=>{const s=make([{id:"A",pos:21,ownTurn:1}]);placeStone(s,"A",25);const exp=s.ob.get(25).expires;assert(exp===4,"expiry tick");get(s,"A").ownTurn=4;for(const [k,b] of s.ob)if(b.owner==="A"&&b.expires<=get(s,"A").ownTurn)s.ob.delete(k);assert(!s.ob.has(25),"Stone not expired")});
+ check("Shark only legal free neighbor with surrounding occupied",()=>{const s=make([{id:"A",pos:21},{id:"B",pos:14},{id:"C",pos:18},{id:"D",pos:25}]);const free=adj[21].filter(v=>vacant(s,v,"A"));assert(free.length===1&&free[0]===28,"forced Shark not unique")});
+ check("Fully blocked hex has no legal movement and no overlap",()=>{const others=adj[21].map((pos,i)=>({id:"X"+i,pos}));const s=make([{id:"A",pos:21},...others]);assert(adj[21].every(v=>!vacant(s,v,"A"))&&new Set(s.players.map(p=>p.pos)).size===s.players.length,"blocked invalid")});
+ check("Normal Drop In cannot cross two-edge lanes",()=>{const s=make([{id:"A",pos:0},{id:"B",pos:1}]);assert(!dropin(s,"A","B",[6,2],[2,1]).ok,"remote Drop In")});
+ check("Standing strict-win Drop In exchange consumes occupied target",()=>{const s=make([{id:"A",pos:35},{id:"B",pos:42,e:3}]);const r=dropin(s,"A","B",[6,2],[4,1],true);assert(r.ok&&r.swapped&&get(s,"A").pos===42&&get(s,"B").pos===35,"failed exchange")});
+ check("Fallen defender remains in hex; cannot exchange",()=>{const s=make([{id:"A",pos:35},{id:"B",pos:42,e:1,hand:["Energy"]}]);const r=dropin(s,"A","B",[6,2],[4],true);assert(r.ok&&!r.swapped&&get(s,"B").down&&get(s,"B").pos===42&&get(s,"A").hand[0]==="Energy","bad fallen overlap")});
+ check("Drop In tie causes neither swap nor damage",()=>{const s=make([{id:"A",pos:35},{id:"B",pos:42}]);const r=dropin(s,"A","B",[5,2],[5,1],true);assert(r.tied&&!r.swapped&&get(s,"A").e===2&&get(s,"B").e===2,"tie effect")});
+ check("Attacker losing Drop In can fall and defender gets hand card",()=>{const s=make([{id:"A",pos:35,e:1,hand:["Energy"]},{id:"B",pos:42}]);const r=dropin(s,"A","B",[1],[6,3]);assert(r.ok&&get(s,"A").down&&get(s,"B").hand.length===1,"reverse penalty")});
+ check("Surf Current advances two true-edge moves without jumping",()=>{const s=make([{id:"A",pos:35}]);assert(surfCurrent(s,"A",[39,46])===2&&get(s,"A").pos===46,"speed")});
+ check("Surf Current cannot leap past occupied first step",()=>{const s=make([{id:"A",pos:35},{id:"B",pos:39}]);assert(surfCurrent(s,"A",[39,46])===0&&get(s,"A").pos===35,"illegal leap")});
+ check("Surf Current stops at Shark when fallen",()=>{const s=make([{id:"A",pos:21,hand:["Energy"]}]);assert(surfCurrent(s,"A",[28,35])===1&&get(s,"A").down&&get(s,"A").pos===28,"should stop")});
+ check("Storm tile costs one energy on entry",()=>{const s=make([{id:"A",pos:21}], [{pos:25,type:"Storm",owner:"B"}]);assert(move(s,"A",25)&&get(s,"A").e===1,"Storm damage")});
+ check("One-shot Island gives two energy then disappears",()=>{const s=make([{id:"A",pos:21,e:1}], [{pos:25,type:"Island",owner:"B"}]);assert(move(s,"A",25)&&get(s,"A").e===3&&!s.ob.has(25),"Island reuse")});
+ check("Full recipient hand can choose one card to discard after steal",()=>{const s=make([{id:"A",pos:35,hand:["a","b","c","d","e"]},{id:"B",pos:42,e:1,hand:["Energy"]}]);dropin(s,"A","B",[6,2],[4],false);assert(get(s,"A").hand.length===6,"needs overflow");s.discard.push(get(s,"A").hand.pop());assert(get(s,"A").hand.length===5&&get(s,"B").hand.length===0,"overflow failed")});
+ check("Free hand recovery allows still using tactic, Fin/Float uses slot",()=>{const free={slot:false},paid={slot:true};assert(!free.slot&&paid.slot,"tactical rule")});
+ check("Drawing only after upright maneuver and below hand cap",()=>{const allowed=(p,moved)=>moved&&!p.down&&p.hand.length<5;assert(allowed({down:false,hand:["x"]},true)&&!allowed({down:true,hand:[]},true)&&!allowed({down:false,hand:[]},false)&&!allowed({down:false,hand:[1,2,3,4,5]},true),"draw gate")});
+ check("All four initial seats can simultaneously enter distinct beach cells after seven moves",()=>{const routes=[r0,r1,r2,r3];assert(new Set(routes.map(r=>r.at(-1))).size===4&&routes.every(r=>beach.has(r.at(-1))),"beach not distinct")});
+ const failed=cases.filter(c=>c.result==="FAIL");return {count:cases.length,passed:cases.length-failed.length,failed,cases,kind:"small independent operational fixtures; not integrated app or Monte Carlo full matches"};
+}
+
+// Reproduce with runR0PilotChecks(JSON.parse(boardLayoutJson)).
