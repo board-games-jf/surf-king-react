@@ -3,6 +3,12 @@
 **Epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) | **Rules hub:** [INDEX.md](INDEX.md) | **Draft PR:** [#12](https://github.com/board-games-jf/surf-king-react/pull/12)
 **Status:** Range is **owner-confirmed**; maximum energy, dice count and **no-damage ties accepted for design testing**; all other combat details and effects remain open.
 
+## 2026-11-23 correction — accepted occupancy supersedes historical positional-fall proposals
+
+**Authoritative later design acceptance:** SK-DEC-023 keeps **every newly fallen surfer occupying their final cell** until they can stand on their next personal turn. Thus the older P-11/P-12 material below advocating **vacating the occupied cell, immediately moving into the fallen defender's tile or respawning seaward is SUPERSEDED** and MUST NOT be applied or copied into a new engine. A successful normal adjacent Drop In does **not** automatically create a free occupied destination. **SK-DEC-025** confirms one random hand-card loss on a genuine fall, given to the attacking rival if responsible; no double theft.
+
+**New evidence:** [Iteration F](PLAYER_INTERACTION_REVIEW.md) tested 17 concrete player-to-player scenarios. [Iteration G](DROPIN_INTERACTION_COMPARISON.md) executed 1,200 seeded damage-only-vs-optional-swap model races. Strict winning exchange while **both remain standing** can change the lead and consume the normal maneuver, but this positional reward **remains a proposal**. In the simplified graph model 2- and 4-player races had **0 adjacent Drop Ins**, because parallel seven-move lanes stay graph distance 2; 7-player games averaged **15.86** damage-only attempts or **14.97** with optional swap, with **1.16 legal swaps** in the latter. Meaningful interpersonal interaction is now an **accepted design goal (SK-DEC-027)**, not approval of any single combat mechanism or networked multiplayer. Test ranged rival cards, shared obstacles, and opening-round fairness before selecting a final rule.
+
 ## Owner-confirmed rule
 
 Normal Drop In can target **only a player in an edge-sharing adjacent hexagon**. Cells touching only at corners cannot be attacked. The confirmed displayed nonadjacent example 18 → 15 is also invalid for normal Drop In.
