@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ATHLETE_ASSET_PATHS, ATHLETE_POSES, createAthleteSurferArt } from '../../map/views/Board3D/athleteSurferArt'
 import { BOARD_TYPES, BOARD_COLORS, normalizeSurferStyle } from '../../map/views/Board3D/surferStyle'
-import { LOCAL_PLAYER_COUNT, readLocalSurferProfiles, saveLocalSurferProfile } from '../../map/views/Board3D/localSurferProfiles'
+import { LOCAL_PLAYER_COUNT, readLastLocalSurferPlayer, readLocalSurferProfiles, saveLocalSurferProfile } from '../../map/views/Board3D/localSurferProfiles'
 import './ArtReviewPage.css'
 
 export const ATHLETE_SAVE_KEY = 'surf-king-surfer-preview-v1'
@@ -89,7 +89,7 @@ export default function ArtReviewPage() {
   const [ready, setReady] = useState(false)
   const [selectedPose, setSelectedPose] = useState('surf')
   const [style, setStyle] = useState(readAthleteStyle)
-  const [playerId, setPlayerId] = useState('0')
+  const [playerId, setPlayerId] = useState(readLastLocalSurferPlayer)
   const characterType = style.character
   const initialStyle = useRef(style)
   initialStyle.current = style
