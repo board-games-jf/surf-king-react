@@ -36,6 +36,17 @@ for(const n of populations)for(const policy of policies)for(const allocation of 
    assert(g.finished,'uncompleted match')
    assert.strictEqual(new Set(g.startCells).size,n,'overlapping starts')
    assert(g.startCells.every(cell=>Number.isInteger(cell)&&cell>=0&&cell<7),'off-board start')
+   const startForActingSlot=slot=>g.startCells[(shift+slot)%n]
+   if(allocation==='lateSafe1')assert(startForActingSlot(n-1)>=4,'last actor must have a Shark-free seven-move start')
+   if(allocation==='lateSafe2'||allocation==='reverseTier'){
+     for(let slot=n-2;slot<n;slot++)assert(startForActingSlot(slot)>=4,'last two should receive the safer start tier')
+   }
+   if(allocation==='reverseTier'){
+     const reserved=Math.min(3,n)
+     for(let slot=n-reserved;slot<n;slot++)assert(startForActingSlot(slot)>=4,'reverse-tier draft safe picks')
+     if(n===7)for(let slot=0;slot<n-reserved;slot++)assert(startForActingSlot(slot)<=3,'reverse-tier early picks')
+   }
+   if(n===7)assert.strictEqual(new Set(g.startCells).size,7,'all seven positions should appear')
    assert(g.cardConservationChecks>=n,'missing invariant checks')
    const lastCell=g.startCells[(shift+n-1)%n]
    const extra=([1,2].includes(lastCell)?({none:0,inner1:1,inner2:2}[positionComp]):0)
