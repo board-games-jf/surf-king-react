@@ -21,7 +21,10 @@ const scenarios={
  base:{openingBonus:'last1',positionComp:'none'},
  inner2:{openingBonus:'last1',positionComp:'inner2'},
  inner2Last2:{openingBonus:'lastPlus2',positionComp:'inner2'},
- inner2LastTwo:{openingBonus:'lastTwo1',positionComp:'inner2'}
+ inner2LastTwo:{openingBonus:'lastTwo1',positionComp:'inner2'},
+ inner2LateInnerE:{openingBonus:'last1',positionComp:'inner2',orderComp:'lateInnerEnergy1'},
+ inner2LateAllE:{openingBonus:'last1',positionComp:'inner2',orderComp:'lateAllEnergy1'},
+ inner2LastE:{openingBonus:'last1',positionComp:'inner2',orderComp:'lastEnergy1'}
 }
 assert(variants.every(v=>scenarios[v]))
 const pct=(a,b)=>b?+(100*a/b).toFixed(2):null
@@ -37,7 +40,7 @@ for(const n of populations)for(const policy of policies)for(const variant of var
  for(let z=1;z<=seeds;z++){
   const seed=offset+z
   const shift=(seed*13+Math.floor(seed/n))%n
-  const g=play(n,seed,policy,shift,'fixed','random',options.openingBonus,'roundEnergy',options.positionComp)
+  const g=play(n,seed,policy,shift,'fixed','random',options.openingBonus,'roundEnergy',options.positionComp,options.orderComp||'none')
   assert(g.finished,'match did not finish')
   assert.strictEqual(new Set(g.startCells).size,n)
   assert(g.cardConservationChecks>=n)
@@ -65,7 +68,7 @@ for(const n of populations)for(const policy of policies)for(const variant of var
  const selected=cross.flatMap((row,slot)=>row.map((v,cell)=>({...v,slot:slot+1,cell})))
  const minimum=selected.reduce((a,b)=>a.winPct<b.winPct?a:b)
  const maximum=selected.reduce((a,b)=>a.winPct>b.winPct?a:b)
- output.push({n,policy,variant,openingBonus:options.openingBonus,positionComp:options.positionComp,
+ output.push({n,policy,variant,openingBonus:options.openingBonus,positionComp:options.positionComp,orderComp:options.orderComp||'none',
    seeds,offset,firstSeed:offset+1,lastSeed:offset+seeds,
    byActingSlotPct:bySlot.map(v=>pct(v,seeds)),
    byStartingCellConditionalPct:byCell.map((v,c)=>pct(v,seen.reduce((sum,row)=>sum+row[c],0))),
