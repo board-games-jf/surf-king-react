@@ -14,6 +14,23 @@ const TYPES = [
 ]
 const ALL_CARDS = TYPES.flatMap(([name,n])=>Array.from({length:n},(_,i)=>({id:0,t:name})))
 ALL_CARDS.forEach((c,i)=>c.id=i)
+// Experimental deck prunes retain sixty unique physical copies while converting
+// verbose/overlapping R0 cards to existing effect implementations. They are not
+// production card text or a final approved deck.
+const LITE12 = Object.freeze({
+  'Coconut':'Energy x2','Cyclone':'Storm','Change':'Big Wave',
+  'Tsunami':'Sunburn','Hang Loose':'Amulet'
+})
+const LITE10 = Object.freeze({...LITE12,'Energy':'Energy x2','Swimming Fin':'Lifeguard Float'})
+const DECK_MAPS = Object.freeze({b60:null,lite12:LITE12,lite10:LITE10})
+const deckTypes = profile => {
+  if(!Object.prototype.hasOwnProperty.call(DECK_MAPS,profile))throw Error('Unknown deck profile '+profile)
+  return TYPES.reduce((out,[name,count])=>{
+    const target=(DECK_MAPS[profile]&&DECK_MAPS[profile][name])||name
+    out[target]=(out[target]||0)+count
+    return out
+  },{})
+}
 const R = layout.hexRadius, N = layout.cells.length
 const ADJ = layout.cells.map(c=>layout.cells.filter(d=>d.id!==c.id&&Math.abs(Math.hypot(c.x-d.x,c.z-d.z)-Math.sqrt(3)*R)<.005).map(d=>d.id))
 const ROW = layout.cells.map(c=>c.row)
@@ -32,13 +49,18 @@ const randomGenerator = seed => {
  let s=seed>>>0
  return ()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}
 }
-function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first',positionComp='none',orderComp='none',firstTurnAttacks='restricted',dropSwap='on'){
+function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first',positionComp='none',orderComp='none',firstTurnAttacks='restricted',dropSwap='on',deckProfile='b60'){
+ if(!Object.prototype.hasOwnProperty.call(DECK_MAPS,deckProfile))throw Error('Unknown deck profile '+deckProfile)
  if(!['restricted','open'].includes(firstTurnAttacks))throw Error('Unknown first-turn attack setting '+firstTurnAttacks)
  if(!['on','off'].includes(dropSwap))throw Error('Unknown Drop In swap setting '+dropSwap)
  const rnd=randomGenerator((seed*7919+n*101+5)>>>0)
  const shuffle=a=>{for(let i=a.length-1;i>0;i--){let j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
  const choice=a=>a[Math.floor(rnd()*a.length)]
- const deck=shuffle(ALL_CARDS.slice()),discard=[],board=new Map()
+ const deckMap=DECK_MAPS[deckProfile]
+ const initialCards=ALL_CARDS.map(c=>({id:c.id,t:deckMap&&deckMap[c.t]||c.t}))
+ assert.equal(initialCards.length,60)
+ assert.equal(Object.keys(deckTypes(deckProfile)).length,deckProfile==='b60'?17:deckProfile==='lite12'?12:10)
+ const deck=shuffle(initialCards),discard=[],board=new Map()
  const startRng=randomGenerator((Math.imul(seed,9719)+n*1823+91)>>>0)
  const startChoices=Array.from({length:7},(_,i)=>i)
  if(startMode!=='fixed')for(let i=6;i>0;i--){const j=Math.floor(startRng()*(i+1));[startChoices[i],startChoices[j]]=[startChoices[j],startChoices[i]]}
@@ -133,6 +155,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
    }
  }
  st.startCells=initialStarts.slice();st.openingCardCounts=players.map(p=>p.hand.length);st.openingEnergy=players.map(p=>p.e);st.bonus=openingBonus;st.startMode=startMode;st.positionComp=positionComp;st.orderComp=orderComp
+ st.deckProfile=deckProfile;st.deckCounts=deckTypes(deckProfile)
  function use(p,t,location='discard'){
    const index=p.hand.findIndex(c=>c.t===t);if(index===-1)throw Error('missing '+t)
    const c=p.hand.splice(index,1)[0];st.uses[t]=(st.uses[t]||0)+1
@@ -418,4 +441,4 @@ function main(){
   results},null,2))
 }
 if(require.main===module)main()
-module.exports={play,aggregate,D,ADJ,TYPES}
+module.exports={play,aggregate,D,ADJ,TYPES,deckTypes}
