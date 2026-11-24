@@ -114,3 +114,12 @@
     .surf-hands:has(.surf-hand:nth-child(3):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .surf-card img { height: min(6dvh, 42px); }
 }
+
+/* Compact, text-first pilot card controls. */
+.r1-hand { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+.r1-hand button { flex: 1 1 100px; max-width: 180px; text-align: left; padding: 5px; border: 1px solid #62816e; border-radius: 7px; background: #fffdf1; color: #173d36; }
+.r1-hand button span { display: block; font-size: 0.86em; }
+.r1-hand button:disabled { opacity: .5; cursor: default; }
+.r1-targets { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+.r1-targets button { padding: 3px 6px; border: 1px solid #62816e; border-radius: 5px; background: #fffdf1; color: #173d36; }
+.surf-hud:has(.r1-hand) { max-height: 55dvh; overflow-y: auto; }
