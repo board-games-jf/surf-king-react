@@ -64,5 +64,5 @@ export function getR1HexFeedback(G, ctx, id, selection) {
     else action = 'This hex is not available for movement now.'
     const ordinaryMove = !selection && (legal || status === 'preview') && !occupant
     const risk = ordinaryMove && effect?.damage >= player.energy ? 'Entering will cause a fall.' : null
-    return { id, title, entry, occupantText, action, status, risk }
+    return { id, title, entry, occupantText, action, status, risk, occupant: occupant ? { position: occupant.position, energy: occupant.energy } : null }
 }
