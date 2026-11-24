@@ -1,8 +1,6 @@
-// Presentation only: preserve the engine's actual cyclic order and completed count.
+// Presentation only: preserve the engine's fixed shuffled order and completed count.
 export function getR1RoundOrder(G, ctx) {
-    const count = Object.keys(G.players).length
-    return Array.from({ length: count }, (_, slot) => {
-        const id = (G.firstPlayer + slot) % count
+    return G.order.map((id, slot) => {
         const status = slot < G.completedInRound ? 'played' :
             G.winner == null && String(id) === String(ctx.currentPlayer) ? 'now' : 'next'
         return { id, status }
