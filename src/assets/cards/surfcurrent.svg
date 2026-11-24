@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 240" role="img" aria-label="Surf Current">
+<rect x="3" y="3" width="174" height="234" rx="14" fill="#f8e8b4" stroke="#174c50" stroke-width="6"/>
+<rect x="14" y="40" width="152" height="147" rx="8" fill="#239da9"/>
+<path d="M15 151Q46 98 83 141T165 105V187H15Z" fill="#146e9d"/>
+<path d="M19 143Q48 97 82 133T159 102" fill="none" stroke="#e2fbf4" stroke-width="9" stroke-linecap="round"/>
+<path d="M43 110L74 78 95 110M85 86L116 54 137 86" stroke="#fff4c5" fill="none" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="90" y="28" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#174c50">SURF CURRENT</text>
+<text x="90" y="211" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="#174c50">UP TO 2 STEPS</text>
+</svg>
