@@ -65,13 +65,19 @@ const Board = ({ G, ctx, moves }) => {
     const gameMode = 1
     const isR1 = G.ruleset === 'R1'
     const [r1Selection, setR1Selection] = useState(null)
+    const [r1CardPreview, setR1CardPreview] = useState(null)
+    const previewId = r1CardPreview?.playerId === ctx.currentPlayer && r1CardPreview?.turn === G.turn ?
+        r1CardPreview.cardId : null
+    const previewCard = cardId => setR1CardPreview(cardId == null ? null :
+        { cardId, playerId: ctx.currentPlayer, turn: G.turn })
     const r1Targets = isR1 ? r1SelectionTargets(G, ctx, r1Selection) : []
-    const targetHighlight = isR1 ? getR1TargetHighlight(G, ctx, r1Selection) : null
+    const targetHighlight = isR1 ? getR1TargetHighlight(G, ctx, r1Selection, previewId) : null
     const onR1Target = (id) => {
         if (!r1Targets.includes(id)) return
         if (r1Selection?.kind === 'card') moves.useCard(r1Selection.index, id)
         else if (r1Selection?.kind === 'drop') moves.dropIn(id, r1Selection.diceCount)
         else moves.maneuver(id)
+        setR1CardPreview(null)
         setR1Selection(null)
     }
     const [viewMode, setViewMode] = useState('2d')
@@ -305,7 +311,7 @@ const Board = ({ G, ctx, moves }) => {
                 )}
             </div>
             {isR1 ? <R1Controls G={G} ctx={ctx} moves={moves} selection={r1Selection}
-                setSelection={setR1Selection} onTarget={onR1Target} targetHighlight={targetHighlight} /> : <section className="surf-hud" aria-label="Match controls">
+                setSelection={setR1Selection} onTarget={onR1Target} targetHighlight={targetHighlight} onPreviewCard={previewCard} /> : <section className="surf-hud" aria-label="Match controls">
                 <div className="surf-turn">
                     <strong aria-live="polite">{'Turn ' + G.turn + ' · Player ' + (Number(ctx.currentPlayer) + 1) + ' · ' + G.currentMove.replace(/_/g, ' ')}</strong>
                     {choosingTarget ? <span>Choose a hex</span> : (
