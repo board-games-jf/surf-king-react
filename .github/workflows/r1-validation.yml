@@ -1,0 +1,48 @@
+name: R1 local pilot validation
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+concurrency:
+  group: r1-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  test:
+    if: startsWith(github.head_ref, 'feat/42-r1-') || github.head_ref == 'feat/44-r1-card-art'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install locked dependencies
+        run: npx --yes yarn@1.22.22 install --frozen-lockfile
+      - name: Verify approved card artwork
+        run: node scripts/validate-r1-card-art.cjs
+        if: github.head_ref == 'feat/44-r1-card-art'
+      - name: Run all tests
+        run: npm test -- --watchAll=false --runInBand
+      - name: Build (strict)
+        run: npm run build
+      - name: Check responsive HUD in Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/surf-browser" --no-save --ignore-scripts playwright-core@1.51.1
+          export PLAYWRIGHT_MODULE="$RUNNER_TEMP/surf-browser/node_modules/playwright-core"
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory build &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for i in {1..20}; do curl --fail --silent http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
+          node scripts/validate-r1-hud.cjs
+      - name: HUD review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r1-hud-review
+          path: artifacts/r1-hud-review/
+          if-no-files-found: warn
+          retention-days: 3
