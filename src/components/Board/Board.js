@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { HexGrid } from '../HexGrid'
 import './Board.css'
 import Board3D from '../../map/views/Board3D/Board3D'
+import R1Controls, { r1SelectionTargets } from './R1Controls'
 import { createPublicMapSnapshot } from '../../map/contract/createPublicMapSnapshot'
 import { seaColor } from '../../constants/Colors'
 import {
@@ -60,6 +61,16 @@ const useKeyPress = function (targetKey) {
 
 const Board = ({ G, ctx, moves }) => {
     const gameMode = 1
+    const isR1 = G.ruleset === 'R1'
+    const [r1Selection, setR1Selection] = useState(null)
+    const r1Targets = isR1 ? r1SelectionTargets(G, ctx, r1Selection) : []
+    const onR1Target = (id) => {
+        if (!r1Targets.includes(id)) return
+        if (r1Selection?.kind === 'card') moves.useCard(r1Selection.index, id)
+        else if (r1Selection?.kind === 'drop') moves.dropIn(id)
+        else moves.maneuver(id)
+        setR1Selection(null)
+    }
     const [viewMode, setViewMode] = useState('2d')
     const [selectedCellId, setSelectedCellId] = useState(null)
     const [viewError, setViewError] = useState(null)
@@ -131,6 +142,7 @@ const Board = ({ G, ctx, moves }) => {
     }
 
     const onHexClickedHandle = (cell) => {
+        if (isR1) { onR1Target(cell.position); return }
         if (placingObstacle != null) {
             moves.useCard(placingObstacle.cardPos, [cell.position])
             setPlacingObstacle(null)
@@ -252,12 +264,10 @@ const Board = ({ G, ctx, moves }) => {
     useEffect(() => {
         const newPress = skipPress && !skipWasPressed.current
         skipWasPressed.current = skipPress
-        if (newPress) onSkipHandle()
-    }, [skipPress, onSkipHandle])
+        if (newPress && !isR1) onSkipHandle()
+    }, [skipPress, onSkipHandle, isR1])
 
-    useEffect(() => {
-        console.log('Board::useEffect G', G)
-    }, [G])
+    useEffect(() => { setR1Selection(null) }, [ctx.currentPlayer, G.turn, G.currentMove])
 
     const choosingTarget = placingObstacle || removingObstacle || selectPlayerTarget || selectTsunami
     return (
@@ -270,7 +280,7 @@ const Board = ({ G, ctx, moves }) => {
             <div className={'surf-map surf-map-' + viewMode}>
                 {viewMode === '3d' ? (
                     <Board3D
-                        snapshot={createPublicMapSnapshot(G, ctx, selectedCellId)}
+                        snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, selectedCellId), maneuverDestinations: r1Targets } : createPublicMapSnapshot(G, ctx, selectedCellId)}
                         onCellSelect={(cellId) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }) }}
                         onUnavailable={(message) => { setViewError(message); setViewMode('2d') }}
                     />
@@ -280,7 +290,8 @@ const Board = ({ G, ctx, moves }) => {
                     />
                 )}
             </div>
-            <section className="surf-hud" aria-label="Match controls">
+            {isR1 ? <R1Controls G={G} ctx={ctx} moves={moves} selection={r1Selection}
+                setSelection={setR1Selection} onTarget={onR1Target} /> : <section className="surf-hud" aria-label="Match controls">
                 <div className="surf-turn">
                     <strong aria-live="polite">{'Turn ' + G.turn + ' · Player ' + (Number(ctx.currentPlayer) + 1) + ' · ' + G.currentMove.replace(/_/g, ' ')}</strong>
                     {choosingTarget ? <span>Choose a hex</span> : (
@@ -303,7 +314,7 @@ const Board = ({ G, ctx, moves }) => {
                         </div>
                     ))}
                 </div>}
-            </section>
+            </section>}
         </div>
     )
 }
