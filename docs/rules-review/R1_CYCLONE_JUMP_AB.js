@@ -9,12 +9,12 @@ const seeds=Number(process.env.SK_THEME_SEEDS||2000)
 const offset=Number(process.env.SK_THEME_OFFSET||210000)
 const players=(process.env.SK_THEME_PLAYERS||'2,4,7').split(',').map(Number)
 const modes=(process.env.SK_THEME_MODES||'balanced,aggressive').split(',')
-const variants=(process.env.SK_THEME_VARIANTS||'lite10Active:remove,lite10Active:leap,lite11Cyclone:leap,lite10CycloneNoStone:leap').split(',')
+const variants=(process.env.SK_THEME_VARIANTS||'lite10Active:remove,lite10Active:land,lite11Cyclone:land,lite10CycloneNoStone:land').split(',')
 assert(Number.isInteger(seeds)&&seeds>0&&seeds<=30000)
 assert(Number.isInteger(offset)&&offset>=0)
 assert(players.every(n=>Number.isInteger(n)&&n>=2&&n<=7))
 assert(modes.every(m=>['balanced','aggressive'].includes(m)))
-assert(variants.every(v=>['lite10Active:remove','lite10Active:leap','lite11Cyclone:leap','lite10CycloneNoStone:leap'].includes(v)))
+assert(variants.every(v=>['lite10Active:remove','lite10Active:land','lite11Cyclone:land','lite10CycloneNoStone:land'].includes(v)))
 const percent=(a,b)=>b?+(a*100/b).toFixed(2):null
 const mean=(a,b)=>b?+(a/b).toFixed(3):null
 const results=[]
@@ -27,7 +27,7 @@ for(const n of players)for(const policy of modes)for(const variant of variants){
  const seatWins=Array(n).fill(0),pairSeen=Array.from({length:n},()=>Array(7).fill(0)),
    pairWin=Array.from({length:n},()=>Array(7).fill(0))
  const aggregate={rounds:0,opponentActions:0,falls:0,playerFalls:0,sharkFalls:0,steals:0,rescues:0,
-   openingAttacks:0,preFirstFalls:0,cycloneRedirects:0,leaps:0,sharkLeaps:0,leapsOverPlaced:0,
+   openingAttacks:0,preFirstFalls:0,cycloneRedirects:0,jumpLandings:0,sharkJumpLandings:0,placedJumpLandings:0,stoneJumpLandings:0,stormJumpLandings:0,cycloneJumpLandings:0,islandJumpLandings:0,
    jumpCardsPlayed:0,cycloneCardsPlayed:0,forcedBlocks:0,checked:0,cofinishes:0}
  let complete=0
  for(let step=1;step<=seeds;step++){
@@ -39,8 +39,9 @@ for(const n of players)for(const policy of modes)for(const variant of variants){
    assert.strictEqual(g.preFirstFalls,0,'surfer fell before first own turn')
    assert.strictEqual(g.openingAttacks,0,'first-turn direct attacks')
    assert(g.cardConservationChecks>0,'missing state checks')
-   assert.strictEqual(g.leaps||0,(g.sharkLeaps||0)+(g.leapsOverPlaced||0),'leap by hazard classification')
-   assert.strictEqual(g.leaps||0,jumpStyle==='leap'?(g.uses.Jumping||0):0,'leap must use Jumping card')
+   assert.strictEqual(g.jumpLandings||0,(g.sharkJumpLandings||0)+(g.placedJumpLandings||0),'landings by hazard classification')
+   assert.strictEqual(g.jumpLandings||0,jumpStyle==='land'?(g.uses.Jumping||0):0,'each protected landing must consume exactly one Jumping card')
+   assert.strictEqual(g.placedJumpLandings||0,(g.stoneJumpLandings||0)+(g.stormJumpLandings||0)+(g.cycloneJumpLandings||0)+(g.islandJumpLandings||0),'all placed hazard categories accounted')
    assert(!g.uses.Stone||Object.hasOwn(expected,'Stone'))
    assert(!g.uses.Cyclone||Object.hasOwn(expected,'Cyclone'))
    complete++
@@ -51,7 +52,7 @@ for(const n of players)for(const policy of modes)for(const variant of variants){
    const values={rounds:g.rounds,opponentActions:g.opponentActions,falls:g.falls,playerFalls:g.playerFalls,
      sharkFalls:g.sharkFalls,steals:g.stolen,rescues:g.rescue,
      openingAttacks:g.openingAttacks,preFirstFalls:g.preFirstFalls,cycloneRedirects:g.cycloneRedirects||0,
-     leaps:g.leaps||0,sharkLeaps:g.sharkLeaps||0,leapsOverPlaced:g.leapsOverPlaced||0,
+     jumpLandings:g.jumpLandings||0,sharkJumpLandings:g.sharkJumpLandings||0,placedJumpLandings:g.placedJumpLandings||0,stoneJumpLandings:g.stoneJumpLandings||0,stormJumpLandings:g.stormJumpLandings||0,cycloneJumpLandings:g.cycloneJumpLandings||0,islandJumpLandings:g.islandJumpLandings||0,
      jumpCardsPlayed:g.uses.Jumping||0,cycloneCardsPlayed:g.uses.Cyclone||0,forcedBlocks:g.forcedBlocks,
      checked:g.cardConservationChecks,cofinishes:Number(g.beachSameRound>1)}
    for(const key in values)aggregate[key]+=values[key]
@@ -66,7 +67,7 @@ for(const n of players)for(const policy of modes)for(const variant of variants){
  results.push({n,policy,variant,profile,jumpStyle,cards:60,types:expectedTypes,distribution:expected,
    matches:complete,slotWinPct:seatWins.map(v=>percent(v,seeds)),worst,best,activeStartPairs:conditional.filter(x=>x.seen).length,
    mean:Object.fromEntries(Object.entries(aggregate).filter(([k])=>k!=='checked').map(([k,v])=>[k,mean(v,seeds)])),
-   totalJumpCardsPlayed:aggregate.jumpCardsPlayed,totalSharkLeaps:aggregate.sharkLeaps,totalCycloneRedirects:aggregate.cycloneRedirects,
+   totalJumpCardsPlayed:aggregate.jumpCardsPlayed,totalSharkSafeLandings:aggregate.sharkJumpLandings,totalCycloneRedirects:aggregate.cycloneRedirects,
    integrityChecks:aggregate.checked})
 }
-console.log(JSON.stringify({experiment:'Iteration AB: retain cyclone, leap past Shark/obstacle',parameters:{seeds,offset,players,modes,variants},games:results.length*seeds,results},null,2))
+console.log(JSON.stringify({experiment:'Iteration AB: retain Cyclone, safely land on occupied hazard cell using Jumping',parameters:{seeds,offset,players,modes,variants},games:results.length*seeds,results},null,2))
