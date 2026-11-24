@@ -349,10 +349,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   // A preview lifebuoy approaches over the water before the rider remounts.
   const lifeguardEffect = new THREE.Group()
   const buoy = new THREE.Group()
-  const buoyRing = new THREE.Mesh(new THREE.TorusGeometry(.42, .115, 12, 48), new THREE.MeshStandardMaterial({ color: 0xe8442d, roughness: .42 }))
+  const buoyRing = new THREE.Mesh(new THREE.TorusGeometry(.42, .115, 12, 48), new THREE.MeshStandardMaterial({ color: 0xe8442d, roughness: .42, transparent: true }))
   buoy.add(buoyRing)
   for (let i = 0; i < 4; i++) {
-    const stripe = new THREE.Mesh(new THREE.TorusGeometry(.42, .118, 10, 8, .24), new THREE.MeshStandardMaterial({ color: 0xfff8e6, roughness: .55 }))
+    const stripe = new THREE.Mesh(new THREE.TorusGeometry(.42, .118, 10, 8, .24), new THREE.MeshStandardMaterial({ color: 0xfff8e6, roughness: .55, transparent: true }))
     stripe.rotation.z = i * Math.PI / 2 - .12
     buoy.add(stripe)
   }
@@ -531,6 +531,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   renderer.domElement.addEventListener('pointerleave',leave)
   const actors=new Map(),obstacles=new Map()
   const riggedTemplates = {}
+  const failedRiggedCharacters = new Set()
   const localProfiles = previewFemaleAthlete ? readLocalSurferProfiles() : {}
   function upgradeSurfer(actor) {
     const id = Number(actor.id)
@@ -554,6 +555,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         renderer.domElement.dataset[avatar.display.userData.character === 'male' ? 'athleteMaleReady' : 'athleteFemaleReady'] = 'true'
       }
     } catch (error) {
+      actor.legacy.group.visible = true
       console.warn('Using the procedural surfer fallback:', error)
     }
   }
@@ -563,6 +565,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       index % 2 ? palette.skin : palette.skinLight, index % 2 ? '#724c35' : '#e8b449', index % 2 === 1)
     const group = new THREE.Group()
     group.name = 'player-surfer'
+    const style = resolveBoardSurferStyle(index, localProfiles[String(index)])
+    model.group.visible = failedRiggedCharacters.has(style.character)
     scene.remove(model.group)
     group.add(model.group)
     scene.add(group)
@@ -981,12 +985,13 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         lifeguardEffect.position.y = target.g.position.y
         const arrival = reduce ? 1 : THREE.MathUtils.smoothstep(t, .15, 1.2)
         const departure = reduce ? 0 : THREE.MathUtils.smoothstep(t, 3.2, 5)
-        const offsetX = -1.5 * (1 - arrival) - 1.3 * departure
+        const offsetX = -1.5 * (1 - arrival)
         const water = sampleOceanHeight(rescueRiderPosition.x + offsetX, rescueRiderPosition.z, elapsed) - lifeguardEffect.position.y
         const arc = reduce ? 0 : 2.0 * (1 - arrival) + .45 * Math.sin(Math.PI * arrival)
         buoy.position.set(offsetX, water + .16 + arc, 0)
         buoy.rotation.z = reduce ? 0 : .1 * Math.sin(t * 2.5)
-        buoy.scale.setScalar(reduce ? 1 : 1 - .7 * departure)
+        buoy.scale.setScalar(1)
+        buoy.children.forEach(part => { part.material.opacity = 1 - departure })
         const textTime = t - (reduce ? .1 : 2.6)
         rescueText.position.y = reduce ? 2.2 : 1.8 + Math.max(0, Math.min(1, textTime)) * .7
         rescueText.material.opacity = textTime < 0 ? 0 : Math.min(1, textTime / .25, (5.2 - t) / .5)
@@ -1030,7 +1035,14 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     actors.forEach(upgradeSurfer)
   }, (character, error) => {
     // Failure of one gender never prevents other surfers from rendering.
-    if (!disposed) console.warn('Using procedural ' + character + ' surfer fallback:', error)
+    if (!disposed) {
+      failedRiggedCharacters.add(character)
+      actors.forEach(actor => {
+        const style = resolveBoardSurferStyle(Number(actor.id), localProfiles[String(actor.id)])
+        if (style.character === character && !actor.avatar) actor.legacy.group.visible = true
+      })
+      console.warn('Using procedural ' + character + ' surfer fallback:', error)
+    }
   }, undefined, { previewFemaleAthlete })
 
   function zoom(scale) {

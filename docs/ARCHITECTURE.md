@@ -120,7 +120,7 @@ The existing `createScene.js` public-snapshot renderer now uses the same styled 
 ```mermaid
 flowchart TD
   Snapshot[Public game or catalog snapshot] --> Scene[Shared Board3D createScene]
-  Scene --> Fallback[Existing procedural surfer - immediately visible]
+  Scene --> Fallback[Procedural surfer - shown if asset loading fails]
   Scene --> Loader[One local GLTFLoader request]
   Loader --> Template[Shared licensed GLB template]
   Template --> Clone[SkeletonUtils independent rider clones]
@@ -129,7 +129,7 @@ flowchart TD
   Studio[Surfer creator] --> Art
 ```
 
-On successful loading, clones attach to the **existing actor groups**, retaining cell movement, camera focus and object identity. The procedural meshes are hidden but remain as fallback; if loading/validation fails, gameplay continues with the old models. Async completion checks scene disposal; individual actor removal destroys only owned accessory geometry/materials and the independent procedural geometry, **never shared source GLB geometry or pooled materials**. No changes to rules, movement, player snapshots, obstacles or the 2D renderer.
+On successful loading, clones attach to the **existing actor groups**, retaining cell movement, camera focus and object identity. The procedural meshes remain hidden during loading and are shown as fallback if loading, validation or styling fails. Async completion checks scene disposal; individual actor removal destroys only owned accessory geometry/materials and the independent procedural geometry, **never shared source GLB geometry or pooled materials**. No changes to rules, movement, player snapshots, obstacles or the 2D renderer.
 
 **Pending:** Jest/build/WebGL/mobile checks, final surf stance review, genuine female rig, performance measurement. The GLB preview is not a full player-customization-to-match integration.
 ## Distinct gender models and stance controller (Issue #28, unmerged)
