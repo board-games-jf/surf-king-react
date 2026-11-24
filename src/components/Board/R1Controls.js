@@ -52,8 +52,8 @@ const descriptions = {
     'Surf Current': 'Move up to two legal steps; draw only once.',
 }
 const shortEffects = {
-    'Energy x2': '+2 energy', 'Lifeguard float': 'Recover +3',
-    'Big wave': '−2 energy', Sunburn: '−1 energy', Tsunami: '−3 energy',
+    'Energy x2': '+2 energy', 'Lifeguard float': 'Recover to 3',
+    'Big wave': 'Up to −2', Sunburn: '−1 energy', Tsunami: 'Up to −3',
     Stone: 'Place · −1', Storm: 'Place · −1', Cyclone: 'Redirect', Island: 'Place · +2',
     Jumping: 'Safe landing', Amulet: 'Shield', 'Surf Current': '2 steps',
 }
@@ -61,7 +61,7 @@ const shortEffects = {
 export { r1SelectionTargets } from './r1TargetHighlight'
 
 function EnergyMeter({ energy }) {
-    return <div className="r1-energy-meter" aria-label={energy + ' of 5 energy'}>
+    return <div className="r1-energy-meter" role="meter" aria-label="Energy" aria-valuemin={0} aria-valuemax={5} aria-valuenow={energy}>
         {Array.from({ length: 5 }, (_, i) => <span key={i} aria-hidden="true" data-filled={i < energy} />)}
         <span className="r1-sr-only">{energy}/5 energy</span>
     </div>
