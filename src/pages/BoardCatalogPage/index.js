@@ -13,11 +13,14 @@ import {
   setCatalogSurferFallen,
   nearbyCatalogCell,
 } from './catalogState'
+import { cardArt, cardTone } from '../../components/Board/r1CardArt'
+import '../../components/Board/R1Hud.css'
 import './BoardCatalogPage.css'
 
 const SURFER_COLORS = ['Orange', 'Coral', 'Teal', 'Blue', 'Yellow', 'Purple', 'Green']
 
-export default function BoardCatalogPage() {
+export default function BoardCatalogPage({ animationStudio = false }) {
+  const [selectedCard, setSelectedCard] = useState(null)
   const location = useLocation()
   const selectedProfilePlayer = normalizeLocalPlayerId(location.state?.athletePlayerId)
   const requestedType = location.state?.athleteBoardType
@@ -80,7 +83,7 @@ export default function BoardCatalogPage() {
       <header className="board-catalog-header">
         <div>
           <Link to="/">← Home</Link>
-          <h1>Surf King · 3D board catalog</h1>
+          <h1>{animationStudio ? 'Surf King · Animation studio' : 'Surf King · 3D board catalog'}</h1>
           <p>Preview the actual game board and models. This is a design sandbox, not a match.</p>
         </div>
         <div className="board-catalog-header-links">
@@ -104,6 +107,19 @@ export default function BoardCatalogPage() {
         </section>
 
         <aside className="board-catalog-panel" aria-label="Catalog controls">
+          {animationStudio && <section>
+            <h2>Card interaction preview</h2>
+            <p>Hover, focus or select each card to replay the existing hand transition. Card-specific played effects are not implemented yet.</p>
+            <div className="r1-floating-hud animation-studio-cards"><div className="r1-hand">
+              {Object.keys(cardArt).map(name => <button key={name} type="button"
+                data-card-tone={cardTone[name]} aria-pressed={selectedCard === name}
+                style={{ '--r1-fan-angle': '0deg' }}
+                onClick={() => setSelectedCard(selectedCard === name ? null : name)}>
+                <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
+              </button>)}
+            </div></div>
+            <div className="board-catalog-divider" />
+          </section>}
           <div className="board-catalog-panel-top">
             <h2>Place &amp; inspect</h2>
             <p>Choose a tool, then tap a hex. Inspect mode zooms to its contents.</p>
@@ -125,6 +141,7 @@ export default function BoardCatalogPage() {
           </div>
           <fieldset className="board-catalog-actions">
             <legend>Surfer animation preview</legend>
+            <p>Idle carving runs continuously. Select a surfer below, then replay movement, fall and recovery.</p>
             <button type="button" disabled={!Number.isInteger(catalog.surfers[surferId]) || !!catalog.fallen?.[surferId]} onClick={() => previewMotion(true)}>Fall off board</button>
             <button type="button" disabled={!catalog.fallen?.[surferId]} onClick={() => previewMotion(false)}>Get back on board</button>
             <button type="button" disabled={nearby === null} onClick={previewGlide}>Glide to nearby hex</button>

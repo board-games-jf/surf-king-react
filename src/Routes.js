@@ -17,6 +17,7 @@ const AppRoutes = () => (
             {/* <Route path="/ai" element={<AiPage />} /> */}
             <Route path="/local" element={<LocalPage />} />
             <Route path="/obstacles" element={<ObstacleGalleryPage />} />
+            <Route path="/animations" element={<BoardCatalogPage animationStudio />} />
             <Route path="/catalog" element={<BoardCatalogPage />} />
             <Route path="/surfers" element={<Navigate to="/customize" replace />} />
             <Route path="/customize" element={<SurferStudioPage />} />

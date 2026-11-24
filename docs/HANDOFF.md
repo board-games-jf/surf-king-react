@@ -1,5 +1,10 @@
 # Project Handoff
 
+## Local animation review studio (#50)
+
+- The `/#/animations` sandbox reuses the 3D catalog to preview idle carving, glide, fall and remount, and displays all R1 cards with their existing hand interaction transition. Card-specific played effects are not implemented. Preview state is isolated from matches. The catalog state suite passed (13 tests) and the production build compiled; a desktop browser opened the studio and verified the fall control state. Full visual and mobile review remain pending. No merge or deployment authorized.
+
+
 **Last GitHub verification:** 2026-11-24  
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)  
 **Verified main before PR #49 reconciliation:** `714267b044ae63b9b4890b8efb171bd72b5428c4` (PR #41 merged; no deployment authorized).
