@@ -34,10 +34,10 @@ async function verifyStableViewport(page, name) {
     assert.ok(await detail.locator('.r1-card-availability').count())
     assert.ok(await detail.locator('.r1-inspection-art').count())
     assert.ok(await detail.evaluate(el => el.scrollHeight <= el.clientHeight + 1), 'Card feedback must not need vertical scrolling')
-    const context = page.locator('.r1-dock-context-scroll')
+    const context = page.locator('.r1-dock-scroll')
     assert.equal(await context.evaluate(el => getComputedStyle(el).overflowY), 'auto')
     assert.ok(await context.evaluate(el => el.scrollHeight <= el.clientHeight + 1), 'Normal inspection must fit naturally')
-    // Simulate reduced available height using the real dock's flex layout.
+    // Simulate reduced available height using the complete dock's flex layout.
     const overflow = await context.evaluate(el => {
         const dock = el.parentElement
         const saved = dock.style.maxHeight
@@ -87,6 +87,49 @@ async function verifyStableViewport(page, name) {
     assert.deepEqual(await map.boundingBox(), before)
 }
 
+async function verifyShortViewport(page, name) {
+    const map = page.locator('.surf-match-r1 .surf-map')
+    const dock = page.locator('.r1-hud-dock')
+    const scroll = page.locator('.r1-dock-scroll')
+    const action = page.locator('.r1-action-bar')
+    const before = await map.boundingBox()
+    const viewport = page.viewportSize()
+    const assertVisibleBounds = async locator => {
+        const box = await locator.boundingBox()
+        assert.ok(box && box.x >= -1 && box.y >= -1, 'Control must begin inside viewport')
+        assert.ok(box.x + box.width <= viewport.width + 1 && box.y + box.height <= viewport.height + 1, 'Control must end inside viewport')
+    }
+    await assertVisibleBounds(dock)
+    await assertVisibleBounds(action)
+    const firstCard = page.locator('.r1-hand button').first()
+    // Inspect without depending on pointer coordinates in a constrained layout.
+    await firstCard.dispatchEvent('mouseover')
+    await page.locator('.r1-card-detail').waitFor({ state: 'visible' })
+    await assertVisibleBounds(action)
+    assert.ok(await scroll.evaluate(el => getComputedStyle(el).overflowY === 'auto'))
+    const accessible = await scroll.evaluate(el => {
+        const canScroll = el.scrollHeight > el.clientHeight
+        el.scrollTop = el.scrollHeight
+        return !canScroll || el.scrollTop > 0
+    })
+    assert.ok(accessible, 'Overflowing hand/context must remain reachable')
+    await firstCard.scrollIntoViewIfNeeded()
+    await assertVisibleBounds(firstCard)
+    await assertVisibleBounds(action)
+    await firstCard.dispatchEvent('mouseout')
+    await page.getByRole('button', { name: 'Move', exact: true }).click()
+    await assertVisibleBounds(action)
+    const targets = page.getByLabel('Legal target hexes')
+    await targets.waitFor({ state: 'visible' })
+    await targets.getByRole('button').first().scrollIntoViewIfNeeded()
+    await assertVisibleBounds(targets.getByRole('button').first())
+    await assertVisibleBounds(action)
+    assert.deepEqual(await map.boundingBox(), before)
+    await page.screenshot({ path: output + '/' + name + '.png', timeout: 60000 })
+    await targets.getByRole('button').first().click()
+    assert.deepEqual(await map.boundingBox(), before)
+}
+
 async function main() {
     const browser = await chromium.launch({ channel: 'chrome', headless: true,
         args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'] })
@@ -112,6 +155,12 @@ async function main() {
         assert.ok(await order.evaluate(el => el.scrollLeft > 0))
         assert.deepEqual(mobile.errors, [])
         await mobile.page.close()
+        for (const viewport of [{ width: 780, height: 320 }, { width: 320, height: 460 }]) {
+            const short = await startMatch(browser, viewport, 2)
+            await verifyShortViewport(short.page, 'short-' + viewport.width + 'x' + viewport.height)
+            assert.deepEqual(short.errors, [])
+            await short.page.close()
+        }
         console.log('Floating HUD: desktop/mobile map sizes, hand toggles, movement and 3D canvas identity verified.')
     } finally {
         await browser.close()
