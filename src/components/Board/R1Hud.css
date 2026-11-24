@@ -229,8 +229,9 @@
     width: clamp(64px, 8vw, 105px);
     min-width: 0; max-width: none;
     padding: 4px;
-    background: linear-gradient(165deg, #fff1cf, #e0c99d);
-    border: 1px solid #d9bc88;
+    --r1-card-accent: #387a8c;
+    background: #f9f2e5;
+    border: 2px solid var(--r1-card-accent);
     color: #193b43;
     border-radius: 8px;
     box-shadow: 0 5px 12px #082a3b70;
@@ -238,14 +239,20 @@
     transform: rotate(var(--r1-fan-angle));
     transition: transform 150ms ease, box-shadow 150ms ease;
 }
-.r1-floating-hud .r1-hand button strong { display: block; font-size: .83em; line-height: 1.2; overflow-wrap: anywhere; }
-.r1-floating-hud .r1-card-art { height: clamp(42px, 10dvh, 86px); width: 100%; display: block; object-fit: contain; border-radius: 4px; margin: 0 auto 4px; }
-.r1-floating-hud .r1-card-effect { display: block; font-size: .73em; line-height: 1.3; color: #42645e; font-weight: 700; }
+.r1-floating-hud .r1-hand button[data-card-tone="attack"] { --r1-card-accent: #b83c37; }
+.r1-floating-hud .r1-hand button[data-card-tone="obstacle"] { --r1-card-accent: #a94e08; }
+.r1-floating-hud .r1-hand button[data-card-tone="recovery"], .r1-floating-hud .r1-hand button[data-card-tone="move"] { --r1-card-accent: #087c71; }
+.r1-floating-hud .r1-hand button[data-card-tone="protection"] { --r1-card-accent: #2467a7; }
+.r1-floating-hud .r1-hand button[data-card-tone="jump"] { --r1-card-accent: #7446ae; }
+.r1-floating-hud .r1-hand button strong { display: block; font-size: .83em; line-height: 1.2; overflow-wrap: anywhere; background: var(--r1-card-accent); color: #fff; border-radius: 3px; padding: 2px 1px; }
+.r1-floating-hud .r1-card-art { height: clamp(42px, 10dvh, 86px); width: 100%; display: block; object-fit: cover; object-position: center; border-radius: 4px; margin: 0 auto 3px; }
+.r1-floating-hud .r1-card-effect { display: block; font-size: .73em; line-height: 1.3; color: #193b43; font-weight: 700; margin-top: 2px; }
+.r1-floating-hud .r1-card-effect .r1-feedback-icon { width: 10px; height: 10px; margin-right: 2px; color: var(--r1-card-accent); }
 .r1-floating-hud .r1-hand button[aria-disabled="true"] { opacity: .58; cursor: help; }
 .r1-floating-hud .r1-hand button[aria-pressed="true"], .r1-floating-hud .r1-hand button:focus-visible {
     transform: translateY(-6px) rotate(0);
     outline: 2px solid #ffe0a1;
-    border-color: #fff1c7; background: #fff5d7; color: #193b43;
+    border-color: var(--r1-card-accent); background: #fff5d7; color: #193b43;
     box-shadow: 0 7px 20px #092f3e99;
 }
 @media (hover: hover) {

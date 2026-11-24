@@ -93,3 +93,6 @@ The official CC0 pack covers both male and female base characters. No additional
 ## Required validation
 
 For each external source or asset, record: provider, direct source URL, date accessed, license, redistribution restrictions, attribution, and verification method. Unverified sources must remain clearly labeled.
+
+## R1 original card art (Issue #44)
+- 16 individual 304×304 WebP crops from the ChatGPT-generated original 4×4 tropical cartoon art sheet (2026-11-24, owner-approved). Exact bytes are preserved from the review package; `scripts/validate-r1-card-art.cjs` pins the Git blob hashes. Files live in `src/assets/cards/r1/`. No third-party reference image was imported into this generated sheet. Independent rights review remains pending before public distribution. Art carries no effect values or labels; legacy assets and 3D geometry are not replaced. Shark is used in R1 terrain inspection; the common back is reserved for future review.
