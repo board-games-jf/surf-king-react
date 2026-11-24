@@ -152,7 +152,7 @@ flowchart LR
 ```
 
 The female GLB is separately authored from the same CC0 pack; source and texture-free packaging are documented in `DATA_SOURCES.md`. This is **not** a validated motion-capture animation set, final facial-expression system or gameplay ability mechanic. Browser/WebGL bone-axis and foot-to-board alignment remain pending.
-## Selected athlete integration (Issue #33, draft PR #36)
+## Selected athlete integration (Issue #33, merged PR #36)
 
 `/#/customize` is the single visible surfer creator; older gallery and review URLs redirect to it. It loads the unchanged textured Female Athlete GLB by default and uses `athleteSurferArt.js` for standing, relaxed and surfing poses and the curved board factory from PR #35. The approved male GLB is acquired before startup/build/test by a local preparation script that checks exact size/hash, then both characters are selectable from the same local asset registry. The creator persists gender in the existing browser-local style and sends the selected character and board type to the catalog. Relaxed poses share a bounded right-forearm wave with reduced-motion support. Geometry and textures are preserved. Board shape and paint are cosmetic, and the saved browser style is not a player profile.
 
@@ -165,9 +165,9 @@ flowchart LR
   Catalog --> Fallback[Procedural fallback]
 ```
 
-The catalog can receive the selected board shape from the creator; game board colors still identify players. The local 3D board uses both approved models for the corresponding presets, retaining procedural fallback. No changes to match rules or public snapshot schema. Hair, skin and clothing are baked into the current texture/mesh and are not yet independent customization options. This is draft branch behavior, pending tests and real WebGL acceptance.
+The catalog can receive the selected board shape from the creator; game board colors still identify players. The local 3D board uses both approved models for the corresponding presets, retaining procedural fallback. No changes to match rules or public snapshot schema. Hair, skin and clothing are baked into the current texture/mesh and are not yet independent customization options. The owner accepted the integrated baseline; see HANDOFF.md for successful tests, desktop WebGL and deferred release QA.
 
-## Snapshot-driven board motion (Issue #37, review branch)
+## Snapshot-driven board motion (Issue #37, merged PR #38)
 
 The shared 3D scene uses a presentation-only sampler in `surferMotion.js` to interpolate authoritative cell changes with smooth acceleration/deceleration and a bounded S-shaped lateral offset. Idle carving is centered on each cell and blended with travel; tangent yaw and longitudinal board bank are visual only. The snapshot projects the engine's existing `fellOffTheBoard` marker to a public boolean. Each actor tracks a retargetable fall progress. Shared athlete art interpolates precomputed local skeletal poses: alternating weight transfer during carving and staged loss of balance on a fixed rider pivot during falls. Hip shifts use leg IK to retain original ankle positions at keyframes. The initial board rocks and anchored stumble transition into chest-level water immersion and an independently pitched board beside the rider. The ocean height sampler mirrors the existing vertex shader; the actual opaque ocean hides geometry below its surface. Small visual offsets are applied only within the logical cell. Full water recovery selects a separate remount timeline, with independent board flattening, a curved near-rail approach, shoulder-derived local yaw to face the board before support, rider elevation, alternating lifted-leg targets and a crouch-to-riding sequence. The local yaw fades back to the approved surf stance; the fall pose is unchanged. A bounded two-bone arm IK correction targets the moving near-side deck during the press phase, then releases. Physical grip, exact hand/foot contact and buoyancy are not simulated. Reduced motion resolves directly to target. The catalog supplies isolated preview state through the same snapshot contract, with controls for both riders. No game logic, private cards or legal move calculations are added to the renderer.
 
@@ -183,7 +183,7 @@ R1 occupancy is derived exclusively from player cellPosition, not the legacy sin
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.
 - One existing licensed local Quaternius GLB is reused in the scene; no new external runtime services or assets are required for Issue #26.
-- Full browser, WebGL, Jest and build validation remain pending; see [HANDOFF.md](HANDOFF.md).
+- Jest, strict build and desktop WebGL checks passed for PR #38; mobile and production-performance review remains deferred in #33. See [HANDOFF.md](HANDOFF.md).
 - No changes to authoritative turn logic, 2D fallback, backend architecture or hosting.
 
 ## R1 card artwork (Issue #44)
