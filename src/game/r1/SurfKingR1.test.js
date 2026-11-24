@@ -3,7 +3,7 @@ import { Client } from 'boardgame.io/client'
 import {
     SurfKingR1, setupR1, beginR1Turn, createR1Deck, r1Neighbors,
     r1MoveTargets, r1CardTargets, r1DropTargets, useR1Card, r1Maneuver,
-    r1DropIn, passR1, recoverR1, discardR1Overflow, r1AttackUnavailableReason, DROP_IN_RANGE, r1MaxAttackDice,
+    r1DropIn, passR1, recoverR1, r1AttackUnavailableReason, DROP_IN_RANGE, r1MaxAttackDice,
 } from './SurfKingR1'
 
 function fixture(n = 2) {
@@ -47,8 +47,8 @@ describe('R1 rules', () => {
     test('exact deck inventory, starts, sharks and real graph for every player count', () => {
         const counts = createR1Deck().reduce((a,c) => ({ ...a, [c.Name]: (a[c.Name] || 0) + 1 }), {})
         expect(counts).toEqual({
-            'Energy x2': 12, 'Lifeguard float': 9, 'Big wave': 3, Sunburn: 7,
-            Storm: 7, Cyclone: 4, Island: 3, Jumping: 4, Amulet: 7, 'Surf Current': 4,
+            'Energy x2': 8, 'Lifeguard float': 6, 'Big wave': 7, Sunburn: 10,
+            Tsunami: 3, Stone: 4, Storm: 5, Cyclone: 3, Island: 3, Jumping: 4, Amulet: 4, 'Surf Current': 3,
         })
         expect(r1Neighbors(21)).toEqual([14, 18, 25, 28])
         for (let n = 2; n <= 7; n++) {
@@ -58,20 +58,62 @@ describe('R1 rules', () => {
             assertConserved(G)
         }
     })
-    test.each(['Storm', 'Cyclone', 'Island'])('places %s anywhere on the free course, not on starts, beaches, sharks or occupied hexes', name => {
+    test.each(['Storm', 'Cyclone', 'Island', 'Stone'])('limits %s placement to its range and excludes blocked hexes', name => {
         const { G, ctx } = fixture()
         relocate(G, 1, 14)
         place(G, 'Storm', 21)
         const index = grant(G, 0, name)
         const targets = r1CardTargets(G, ctx, index)
-        expect(targets).toEqual(Array.from({ length: 42 }, (_, i) => i + 7)
-            .filter(id => ![14, 21, 28, 29, 30, 31].includes(id)))
-        for (const invalid of [0, 6, 14, 21, 28, 31, 49, 52, 53]) {
+        let reachable = new Set([0])
+        for (let step = 0; step < (name === 'Stone' ? 3 : 2); step++) {
+            reachable = new Set([...reachable, ...Array.from(reachable).flatMap(r1Neighbors)])
+        }
+        expect(targets).toEqual(Array.from(reachable).filter(id => id >= 7 && id < 49 &&
+            !G.cells[id].player && !G.cells[id].obstacle).sort((a,b) => a-b))
+        for (const invalid of [0, 6, 14, 21, 28, 31, 48, 49, 52, 53]) {
             expect(useR1Card(G, ctx, index, invalid)).toBe(INVALID_MOVE)
         }
-        expect(useR1Card(G, ctx, index, 48)).toBeUndefined()
-        expect(G.cells[48].obstacle.Name).toBe(name)
-        expect(G.currentMove).toBe('maneuver')
+        expect(useR1Card(G, ctx, index, 7)).toBeUndefined()
+        expect(G.cells[7].obstacle.Name).toBe(name)
+        assertConserved(G)
+    })
+    test('Stone costs one energy and disappears on ordinary entry', () => {
+        const { G, ctx } = fixture()
+        relocate(G, 0, 21)
+        place(G, 'Stone', 25)
+        const stone = G.cells[25].obstacle
+        passR1(G, ctx)
+        r1Maneuver(G, ctx, 25)
+        expect(G.players[0].energy).toBe(1)
+        expect(G.cells[25].obstacle).toBeUndefined()
+        expect(G.discardedCards).toContain(stone)
+        assertConserved(G)
+    })
+    test('Tsunami attacks only adjacent opponents and deals three damage', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 0, 21)
+        relocate(G, 1, 7)
+        const index = grant(G, 0, 'Tsunami')
+        expect(useR1Card(G, ctx, index, 7)).toBe(INVALID_MOVE)
+        relocate(G, 1, 25)
+        G.players[1].energy = 4
+        expect(useR1Card(G, ctx, index, 25)).toBeUndefined()
+        expect(G.players[1].energy).toBe(1)
+        assertConserved(G)
+    })
+    test.each([0, 5])('full hand draws and randomly discards index %s', discardIndex => {
+        const { G, ctx } = fixture()
+        const p = G.players[0]
+        p.cards.push(...G.deck.splice(0, 3))
+        const expected = [...p.cards, G.deck[G.deck.length - 1]][discardIndex]
+        const deckSize = G.deck.length
+        ctx.random.Number = () => discardIndex / 6 + 0.01
+        passR1(G, ctx)
+        r1Maneuver(G, ctx, 7)
+        expect(p.cards).toHaveLength(5)
+        expect(G.deck).toHaveLength(deckSize - 1)
+        expect(G.discardedCards).toContain(expected)
         assertConserved(G)
     })
     test('remote placement does not extend attack ranges or Jumping', () => {
@@ -79,7 +121,7 @@ describe('R1 rules', () => {
         G.turn = 2
         relocate(G, 1, 42)
         place(G, 'Island', 48)
-        for (const name of ['Big wave', 'Sunburn', 'Jumping']) {
+        for (const name of ['Big wave', 'Sunburn', 'Tsunami', 'Jumping']) {
             const index = grant(G, 0, name)
             expect(r1CardTargets(G, ctx, index)).toEqual([])
         }
@@ -97,7 +139,7 @@ describe('R1 rules', () => {
         expect(ctx.events.endTurn).toHaveBeenCalledTimes(1)
         assertConserved(G)
     })
-    test.each(['Shark','Storm','Cyclone','Island'])('Jumping safely lands on %s and leaves it intact', name => {
+    test.each(['Shark','Storm','Cyclone','Island','Stone'])('Jumping safely lands on %s and leaves it intact', name => {
         const { G, ctx } = fixture()
         relocate(G, 0, 21)
         if (name !== 'Shark') place(G, name, 25)
@@ -335,7 +377,7 @@ describe('R1 rules', () => {
         expect(r1DropIn(G, ctx, 4)).toBe(INVALID_MOVE)
         assertConserved(G)
     })
-    test.each([false, true])('discard overflow resumes the original pre-movement phase (card used: %s)', cardUsed => {
+    test.each([false, true])('automatic random overflow preserves the pre-movement phase (card used: %s)', cardUsed => {
         const { G, ctx } = fixture()
         G.turn = 2
         relocate(G, 1, 4)
@@ -348,10 +390,7 @@ describe('R1 rules', () => {
         r1DropIn(G, ctx, 4, 1)
         expect(G.players[0].energy).toBe(energy)
         expect(G.players[1].energy).toBe(0)
-        expect(G.currentMove).toBe('discard')
-        expect(G.overflowPlayer).toBe(0)
-        expect(G.players[0].cards).toHaveLength(6)
-        discardR1Overflow(G, ctx, 0)
+        expect(G.discardedCards.length).toBe(cardUsed ? 2 : 1)
         expect(G.players[0].cards).toHaveLength(5)
         expect(G.currentMove).toBe(cardUsed ? 'maneuver' : 'use_card')
         expect(ctx.events.endTurn).toHaveBeenCalledTimes(0)
