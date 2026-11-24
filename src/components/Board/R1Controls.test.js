@@ -15,6 +15,6 @@ test('shows distinct illustrations and current R1 effects, including Surf Curren
     const sources = buttons.map(button => button.querySelector('img').getAttribute('src'))
     expect(new Set(sources).size).toBe(10)
     expect(within(hand).getByRole('button', { name: /Surf Current/ })).toHaveTextContent('Move up to two legal steps')
-    expect(within(hand).getByRole('button', { name: /Island/ })).toHaveTextContent('first ordinary entrant gains 2 energy')
+    expect(within(hand).getByRole('button', { name: /Island/ })).toHaveTextContent('every ordinary entry restores 2 energy; Island stays in place')
     expect(screen.getByLabelText('Round play order').querySelector('[aria-current="step"]')).toHaveTextContent('Player 1')
 })
