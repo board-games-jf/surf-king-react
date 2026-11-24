@@ -10,6 +10,7 @@ import { PRESET_SURFERS } from './surferStyle'
 import { createObstacleModel } from './obstacleModels'
 import { createHexDepth } from './hexDepth'
 import { createTargetHighlights } from './createTargetHighlights'
+import { createBoardViewportResize } from './resizeBoardViewport'
 import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, shortestHeading, MOVE_SECONDS } from './surferMotion'
 
 // This renderer receives public state and never validates moves or changes rules.
@@ -382,7 +383,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     animateCamera(now)
     controls.update();renderer.render(scene,camera);raf=requestAnimationFrame(frame)
   }
-  function resize(){const width=Math.max(container.clientWidth,1),height=Math.max(container.clientHeight,1);camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setSize(width,height,false)}
+  const resize = createBoardViewportResize(container, camera, renderer)
   let observer
   if(typeof ResizeObserver!=='undefined'){observer=new ResizeObserver(resize);observer.observe(container)}else window.addEventListener('resize',resize)
   function contextLost(e){e.preventDefault();if(onError)onError('WebGL context lost. Switch back to 2D.')}
