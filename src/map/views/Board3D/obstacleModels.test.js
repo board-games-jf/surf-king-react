@@ -50,7 +50,7 @@ describe('3D obstacle geometry', () => {
 describe('card silhouette and environmental motion', () => {
   const make = type => createObstacleModel(type, createScenePrimitives(new THREE.Scene()))
 
-  test('the Stone uses two mint-colored pointed crags, not round gray rocks', () => {
+  test('the Stone uses two pointed sandstone crags', () => {
     const model = make('Stone')
     const crags = []
     model.object.traverse(node => {

@@ -228,6 +228,17 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (stonePreview) stonePreview.stone.position.y = .1
     stonePreview = { stone, cellId, started: performance.now() }
   }
+  const stormArrival = new THREE.Mesh(new THREE.RingGeometry(.52, .58, 48), new THREE.MeshBasicMaterial({ color: 0xa7ddff, transparent: true, side: THREE.DoubleSide, depthWrite: false }))
+  stormArrival.rotation.x = -Math.PI / 2
+  stormArrival.visible = false
+  scene.add(stormArrival)
+  let stormPreview = null
+  function playStorm(cellId) {
+    const storm = obstacles.get(cellId + ':Storm:')
+    if (!storm) return
+    if (stormPreview) stormPreview.storm.position.y = .1
+    stormPreview = { storm, cellId, started: performance.now() }
+  }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -286,6 +297,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     color: '#b4f2df', transparent: true, opacity: .15, depthWrite: false, side: THREE.DoubleSide
   })
   const cellLabels = new THREE.Group()
+  const cellLabelGeometry = new THREE.PlaneGeometry(.84, .525)
   scene.add(cellLabels)
   for (const cell of BOARD_LAYOUT) {
     const hit = new THREE.Mesh(shapeGeo, hitMat)
@@ -320,9 +332,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     context.fillText(cell.id >= 49 ? 'FINISH' : String(cell.id + 1), 64, 41, 114)
     const texture = new THREE.CanvasTexture(canvas)
     texture.colorSpace = THREE.SRGBColorSpace
-    const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }))
-    label.position.set(cell.x, .35, cell.z)
-    label.scale.set(.9, .56, 1)
+    const label = new THREE.Mesh(cellLabelGeometry, new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, side: THREE.DoubleSide }))
+    label.rotation.x = -Math.PI / 2
+    label.position.set(cell.x, .21, cell.z + .84)
     cellLabels.add(label)
   }
   function ring(color){const o=new THREE.LineLoop(outlineGeo,new THREE.LineBasicMaterial({color}));o.position.y=.22;o.visible=false;scene.add(o);return o}
@@ -720,6 +732,23 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         })
       }
     }
+    if (stormPreview) {
+      const { storm, cellId, started } = stormPreview
+      const t = (now - started) / 1000
+      if (!obstacles.has(cellId + ':Storm:') || t >= 3) {
+        storm.position.y = .1
+        stormArrival.visible = false
+        stormPreview = null
+      } else {
+        const growth = reduce ? 1 : THREE.MathUtils.smoothstep(t, .2, 1.4)
+        storm.position.y = .1 + 2.2 * (1 - growth)
+        const ripple = reduce ? .5 : THREE.MathUtils.clamp((t - 1.1) / 1.5, 0, 1)
+        stormArrival.visible = ripple > 0 && ripple < 1
+        stormArrival.position.set(BOARD_LAYOUT[cellId].x, .19, BOARD_LAYOUT[cellId].z)
+        stormArrival.scale.setScalar(.5 + ripple * 2)
+        stormArrival.material.opacity = .65 * (1 - ripple)
+      }
+    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
@@ -777,5 +806,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }

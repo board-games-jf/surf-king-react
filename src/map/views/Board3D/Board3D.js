@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 // The heavy Three.js scene is imported only after the 3D view is selected.
-export default function Board3D({ snapshot, onCellSelect, onCellHover, onUnavailable, focusCellId = null, previewFemaleAthlete = true, athleteBoardType = null, sunburnPreview = null, bigWavePreview = null, amuletPreview = null, stonePreview = null }) {
+export default function Board3D({ snapshot, onCellSelect, onCellHover, onUnavailable, focusCellId = null, previewFemaleAthlete = true, athleteBoardType = null, sunburnPreview = null, bigWavePreview = null, amuletPreview = null, stonePreview = null, stormPreview = null }) {
     const container = useRef(null)
     const scene = useRef(null)
     const latestClick = useRef(onCellSelect)
@@ -71,6 +71,10 @@ export default function Board3D({ snapshot, onCellSelect, onCellHover, onUnavail
     useEffect(() => {
         if (stonePreview) scene.current?.playStone(stonePreview.cellId)
     }, [stonePreview])
+
+    useEffect(() => {
+        if (stormPreview) scene.current?.playStorm(stormPreview.cellId)
+    }, [stormPreview])
 
     useEffect(() => {
         if (scene.current) scene.current.toggleIds(showIds)

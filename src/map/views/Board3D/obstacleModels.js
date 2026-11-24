@@ -96,11 +96,11 @@ function crag(parent, helpers, x, z, height, radius, lean, colors) {
 }
 
 function stoneModel(parent, helpers) {
-  // Tall mint-green twin peaks, matching src/assets/cards/stone.png.
+  // Warm sandstone peaks inspired by the R1 Stone card.
   crag(parent, helpers, -.15, -.03, 1.15, .43, .09,
-    ['#a4f4dd', '#71ddc1', '#3ebd9c', '#269c80', '#4fbca4', '#8be8d5', '#64d4bb'])
+    ['#f2b66d', '#dc8b40', '#b85c25', '#8f431d', '#cb7130', '#ffd299', '#e79a50'])
   crag(parent, helpers, .24, .14, .83, .32, -.08,
-    ['#77dfc6', '#3eb79d', '#239a7f', '#53c3a5', '#b1f6df', '#49b69a'])
+    ['#e9a35a', '#c96f2c', '#9f481e', '#da843b', '#ffcb86', '#bd6229'])
   const ripples = [[.44,.3,1.4],[.50,3.0,1.1]].map(([r, a, len]) => foamArc(parent, helpers, r, a, len))
   return (time, phase = 0, reducedMotion = false) => {
     ripples.forEach((arc, index) => {
