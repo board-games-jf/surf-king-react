@@ -34,6 +34,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-024 | Accepted | Recovery from the approved fallen water state must have a dedicated remount animation, not a reversed fall: turn the chest toward the board from the water, flatten the board, reach and press up from the near rail, bring the legs onto the deck, crouch and resume surfing. | Owner approved the fall and requested separate recovery on 2026-11-22. Shared rigs and carving remain unchanged; The owner requested a more realistic board-facing recovery; exact timing and hand/foot contact require visual review. | [#37](https://github.com/board-games-jf/surf-king-react/issues/37) |
 
+| SK-DEC-028 | Accepted | Implement the R1 rules and ten-type, sixty-card deck as a separate experimental local pilot, retaining legacy play and the original board/renderers. The R1 rules are not yet permanently ratified. | Owner authorized app implementation for hands-on testing on 2026-11-24; do not infer merge or deployment approval. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42), [#11](https://github.com/board-games-jf/surf-king-react/issues/11) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
