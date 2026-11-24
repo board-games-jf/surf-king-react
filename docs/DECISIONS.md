@@ -38,6 +38,10 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-029 | Accepted | For the R1 playtest, Storm, Cyclone and Island may be placed on any vacant obstacle-free course hex (IDs 7–48), without a distance limit. Starts, beaches, Sharks, occupied hexes and existing obstacles remain excluded. Attack ranges and movement are unchanged. | Owner requested greater interaction and simpler placement during hands-on testing. Experimental rule, not final ratification. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-030 | Accepted | Shuffle the complete player sequence once during R1 match setup and retain it unchanged for all rounds. No rotating first player. | Owner clarified the intended sequence during the local playtest. Supersedes the historical R1 rotating-order trial. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
+| SK-DEC-031 | Accepted | Island is persistent terrain: every ordinary entry restores 2 energy (cap 5); staying does not restore energy, Jumping bypasses the effect, and the card stays on the board. | Owner clarified Island is an obstacle, not a consumable. Supersedes the historical first-entry-only rule. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
