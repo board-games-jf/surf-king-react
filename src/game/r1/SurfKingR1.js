@@ -195,7 +195,7 @@ export function r1CardTargets(G, ctx, index) {
     if (attackNames.includes(name) && G.turn > 1) {
         const range = R1_ATTACK_RANGE[name]
         return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
-            !shielded(q) && DIST[from][q.cellPosition] <= range).map(q => q.cellPosition)
+            q.energy > 1 && !shielded(q) && DIST[from][q.cellPosition] <= range).map(q => q.cellPosition)
     }
     return []
 }
@@ -221,6 +221,9 @@ export function r1AttackUnavailableReason(G, ctx, range, targets, kind = 'drop')
         DIST[p.cellPosition][q.cellPosition] <= range)
     if (!nearby.length) return 'No opponent within ' + range + ' hexes.'
     if (nearby.every(q => !alive(q))) return 'Nearby opponents are fallen or finished.'
+    if (kind === 'card' && nearby.some(q => alive(q) && !shielded(q) && q.energy === 1)) {
+        return 'Unprotected opponents in range already have 1 energy; only Drop In can knock them off.'
+    }
     return 'Nearby standing opponents are protected by Amulet.'
 }
 export function r1CardPlayable(G, ctx, index) {
@@ -264,7 +267,11 @@ export function useR1Card(G, ctx, index, to) {
         spend(G, p, index)
         if (name === CardEnergyX2.Name) capEnergy(p, p.energy + 2)
         else if (attackNames.includes(name)) {
-            hurt(G, ctx, G.players[G.cells[to].player.position], attackDamage[name], p)
+            const target = G.players[G.cells[to].player.position]
+            const damage = Math.min(attackDamage[name], target.energy - 1)
+            // Direct cards weaken opponents; only Drop In can cause a direct fall.
+            target.energy -= damage
+            G.message = name + ': Player ' + (target.position + 1) + ' loses ' + damage + ' energy.'
         } else if (name === CardJumping.Name) {
             relocate(G, p, to)
             G.moved = true
