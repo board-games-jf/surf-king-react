@@ -318,3 +318,14 @@
 .r1-swap-choice > strong { color: var(--hud-gold); }
 .r1-swap-choice > span { color: var(--hud-mute); }
 .r1-swap-choice .r1-action-row { justify-content: center; }
+
+/* Keep rapid inspection in the existing floating context, above the hand. */
+.r1-card-detail { display: grid; gap: 3px; width: min(420px, 100%); }
+.r1-card-detail-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; justify-content: space-between; }
+.r1-card-availability { font-size: .78em; font-weight: 800; border-radius: 999px; padding: 2px 7px; color: #ffbdab; background: #6d3833; }
+.r1-card-availability[data-playable="true"] { color: #c6ffe0; background: #225a4c; }
+.r1-card-detail .r1-card-next-action { color: #c0f5dc; font-weight: 650; font-size: .88em; }
+.r1-card-detail .r1-confirm-card { justify-self: start; }
+.r1-floating-hud .r1-hand button .r1-card-ready { position: absolute; right: 6px; top: 6px; width: 17px; height: 17px; border-radius: 50%; line-height: 17px; font-size: 11px; font-weight: bold; color: #fff; background: #72524e; box-shadow: 0 1px 4px #1238; }
+.r1-floating-hud .r1-hand button .r1-card-ready[data-playable="true"] { background: #246d54; }
+.r1-floating-hud .r1-hand button[aria-disabled="true"]:hover { opacity: .83; }
