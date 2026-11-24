@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { AthleteControls, AthleteCharacterControls, ATHLETE_SAVE_KEY, readAthleteStyle } from '../ArtReviewPage'
+import { AthleteControls, AthleteCharacterControls, LocalPlayerControls, ATHLETE_SAVE_KEY, readAthleteStyle } from '../ArtReviewPage'
 
 beforeEach(() => window.localStorage.clear())
 
@@ -45,5 +45,17 @@ describe('approved character selection', () => {
     expect(screen.getByRole('button', { name: 'Masculino' })).toHaveAttribute('aria-pressed', 'true')
     fireEvent.click(screen.getByRole('button', { name: 'Feminina' }))
     expect(onCharacter).toHaveBeenCalledWith('female')
+  })
+})
+
+
+describe('local player selection', () => {
+  test('selects one of the seven slots without modifying the athlete appearance', () => {
+    const change = jest.fn()
+    render(<LocalPlayerControls playerId="0" onPlayerChange={change} />)
+    const picker = screen.getByRole('combobox', { name: 'Jogador local' })
+    expect(picker.options).toHaveLength(7)
+    fireEvent.change(picker, { target: { value: '4' } })
+    expect(change).toHaveBeenCalledWith('4')
   })
 })

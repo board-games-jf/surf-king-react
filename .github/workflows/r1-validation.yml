@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   test:
-    if: startsWith(github.head_ref, 'feat/42-r1-') || github.head_ref == 'feat/44-r1-card-art'
+    if: startsWith(github.head_ref, 'feat/42-r1-') || github.head_ref == 'feat/44-r1-card-art' || github.head_ref == 'feat/40-local-player-appearance' || github.head_ref == 'fix/48-first-arrival-board-feedback'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -24,7 +24,7 @@ jobs:
         run: npx --yes yarn@1.22.22 install --frozen-lockfile
       - name: Verify approved card artwork
         run: node scripts/validate-r1-card-art.cjs
-        if: github.head_ref == 'feat/44-r1-card-art'
+        if: github.head_ref == 'feat/44-r1-card-art' || github.head_ref == 'feat/40-local-player-appearance' || github.head_ref == 'fix/48-first-arrival-board-feedback'
       - name: Run all tests
         run: npm test -- --watchAll=false --runInBand
       - name: Build (strict)

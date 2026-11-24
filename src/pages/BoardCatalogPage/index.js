@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { BOARD_TYPES } from '../../map/views/Board3D/surferStyle'
+import { normalizeLocalPlayerId } from '../../map/views/Board3D/localSurferProfiles'
 import Board3D from '../../map/views/Board3D/Board3D'
 import {
   CATALOG_TOOLS,
@@ -18,14 +19,17 @@ const SURFER_COLORS = ['Orange', 'Coral', 'Teal', 'Blue', 'Yellow', 'Purple', 'G
 
 export default function BoardCatalogPage() {
   const location = useLocation()
+  const selectedProfilePlayer = normalizeLocalPlayerId(location.state?.athletePlayerId)
   const requestedType = location.state?.athleteBoardType
   const athleteBoardType = BOARD_TYPES.includes(requestedType) ? requestedType : null
   const [catalog, setCatalog] = useState(createBoardCatalog)
   const [tool, setTool] = useState('Inspect')
-  const [surferId, setSurferId] = useState(location.state?.athleteCharacter === 'female' ? '1' : '0')
+  const [surferId, setSurferId] = useState(selectedProfilePlayer ?? (location.state?.athleteCharacter === 'female' ? '1' : '0'))
   const requestedCharacter = location.state?.athleteCharacter
   const [selectedCellId, setSelectedCellId] = useState(() =>
-    ['male', 'female'].includes(requestedCharacter)
+    selectedProfilePlayer !== null
+      ? catalog.surfers[selectedProfilePlayer] ?? null
+      : ['male', 'female'].includes(requestedCharacter)
       ? catalog.surfers[requestedCharacter === 'male' ? '0' : '1'] ?? null
       : null)
   const [error, setError] = useState(null)

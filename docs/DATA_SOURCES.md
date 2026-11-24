@@ -20,6 +20,14 @@
 - The experimental `/#/surfers` and `/#/customize` pages use procedural Three.js geometry and CSS-drawn scenery; they do not embed the exact supplied raster logo, create a rigged character from a screenshot, or claim its fidelity.
 - For final production artwork, integrate reviewed binary assets and document their provenance and rights.
 
+## Approved premium surfer-and-board concept reference (Issue #33)
+
+- **Source:** stylized female surfer/board concept render generated within the owner's Surf King ChatGPT conversation, and explicitly approved by the owner on 2026-11-16 as the **minimum visual quality target for both real 3D character and surfboard**. The owner also supplied screenshots of failed live 3D poses/hair as negative comparison evidence.
+- **Contents:** athletic low surfing stance with staggered bent knees, planted feet and active balance arms; expressive styled face, integrated updo hairstyle, green surfwear; finished turquoise board with clean white longitudinal stripe, rails, nose/tail and fin.
+- **Raster fingerprint:** `dynamic_surfing_stance_on_aqua_board.png`, 1122×1402 pixels, SHA-256 `6f35b83a3d9101d1ed93572e0942d4fbfa9513163e77fdadd14490073ed617e9` (verified from the exact conversation image file on 2026-11-16).
+- **Availability:** the exact raster image is present in the conversation, but is **not yet verified as a permanent repository asset or GitHub issue attachment**. The stable reference must be attached to Issue #33 and matched against the fingerprint for future reference; the owner subsequently accepted the actual integrated character baseline on 2026-11-22.
+- **Status / rights:** design reference, not a real GLB, source texture, licensed third-party model, final exported image asset or proof of WebGL quality. A replacement production GLB, 3D board mesh, rigged animation and any external source must each have documented provenance and rights before packaging.
+
 ## Owner-uploaded Female Athlete file (Issue #33)
 
 | Item | Inspection result |
@@ -32,25 +40,27 @@
 | Rig / animation | **None.** The file has zero skins, zero joints and zero animation clips. It cannot support the planned surf-pose/board-contact proof. |
 | Required replacement | Obtain the exact source **Rigged GLB** export, preserve its original filename and hash, and inspect its skins, joints and clips before any pose or integration work. |
 
-This static upload must not replace the existing avatar or be represented as the owner-approved rigged production asset. The owner-approved visual direction and remaining quality gate remain recorded in Issue #33 and draft PRs #34–#36.
+This static upload must not replace the existing avatar or be represented as the owner-approved rigged production asset. The owner-approved visual direction and deferred improvements are recorded in Issue #33.
 
 ## Owner-uploaded Female Athlete rigged file (Issue #33)
 
+Publisher reference: [Grab3D Female Athlete](https://grab3d.com/models/characters/female-athlete/), advertised rigged export at `https://grab3d.com/dl/female-athlete-rigged/female-athlete-rigged.glb`. Publisher manifest declares CC0 and AI-assisted provenance; not an independent rights-chain audit. The actual owner-uploaded rig is identified below.
+
 | Item | Inspection result |
 | --- | --- |
-| File | Owner-uploaded `1-female-athlete-rigged.glb`, copied unchanged to `public/assets/surfers/female-athlete-rigged-review.glb` for draft creator and 3D board integration. |
+| File | Owner-uploaded `1-female-athlete-rigged.glb`, copied unchanged to `public/assets/surfers/female-athlete-rigged-review.glb` for creator and 3D board integration. |
 | Identity | SHA-256 `c40e86e7e3566990b46472e231b21eb5e10581a1491fc453b49f062c45c332f6`; 13,418,392 bytes. |
 | Container | Valid self-contained glTF 2.0 GLB with one skinned mesh and one `Armature` skin. |
 | Skeleton | 24 joints plus inverse-bind matrices: hips, three spine bones, neck/head, left/right shoulder-arm-forearm-hand chains, legs, feet and toes. |
 | Animation | `walk` (1.0 second) and `run` (0.625 second). |
-| Status | Selected by the owner as the female model foundation. Integrated into the creator and female board presets in draft PR #36; not merged, deployed or accepted as final production art. |
+| Status | Selected by the owner as the female model foundation. Integrated in merged PR #36; the owner accepted the current character baseline in PR #38. Release licensing and performance checks remain pending; no deployment. |
 
 The prior static GLB and this rigged GLB are different source variants. The owner reviewed an earlier real WebGL stance and selected the rigged file; the integrated poses, board fitting, customization, performance and licence chain still require validation before release.
 ## Approved male base — actual CI proof (Issue #33)
 
 - [Grab3D Man Base Mesh](https://grab3d.com/models/characters/man-base-character/), rigged export: `https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb`. Publisher [license](https://grab3d.com/dl/man-base-character/LICENSE.txt) declares CC0 and AI-assisted origin; independent rights-chain review pending.
 - [CI run 44971791188](https://github.com/board-games-jf/surf-king-react/actions/runs/44971791188) downloaded and inspected a self-contained GLB: 11,354,468 bytes, SHA-256 `3038f56e1225d0ef9692189ed19ff688f1424e669281148a4cc6995fed568496`, 262,348 triangles, 24 joints including all required anatomical joints, run/walk clips. Chromium render of shared anatomical pose solver completed. [Actual model and screenshots](https://github.com/board-games-jf/surf-king-react/actions/runs/44971791188/artifacts/14734460387) are temporary CI artifacts.
-- Owner explicitly approved this male model after visual testing on 2026-11-22. The local preparation script verifies the exact byte length and SHA-256 before copying or downloading the GLB to `public/assets/surfers/man-base-character-rigged.glb` (gitignored). Both studio and board load this same local asset. No runtime external fetch or independently verified rights-chain; permanent binary commit is blocked by local network access. The new wave and integrated board still require validation.
+- Owner explicitly approved this male model after visual testing on 2026-11-22. The local preparation script verifies the exact byte length and SHA-256 before copying or downloading the GLB to `public/assets/surfers/man-base-character-rigged.glb` (gitignored). Both studio and board load this same local asset. No runtime external fetch or independently verified rights-chain; permanent binary commit is blocked by local network access. Desktop wave/board WebGL checks passed in PRs #36/#38; independent rights-chain and mobile performance review remain pending.
 
 ## Rigged surfer evaluation asset (Issue #22)
 
