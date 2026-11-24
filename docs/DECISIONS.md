@@ -60,6 +60,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-040 | Accepted | Card inspection in the R1 floating HUD immediately shows availability, effect, blocking reason or next action. Hover/focus previews legal target cells (or Surf Current first steps) from engine queries, without committing a selection or enabling moves. Existing committed action and movement highlights take precedence. Touch inspection and explicit confirmation/target selection remain supported. | Owner approved the floating HUD and requested quicker feedback when hovering cards. Presentation only; no gameplay change. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-041 | Accepted | R1 hex hover and non-action clicks/taps expose immediate context in the floating HUD: hex number, terrain/ordinary entry effect, public occupant energy/status, action availability and fall warning. Committed legal clicks still execute the existing action; inspection never enables or consumes actions. Jumping explicitly explains safe entry. Both renderers share the read-only feedback helper; 3D uses its existing raycast/ring and suppresses hover during drag. | Owner requested clearer feedback when hovering or clicking a hex. Presentation only; no rule change. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
