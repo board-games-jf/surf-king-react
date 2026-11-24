@@ -35,7 +35,7 @@ const descriptions = {
     Sunburn: 'Opponent within 3 edges loses 1 energy.',
     Storm: 'Place on any free course hex; entry costs 1 energy.',
     Cyclone: 'Place on any free course hex; entry redirects to a random free neighboring hex.',
-    Island: 'Place on any free course hex; first ordinary entrant gains 2 energy.',
+    Island: 'Place on any free course hex; every ordinary entry restores 2 energy; Island stays in place.',
     Jumping: 'Land on an adjacent hazard, stay there and ignore its effect.',
     Amulet: 'Protect against opponent attacks until your next turn.',
     'Surf Current': 'Move up to two legal steps; draw only once.',
