@@ -19,7 +19,7 @@ const colors = { sand:'#f4d49b', rock:'#a6aaa0', trunk:'#b5804f', green:'#4c9755
   cream:'#fff3cb', orange:'#ffbb41', coral:'#f27763', teal:'#38b4ae', blue:'#337a91',
   skin:'#c8824b', dark:'#294b46' }
 
-export function createScene(container,onCellSelect,onError, { previewFemaleAthlete = false, athleteBoardType = null } = {}) {
+export function createScene(container,onCellSelect,onError, { previewFemaleAthlete = false, athleteBoardType = null, onCellHover } = {}) {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color('#c8e8e5')
   scene.fog = new THREE.Fog('#c8e8e5',42,105)
@@ -171,14 +171,22 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   function pick(event){const box=renderer.domElement.getBoundingClientRect();if(!box.width||!box.height)return null;pointer.set((event.clientX-box.left)/box.width*2-1,-(event.clientY-box.top)/box.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets,false)[0]?.object.userData.cellId??null}
   let start = null
   const pressedPointers = new Set()
+  let hoverId = null
+  function setHover(id) {
+    if (id === hoverId) return
+    hoverId = id
+    positionRing(hovered, id)
+    onCellHover?.(id)
+  }
   function move(e) {
     if (start && e.pointerId === start.id && Math.hypot(e.clientX - start.x, e.clientY - start.y) >= 6) start = null
-    const id = pick(e)
-    positionRing(hovered, id)
+    const id = pressedPointers.size ? null : pick(e)
+    setHover(id)
     renderer.domElement.style.cursor = id === null ? 'grab' : 'pointer'
   }
   function down(e) {
     pressedPointers.add(e.pointerId)
+    setHover(null)
     start = pressedPointers.size === 1 && e.button === 0 && !e.shiftKey && !e.ctrlKey && !e.metaKey
       ? { id: e.pointerId, x: e.clientX, y: e.clientY } : null
   }
@@ -194,7 +202,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       if (id !== null) onCellSelect(id)
     }
   }
-  function leave(){positionRing(hovered,null)}
+  function leave(){setHover(null)}
   renderer.domElement.addEventListener('pointermove',move)
   renderer.domElement.addEventListener('pointerdown',down)
   renderer.domElement.addEventListener('pointerup',up)
