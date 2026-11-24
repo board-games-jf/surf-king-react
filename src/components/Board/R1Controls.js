@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-    r1CardPlayable, r1CardTargets, r1DropTargets, r1MoveTargets, isBeach,
+    R1_ATTACK_RANGE, r1CardPlayable, r1CardTargets, r1DropTargets, r1MoveTargets, isBeach,
     DROP_IN_RANGE, r1AttackUnavailableReason, r1MaxAttackDice,
 } from '../../game/r1/SurfKingR1'
 import { getR1RoundOrder } from './r1RoundOrder'
@@ -13,6 +13,8 @@ import cardArt5 from '../../assets/cards/cyclone.png'
 import cardArt6 from '../../assets/cards/island.png'
 import cardArt7 from '../../assets/cards/jumping.png'
 import cardArt8 from '../../assets/cards/amulet.png'
+import stoneArt from '../../assets/cards/stone.png'
+import tsunamiArt from '../../assets/cards/tsunami.png'
 import surfCurrentArt from '../../assets/cards/surfcurrent.svg'
 
 const cardArt = {
@@ -25,6 +27,8 @@ const cardArt = {
     'Island': cardArt6,
     'Jumping': cardArt7,
     'Amulet': cardArt8,
+    Stone: stoneArt,
+    Tsunami: tsunamiArt,
     'Surf Current': surfCurrentArt,
 }
 
@@ -34,9 +38,11 @@ const descriptions = {
     'Lifeguard float': 'Recover with 3 energy.',
     'Big wave': 'Opponent within 2 edges loses 2 energy.',
     Sunburn: 'Opponent within 3 edges loses 1 energy.',
-    Storm: 'Place on any free course hex; entry costs 1 energy.',
-    Cyclone: 'Place on any free course hex; entry redirects to a random free neighboring hex.',
-    Island: 'Place on any free course hex; every ordinary entry restores 2 energy; Island stays in place.',
+    Stone: 'Place within 3 edges; first ordinary entry costs 1 energy and removes Stone.',
+    Tsunami: 'Adjacent opponent loses 3 energy.',
+    Storm: 'Place within 2 edges; entry costs 1 energy.',
+    Cyclone: 'Place within 2 edges; entry redirects to a random free neighboring hex.',
+    Island: 'Place within 2 edges; every ordinary entry restores 2 energy; Island stays in place.',
     Jumping: 'Land on an adjacent hazard, stay there and ignore its effect.',
     Amulet: 'Protect against opponent attacks until your next turn.',
     'Surf Current': 'Move up to two legal steps; draw only once.',
@@ -48,19 +54,17 @@ export const r1SelectionTargets = (G, ctx, selection) => selection?.kind === 'ca
 export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget }) {
     const player = G.players[ctx.currentPlayer]
     const roundOrder = getR1RoundOrder(G, ctx)
-    const overflow = G.currentMove === 'discard'
-    const hand = overflow ? G.players[G.overflowPlayer] : player
+    const hand = player
     const targets = r1SelectionTargets(G, ctx, selection)
     const dropTargets = r1DropTargets(G, ctx)
     const dropReason = r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, dropTargets)
     const maxAttackDice = r1MaxAttackDice(player.energy)
     const attacking = selection?.kind === 'drop' || (selection?.kind === 'card' &&
-        ['Big wave', 'Sunburn'].includes(player.cards[selection.index]?.Name))
+        Boolean(R1_ATTACK_RANGE[player.cards[selection.index]?.Name]))
     const canPass = G.currentMove === 'use_card' || G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
     function playCard(index) {
-        if (overflow) { moves.discardOverflow(index); return }
         if (!r1CardPlayable(G, ctx, index)) return
         if (r1CardTargets(G, ctx, index).length) setSelection({ kind: 'card', index })
         else { setSelection(null); moves.useCard(index) }
@@ -96,7 +100,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 })}
             </div>
             {!winner && <div>
-                {overflow && <strong>Player {hand.position + 1}: choose one card to discard.</strong>}
+                <span>Draw after a successful move. Above 5 cards, discard one at random.</span>
                 {G.currentMove === 'recover' && <div className="surf-turn">
                     <button type="button" onClick={() => moves.recover()}>Recover free (1 energy)</button>
                     <span>Or use Lifeguard Float.</span>
@@ -118,10 +122,10 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 </div>}
                 <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
                     {hand.cards.map((card, index) => {
-                        const range = card.Name === 'Big wave' ? 2 : card.Name === 'Sunburn' ? 3 : null
-                        const reason = !overflow && range ? r1AttackUnavailableReason(G, ctx, range, r1CardTargets(G, ctx, index), 'card') : null
+                        const range = R1_ATTACK_RANGE[card.Name]
+                        const reason = range ? r1AttackUnavailableReason(G, ctx, range, r1CardTargets(G, ctx, index), 'card') : null
                         return <button type="button" key={card.id} title={reason || descriptions[card.Name]}
-                            disabled={!overflow && !r1CardPlayable(G, ctx, index)}
+                            disabled={!r1CardPlayable(G, ctx, index)}
                             aria-pressed={selection?.kind === 'card' && selection.index === index}
                             onClick={() => playCard(index)}>
                             <img src={cardArt[card.Name]} alt="" className="r1-card-art" />
