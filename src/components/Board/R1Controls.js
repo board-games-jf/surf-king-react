@@ -181,7 +181,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 </div>}
             </div>
             {!winner && <div className="r1-hud-dock">
-                <div className="r1-dock-context-scroll">
+                <div className="r1-dock-scroll">
                 {swapChoice && <div className="r1-swap-choice r1-glass" role="group" aria-label="Position conquest">
                     <strong>Player {G.pendingSwap.targetPlayerId + 1} fell!</strong>
                     <span>Take their hex instead of moving, or keep your position and continue.</span>
@@ -232,7 +232,6 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             onClick={() => onTarget(id)}>{attacking ? 'Player ' + (G.cells[id].player.position + 1) : id + 1}</button>)}
                     </div>}
                 </div>
-                </div>
                 <div className="r1-hand-heading r1-glass">
                     <span>YOUR HAND <strong>{hand.cards.length}/5</strong></span>
                     <button type="button" onClick={() => { inspectCard(null); setHandHidden(value => !value) }} aria-expanded={!handHidden}>{handHidden ? 'Show cards' : 'Hide cards'}</button>
@@ -256,6 +255,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     })}
                     {!hand.cards.length && <span className="r1-empty-hand r1-glass">No cards in hand</span>}
                 </div>}
+                </div>
                 <div className="r1-action-bar r1-glass">
                     <button type="button" className="r1-drop-button" disabled={!!dropReason}
                         aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
