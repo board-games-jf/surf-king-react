@@ -26,3 +26,20 @@ jobs:
         run: npm test -- --watchAll=false --runInBand
       - name: Build (strict)
         run: npm run build
+      - name: Check responsive HUD in Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/surf-browser" --no-save --ignore-scripts playwright-core@1.51.1
+          export PLAYWRIGHT_MODULE="$RUNNER_TEMP/surf-browser/node_modules/playwright-core"
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory build &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for i in {1..20}; do curl --fail --silent http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
+          node scripts/validate-r1-hud.cjs
+      - name: HUD review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r1-hud-review
+          path: artifacts/r1-hud-review/
+          if-no-files-found: warn
+          retention-days: 3
