@@ -123,3 +123,16 @@
 .r1-targets { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
 .r1-targets button { padding: 3px 6px; border: 1px solid #62816e; border-radius: 5px; background: #fffdf1; color: #173d36; }
 .surf-hud:has(.r1-hand) { max-height: 55dvh; overflow-y: auto; }
+
+.r1-round-order { grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); }
+.r1-round-order .surf-hand { border: 2px solid transparent; }
+.r1-round-order .surf-hand[data-order-status="now"] { border-color: #c88b00; background: #fff1bd; box-shadow: none; }
+.r1-round-order .surf-hand[data-order-status="played"] { opacity: .65; }
+.r1-order-status { display: block; font-size: .82em; font-weight: bold; }
+.r1-card-art { display: block; height: clamp(48px, 12dvh, 108px); width: 100%; object-fit: contain; margin: 0 auto 3px; }
+.r1-hand button:disabled img { opacity: .9; }
+.r1-hand button[aria-pressed="true"] { outline: 3px solid #ffcf53; }
+@media (max-width: 520px) {
+    .r1-round-order { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .r1-hand button { flex: 1 1 85px; }
+}
