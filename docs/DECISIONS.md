@@ -46,6 +46,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-033 | Accepted | Drop In remains free and can be repeated before movement while the attacker has at least 2 energy. Only losing the duel costs 1 energy; ties cost nothing. A maximum of one card may be played independently of Drop In attempts, in either order before movement. Jumping ends the turn; Surf Current permits attacks before its first step, not between steps. | Owner clarified the energy floor and explicitly rejected an attack initiation cost. Supersedes the one-tactic restriction in SK-DEC-032; its range, defense, dice, first-round restriction and attack UI remain unchanged. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-034 | Accepted | Drop In uses up to two dice per side. The attacker chooses one or two dice, capped at current energy minus one; the defender rolls up to two, capped at current energy. Sort both rolls descending, compare matched pairs, and subtract one energy from each pair's loser; ties and unmatched dice do nothing. Resolve all pair losses and transfer one card on a fall. Initiation remains free, and the attacker cannot lose their final energy in their own duel. | Owner clarified pairwise damage and the one-energy floor. Retains the existing two-die cap and supersedes the highest-only, fixed-one-damage resolution in SK-DEC-033; all other approved attack rules remain. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
