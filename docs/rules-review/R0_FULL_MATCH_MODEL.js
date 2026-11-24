@@ -66,7 +66,7 @@ const randomGenerator = seed => {
 }
 function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first',positionComp='none',orderComp='none',firstTurnAttacks='restricted',dropSwap='on',deckProfile='b60',jumpStyle='remove'){
  if(!Object.prototype.hasOwnProperty.call(DECK_MAPS,deckProfile))throw Error('Unknown deck profile '+deckProfile)
- if(!['remove','leap'].includes(jumpStyle))throw Error('Unknown Jumping interpretation '+jumpStyle)
+ if(!['remove','land'].includes(jumpStyle))throw Error('Unknown Jumping interpretation '+jumpStyle)
  if(!['restricted','open'].includes(firstTurnAttacks))throw Error('Unknown first-turn attack setting '+firstTurnAttacks)
  if(!['on','off'].includes(dropSwap))throw Error('Unknown Drop In swap setting '+dropSwap)
  const rnd=randomGenerator((seed*7919+n*101+5)>>>0)
@@ -172,7 +172,11 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
  }
  st.startCells=initialStarts.slice();st.openingCardCounts=players.map(p=>p.hand.length);st.openingEnergy=players.map(p=>p.e);st.bonus=openingBonus;st.startMode=startMode;st.positionComp=positionComp;st.orderComp=orderComp
  st.deckProfile=deckProfile;st.deckCounts=deckTypes(deckProfile)
- if(jumpStyle==='leap'){st.leaps=0;st.sharkLeaps=0;st.cycloneRedirects=0;st.leapsOverPlaced=0}
+ if(jumpStyle==='land'){
+   st.jumpLandings=0;st.sharkJumpLandings=0;st.placedJumpLandings=0
+   st.stoneJumpLandings=0;st.stormJumpLandings=0;st.cycloneJumpLandings=0;st.islandJumpLandings=0
+   st.cycloneRedirects=0
+ }
  function use(p,t,location='discard'){
    const index=p.hand.findIndex(c=>c.t===t);if(index===-1)throw Error('missing '+t)
    const c=p.hand.splice(index,1)[0];st.uses[t]=(st.uses[t]||0)+1
@@ -214,7 +218,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
      if(tile.card.t==='Island'){p.e=Math.min(5,p.e+2);board.delete(to);discard.push(tile.card)}
      if(tile.card.t==='Cyclone'&&!redirected){
       const exits=legalFrom(p,to).filter(w=>w!==from)
-      if(exits.length){const dest=choice(exits);p.pos=dest;if(jumpStyle==='leap')st.cycloneRedirects++;arrival(p,to,dest,credit,true)}
+      if(exits.length){const dest=choice(exits);p.pos=dest;if(jumpStyle==='land')st.cycloneRedirects++;arrival(p,to,dest,credit,true)}
      }
     }
    }
@@ -268,36 +272,32 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
   board.set(to,{card,owner:p.id,expires:t==='Stone'?p.own+3:Infinity})
   return true
  }
- // Jumping's experimental leap interpretation: vault over an adjacent
- // hazard in a straight line to a safe, vacant landing hex two edges away.
- // The skipped Shark/placed obstacle remains and does not trigger its effect.
+ // The owner-defined Jumping: move onto an adjacent hazard, ignore its
+ // entry effect, and REMAIN on that exact cell. A Shark or placed card stays.
+ // This consumes the tactical card AND the normal maneuver; no second move.
  function jumpOptions(p){
-   if(jumpStyle!=='leap')return []
-   const from=layout.cells[p.pos],choices=[]
-   for(const middle of ADJ[p.pos]){
-     if(occupied(middle,p.id)||(!SHARK.has(middle)&&!board.has(middle)))continue
-     const obstacle=layout.cells[middle]
-     const x=2*obstacle.x-from.x,z=2*obstacle.z-from.z
-     for(const landing of ADJ[middle]){
-       const cell=layout.cells[landing]
-       if(Math.hypot(cell.x-x,cell.z-z)>.005||occupied(landing,p.id)||SHARK.has(landing)||board.has(landing))continue
-       choices.push({middle,landing})
-     }
-   }
-   return choices
+   if(jumpStyle!=='land')return []
+   return ADJ[p.pos].filter(cell=>!occupied(cell,p.id)&&(SHARK.has(cell)||board.has(cell)))
  }
  function jump(p){
-   if(jumpStyle==='leap'){
+   if(jumpStyle==='land'){
      const options=jumpOptions(p)
      if(!options.length)return false
-     const closest=Math.min(...options.map(o=>D[o.landing]))
-     const good=options.filter(o=>D[o.landing]===closest)
-     const selected=choice(good),from=p.pos
+     const closest=Math.min(...options.map(to=>D[to]))
+     const chosen=choice(options.filter(to=>D[to]===closest))
      use(p,'Jumping')
-     p.pos=selected.landing;st.moves++;st.leaps++
-     if(SHARK.has(selected.middle))st.sharkLeaps++
-     else st.leapsOverPlaced++
-     arrival(p,from,selected.landing)
+     p.pos=chosen;st.moves++;st.jumpLandings++
+     if(SHARK.has(chosen))st.sharkJumpLandings++
+     else{
+       st.placedJumpLandings++
+       const type=board.get(chosen)?.card.t
+       if(type==='Stone')st.stoneJumpLandings++
+       if(type==='Storm')st.stormJumpLandings++
+       if(type==='Cyclone')st.cycloneJumpLandings++
+       if(type==='Island')st.islandJumpLandings++
+     }
+     // Do not call arrival: the card explicitly ignores entry effects.
+     // Remaining on this cell never retriggers the effect on later turns.
      return true
    }
    const options=[...board].filter(([to])=>ADJ[p.pos].includes(to))
@@ -380,7 +380,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
    for(const [key,amount] of [['Coconut',5],['Energy x2',2],['Energy',1]])if(contains(p,key)&&p.e<=(key==='Coconut'?3:key==='Energy x2'?3:2))actions.push({key,score:p.e<=1?8:4})
    if(contains(p,'Amulet')&&!amulet(p)&&exposed(p).length)actions.push({key:'Amulet',score:mode==='aggressive'?3:9})
    if(contains(p,'Hang Loose')&&!loose(p)&&players.some(q=>q!==p&&ADJ[p.pos].includes(q.pos)))actions.push({key:'Hang Loose',score:3})
-   if(contains(p,'Jumping')&&(jumpStyle==='leap'?jumpOptions(p).length>0:[...board].some(([to])=>ADJ[p.pos].includes(to))))actions.push({key:'Jumping',score:jumpStyle==='leap'?8:6})
+   if(contains(p,'Jumping')&&(jumpStyle==='land'?jumpOptions(p).length>0:[...board].some(([to])=>ADJ[p.pos].includes(to))))actions.push({key:'Jumping',score:jumpStyle==='land'?8:6})
    for(const type of ['Stone','Storm','Island','Cyclone'])if(contains(p,type))actions.push({key:type,score:type==='Stone'?5:type==='Island'&&p.e<=3?6:mode==='aggressive'?2:4})
    if(!actions.length){st.noTactic++;return false}
    // Controlled soft randomness makes full deck accessible while preserving a coherent policy.
@@ -396,7 +396,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
      else if(key==='Big Wave'||key==='Sunburn'){if(direct(p,key))return true}
      else if(key==='Change'){if(change(p))return 'moveSpent'}
      else if(key==='Tsunami'){if(tsunami(p))return true}
-     else if(key==='Jumping'){if(jump(p))return jumpStyle==='leap'?'moveSpent':true}
+     else if(key==='Jumping'){if(jump(p))return jumpStyle==='land'?'moveSpent':true}
      else if(['Stone','Storm','Island','Cyclone'].includes(key)){if(placement(p,key))return true}
      else if(key==='Amulet'||key==='Hang Loose'){
        const card=use(p,key,'active');p.active.push({card,expires:p.own+1});return true
