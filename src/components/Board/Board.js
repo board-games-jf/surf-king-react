@@ -77,11 +77,13 @@ const Board = ({ G, ctx, moves }) => {
     const [clickedHex, setClickedHex] = useState(null)
     const inspectionScope = ctx.currentPlayer + ':' + G.turn + ':' + G.currentMove + ':' +
         (r1Selection?.kind || '') + ':' + (r1Selection?.index ?? '')
-    const inspectedHexId = hoveredHex ?? (clickedHex?.scope === inspectionScope ? clickedHex.id : null)
+    const pinnedHexId = clickedHex?.scope === inspectionScope ? clickedHex.id : null
+    const inspectedHexId = hoveredHex ?? pinnedHexId
+    const clearHexInspection = () => { setClickedHex(null); setHoveredHex(null) }
     const hexFeedback = isR1 ? getR1HexFeedback(G, ctx, inspectedHexId, r1Selection) : null
     const onR1Target = (id) => {
         if (!r1Targets.includes(id)) {
-            setClickedHex({ id, scope: inspectionScope })
+            setClickedHex(previous => previous?.scope === inspectionScope && previous.id === id ? null : { id, scope: inspectionScope })
             return
         }
         setClickedHex(null)
@@ -312,7 +314,7 @@ const Board = ({ G, ctx, moves }) => {
             <div className={'surf-map surf-map-' + viewMode}>
                 {viewMode === '3d' ? (
                     <Board3D
-                        snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, selectedCellId), maneuverDestinations: r1Targets, targetHighlight } : createPublicMapSnapshot(G, ctx, selectedCellId)}
+                        snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, pinnedHexId), maneuverDestinations: r1Targets, targetHighlight } : createPublicMapSnapshot(G, ctx, selectedCellId)}
                         onCellHover={isR1 ? setHoveredHex : undefined}
                         onCellSelect={(cellId) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }) }}
                         onUnavailable={(message) => { setHoveredHex(null); setViewError(message); setViewMode('2d') }}
@@ -325,7 +327,7 @@ const Board = ({ G, ctx, moves }) => {
                 )}
             </div>
             {isR1 ? <R1Controls G={G} ctx={ctx} moves={moves} selection={r1Selection}
-                setSelection={setR1Selection} onTarget={onR1Target} targetHighlight={targetHighlight} onPreviewCard={previewCard} hexFeedback={hexFeedback} /> : <section className="surf-hud" aria-label="Match controls">
+                setSelection={setR1Selection} onTarget={onR1Target} targetHighlight={targetHighlight} onPreviewCard={previewCard} hexFeedback={hexFeedback} pinnedHex={pinnedHexId != null} onClearHex={clearHexInspection} /> : <section className="surf-hud" aria-label="Match controls">
                 <div className="surf-turn">
                     <strong aria-live="polite">{'Turn ' + G.turn + ' · Player ' + (Number(ctx.currentPlayer) + 1) + ' · ' + G.currentMove.replace(/_/g, ' ')}</strong>
                     {choosingTarget ? <span>Choose a hex</span> : (
