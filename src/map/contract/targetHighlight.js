@@ -11,6 +11,8 @@ export function getTargetHighlightStyle(kind) {
 
 export const TARGET_BLOCK_STYLES = {
     protected: { color: '#c4b0ff', label: 'Amulet', symbol: 'shield' },
+    hangloose: { color: '#9bf4d4', label: 'Hang Loose · Drop In blocked', symbol: 'shield' },
+    samecell: { color: '#b0c5ce', label: 'Already in the same hex', symbol: 'cross' },
     minimum: { color: '#ffcc82', label: '1 energy · Drop In only', symbol: 'one' },
     range: { color: '#b0c5ce', label: 'Out of range', symbol: 'cross' },
     fallen: { color: '#b0c5ce', label: 'Fallen', symbol: 'cross' },

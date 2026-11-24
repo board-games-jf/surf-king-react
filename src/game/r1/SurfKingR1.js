@@ -1,13 +1,15 @@
 import { INVALID_MOVE } from 'boardgame.io/core'
 import layout from '../../map/layout/board-layout.json'
 import {
-    CardAmulet, CardBigWave, CardCyclone, CardEnergyX2, CardIsland,
+    CardAmulet, CardChange, CardHangLoose, CardBigWave, CardCyclone, CardEnergyX2, CardIsland,
     CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardTsunami,
 } from '../Cards'
 
 export const R1 = 'R1'
 export const MAX_ENERGY = 5
 export const MAX_HAND = 5
+export const HEX_CAPACITY = 2
+export const CHANGE_RANGE = 2
 export const DROP_IN_RANGE = 2
 export const DROP_IN_MIN_ENERGY = 2
 export const DROP_IN_MAX_DICE = 2
@@ -17,7 +19,7 @@ export const CardSurfCurrent = { Name: 'Surf Current', Category: 'Action' }
 export const R1_INVENTORY = [
     [CardEnergyX2, 8], [CardLifeGuardFloat, 6], [CardBigWave, 7],
     [CardSunburn, 10], [CardTsunami, 3], [CardStone, 4], [CardStorm, 5],
-    [CardCyclone, 3], [CardIsland, 3], [CardJumping, 4], [CardAmulet, 4], [CardSurfCurrent, 3],
+    [CardCyclone, 3], [CardIsland, 3], [CardJumping, 4], [CardChange, 1], [CardHangLoose, 3], [CardAmulet, 4], [CardSurfCurrent, 3],
 ]
 const ADJ = layout.cells.map(c => layout.cells.filter(d => d.id !== c.id &&
     Math.abs(Math.hypot(c.x - d.x, c.z - d.z) - Math.sqrt(3) * layout.hexRadius) < 0.005
@@ -39,7 +41,12 @@ export const isBeach = id => Number.isInteger(id) && id >= 49 && id <= 52
 const choose = (ctx, values) => values[Math.floor(ctx.random.Number() * values.length)]
 const actor = (G, ctx) => G.players[ctx.currentPlayer]
 const shielded = p => p.activeCard.some(c => c.Name === CardAmulet.Name)
-const freeNeighbors = (G, from) => (ADJ[from] || []).filter(to => !G.cells[to].player)
+const hangLoose = p => p.activeCard.some(c => c.Name === CardHangLoose.Name)
+export const r1Occupants = (G, id) => Object.values(G.players).filter(p => p.cellPosition === id)
+const freeNeighbors = (G, from) => (ADJ[from] || []).filter(to => r1Occupants(G, to).length < HEX_CAPACITY)
+export const r1PlayerCard = name => name === CardChange.Name || Boolean(R1_ATTACK_RANGE[name])
+// Player positions are the only authoritative R1 occupancy representation.
+const playerCells = (G, ids) => [...new Set(ids.map(id => G.players[id].cellPosition))]
 export const r1Neighbors = from => (ADJ[from] || []).slice()
 const alive = p => p.energy > 0 && !isBeach(p.cellPosition)
 const capEnergy = (p, value) => { p.energy = Math.min(MAX_ENERGY, value) }
@@ -79,7 +86,6 @@ export function setupR1(ctx) {
         const p = { position: i, cellPosition: starts[i], energy: 2, cards: [],
             activeCard: [], fellOffTheBoard: -1 }
         G.players[i] = p
-        G.cells[p.cellPosition].player = { position: i }
         draw(G, ctx, p)
         draw(G, ctx, p)
     }
@@ -122,11 +128,7 @@ function hurt(G, ctx, p, damage, attacker = null) {
         receiveCard(G, ctx, attacker, card)
     } else G.discardedCards.push(card)
 }
-function relocate(G, p, to) {
-    delete G.cells[p.cellPosition].player
-    p.cellPosition = to
-    G.cells[to].player = { position: p.position }
-}
+function relocate(G, p, to) { p.cellPosition = to }
 function arrive(G, ctx, p, from, to) {
     const tile = G.cells[to].obstacle
     switch (tile?.Name) {
@@ -185,39 +187,59 @@ export function r1MoveTargets(G, ctx) {
     if (!p || !alive(p) || !['maneuver', 'current_first', 'current_second'].includes(G.currentMove)) return []
     return freeNeighbors(G, p.cellPosition)
 }
+export function r1CardPlayerTargets(G, ctx, index) {
+    const p = actor(G, ctx)
+    const name = p?.cards[index]?.Name
+    if (!p || G.winner != null || !alive(p) || G.turn <= 1 || !['use_card', 'swap_card'].includes(G.currentMove)) return []
+    const change = name === CardChange.Name
+    const range = change ? CHANGE_RANGE : R1_ATTACK_RANGE[name]
+    if (!range || (change && (G.currentMove !== 'use_card' || G.moved))) return []
+    return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
+        !shielded(q) && (change ? q.cellPosition !== p.cellPosition : q.energy > 1) &&
+        DIST[p.cellPosition][q.cellPosition] <= range).map(q => q.position)
+}
 export function r1CardTargets(G, ctx, index) {
     const p = actor(G, ctx)
     const name = p?.cards[index]?.Name
-    if (!p || !['use_card', 'swap_card'].includes(G.currentMove) || !alive(p)) return []
+    if (!p || G.winner != null || !['use_card', 'swap_card'].includes(G.currentMove) || !alive(p)) return []
     if (G.currentMove === 'swap_card' && name === CardJumping.Name) return []
     const from = p.cellPosition
     if (placementNames.includes(name)) return G.cells.filter(c => c.position >= 7 && c.position < 49 &&
-        !c.player && !c.obstacle && DIST[from][c.position] <= R1_PLACEMENT_RANGE[name]).map(c => c.position)
+        !r1Occupants(G, c.position).length && !c.obstacle && DIST[from][c.position] <= R1_PLACEMENT_RANGE[name]).map(c => c.position)
     if (name === CardJumping.Name) return freeNeighbors(G, from).filter(to => !!G.cells[to].obstacle)
-    if (attackNames.includes(name) && G.turn > 1) {
-        const range = R1_ATTACK_RANGE[name]
-        return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
-            q.energy > 1 && !shielded(q) && DIST[from][q.cellPosition] <= range).map(q => q.cellPosition)
-    }
-    return []
+    return playerCells(G, r1CardPlayerTargets(G, ctx, index))
+}
+export function r1DropPlayerTargets(G, ctx) {
+    const p = actor(G, ctx)
+    if (!p || G.winner != null || !alive(p) || p.energy < DROP_IN_MIN_ENERGY || !dropInPhase(G) || G.turn === 1) return []
+    return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
+        !shielded(q) && !hangLoose(q) && DIST[p.cellPosition][q.cellPosition] <= DROP_IN_RANGE).map(q => q.position)
 }
 export function r1DropTargets(G, ctx) {
-    const p = actor(G, ctx)
-    if (!p || !alive(p) || p.energy < DROP_IN_MIN_ENERGY || !dropInPhase(G) || G.turn === 1) return []
-    return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
-        !shielded(q) && DIST[p.cellPosition][q.cellPosition] <= DROP_IN_RANGE).map(q => q.cellPosition)
+    return playerCells(G, r1DropPlayerTargets(G, ctx))
 }
-// Read-only per-opponent diagnostics; legal targets still come from the move queries.
-export function r1AttackTargetBlocks(G, ctx, range, targets, kind = 'card') {
+// Explicit player ID required when multiple legal opponents share a target hex.
+// Cell-only calls remain safe for unambiguous targets.
+function resolveTarget(G, ids, to, playerId) {
+    const candidates = ids.filter(id => G.players[id].cellPosition === to)
+    if (playerId !== undefined) return candidates.includes(playerId) ? G.players[playerId] : null
+    return candidates.length === 1 ? G.players[candidates[0]] : null
+}
+export function r1AttackTargetBlocks(G, ctx, range, targets, kind = 'card', playerIds = null) {
     const p = actor(G, ctx)
     if (!p || G.winner != null) return []
-    const legal = new Set(targets)
+    const legal = new Set(playerIds ?? Object.values(G.players).filter(q => targets.includes(q.cellPosition) &&
+        q.position !== p.position && alive(q) && !shielded(q) &&
+        (kind !== 'drop' || !hangLoose(q)) && (kind !== 'card' || q.energy > 1) &&
+        (kind !== 'change' || q.cellPosition !== p.cellPosition)).map(q => q.position))
     const phaseReason = r1AttackUnavailableReason(G, ctx, range, [p.cellPosition], kind)
-    return Object.values(G.players).filter(q => q.position !== p.position && !legal.has(q.cellPosition))
+    return Object.values(G.players).filter(q => q.position !== p.position && !legal.has(q.position))
         .map(q => {
             const code = isBeach(q.cellPosition) ? 'finished' : q.energy === 0 ? 'fallen' :
                 DIST[p.cellPosition][q.cellPosition] > range ? 'range' :
                 phaseReason ? 'phase' : shielded(q) ? 'protected' :
+                kind === 'drop' && hangLoose(q) ? 'hangloose' :
+                kind === 'change' && q.cellPosition === p.cellPosition ? 'samecell' :
                 kind === 'card' && q.energy === 1 ? 'minimum' : 'unavailable'
             return { id: q.cellPosition, playerId: q.position, code, reason: code === 'phase' ? phaseReason : null }
         })
@@ -234,6 +256,7 @@ export function r1AttackUnavailableReason(G, ctx, range, targets, kind = 'drop')
         if (!dropInPhase(G)) return G.currentMove === 'discard' ? 'Resolve the discard first.' : 'Attack before moving.'
         if (p.energy < DROP_IN_MIN_ENERGY) return 'Drop In requires at least 2 energy.'
     } else if (!['use_card', 'swap_card'].includes(G.currentMove)) return 'Play at most one card per turn.'
+    if (kind === 'change' && (G.currentMove !== 'use_card' || G.moved)) return 'Movement already used.'
     if (targets.length) return null
     const nearby = Object.values(G.players).filter(q => q.position !== p.position &&
         DIST[p.cellPosition][q.cellPosition] <= range)
@@ -242,6 +265,8 @@ export function r1AttackUnavailableReason(G, ctx, range, targets, kind = 'drop')
     if (kind === 'card' && nearby.some(q => alive(q) && !shielded(q) && q.energy === 1)) {
         return 'Unprotected opponents in range already have 1 energy; only Drop In can knock them off.'
     }
+    if (kind === 'change' && nearby.filter(alive).every(q => q.cellPosition === p.cellPosition)) return 'Choose an opponent in another hex.'
+    if (kind === 'drop' && nearby.some(q => alive(q) && hangLoose(q))) return 'Nearby standing opponents are protected by Amulet or Hang Loose.'
     return 'Nearby standing opponents are protected by Amulet.'
 }
 export function r1CardPlayable(G, ctx, index) {
@@ -250,9 +275,10 @@ export function r1CardPlayable(G, ctx, index) {
     if (!name) return false
     if (G.currentMove === 'recover') return name === CardLifeGuardFloat.Name && p.energy === 0
     if (!['use_card', 'swap_card'].includes(G.currentMove) || !alive(p)) return false
-    if (G.currentMove === 'swap_card' && [CardJumping.Name, CardSurfCurrent.Name].includes(name)) return false
+    if (G.currentMove === 'swap_card' && [CardJumping.Name, CardSurfCurrent.Name, CardChange.Name].includes(name)) return false
     if (name === CardEnergyX2.Name) return p.energy < MAX_ENERGY
     if (name === CardAmulet.Name) return !shielded(p)
+    if (name === CardHangLoose.Name) return !shielded(p) && !hangLoose(p)
     if (name === CardSurfCurrent.Name) return freeNeighbors(G, p.cellPosition).length > 0
     return r1CardTargets(G, ctx, index).length > 0
 }
@@ -264,7 +290,7 @@ export function recoverR1(G, ctx) {
     G.currentMove = 'use_card'
     G.message = 'Recovered with 1 energy.'
 }
-export function useR1Card(G, ctx, index, to) {
+export function useR1Card(G, ctx, index, to, playerId) {
     if (!Number.isInteger(index) || !r1CardPlayable(G, ctx, index)) return INVALID_MOVE
     const p = actor(G, ctx)
     const name = p.cards[index].Name
@@ -276,21 +302,34 @@ export function useR1Card(G, ctx, index, to) {
         G.message = 'Recovered with Lifeguard Float.'
         return
     }
-    if ([...placementNames, ...attackNames, CardJumping.Name].includes(name) &&
+    const opponent = r1PlayerCard(name) ? resolveTarget(G, r1CardPlayerTargets(G, ctx, index), to, playerId) : null
+    if (r1PlayerCard(name) && !opponent) return INVALID_MOVE
+    if ([...placementNames, ...attackNames, CardJumping.Name, CardChange.Name].includes(name) &&
         !r1CardTargets(G, ctx, index).includes(to)) return INVALID_MOVE
     if (placementNames.includes(name)) {
         G.cells[to].obstacle = spend(G, p, index, 'board')
-    } else if (name === CardAmulet.Name) {
+    } else if (name === CardAmulet.Name || name === CardHangLoose.Name) {
         p.activeCard.push(spend(G, p, index, 'active'))
     } else {
         spend(G, p, index)
         if (name === CardEnergyX2.Name) capEnergy(p, p.energy + 2)
         else if (attackNames.includes(name)) {
-            const target = G.players[G.cells[to].player.position]
+            const target = opponent
             const damage = Math.min(attackDamage[name], target.energy - 1)
             // Direct cards weaken opponents; only Drop In can cause a direct fall.
             target.energy -= damage
             G.message = name + ': Player ' + (target.position + 1) + ' loses ' + damage + ' energy.'
+        } else if (name === CardChange.Name) {
+            const from = p.cellPosition
+            p.cellPosition = opponent.cellPosition
+            opponent.cellPosition = from
+            G.moved = true
+            G.redirected = false
+            G.message = 'Change: swapped positions with Player ' + (opponent.position + 1) + '.'
+            arrive(G, ctx, p, from, p.cellPosition)
+            G.currentMove = 'turn_end'
+            endR1Turn(G, ctx)
+            return
         } else if (name === CardJumping.Name) {
             relocate(G, p, to)
             G.moved = true
@@ -308,10 +347,10 @@ export function useR1Card(G, ctx, index, to) {
         endR1Turn(G, ctx)
     } else continueAfterTactic(G, ctx)
 }
-export function r1DropIn(G, ctx, to, diceCount) {
-    if (!r1DropTargets(G, ctx).includes(to)) return INVALID_MOVE
+export function r1DropIn(G, ctx, to, diceCount, playerId) {
+    const q = resolveTarget(G, r1DropPlayerTargets(G, ctx), to, playerId)
+    if (!q) return INVALID_MOVE
     const p = actor(G, ctx)
-    const q = G.players[G.cells[to].player.position]
     const maxDice = r1MaxAttackDice(p.energy)
     const count = diceCount === undefined ? maxDice : diceCount
     if (!Number.isInteger(count) || count < 1 || count > maxDice) return INVALID_MOVE
@@ -332,7 +371,7 @@ export function r1DropIn(G, ctx, to, diceCount) {
     G.message = 'Drop In: Player ' + (p.position + 1) + ' loses ' + attackerLoss +
         ' energy; Player ' + (q.position + 1) + ' loses ' + defenderLoss + ' energy.' +
         (q.energy === 0 ? ' Player ' + (q.position + 1) + ' fell!' : '')
-    if (q.energy === 0) {
+    if (q.energy === 0 && q.cellPosition !== p.cellPosition) {
         G.pendingSwap = { targetPlayerId: q.position, resumeMove: G.currentMove }
         G.currentMove = 'swap_choice'
     } else continueAfterTactic(G, ctx, G.currentMove)
@@ -342,9 +381,7 @@ export function r1ResolveSwap(G, ctx, accept) {
     const pending = G.pendingSwap
     const q = pending && G.players[pending.targetPlayerId]
     if (G.currentMove !== 'swap_choice' || typeof accept !== 'boolean' ||
-        !p || !alive(p) || G.moved || !q || q.energy !== 0 || q.position === p.position ||
-        G.cells[p.cellPosition]?.player?.position !== p.position ||
-        G.cells[q.cellPosition]?.player?.position !== q.position) return INVALID_MOVE
+        !p || !alive(p) || G.moved || !q || q.energy !== 0 || q.position === p.position || q.cellPosition === p.cellPosition) return INVALID_MOVE
     G.pendingSwap = null
     if (!accept) {
         G.currentMove = pending.resumeMove
@@ -356,8 +393,6 @@ export function r1ResolveSwap(G, ctx, accept) {
     // Exchange occupancy atomically, not by relocating one actor over the other.
     p.cellPosition = to
     q.cellPosition = from
-    G.cells[to].player = { position: p.position }
-    G.cells[from].player = { position: q.position }
     G.moved = true
     G.redirected = false
     G.message = 'Swapped positions with Player ' + (q.position + 1) + '.'

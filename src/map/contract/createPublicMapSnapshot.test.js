@@ -71,3 +71,12 @@ test('R1 turn marker follows the active surfer and disappears at game over', () 
     expect(createPublicMapSnapshot(G, { currentPlayer: '1' }).turnMarkerPlayerId).toBeNull()
     expect(createPublicMapSnapshot(game(), { currentPlayer: '0' }).turnMarkerPlayerId).toBeUndefined()
 })
+
+test('shared R1 cells retain both distinct public player identities', () => {
+    const G = { ...game(), ruleset: 'R1', currentMove: 'use_card', winner: null }
+    G.players[0].cellPosition = 7
+    G.players[1].cellPosition = 7
+    G.players[1].fellOffTheBoard = 3
+    const snapshot = createPublicMapSnapshot(G, { currentPlayer: '0' })
+    expect(snapshot.players).toEqual([{ id: '0', cellId: 7, fallen: false }, { id: '1', cellId: 7, fallen: true }])
+})

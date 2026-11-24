@@ -40,11 +40,13 @@ const cardEffects = {
     Island: ['energy', '+2', 'good'],
     Jumping: ['shield', 'Ignore hazard', 'good'],
     Amulet: ['shield', 'Until next turn', 'good'],
+    Change: ['move', 'Swap · replaces move', 'good'],
+    'Hang loose': ['shield', 'Drop In only', 'good'],
     'Surf Current': ['move', 'Up to 2 steps', 'good'],
 }
 export function CardEffects({ name }) {
     const effect = cardEffects[name]
-    const range = R1_ATTACK_RANGE[name] || R1_PLACEMENT_RANGE[name] || (name === 'Jumping' ? 1 : 0)
+    const range = (name === 'Change' ? 2 : R1_ATTACK_RANGE[name]) || R1_PLACEMENT_RANGE[name] || (name === 'Jumping' ? 1 : 0)
     return <div className="r1-effect-row">
         {range > 0 && <EffectChip kind="range">{range} {range === 1 ? 'hex' : 'hexes'}</EffectChip>}
         {effect && <EffectChip kind={effect[0]} tone={effect[2]}>{effect[1]}</EffectChip>}
