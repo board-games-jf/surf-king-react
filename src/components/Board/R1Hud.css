@@ -515,3 +515,15 @@
     border-radius: 5px; padding: 2px 5px; font-size: .82em; font-weight: 750;
 }
 .r1-blocked-target-chip .r1-feedback-icon { width: 12px; height: 12px; flex-basis: 12px; }
+
+/* Each public element has a separate row. Never collapse a shared hex to one occupant. */
+.r1-hex-elements { width: 100%; min-width: 0; }
+.r1-match-feedback.r1-hex-feedback { align-items: flex-start; }
+.r1-hex-terrain, .r1-hex-elements .r1-hex-occupant { display: flex; align-items: flex-start; flex-wrap: nowrap; gap: 6px; padding: 4px 0; min-width: 0; }
+.r1-hex-elements .r1-hex-occupant { border-top: 1px solid #ffffff24; }
+.r1-hex-element-body { display: grid; gap: 3px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.r1-hex-player-avatar { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 7px; color: #153640; font-weight: 900; }
+.r1-hex-player-line { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.r1-hex-player-status { display: flex; align-items: center; gap: 4px; font-size: .9em; }
+.r1-hex-player-status[data-eligible="true"] { color: #a6f3cb; }
+.r1-hex-entry { font-size: .8em; color: var(--hud-mute); }
