@@ -11,7 +11,7 @@
 | **Big Wave** | **3** | One upright opponent within **2 edges** loses **2 energy**, unless defended. |
 | **Sunburn** | **7** | One upright opponent within **3 edges** loses **1 energy**, unless defended. |
 | **Storm** | **7** | Place within **2 edges**. Entering its hex costs **1 energy**. Stays in place. |
-| **Cyclone** | **7** | Place within **2 edges**. On entry, immediately move the surfer to **one randomly chosen legal adjacent free hex** other than the one just left. If none, remain. Redirect at most once per maneuver; resolve the destination's effects. Cyclone stays in place. |
+| **Cyclone** | **4** | Place within **2 edges**. On entry, immediately move the surfer to **one randomly chosen legal adjacent free hex** other than the one just left. If none, remain. Redirect at most once per maneuver; resolve the destination's effects. Cyclone stays in place. |
 | **Island** | **3** | Place within **2 edges**. First surfer entering gains **2 energy**, maximum 5; then discard Island. |
 | **Jumping** | **4** | **Move to an adjacent vacant hex with a Shark or placed obstacle. Stay on that hex and ignore its entry effect. Do not remove the obstacle. This replaces your normal movement.** |
 | **Amulet** | **7** | Until your next turn, ignore opponents' damage cards and Drop In. Does not cancel terrain or Sharks. |
@@ -27,7 +27,7 @@
 
 ### Why Stone is absent in this specific ten-type trial
 
-The owner wants **Cyclone retained** and **Jumping to safely land and stay in a hazard hex**, **not** skip a hex or erase terrain. To keep only ten distinct effects, this pilot exchanges the old four **Stone** copies for four additional Cyclones, giving **7 Cyclone cards** in total. Stone's unique blocking and expiry rules disappear; this is a **candidate simplification, not approval to remove Stone from the game**. [The 11-type test option](R1_CYCLONE_JUMP_STUDY.md) retains all four Stones and has **3 Cyclones**, so both directions remain available if hands-on play shows seven Cyclones feel excessive.
+The owner wants **Cyclone retained** and **Jumping to safely land and stay in a hazard hex**, **not** skip a hex or erase terrain. To keep only ten distinct effects, this pilot exchanges the old four **Stone** copies for four Cyclones; the three original Cyclone copies become Storm cards, giving **4 Cyclones and 7 Storms** in total. Stone's unique blocking and expiry rules disappear; this is a **candidate simplification, not approval to remove Stone from the game**. [The 11-type test option](R1_CYCLONE_JUMP_STUDY.md) retains all four Stones and has **3 Cyclones** and **4 Storms**, so both directions remain available if hands-on play shows the Stone blocker is important.
 
 Compared with the prior 17-effect model, the other eliminated names remain Energy (weaker heal), Coconut (full heal), Swimming Fin (weaker recovery), Change (swap), Tsunami (row push) and Hang Loose (second shield). The 60-card quantity is retained; all copies are reallocated to already implemented experimental effects. **Do not physically combine this deck with the archived B60 or previous ten-card sheet.**
 
