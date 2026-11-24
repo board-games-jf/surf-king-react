@@ -149,3 +149,20 @@
 
 .r1-target-legend { display: inline-flex; align-items: center; gap: 5px; }
 .r1-target-swatch { display: inline-block; width: 13px; height: 12px; clip-path: polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); }
+
+/* Keep the map projection stable while the R1 HUD changes content.
+   Cards, dice and target lists scroll within a reserved viewport row. */
+.surf-match-r1 {
+    grid-template-rows: minmax(0, 1fr) min(42dvh, 340px);
+}
+.surf-match-r1 > .surf-hud {
+    min-height: 0;
+    max-height: none;
+    box-sizing: border-box;
+    overflow-y: auto;
+    align-content: start;
+    scrollbar-gutter: stable;
+}
+@media (max-width: 520px) {
+    .surf-match-r1 { grid-template-rows: minmax(0, 1fr) 44dvh; }
+}
