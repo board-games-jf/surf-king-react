@@ -36,7 +36,7 @@ export function getR1TargetHighlight(G, ctx, selection, previewCardId = null) {
     if (selection?.kind === 'card') {
         const feedback = getR1CardFeedback(G, ctx, selection.index)
         if (feedback) return withBlocks({ kind, cellIds: cellIds.length ? cellIds : feedback.previewIds,
-            preview: cellIds.length === 0 && feedback.previewIds.length > 0 }, feedback.blocked)
+            preview: cellIds.length === 0 && feedback.previewIds.length > 0 }, feedback.blocked, feedback.playerIds)
     }
     if (selection?.kind === 'drop') return withBlocks({ kind, cellIds, preview },
         r1AttackTargetBlocks(G, ctx, DROP_IN_RANGE, cellIds, 'drop', r1DropPlayerTargets(G, ctx)), r1DropPlayerTargets(G, ctx))
