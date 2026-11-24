@@ -500,3 +500,11 @@
     .r1-floating-hud .r1-action-bar > button { min-height: 32px; }
 }
 
+
+.r1-blocked-targets { display: flex; flex-wrap: wrap; gap: 4px; }
+.r1-blocked-target-chip {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: #ffffff0d; border: 1px solid #ffffff20;
+    border-radius: 5px; padding: 2px 5px; font-size: .82em; font-weight: 750;
+}
+.r1-blocked-target-chip .r1-feedback-icon { width: 12px; height: 12px; flex-basis: 12px; }
