@@ -384,23 +384,24 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (!actor || !actor.g.visible) return
     lifeguardPreview = { playerId: String(playerId), started: performance.now() }
   }
-  const jumpWaveShape = new THREE.Shape()
-  jumpWaveShape.moveTo(-.8, 0)
-  jumpWaveShape.lineTo(.8, 0)
-  jumpWaveShape.bezierCurveTo(.6, .24, .34, .65, -.06, .7)
-  jumpWaveShape.bezierCurveTo(-.35, .75, -.55, .53, -.6, .35)
-  jumpWaveShape.bezierCurveTo(-.35, .46, -.12, .37, -.12, .24)
-  jumpWaveShape.bezierCurveTo(-.4, .18, -.62, .1, -.8, 0)
-  const jumpWave = new THREE.Mesh(new THREE.ShapeGeometry(jumpWaveShape, 24), new THREE.MeshBasicMaterial({ color: 0x76e3dc, transparent: true, opacity: .75, side: THREE.DoubleSide, depthWrite: false }))
+  // The launch wave shares the board's curved water geometry, with its own materials.
+  const jumpWave = new THREE.Group()
+  const jumpWater = new THREE.Mesh(waveGeometry, water.material.clone())
+  const jumpFoam = new THREE.Mesh(foam.geometry, foam.material.clone())
+  jumpWave.add(jumpWater, jumpFoam)
   jumpWave.visible = false
   scene.add(jumpWave)
+  const jumpLanding = new THREE.Mesh(new THREE.RingGeometry(.35, .44, 48), new THREE.MeshBasicMaterial({ color: 0xd8ffff, transparent: true, side: THREE.DoubleSide, depthWrite: false }))
+  jumpLanding.rotation.x = -Math.PI / 2
+  jumpLanding.visible = false
+  scene.add(jumpLanding)
   let jumpingPreview = null
   function playJump(playerId) {
     const actor = actors.get(String(playerId))
     if (!actor || !actor.g.visible || !actor.from || !actor.to) return
     actor.previewJump = true
-    jumpWave.position.copy(actor.from)
-    jumpWave.rotation.y = Math.atan2(actor.dz, actor.dx)
+    actor.jumpDelay = .35
+    jumpWave.rotation.y = Math.atan2(actor.dx, actor.dz)
     jumpingPreview = { playerId: String(playerId), started: performance.now() }
   }
   let turnMarkerPlayerId = null
@@ -734,7 +735,11 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       const phase=elapsed+Number(a.id)*.71
       a.fallMotion=stepFallMotion(a.fallMotion,dt,reduce)
       const fall=a.fallMotion.value
-      if(a.from&&a.to) a.t=reduce?1:Math.min(1,a.t+dt/MOVE_SECONDS)
+      if (a.from && a.to) {
+        if (reduce) a.t = 1
+        else if (a.previewJump && a.jumpDelay > 0) a.jumpDelay = Math.max(0, a.jumpDelay - dt)
+        else a.t = Math.min(1, a.t + dt / (a.previewJump ? 1.45 : MOVE_SECONDS))
+      }
       const carve=sampleCarve(a.t,phase,a.distance,a.fallMotion.remount ? 1 : fall,reduce)
       if(a.from&&a.to){
         a.anchor.lerpVectors(a.from,a.to,carve.progress)
@@ -751,13 +756,17 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       a.g.position.z+=Math.cos(heading)*carve.idle
       a.g.position.x+=Math.cos(heading)*carve.idleForward
       a.g.position.z-=Math.sin(heading)*carve.idleForward
-      const jumpHeight = a.previewJump && !reduce ? 1.15 * Math.sin(Math.PI * a.t) : 0
+      const jumpHeight = a.previewJump && !reduce ? 1.25 * Math.sin(Math.PI * a.t) ** 1.2 : 0
       if (a.t >= 1) a.previewJump = false
       a.g.position.y=.13+carve.lift+jumpHeight+(reduce?0:Math.sin(phase*1.6)*.012)
       a.g.rotation.set(0,a.heading+carve.yaw,0)
       const bank=carve.bank
       // Roll around the board's own longitudinal axis, not a fixed world axis.
       a.g.rotateOnAxis(a.rollAxis,bank)
+      if (a.previewJump && !reduce) {
+        const pitchAxis = new THREE.Vector3(-a.rollAxis.z, 0, a.rollAxis.x)
+        a.g.rotateOnAxis(pitchAxis, .13 * Math.sin(2 * Math.PI * a.t))
+      }
       if (a.badge.visible) { a.badge.position.copy(a.g.position); a.badge.position.y += 1.6 }
       const sample=a.fallMotion.remount
         ? sampleRemount(1-fall,phase,reduce)
@@ -1021,14 +1030,26 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (jumpingPreview) {
       const actor = actors.get(jumpingPreview.playerId)
       const t = (now - jumpingPreview.started) / 1000
-      if (!actor || t >= .85 || reduce) {
+      if (!actor || t >= 2.15 || reduce) {
         jumpWave.visible = false
+        jumpLanding.visible = false
         jumpingPreview = null
       } else {
-        jumpWave.visible = true
-        const rise = THREE.MathUtils.smoothstep(t, 0, .22)
-        jumpWave.scale.set(1, .15 + .85 * rise, 1)
-        jumpWave.material.opacity = .8 * Math.min(1, t / .1, (.85 - t) / .35)
+        const progress = actor.t
+        const rise = THREE.MathUtils.smoothstep(t, 0, .32)
+        const waveFade = 1 - THREE.MathUtils.smoothstep(progress, .28, .58)
+        jumpWave.visible = waveFade > 0
+        jumpWave.position.set(actor.anchor.x - actor.dx / actor.distance * .32, .13, actor.anchor.z - actor.dz / actor.distance * .32)
+        jumpWave.scale.set(.50, .12 + .48 * rise, .45)
+        jumpWater.material.opacity = .74 * waveFade
+        jumpFoam.material.opacity = .95 * waveFade
+        const landing = THREE.MathUtils.clamp((t - 1.65) / .5, 0, 1)
+        jumpLanding.visible = landing > 0
+        if (jumpLanding.visible) {
+          jumpLanding.position.set(actor.anchor.x, .22, actor.anchor.z)
+          jumpLanding.scale.setScalar(1 + landing * 1.25)
+          jumpLanding.material.opacity = .8 * (1 - landing)
+        }
       }
     }
     const activeActor = actors.get(turnMarkerPlayerId)
