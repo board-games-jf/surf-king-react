@@ -28,7 +28,7 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
         ' · ' + occupant.energy + '/5 energy' +
         (isBeach(id) ? ' · Finished' : occupant.energy === 0 ? ' · Fallen' :
             occupant.activeCard.some(c => c.Name === 'Amulet') ? ' · Protected' : occupant.activeCard.some(c => c.Name === 'Hang loose') ? ' · Drop In shield' : '') : null
-    let entry = effect?.text || (isBeach(id) ? 'Reach the beach to finish the race.' : 'No terrain penalty.')
+    let entry = effect?.text || (isBeach(id) ? 'First to reach the beach wins immediately.' : 'No terrain penalty.')
     const card = selection?.kind === 'card' ? player.cards[selection.index]?.Name : null
     const legal = r1SelectionTargets(G, ctx, selection).includes(id)
     let action
