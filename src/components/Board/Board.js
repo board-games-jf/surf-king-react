@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { HexGrid } from '../HexGrid'
 import './Board.css'
 import Board3D from '../../map/views/Board3D/Board3D'
-import R1Controls, { r1SelectionTargets } from './R1Controls'
+import R1Controls from './R1Controls'
+import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
+import { getTargetHighlightStyle } from '../../map/contract/targetHighlight'
 import { createPublicMapSnapshot } from '../../map/contract/createPublicMapSnapshot'
 import { seaColor } from '../../constants/Colors'
 import {
@@ -64,6 +66,7 @@ const Board = ({ G, ctx, moves }) => {
     const isR1 = G.ruleset === 'R1'
     const [r1Selection, setR1Selection] = useState(null)
     const r1Targets = isR1 ? r1SelectionTargets(G, ctx, r1Selection) : []
+    const targetHighlight = isR1 ? getR1TargetHighlight(G, ctx, r1Selection) : null
     const onR1Target = (id) => {
         if (!r1Targets.includes(id)) return
         if (r1Selection?.kind === 'card') moves.useCard(r1Selection.index, id)
@@ -84,7 +87,10 @@ const Board = ({ G, ctx, moves }) => {
 
     const cellProps = (position) => {
         const cell = G.cells[position]
-        const targetStyle = isR1 && r1Targets.includes(position) ? { stroke: '#ffcf53', strokeWidth: '.13', cursor: 'pointer' } : {}
+        const targetStyle = isR1 && r1Targets.includes(position) ? { cursor: 'pointer' } : {}
+        const highlight = targetHighlight?.cellIds.includes(position) ? {
+            ...getTargetHighlightStyle(targetHighlight.kind), kind: targetHighlight.kind, preview: targetHighlight.preview,
+        } : null
 
         if (cell.player) {
             // TODO: Implement
@@ -93,18 +99,14 @@ const Board = ({ G, ctx, moves }) => {
         if (cell.obstacle) {
             const name = cell.obstacle.Name.replace(/\s+/g, '').toLowerCase()
             const img = require(`../../assets/obstacles/${name}.png`)
-            return { backgroundImage: img, style: targetStyle }
+            return { backgroundImage: img, style: targetStyle, highlight }
         }
 
-        return { style: { fill: seaColor, ...targetStyle } }
+        return { style: { fill: seaColor, ...targetStyle }, highlight }
     }
 
     const renderCell = (cellPosition) => {
         const cell = G.cells[cellPosition]
-        if (isR1 && r1Targets.includes(cellPosition)) {
-            return <text x="50%" y="50%" fontSize={75} fontWeight="bold" fill="#fff8d0" stroke="#173d36" strokeWidth="2" textAnchor="middle">{cell.player ? '#' + (cell.player.position + 1) : cellPosition + 1}</text>
-        }
-
         if (cell.player) {
             if (isR1 && G.winner == null && String(cell.player.position) === String(ctx.currentPlayer)) {
                 return <g>
@@ -292,7 +294,7 @@ const Board = ({ G, ctx, moves }) => {
             <div className={'surf-map surf-map-' + viewMode}>
                 {viewMode === '3d' ? (
                     <Board3D
-                        snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, selectedCellId), maneuverDestinations: r1Targets } : createPublicMapSnapshot(G, ctx, selectedCellId)}
+                        snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, selectedCellId), maneuverDestinations: r1Targets, targetHighlight } : createPublicMapSnapshot(G, ctx, selectedCellId)}
                         onCellSelect={(cellId) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }) }}
                         onUnavailable={(message) => { setViewError(message); setViewMode('2d') }}
                     />
@@ -303,7 +305,7 @@ const Board = ({ G, ctx, moves }) => {
                 )}
             </div>
             {isR1 ? <R1Controls G={G} ctx={ctx} moves={moves} selection={r1Selection}
-                setSelection={setR1Selection} onTarget={onR1Target} /> : <section className="surf-hud" aria-label="Match controls">
+                setSelection={setR1Selection} onTarget={onR1Target} targetHighlight={targetHighlight} /> : <section className="surf-hud" aria-label="Match controls">
                 <div className="surf-turn">
                     <strong aria-live="polite">{'Turn ' + G.turn + ' · Player ' + (Number(ctx.currentPlayer) + 1) + ' · ' + G.currentMove.replace(/_/g, ' ')}</strong>
                     {choosingTarget ? <span>Choose a hex</span> : (
