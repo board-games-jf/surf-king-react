@@ -16,7 +16,7 @@ export const r1SelectionTargets = (G, ctx, selection) => {
 export function getR1TargetHighlight(G, ctx, selection, previewCardId = null) {
     if (G.winner != null) return { kind: 'move', cellIds: [], preview: false }
     // Hover is read-only and cannot replace a committed selection.
-    if (!selection && previewCardId != null) {
+    if (!selection && previewCardId != null && ['use_card', 'swap_card', 'recover'].includes(G.currentMove)) {
         const index = G.players[ctx.currentPlayer]?.cards.findIndex(c => c.id === previewCardId)
         const feedback = getR1CardFeedback(G, ctx, index)
         if (feedback) return { kind: feedback.kind, cellIds: feedback.previewIds, preview: true }
