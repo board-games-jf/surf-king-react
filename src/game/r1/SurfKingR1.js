@@ -9,6 +9,8 @@ export const R1 = 'R1'
 export const MAX_ENERGY = 5
 export const MAX_HAND = 5
 export const DROP_IN_RANGE = 2
+export const DROP_IN_MIN_ENERGY = 2
+const dropInPhase = G => ['use_card', 'maneuver', 'current_first'].includes(G.currentMove) && !G.moved
 export const CardSurfCurrent = { Name: 'Surf Current', Category: 'Action' }
 export const R1_INVENTORY = [
     [CardEnergyX2, 12], [CardLifeGuardFloat, 9], [CardBigWave, 3],
@@ -64,7 +66,7 @@ export function setupR1(ctx) {
         players: {}, deck: ctx.random.Shuffle(createR1Deck()), discardedCards: [],
         turn: 1, order, nextPlayer: order[0], completedInRound: 0,
         currentMove: 'use_card', moved: false, redirected: false,
-        winner: null, finishers: [], overflowPlayer: null, pendingEnd: false,
+        winner: null, finishers: [], overflowPlayer: null, pendingEnd: false, pendingMove: null,
         message: 'Round 1: no attacks.', atkDices: [], defDices: [],
     }
     for (const id of [28, 29, 30, 31]) G.cells[id].obstacle = { ...CardShark }
@@ -88,7 +90,7 @@ export function beginR1Turn(G, ctx) {
     G.atkDices = []
     G.defDices = []
     G.message = G.turn === 1 ? 'Round 1: no attacks.' :
-        p.energy === 0 ? 'Recover on your board.' : 'Choose one tactic or move.'
+        p.energy === 0 ? 'Recover on your board.' : 'Play up to one card, attack while you have 2+ energy, then move.'
 }
 function spend(G, p, index, zone = 'discard') {
     const [card] = p.cards.splice(index, 1)
@@ -156,14 +158,15 @@ function endR1Turn(G, ctx) {
     G.nextPlayer = G.order[G.completedInRound]
     ctx.events.endTurn()
 }
-function continueAfterTactic(G, ctx) {
+function continueAfterTactic(G, ctx, nextMove = 'maneuver') {
     const p = actor(G, ctx)
     const mustEnd = p.energy === 0 || isBeach(p.cellPosition)
     if (G.overflowPlayer !== null) {
         G.currentMove = 'discard'
         G.pendingEnd = mustEnd
+        G.pendingMove = nextMove
     } else if (mustEnd) endR1Turn(G, ctx)
-    else G.currentMove = 'maneuver'
+    else G.currentMove = nextMove
 }
 export function r1MoveTargets(G, ctx) {
     const p = actor(G, ctx)
@@ -187,18 +190,21 @@ export function r1CardTargets(G, ctx, index) {
 }
 export function r1DropTargets(G, ctx) {
     const p = actor(G, ctx)
-    if (!p || !alive(p) || G.currentMove !== 'use_card' || G.turn === 1) return []
+    if (!p || !alive(p) || p.energy < DROP_IN_MIN_ENERGY || !dropInPhase(G) || G.turn === 1) return []
     return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
         !shielded(q) && DIST[p.cellPosition][q.cellPosition] <= DROP_IN_RANGE).map(q => q.cellPosition)
 }
 // UI guidance shares the authoritative target calculation.
-export function r1AttackUnavailableReason(G, ctx, range, targets) {
+export function r1AttackUnavailableReason(G, ctx, range, targets, kind = 'drop') {
     const p = actor(G, ctx)
     if (G.winner != null) return 'Match finished.'
     if (G.turn === 1) return 'Attacks unlock in round 2.'
     if (!p || p.energy === 0 || G.currentMove === 'recover') return 'Recover before attacking.'
     if (isBeach(p.cellPosition)) return 'You have reached the beach.'
-    if (G.currentMove !== 'use_card') return 'Attack before moving, instead of another tactic.'
+    if (kind === 'drop') {
+        if (!dropInPhase(G)) return G.currentMove === 'discard' ? 'Resolve the discard first.' : 'Attack before moving.'
+        if (p.energy < DROP_IN_MIN_ENERGY) return 'Drop In requires at least 2 energy.'
+    } else if (G.currentMove !== 'use_card') return 'Play at most one card before moving.'
     if (targets.length) return null
     const nearby = Object.values(G.players).filter(q => q.position !== p.position &&
         DIST[p.cellPosition][q.cellPosition] <= range)
@@ -274,7 +280,8 @@ export function r1DropIn(G, ctx, to) {
     G.message = 'Drop In: ' + attack + ' vs ' + defense + '.'
     if (attack > defense) hurt(G, ctx, q, 1, p)
     else if (defense > attack) hurt(G, ctx, p, 1, q)
-    continueAfterTactic(G, ctx)
+    // No initiation cost. Repeated duels preserve the current pre-movement phase.
+    continueAfterTactic(G, ctx, G.currentMove)
 }
 export function discardR1Overflow(G, ctx, index) {
     if (G.currentMove !== 'discard' || G.overflowPlayer === null || !Number.isInteger(index)) return INVALID_MOVE
@@ -283,9 +290,11 @@ export function discardR1Overflow(G, ctx, index) {
     spend(G, p, index)
     G.overflowPlayer = null
     const end = G.pendingEnd
+    const nextMove = G.pendingMove
     G.pendingEnd = false
+    G.pendingMove = null
     if (end) endR1Turn(G, ctx)
-    else G.currentMove = 'maneuver'
+    else G.currentMove = nextMove || 'maneuver'
 }
 export function r1Maneuver(G, ctx, to) {
     if (!validCell(to) || !r1MoveTargets(G, ctx).includes(to)) return INVALID_MOVE
