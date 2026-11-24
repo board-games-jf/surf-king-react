@@ -152,7 +152,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             <div className="r1-match-feedback r1-glass" aria-live="polite">
                 <strong>{winner ? 'Player ' + (winner.position + 1) + ' wins!' : 'Player ' + (player.position + 1) + ' · Your turn'}</strong>
                 <span>{G.message}</span>
-                {hexFeedback && !inspected && <div className="r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
+                {hexFeedback && <div className="r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
                     <div className="r1-hex-feedback-heading">
                         <strong>Hex {hexFeedback.id + 1} · {hexFeedback.title}</strong>
                         <span className="r1-hex-status">{hexFeedback.status === 'ready' ? 'Available' :
