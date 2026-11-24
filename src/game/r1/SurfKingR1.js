@@ -207,6 +207,21 @@ export function r1DropTargets(G, ctx) {
     return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
         !shielded(q) && DIST[p.cellPosition][q.cellPosition] <= DROP_IN_RANGE).map(q => q.cellPosition)
 }
+// Read-only per-opponent diagnostics; legal targets still come from the move queries.
+export function r1AttackTargetBlocks(G, ctx, range, targets, kind = 'card') {
+    const p = actor(G, ctx)
+    if (!p || G.winner != null) return []
+    const legal = new Set(targets)
+    const phaseReason = r1AttackUnavailableReason(G, ctx, range, [p.cellPosition], kind)
+    return Object.values(G.players).filter(q => q.position !== p.position && !legal.has(q.cellPosition))
+        .map(q => {
+            const code = isBeach(q.cellPosition) ? 'finished' : q.energy === 0 ? 'fallen' :
+                DIST[p.cellPosition][q.cellPosition] > range ? 'range' :
+                phaseReason ? 'phase' : shielded(q) ? 'protected' :
+                kind === 'card' && q.energy === 1 ? 'minimum' : 'unavailable'
+            return { id: q.cellPosition, playerId: q.position, code, reason: code === 'phase' ? phaseReason : null }
+        })
+}
 // UI guidance shares the authoritative target calculation.
 export function r1AttackUnavailableReason(G, ctx, range, targets, kind = 'drop') {
     const p = actor(G, ctx)
