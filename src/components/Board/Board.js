@@ -99,7 +99,7 @@ const Board = ({ G, ctx, moves }) => {
         }
         setClickedHex(null)
         setHoveredHex(null)
-        if (r1Selection?.kind === 'card') moves.useCard(r1Selection.index, id, chosen)
+        if (r1Selection?.kind === 'card') chosen === undefined ? moves.useCard(r1Selection.index, id) : moves.useCard(r1Selection.index, id, chosen)
         else if (r1Selection?.kind === 'drop') moves.dropIn(id, r1Selection.diceCount, chosen)
         else moves.maneuver(id)
         setR1CardPreview(null)
@@ -146,7 +146,7 @@ const Board = ({ G, ctx, moves }) => {
                     const x = occupants.length === 1 ? 200 : slot === 0 ? 115 : 285
                     const current = G.winner == null && String(p.position) === String(ctx.currentPlayer)
                     const block = targetHighlight?.blocked?.find(item => item.playerId === p.position)
-                    const valid = r1PlayerTargets.includes(p.position)
+                    const valid = targetHighlight?.playerIds?.includes(p.position)
                     return <g key={p.position} data-surfer-id={p.position} transform={`translate(${x},170)`}>
                         <circle r={occupants.length === 1 ? 65 : 52} fill={PLAYER_BOARD_COLORS[p.position]}
                             stroke={current ? '#ffcf53' : valid ? '#ff9882' : '#173d36'} strokeWidth={current || valid ? 12 : 5}
