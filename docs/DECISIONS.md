@@ -50,6 +50,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-035 | Accepted | R1 trial: Stone range 3, Storm/Cyclone/Island range 2, no placement on occupied or existing obstacle hexes, starts or beaches. Stone costs 1 energy and is consumed on ordinary entry; Island remains persistent. Direct attacks: Sunburn range 3 damage 1, Big Wave range 2 damage 2, Tsunami range 1 damage 3. Trial deck: Energy x2 8, Float 6, Sunburn 10, Big Wave 7, Tsunami 3, Stone 4, Storm 5, Cyclone 3, Island 3, Jumping 4, Amulet 4, Surf Current 3 (60 total). Draw once after a successful upright move even at hand cap; any receipt beyond five cards automatically discards uniformly among all six using game RNG, including the received card. Fall loss stays random. | Owner approved revised interaction and simpler hand management; supersedes SK-DEC-029 and manual overflow choice. Existing Drop In and fixed order unchanged. Balance not yet ratified. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-036 | Accepted | Display subtle action-specific hex markings in both R1 views using authoritative eligible cell IDs: mint for movement, amber for obstacle placement, coral for attacks, violet for Jumping. Before the optional card is skipped, show movement as a dim preview, not an enabled action. Preserve cell contents, click validation and existing gameplay. | Owner requested visual guidance for valid moves, obstacle placement and card effects. Exact colors, opacity and visibility require hands-on visual review. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
