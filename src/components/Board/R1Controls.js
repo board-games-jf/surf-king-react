@@ -143,7 +143,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         <div key={p.position} className="surf-hand r1-player-badge r1-glass"
                             style={{ '--r1-player-color': PLAYER_BOARD_COLORS[p.position % PLAYER_BOARD_COLORS.length] }}
                             data-current={status === 'now'} data-order-status={status}
-                            data-attack-target={attacking && playerTargets.includes(p.position)}
+                            data-attack-target={highlight.playerIds?.includes(p.position) || false}
                             aria-current={status === 'now' ? 'step' : undefined}>
                             <div className="r1-player-heading">
                                 <span className="r1-player-avatar" aria-hidden="true">{p.position + 1}</span>
@@ -169,6 +169,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     {hexFeedback.occupants?.length > 0 && <span className="r1-hex-number">{hexFeedback.occupants.length}/{HEX_CAPACITY} surfers</span>}
                     {hexFeedback.occupants ? hexFeedback.occupants.map(p => <div key={p.position} className="r1-hex-occupant">
                         <span>{p.text}</span><EnergyMeter energy={p.energy}/>{p.state && <span>{p.state}</span>}
+                        {p.blocked && <span title={p.blocked}><FeedbackIcon kind="blocked"/>{p.blocked}</span>}
                     </div>) : hexFeedback.occupant && <div className="r1-hex-occupant">
                         <span>{hexFeedback.occupantText.split(' · ')[0]}</span>
                         <EnergyMeter energy={hexFeedback.occupant.energy}/>
