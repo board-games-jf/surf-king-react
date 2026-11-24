@@ -1,3 +1,4 @@
+import { PLAYER_BOARD_COLORS } from '../../../constants/playerBoardColors'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { PRESET_SURFERS } from './surferStyle'
@@ -10,7 +11,6 @@ import { ATHLETE_ASSET_PATHS, createAthleteSurferArt, inspectRiggedAsset } from 
 export { RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
 
 // Keep seven established player identities separate from appearance presets.
-import { PLAYER_BOARD_COLORS } from '../../../constants/playerBoardColors'
 export { PLAYER_BOARD_COLORS } from '../../../constants/playerBoardColors'
 
 export function createRiggedBoardSurfer(templates, playerId, { previewFemaleAthlete = false, athleteBoardType = null } = {}) {
