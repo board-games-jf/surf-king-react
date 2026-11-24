@@ -738,3 +738,26 @@ test('same-cell lethal Drop In transfers a card but never offers a meaningless s
     expect(G.players[0].cards).toHaveLength(3)
     assertConserved(G)
 })
+
+test('boardgame.io ends the actual match on the first beach arrival', () => {
+    const game = { ...SurfKingR1, seed: 'R1-finish-test', setup: ctx => {
+        const G = setupR1(ctx)
+        G.players[G.order[0]].cellPosition = 42
+        G.players[G.order[0]].energy = 1
+        return G
+    } }
+    const client = Client({ game, numPlayers: 3 })
+    client.start()
+    try {
+        const first = client.getState().G.order[0]
+        client.moves.pass()
+        client.moves.maneuver(49)
+        const { G, ctx } = client.getState()
+        expect(G.winner).toBe(first)
+        expect(G.finishers).toEqual([first])
+        expect(ctx.gameover).toEqual({ winner: first })
+        expect(ctx.currentPlayer).toBe(String(first))
+    } finally {
+        client.stop()
+    }
+})
