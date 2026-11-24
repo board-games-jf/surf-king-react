@@ -4,6 +4,10 @@
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)  
 **Verified main before documentation reconciliation:** `1383a117c5ba63313603d7dbb8edb73846bcd46c` (PR #47 merged; no deployment authorized).
 
+## R1 first-arrival victory and map feedback (#48)
+
+- Branch `fix/48-first-arrival-board-feedback` implements immediate first beach arrival, preserving the existing turn-end draw and legacy game rules. Shared short restriction labels replace individual X/1 markers; 3D actor labels suppress duplicate hex symbols. Both views identify the finish and winner. Regression fixtures updated for first arrival, Surf Current and 3D marker suppression. Full CI and manual visual acceptance remain pending. No merge or deployment authorized.
+
 ## R1 card art integration (2026-11-24)
 
 - [PR #47](https://github.com/board-games-jf/surf-king-react/pull/47) merged at `1383a117c5ba63313603d7dbb8edb73846bcd46c`. Final [CI 45443708908](https://github.com/board-games-jf/surf-king-react/actions/runs/45443708908) passed exact verification of 16 approved WebP assets, 377 tests (2 skipped), strict build and responsive Chromium HUD checks. R1 hand and inspection share the card art registry, functional CSS frames and existing SVG effect icons; Stone explicitly labels entry damage. Rules, targeting, HUD dimensions, board geometry and legacy art remain unchanged. #44 remains open for manual in-game acceptance and rights review; no deployment authorized. PR #45 reconciles historical concept provenance with the accepted SK-DEC-045 instead of reviving obsolete artwork proposals.
