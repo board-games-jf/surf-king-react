@@ -102,3 +102,24 @@ export function jumpCatalogSurfer(catalog, id) {
   const target = catalogJumpTarget(catalog, id)
   return target === null ? catalog : { ...catalog, surfers: { ...catalog.surfers, [id]: target } }
 }
+
+// Illustrative two-step route through neighboring empty cells, isolated from a match.
+export function catalogCurrentRoute(catalog, id) {
+  const start = catalog.surfers[id]
+  if (!BOARD_LAYOUT[start] || catalog.fallen?.[id]) return []
+  const occupied = new Set([...Object.values(catalog.surfers), ...Object.keys(catalog.obstacles).map(Number)])
+  const spacing = Math.sqrt(3) * layoutManifest.hexRadius
+  const route = []
+  let from = start
+  for (let step = 0; step < 2; step++) {
+    const origin = BOARD_LAYOUT[from]
+    const next = BOARD_LAYOUT.filter(cell => !occupied.has(cell.id) &&
+      Math.abs(Math.hypot(cell.x - origin.x, cell.z - origin.z) - spacing) < .005)
+      .sort((a, b) => a.z - b.z || a.id - b.id)[0]
+    if (!next) break
+    route.push(next.id)
+    occupied.add(next.id)
+    from = next.id
+  }
+  return route
+}

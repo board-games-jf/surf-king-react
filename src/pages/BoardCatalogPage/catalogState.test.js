@@ -10,6 +10,7 @@ import {
   nearbyCatalogCell,
   catalogJumpTarget,
   jumpCatalogSurfer,
+  catalogCurrentRoute,
 } from './catalogState'
 
 describe('interactive board catalog fixtures', () => {
@@ -111,4 +112,23 @@ test('jump preview lands on an adjacent hazard without removing it or moving ano
   expect(initial.surfers['0']).toBe(1)
   expect(catalogJumpTarget(setCatalogSurferFallen(initial, '0', true), '0')).toBeNull()
   expect(catalogJumpTarget(createEmptyBoardCatalog(), '0')).toBeNull()
+})
+
+test('Surf Current preview finds up to two distinct neighboring empty cells without changing the catalog', () => {
+  const catalog = createBoardCatalog()
+  const original = JSON.stringify(catalog)
+  const route = catalogCurrentRoute(catalog, '0')
+  expect(route).toHaveLength(2)
+  expect(new Set([catalog.surfers['0'], ...route]).size).toBe(3)
+  let from = BOARD_LAYOUT[catalog.surfers['0']]
+  for (const id of route) {
+    const cell = BOARD_LAYOUT[id]
+    expect(Math.hypot(cell.x - from.x, cell.z - from.z)).toBeCloseTo(2.295, 2)
+    expect(catalog.obstacles[id]).toBeUndefined()
+    expect(Object.values(catalog.surfers)).not.toContain(id)
+    expect(cell.z).toBeLessThan(from.z)
+    from = cell
+  }
+  expect(JSON.stringify(catalog)).toBe(original)
+  expect(catalogCurrentRoute(setCatalogSurferFallen(catalog, '0', true), '0')).toEqual([])
 })
