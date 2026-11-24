@@ -36,6 +36,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-028 | Accepted | Implement the R1 rules and ten-type, sixty-card deck as a separate experimental local pilot, retaining legacy play and the original board/renderers. The R1 rules are not yet permanently ratified. | Owner authorized app implementation for hands-on testing on 2026-11-24; do not infer merge or deployment approval. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42), [#11](https://github.com/board-games-jf/surf-king-react/issues/11) |
 
+| SK-DEC-029 | Accepted | For the R1 playtest, Storm, Cyclone and Island may be placed on any vacant obstacle-free course hex (IDs 7–48), without a distance limit. Starts, beaches, Sharks, occupied hexes and existing obstacles remain excluded. Attack ranges and movement are unchanged. | Owner requested greater interaction and simpler placement during hands-on testing. Experimental rule, not final ratification. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
