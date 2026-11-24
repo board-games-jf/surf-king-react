@@ -3,7 +3,7 @@ import { Client } from 'boardgame.io/client'
 import {
     SurfKingR1, setupR1, beginR1Turn, createR1Deck, r1Neighbors,
     r1MoveTargets, r1CardTargets, r1DropTargets, useR1Card, r1Maneuver,
-    r1DropIn, passR1, recoverR1, discardR1Overflow, r1AttackUnavailableReason, DROP_IN_RANGE,
+    r1DropIn, passR1, recoverR1, discardR1Overflow, r1AttackUnavailableReason, DROP_IN_RANGE, r1MaxAttackDice,
 } from './SurfKingR1'
 
 function fixture(n = 2) {
@@ -190,19 +190,86 @@ describe('R1 rules', () => {
         relocate(G, 1, 14)
         expect(r1DropTargets(G, ctx)).toEqual([14])
         expect(r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, [14])).toBeNull()
-        const rolls = [6, 2, 4, 3]
+        const rolls = [6, 4, 3]
         ctx.random.D6 = () => rolls.shift()
         r1DropIn(G, ctx, 14)
         expect(G.players[1].energy).toBe(1)
         expect(G.players[0].energy).toBe(2)
         expect(G.currentMove).toBe('use_card')
         expect(r1DropTargets(G, ctx)).toEqual([14])
-        const again = [6, 1, 2]
+        const again = [6, 2]
         ctx.random.D6 = () => again.shift()
         r1DropIn(G, ctx, 14)
         expect(G.players[0].energy).toBe(2)
         expect(G.players[1].energy).toBe(0)
         expect(r1DropIn(G, ctx, 14)).toBe(INVALID_MOVE)
+        assertConserved(G)
+    })
+    test('attack dice count preserves at least one energy and rejects unsafe counts before rolling', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 4)
+        expect([0, 1, 2, 3, 4, 5].map(r1MaxAttackDice)).toEqual([0, 0, 1, 2, 2, 2])
+        ctx.random.D6 = jest.fn()
+        const before = JSON.stringify(G)
+        for (const count of [0, 2, 3, -1, 1.5, '1', null]) {
+            expect(r1DropIn(G, ctx, 4, count)).toBe(INVALID_MOVE)
+        }
+        expect(ctx.random.D6).toHaveBeenCalledTimes(0)
+        expect(JSON.stringify(G)).toBe(before)
+    })
+    test.each([
+        { rolls: [5, 6, 2, 4], expected: [3, 1] },
+        { rolls: [2, 6, 4, 5], expected: [2, 2] },
+        { rolls: [3, 5, 2, 5], expected: [3, 2] },
+        { rolls: [1, 2, 4, 6], expected: [1, 3] },
+        { rolls: [3, 6, 6, 3], expected: [3, 3] },
+    ])('ranked dice comparisons resolve both energy losses: %s', ({ rolls, expected }) => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 4)
+        G.players[0].energy = 3
+        G.players[1].energy = 3
+        const input = rolls.slice()
+        ctx.random.D6 = () => input.shift()
+        expect(r1DropIn(G, ctx, 4, 2)).toBeUndefined()
+        expect([G.players[0].energy, G.players[1].energy]).toEqual(expected)
+        expect(G.atkDices).toEqual(rolls.slice(0, 2).sort((a, b) => b - a))
+        expect(G.defDices).toEqual(rolls.slice(2).sort((a, b) => b - a))
+        assertConserved(G)
+    })
+    test('one-energy defender rolls once; extra attack die does not deal damage', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 4)
+        G.players[0].energy = 3
+        G.players[1].energy = 1
+        const rolls = [6, 5, 4]
+        ctx.random.D6 = () => rolls.shift()
+        const hand = G.players[0].cards.length
+        r1DropIn(G, ctx, 4, 2)
+        expect(G.players[0].energy).toBe(3)
+        expect(G.players[1].energy).toBe(0)
+        expect(G.atkDices).toEqual([6, 5])
+        expect(G.defDices).toEqual([4])
+        expect(G.players[0].cards.length).toBe(hand + 1)
+        expect(G.message).toBe('Drop In: Player 1 loses 0 energy; Player 2 loses 1 energy. Player 2 fell!')
+        assertConserved(G)
+    })
+    test('two lost defense pairs cause a single fall and transfer one card', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 4)
+        G.players[0].energy = 3
+        const rolls = [6, 5, 4, 3]
+        ctx.random.D6 = () => rolls.shift()
+        const attackerHand = G.players[0].cards.length
+        const defenderHand = G.players[1].cards.length
+        r1DropIn(G, ctx, 4, 2)
+        expect(G.players[0].energy).toBe(3)
+        expect(G.players[1].energy).toBe(0)
+        expect(G.players[0].cards.length).toBe(attackerHand + 1)
+        expect(G.players[1].cards.length).toBe(defenderHand - 1)
         assertConserved(G)
     })
     test('two-edge opponents remain protected or unavailable when fallen or finished', () => {
@@ -232,11 +299,11 @@ describe('R1 rules', () => {
         r1DropIn(G, ctx, 4)
         expect(G.players[0].energy).toBe(3)
         expect(G.players[1].energy).toBe(2)
-        const rolls = [1, 2, 5, 6, 2, 3, 4, 5]
+        const rolls = [1, 5, 6, 2, 4, 5]
         ctx.random.D6 = () => rolls.shift()
-        r1DropIn(G, ctx, 4)
+        r1DropIn(G, ctx, 4, 1)
         expect(G.players[0].energy).toBe(2)
-        r1DropIn(G, ctx, 4)
+        r1DropIn(G, ctx, 4, 1)
         expect(G.players[0].energy).toBe(1)
         expect(G.players[1].energy).toBe(2)
         expect(r1DropTargets(G, ctx)).toEqual([])
@@ -251,7 +318,7 @@ describe('R1 rules', () => {
         relocate(G, 1, 4)
         const energyCard = grant(G, 0, 'Energy x2')
         const secondCard = grant(G, 0, 'Energy x2')
-        const rolls = [1, 2, 5, 6, 6, 2, 4, 3]
+        const rolls = [1, 5, 6, 6, 4, 3]
         ctx.random.D6 = () => rolls.shift()
         r1DropIn(G, ctx, 4)
         expect(G.players[0].energy).toBe(1)
@@ -260,7 +327,7 @@ describe('R1 rules', () => {
         expect(G.currentMove).toBe('maneuver')
         expect(useR1Card(G, ctx, secondCard - 1)).toBe(INVALID_MOVE)
         expect(r1DropTargets(G, ctx)).toEqual([4])
-        r1DropIn(G, ctx, 4)
+        r1DropIn(G, ctx, 4, 1)
         expect(G.players[0].energy).toBe(3)
         expect(G.players[1].energy).toBe(1)
         r1Maneuver(G, ctx, 7)
@@ -275,10 +342,10 @@ describe('R1 rules', () => {
         G.players[1].energy = 1
         if (cardUsed) useR1Card(G, ctx, grant(G, 0, 'Energy x2'))
         G.players[0].cards.push(...G.deck.splice(0, 5 - G.players[0].cards.length))
-        const rolls = [6, 4, 1]
+        const rolls = [6, 1]
         ctx.random.D6 = () => rolls.shift()
         const energy = G.players[0].energy
-        r1DropIn(G, ctx, 4)
+        r1DropIn(G, ctx, 4, 1)
         expect(G.players[0].energy).toBe(energy)
         expect(G.players[1].energy).toBe(0)
         expect(G.currentMove).toBe('discard')
