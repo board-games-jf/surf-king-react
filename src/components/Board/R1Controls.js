@@ -1,9 +1,11 @@
 import React from 'react'
 import {
-    R1_ATTACK_RANGE, r1CardPlayable, r1CardTargets, r1DropTargets, r1MoveTargets, isBeach,
+    R1_ATTACK_RANGE, r1CardPlayable, r1CardTargets, r1DropTargets, isBeach,
     DROP_IN_RANGE, r1AttackUnavailableReason, r1MaxAttackDice,
 } from '../../game/r1/SurfKingR1'
 import { getR1RoundOrder } from './r1RoundOrder'
+import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
+import { getTargetHighlightStyle } from '../../map/contract/targetHighlight'
 import cardArt0 from '../../assets/cards/energyx2.png'
 import cardArt1 from '../../assets/cards/lifeguardfloat.png'
 import cardArt2 from '../../assets/cards/bigwave.png'
@@ -47,15 +49,15 @@ const descriptions = {
     Amulet: 'Protect against opponent attacks until your next turn.',
     'Surf Current': 'Move up to two legal steps; draw only once.',
 }
-export const r1SelectionTargets = (G, ctx, selection) => selection?.kind === 'card'
-    ? r1CardTargets(G, ctx, selection.index)
-    : selection?.kind === 'drop' ? r1DropTargets(G, ctx) : r1MoveTargets(G, ctx)
+export { r1SelectionTargets } from './r1TargetHighlight'
 
-export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget }) {
+export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight }) {
     const player = G.players[ctx.currentPlayer]
     const roundOrder = getR1RoundOrder(G, ctx)
     const hand = player
     const targets = r1SelectionTargets(G, ctx, selection)
+    const highlight = targetHighlight || getR1TargetHighlight(G, ctx, selection)
+    const highlightStyle = getTargetHighlightStyle(highlight.kind)
     const dropTargets = r1DropTargets(G, ctx)
     const dropReason = r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, dropTargets)
     const maxAttackDice = r1MaxAttackDice(player.energy)
@@ -140,7 +142,10 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         {G.currentMove === 'use_card' ? 'Skip card — move' :
                             G.currentMove === 'current_second' ? 'Finish movement' : 'No legal move — end turn'}
                     </button>}
-                    {targets.length > 0 && <span>{attacking ? 'Select a highlighted opponent.' : 'Select a highlighted hex on the map.'}</span>}
+                    {highlight.cellIds.length > 0 && highlightStyle && <span className="r1-target-legend">
+                        <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
+                        {highlight.preview ? 'Movement preview — skip card to move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
+                    </span>}
                 </div>
                 {targets.length > 0 && <div className="r1-targets" aria-label="Legal target hexes">
                     {targets.map(id => <button type="button" key={id}
