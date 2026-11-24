@@ -12,7 +12,7 @@ const points = [
 const halfWidth = Math.max(...BOARD_LAYOUT.map(({ x }) => Math.abs(x))) + radius + .06
 const halfDepth = Math.max(...BOARD_LAYOUT.map(({ z }) => Math.abs(z))) + halfHeight + .06
 
-const HexGrid = ({ cellProps, renderCell, onHexClick, getRef }) => {
+const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellId, getRef }) => {
     const gridId = useId()
 
     return (
@@ -36,6 +36,10 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, getRef }) => {
                             stroke="#d4f1eb"
                             strokeWidth=".045"
                             style={style}
+                            data-cell-id={id}
+                            data-inspected={inspectedCellId === id ? 'true' : undefined}
+                            onMouseEnter={() => onHexHover?.(id)}
+                            onMouseLeave={() => onHexHover?.(null)}
                             onClick={() => onHexClick({ position: id })}
                         />
                         {highlight && (
