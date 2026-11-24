@@ -108,7 +108,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             <div className="r1-round-order" aria-label="Round play order">
                 {roundOrder.map(({ id, status }, slot) => {
                     const p = G.players[id]
-                    const state = isBeach(p.cellPosition) ? 'Finished' : p.energy === 0 ? 'Fallen' :
+                    const state = G.winner === p.position ? 'Winner' : isBeach(p.cellPosition) ? 'Finished' : p.energy === 0 ? 'Fallen' :
                         p.activeCard.some(c => c.Name === 'Amulet') ? 'Protected' : p.activeCard.some(c => c.Name === 'Hang loose') ? 'Drop In shield' : ''
                     return (
                         <div key={p.position} className="surf-hand r1-player-badge r1-glass"
@@ -154,7 +154,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             </div>}
             {(winner || G.atkDices.length > 0 || (G.message && !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) && /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) &&
                 <div className="r1-match-event r1-glass" aria-live="polite">
-                    {winner ? <strong>Player {winner.position + 1} wins!</strong> : <span>{G.message}</span>}
+                    {winner ? <><FeedbackIcon kind="flag"/><strong>Player {winner.position + 1} wins!</strong><span>First to the beach.</span></> : <span>{G.message}</span>}
                 {G.atkDices.length > 0 && <div className="r1-dice-results" aria-label="Drop In dice results">
                     {G.atkDices.map((die, i) => <span key={i} data-result={G.defDices[i] === undefined || die === G.defDices[i] ? 'tie' : die > G.defDices[i] ? 'win' : 'loss'}>
                         {die}{G.defDices[i] !== undefined ? ' vs ' + G.defDices[i] + ' — ' +
@@ -192,7 +192,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                                 const style = getTargetBlockStyle(block.code)
                                 const label = block.reason || style.label
                                 return <span key={block.id} className="r1-blocked-target-chip" style={{ color: style.color }} title={label} aria-label={'Player ' + (block.playerId + 1) + ': ' + label}>
-                                    P{block.playerId + 1} {style.symbol === 'one' ? <><FeedbackIcon kind="energy"/>1</> : <FeedbackIcon kind={style.symbol === 'shield' ? 'shield' : 'blocked'}/>}
+                                    P{block.playerId + 1} <FeedbackIcon kind={style.symbol === 'one' ? 'energy' : style.symbol === 'shield' ? 'shield' : 'blocked'}/> {style.shortLabel}
                                 </span>
                             })}
                         </div>}
