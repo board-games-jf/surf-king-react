@@ -132,21 +132,28 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             </div>
             <div className="r1-top-feedback" data-pinned={pinnedHex}>
             {hexFeedback && <div className="r1-match-feedback r1-glass r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
-                {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt="" /> :
-                    hexFeedback.occupant ? <span className="r1-inspection-avatar" style={{ background: PLAYER_BOARD_COLORS[hexFeedback.occupant.position] }}>{hexFeedback.occupant.position + 1}</span> :
-                    <span className="r1-inspection-symbol"><FeedbackIcon kind={hexFeedback.title === 'Beach' ? 'flag' : 'wave'}/></span>}
-                <div className="r1-inspection-body">
-                    <div className="r1-inspection-heading"><strong>{hexFeedback.title}</strong><span className="r1-hex-number">#{hexFeedback.id + 1}</span></div>
-                    {hexFeedback.occupants?.length > 0 && <span className="r1-hex-number">{hexFeedback.occupants.length}/{HEX_CAPACITY} surfers</span>}
-                    {hexFeedback.occupants ? hexFeedback.occupants.map(p => <div key={p.position} className="r1-hex-occupant">
-                        <span>{p.text}</span><EnergyMeter energy={p.energy}/>{p.state && <span>{p.state}</span>}
-                        {p.blocked && <span title={p.blocked}><FeedbackIcon kind="blocked"/>{p.blocked}</span>}
-                    </div>) : hexFeedback.occupant && <div className="r1-hex-occupant">
-                        <span>{hexFeedback.occupantText.split(' · ')[0]}</span>
-                        <EnergyMeter energy={hexFeedback.occupant.energy}/>
-                        {hexFeedback.occupantText.split(' · ')[2] && <span>{hexFeedback.occupantText.split(' · ')[2]}</span>}
-                    </div>}
-                    <HexEffects info={hexFeedback}/>
+                <div className="r1-inspection-body r1-hex-elements">
+                    <div className="r1-inspection-heading"><strong>Hex {hexFeedback.id + 1}</strong>
+                        {hexFeedback.occupants?.length > 0 && <span className="r1-hex-number">{hexFeedback.occupants.length}/{HEX_CAPACITY} surfers{hexFeedback.full ? ' · Full' : ''}</span>}
+                    </div>
+                    <div className="r1-hex-terrain">
+                        {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt=""/> :
+                            <span className="r1-inspection-symbol"><FeedbackIcon kind={hexFeedback.title === 'Beach' ? 'flag' : 'wave'}/></span>}
+                        <div className="r1-hex-element-body">
+                            <strong>{hexFeedback.title}</strong>
+                            <HexEffects info={hexFeedback}/>
+                            {hexFeedback.occupants?.length > 0 && <span className="r1-hex-entry">{hexFeedback.entry}</span>}
+                        </div>
+                    </div>
+                    {hexFeedback.occupants?.map(p => <div key={p.position} className="r1-hex-occupant" role="group" aria-label={'Player ' + (p.position + 1) + ' details'}>
+                        <span className="r1-hex-player-avatar" aria-hidden="true" style={{ background: PLAYER_BOARD_COLORS[p.position] }}>P{p.position + 1}</span>
+                        <div className="r1-hex-element-body">
+                            <div className="r1-hex-player-line"><strong>{p.text}</strong><EnergyMeter energy={p.energy}/></div>
+                            {p.states?.map(state => <span key={state} className="r1-hex-player-status"><FeedbackIcon kind={state.includes('Protected') || state.includes('shield') ? 'shield' : state === 'Winner' || state === 'Finished' ? 'flag' : 'wave'}/>{state}</span>)}
+                            {p.eligible && <span className="r1-hex-player-status" data-eligible="true"><FeedbackIcon kind="check"/>Eligible target</span>}
+                            {p.blocked && <span className="r1-hex-player-status" title={p.blocked}><FeedbackIcon kind="blocked"/>{p.blocked}</span>}
+                        </div>
+                    </div>)}
                     <span className="r1-hex-action"><FeedbackIcon kind={hexFeedback.status === 'ready' ? 'check' : hexFeedback.status === 'preview' ? 'move' : 'blocked'}/>{compactHexAction(hexFeedback)}</span>
                     <span className="r1-sr-only">{hexFeedback.entry} {hexFeedback.occupantText} {hexFeedback.action} {hexFeedback.risk}</span>
                 </div>
