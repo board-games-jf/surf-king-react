@@ -66,6 +66,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-043 | Accepted | Card hover and selection use stronger legal-cell highlights in both map views. Attack previews also mark rejected opponents with distinct shield (Amulet), one-energy (card damage floor), or crossed-out (range, fallen, finished, or unavailable phase) symbols, with exact reasons in compact inspection feedback. Disabled-card clicks pin inspection only; self cards highlight the current surfer and Surf Current previews its first steps without enabling extra actions. Committed selections take precedence over hover, and all legal clicks remain engine-authoritative. | Owner requested visual hex feedback and specific reasons why each opponent cannot be targeted. No gameplay rule changes. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-ART-001 | Accepted | Use original, cohesive tropical stylized 3D cartoon artwork for Surf King cards, with the owner-approved Shark / Hang loose / Big wave concept triptych as the artistic reference. | Owner approved the overall visual direction on 2026-11-24; simplified card artwork, exact palette, card layout and production files require separate review. Existing card rules and approved obstacle identity remain unchanged. | [#44](https://github.com/board-games-jf/surf-king-react/issues/44) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
