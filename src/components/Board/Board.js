@@ -84,6 +84,7 @@ const Board = ({ G, ctx, moves }) => {
 
     const cellProps = (position) => {
         const cell = G.cells[position]
+        const targetStyle = isR1 && r1Targets.includes(position) ? { stroke: '#ffcf53', strokeWidth: '.13', cursor: 'pointer' } : {}
 
         if (cell.player) {
             // TODO: Implement
@@ -92,14 +93,17 @@ const Board = ({ G, ctx, moves }) => {
         if (cell.obstacle) {
             const name = cell.obstacle.Name.replace(/\s+/g, '').toLowerCase()
             const img = require(`../../assets/obstacles/${name}.png`)
-            return { backgroundImage: img }
+            return { backgroundImage: img, style: targetStyle }
         }
 
-        return { style: { fill: seaColor } }
+        return { style: { fill: seaColor, ...targetStyle } }
     }
 
     const renderCell = (cellPosition) => {
         const cell = G.cells[cellPosition]
+        if (isR1 && r1Targets.includes(cellPosition)) {
+            return <text x="50%" y="50%" fontSize={75} fontWeight="bold" fill="#fff8d0" stroke="#173d36" strokeWidth="2" textAnchor="middle">{cell.player ? '#' + (cell.player.position + 1) : cellPosition + 1}</text>
+        }
 
         if (cell.player) {
             return (
