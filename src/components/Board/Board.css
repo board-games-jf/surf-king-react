@@ -146,3 +146,6 @@
 
 .r1-dice-results { display: flex; flex-wrap: wrap; gap: 5px; }
 .r1-dice-results span { padding: 3px 7px; border-radius: 5px; background: #fffdf1; border: 1px solid #62816e; }
+
+.r1-target-legend { display: inline-flex; align-items: center; gap: 5px; }
+.r1-target-swatch { display: inline-block; width: 13px; height: 12px; clip-path: polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); }
