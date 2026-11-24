@@ -7,7 +7,7 @@
 ## R1 shared-hex / defense trial (2026-11-24)
 
 - PR #43 merged into main at `8a3bbd88265c52c97935beb9c942c4a11b066f01`; final [CI 45397926576](https://github.com/board-games-jf/surf-king-react/actions/runs/45397926576) passed tests, strict build and Chromium HUD validation. No deployment.
-- SK-DEC-044: branch `feat/42-r1-shared-hex-defense` implements 64-card trial (capacity two, Change ×1 range two, Hang Loose ×3). Individual targeting rejects ambiguous cell-only requests; 2D/3D separate shared occupants; HUD shows individual eligibility and protection. Existing rules and legacy game preserved. 71 isolated rule/card/hex fixtures passed, three real client fixtures skipped by isolated harness. Additional regressions and full PR CI pending. See #42 and #11 for experimental balance evidence. Start a fresh local match; old match state is not migrated. No merge/deploy authorization for this branch.
+- SK-DEC-044: branch `feat/42-r1-shared-hex-defense` implements 64-card trial (capacity two, Change ×1 range two, Hang Loose ×3). Individual targeting rejects ambiguous cell-only requests; 2D/3D separate shared occupants; HUD shows individual eligibility and protection. Existing rules and legacy game preserved. 72 isolated rule/card/hex fixtures passed, three real client fixtures skipped by isolated harness. Additional regressions and full PR CI pending. See #42 and #11 for experimental balance evidence. Start a fresh local match; old match state is not migrated. No merge/deploy authorization for this branch.
 
 ## Earlier R1 local rules pilot (merged PR #43)
 
