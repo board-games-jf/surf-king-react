@@ -181,6 +181,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 </div>}
             </div>
             {!winner && <div className="r1-hud-dock">
+                <div className="r1-dock-context-scroll">
                 {swapChoice && <div className="r1-swap-choice r1-glass" role="group" aria-label="Position conquest">
                     <strong>Player {G.pendingSwap.targetPlayerId + 1} fell!</strong>
                     <span>Take their hex instead of moving, or keep your position and continue.</span>
@@ -230,6 +231,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             aria-label={attacking ? 'Attack Player ' + (G.cells[id].player.position + 1) : 'Select hex ' + (id + 1)}
                             onClick={() => onTarget(id)}>{attacking ? 'Player ' + (G.cells[id].player.position + 1) : id + 1}</button>)}
                     </div>}
+                </div>
                 </div>
                 <div className="r1-hand-heading r1-glass">
                     <span>YOUR HAND <strong>{hand.cards.length}/5</strong></span>
