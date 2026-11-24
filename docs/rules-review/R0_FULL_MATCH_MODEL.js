@@ -31,7 +31,13 @@ const LITE10_GUARD = Object.freeze({
 const LITE10_ACTIVE = Object.freeze({
  ...LITE10,'Change':'Amulet','Tsunami':'Sunburn'
 })
-const DECK_MAPS = Object.freeze({b60:null,lite12:LITE12,lite10:LITE10,lite10Guard:LITE10_GUARD,lite10Active:LITE10_ACTIVE})
+// Restore the thematic Cyclone while testing whether Stone is expendable.
+const LITE11_CYCLONE = Object.freeze({...LITE10_ACTIVE,Cyclone:'Cyclone'})
+const LITE10_CYCLONE_NO_STONE = Object.freeze({...LITE10_ACTIVE,Stone:'Cyclone'})
+const DECK_MAPS = Object.freeze({
+ b60:null,lite12:LITE12,lite10:LITE10,lite10Guard:LITE10_GUARD,lite10Active:LITE10_ACTIVE,
+ lite11Cyclone:LITE11_CYCLONE,lite10CycloneNoStone:LITE10_CYCLONE_NO_STONE
+})
 const deckTypes = profile => {
   if(!Object.prototype.hasOwnProperty.call(DECK_MAPS,profile))throw Error('Unknown deck profile '+profile)
   return TYPES.reduce((out,[name,count])=>{
@@ -58,8 +64,9 @@ const randomGenerator = seed => {
  let s=seed>>>0
  return ()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}
 }
-function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first',positionComp='none',orderComp='none',firstTurnAttacks='restricted',dropSwap='on',deckProfile='b60'){
+function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed',openingBonus='none',finishRule='first',positionComp='none',orderComp='none',firstTurnAttacks='restricted',dropSwap='on',deckProfile='b60',jumpStyle='remove'){
  if(!Object.prototype.hasOwnProperty.call(DECK_MAPS,deckProfile))throw Error('Unknown deck profile '+deckProfile)
+ if(!['remove','leap'].includes(jumpStyle))throw Error('Unknown Jumping interpretation '+jumpStyle)
  if(!['restricted','open'].includes(firstTurnAttacks))throw Error('Unknown first-turn attack setting '+firstTurnAttacks)
  if(!['on','off'].includes(dropSwap))throw Error('Unknown Drop In swap setting '+dropSwap)
  const rnd=randomGenerator((seed*7919+n*101+5)>>>0)
@@ -68,7 +75,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
  const deckMap=DECK_MAPS[deckProfile]
  const initialCards=ALL_CARDS.map(c=>({id:c.id,t:deckMap&&deckMap[c.t]||c.t}))
  assert.equal(initialCards.length,60)
- assert.equal(Object.keys(deckTypes(deckProfile)).length,deckProfile==='b60'?17:deckProfile==='lite12'?12:10)
+ assert.equal(Object.keys(deckTypes(deckProfile)).length,deckProfile==='b60'?17:deckProfile==='lite12'?12:deckProfile==='lite11Cyclone'?11:10)
  const deck=shuffle(initialCards),discard=[],board=new Map()
  const startRng=randomGenerator((Math.imul(seed,9719)+n*1823+91)>>>0)
  const startChoices=Array.from({length:7},(_,i)=>i)
@@ -165,6 +172,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
  }
  st.startCells=initialStarts.slice();st.openingCardCounts=players.map(p=>p.hand.length);st.openingEnergy=players.map(p=>p.e);st.bonus=openingBonus;st.startMode=startMode;st.positionComp=positionComp;st.orderComp=orderComp
  st.deckProfile=deckProfile;st.deckCounts=deckTypes(deckProfile)
+ if(jumpStyle==='leap'){st.leaps=0;st.sharkLeaps=0;st.cycloneRedirects=0;st.leapsOverPlaced=0}
  function use(p,t,location='discard'){
    const index=p.hand.findIndex(c=>c.t===t);if(index===-1)throw Error('missing '+t)
    const c=p.hand.splice(index,1)[0];st.uses[t]=(st.uses[t]||0)+1
@@ -206,7 +214,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
      if(tile.card.t==='Island'){p.e=Math.min(5,p.e+2);board.delete(to);discard.push(tile.card)}
      if(tile.card.t==='Cyclone'&&!redirected){
       const exits=legalFrom(p,to).filter(w=>w!==from)
-      if(exits.length){const dest=choice(exits);p.pos=dest;arrival(p,to,dest,credit,true)}
+      if(exits.length){const dest=choice(exits);p.pos=dest;if(jumpStyle==='leap')st.cycloneRedirects++;arrival(p,to,dest,credit,true)}
      }
     }
    }
@@ -260,7 +268,38 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
   board.set(to,{card,owner:p.id,expires:t==='Stone'?p.own+3:Infinity})
   return true
  }
+ // Jumping's experimental leap interpretation: vault over an adjacent
+ // hazard in a straight line to a safe, vacant landing hex two edges away.
+ // The skipped Shark/placed obstacle remains and does not trigger its effect.
+ function jumpOptions(p){
+   if(jumpStyle!=='leap')return []
+   const from=layout.cells[p.pos],choices=[]
+   for(const middle of ADJ[p.pos]){
+     if(occupied(middle,p.id)||(!SHARK.has(middle)&&!board.has(middle)))continue
+     const obstacle=layout.cells[middle]
+     const x=2*obstacle.x-from.x,z=2*obstacle.z-from.z
+     for(const landing of ADJ[middle]){
+       const cell=layout.cells[landing]
+       if(Math.hypot(cell.x-x,cell.z-z)>.005||occupied(landing,p.id)||SHARK.has(landing)||board.has(landing))continue
+       choices.push({middle,landing})
+     }
+   }
+   return choices
+ }
  function jump(p){
+   if(jumpStyle==='leap'){
+     const options=jumpOptions(p)
+     if(!options.length)return false
+     const closest=Math.min(...options.map(o=>D[o.landing]))
+     const good=options.filter(o=>D[o.landing]===closest)
+     const selected=choice(good),from=p.pos
+     use(p,'Jumping')
+     p.pos=selected.landing;st.moves++;st.leaps++
+     if(SHARK.has(selected.middle))st.sharkLeaps++
+     else st.leapsOverPlaced++
+     arrival(p,from,selected.landing)
+     return true
+   }
    const options=[...board].filter(([to])=>ADJ[p.pos].includes(to))
    if(!options.length)return false
    const [to,v]=options.sort((a,b)=>D[a[0]]-D[b[0]])[0]
@@ -341,7 +380,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
    for(const [key,amount] of [['Coconut',5],['Energy x2',2],['Energy',1]])if(contains(p,key)&&p.e<=(key==='Coconut'?3:key==='Energy x2'?3:2))actions.push({key,score:p.e<=1?8:4})
    if(contains(p,'Amulet')&&!amulet(p)&&exposed(p).length)actions.push({key:'Amulet',score:mode==='aggressive'?3:9})
    if(contains(p,'Hang Loose')&&!loose(p)&&players.some(q=>q!==p&&ADJ[p.pos].includes(q.pos)))actions.push({key:'Hang Loose',score:3})
-   if(contains(p,'Jumping')&&[...board].some(([to])=>ADJ[p.pos].includes(to)))actions.push({key:'Jumping',score:6})
+   if(contains(p,'Jumping')&&(jumpStyle==='leap'?jumpOptions(p).length>0:[...board].some(([to])=>ADJ[p.pos].includes(to))))actions.push({key:'Jumping',score:jumpStyle==='leap'?8:6})
    for(const type of ['Stone','Storm','Island','Cyclone'])if(contains(p,type))actions.push({key:type,score:type==='Stone'?5:type==='Island'&&p.e<=3?6:mode==='aggressive'?2:4})
    if(!actions.length){st.noTactic++;return false}
    // Controlled soft randomness makes full deck accessible while preserving a coherent policy.
@@ -357,7 +396,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
      else if(key==='Big Wave'||key==='Sunburn'){if(direct(p,key))return true}
      else if(key==='Change'){if(change(p))return 'moveSpent'}
      else if(key==='Tsunami'){if(tsunami(p))return true}
-     else if(key==='Jumping'){if(jump(p))return true}
+     else if(key==='Jumping'){if(jump(p))return jumpStyle==='leap'?'moveSpent':true}
      else if(['Stone','Storm','Island','Cyclone'].includes(key)){if(placement(p,key))return true}
      else if(key==='Amulet'||key==='Hang Loose'){
        const card=use(p,key,'active');p.active.push({card,expires:p.own+1});return true
