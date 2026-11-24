@@ -148,6 +148,19 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   const tsunamiFollower = bigWave.clone()
   tsunamiFollower.visible = false
   scene.add(tsunamiFollower)
+  const tsunamiSwirl = new THREE.Group()
+  const swirlArcs = Array.from({ length: 3 }, (_, i) => {
+    const arc = new THREE.Mesh(
+      new THREE.TorusGeometry(.75 + i * .37, .035, 8, 48, Math.PI * 1.45),
+      new THREE.MeshBasicMaterial({ color: i === 1 ? 0xa2fff3 : 0xe2ffff, transparent: true, depthWrite: false })
+    )
+    arc.rotation.x = -Math.PI / 2
+    arc.position.y = .12 + i * .05
+    tsunamiSwirl.add(arc)
+    return arc
+  })
+  tsunamiSwirl.visible = false
+  scene.add(tsunamiSwirl)
   const waveImpact = new THREE.Group()
   const splash = new THREE.Mesh(new THREE.RingGeometry(.52, .65, 48), new THREE.MeshBasicMaterial({ color: 0xd5ffff, transparent: true, side: THREE.DoubleSide, depthWrite: false }))
   splash.rotation.x = -Math.PI / 2
@@ -565,27 +578,40 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       const target = actors.get(bigWavePreview.playerId)
       const t = (now - bigWavePreview.started) / 1000
       const tsunami = bigWavePreview.tsunami
-      const duration = tsunami ? 3.5 : 2.6
+      const duration = tsunami ? 4.4 : 2.6
       if (!target || !target.g.visible || t >= duration) {
         bigWave.visible = false
         tsunamiFollower.visible = false
+        tsunamiSwirl.visible = false
         waveImpact.visible = false
         bigWavePreview = null
       } else {
-        bigWave.visible = true
+        const surge = reduce ? 1 : THREE.MathUtils.clamp((t - .55) / 1.9, 0, 1)
+        const rise = reduce ? 1 : THREE.MathUtils.smoothstep(t, .3, 1.4)
+        bigWave.visible = !tsunami || t >= .3
         bigWave.position.copy(target.g.position)
-        bigWave.scale.setScalar(tsunami ? 1.45 : 1)
-        bigWave.position.z += reduce ? 0 : (tsunami ? 3.2 - Math.min(1, t / 1.8) * 4.2 : 2.2 - Math.min(1, t / 1.45) * 2.8)
-        tsunamiFollower.visible = tsunami && !reduce
+        bigWave.scale.set(tsunami ? 1.45 : 1, tsunami ? .2 + 1.5 * rise : 1, tsunami ? 1.3 : 1)
+        bigWave.position.z += reduce ? 0 : (tsunami ? 3.1 - surge * 4.3 : 2.2 - Math.min(1, t / 1.45) * 2.8)
+        tsunamiFollower.visible = tsunami && !reduce && t > 1
         if (tsunamiFollower.visible) {
-          tsunamiFollower.scale.setScalar(1.15)
+          const follow = THREE.MathUtils.clamp((t - 1) / 2.2, 0, 1)
+          tsunamiFollower.scale.set(1.12, .55 + .6 * Math.sin(follow * Math.PI), 1)
           tsunamiFollower.position.copy(target.g.position)
-          tsunamiFollower.position.z += 5.2 - Math.min(1, t / 2.65) * 6.1
+          tsunamiFollower.position.z += 4.2 - follow * 5.4
+        }
+        tsunamiSwirl.visible = tsunami && t < 3.4
+        if (tsunamiSwirl.visible) {
+          tsunamiSwirl.position.copy(target.g.position)
+          swirlArcs.forEach((arc, i) => {
+            arc.rotation.z = reduce ? 0 : t * (i % 2 ? -1.8 : 1.5) + i * 2
+            arc.material.opacity = Math.min(1, t / .35, (3.4 - t) / .6) * .8
+            arc.scale.setScalar(reduce ? 1 : 1 + .08 * Math.sin(t * 5 + i))
+          })
         }
         const fade = Math.min(1, t / .3, (duration - t) / .65)
         water.material.opacity = .82 * fade
         foam.material.opacity = fade
-        const impact = reduce ? .5 : THREE.MathUtils.clamp((t - .85) / 1.3, 0, 1)
+        const impact = reduce ? .5 : THREE.MathUtils.clamp((t - (tsunami ? 1.45 : .85)) / (tsunami ? 2 : 1.3), 0, 1)
         waveImpact.visible = impact > 0
         waveImpact.position.copy(target.g.position)
         splash.material.opacity = .8 * (1 - impact) * fade
@@ -593,8 +619,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         dropletMaterial.opacity = Math.sin(impact * Math.PI) * fade
         droplets.forEach((drop, i) => {
           const angle = i * Math.PI * 2 / droplets.length
-          const distance = .35 + impact * (1.1 + (i % 3) * .17)
-          drop.position.set(Math.cos(angle) * distance, .2 + Math.sin(impact * Math.PI) * (.55 + (i % 4) * .2), Math.sin(angle) * distance)
+          const distance = .35 + impact * (tsunami ? 2 : 1) * (1.1 + (i % 3) * .17)
+          drop.position.set(Math.cos(angle) * distance, .2 + Math.sin(impact * Math.PI) * (tsunami ? 1.7 : 1) * (.55 + (i % 4) * .2), Math.sin(angle) * distance)
           drop.scale.setScalar(1 - impact * .45)
         })
       }
