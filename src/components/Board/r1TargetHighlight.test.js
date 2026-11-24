@@ -27,7 +27,7 @@ test.each([
     G.turn = 2
     const index = G.players[0].cards.findIndex(c => c.Name === name)
     const selection = { kind: 'card', index }
-    expect(getR1TargetHighlight(G, ctx, selection)).toEqual({
+    expect(getR1TargetHighlight(G, ctx, selection)).toMatchObject({
         kind, cellIds: r1CardTargets(G, ctx, index), preview: false,
     })
 })
@@ -85,4 +85,47 @@ test('Surf Current hover previews first step and swap phase blocks additional mo
     expect(r1SelectionTargets(G, ctx, null)).toEqual([])
     G.currentMove = 'swap_card'
     expect(getR1CardFeedback(G, ctx, index)).toMatchObject({ playable: false, reason: 'Your swap already used your movement.' })
+})
+
+test('attack preview and committed card distinguish protected, minimum energy and legal targets', () => {
+    const ctx = { numPlayers: 4, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].cards = createR1Deck().filter((c, i, a) => a.findIndex(x => x.Name === c.Name) === i)
+    // Start cells 1, 7 and 14 are within two edges of cell 0.
+    for (const id of [1, 2, 3]) delete G.cells[G.players[id].cellPosition].player
+    for (const [playerId, cellId] of [[1, 1], [2, 7], [3, 14]]) {
+        G.players[playerId].cellPosition = cellId
+        G.cells[cellId].player = { position: playerId }
+    }
+    G.players[1].energy = 1
+    G.players[2].activeCard = [{ Name: 'Amulet' }]
+    const index = G.players[0].cards.findIndex(c => c.Name === 'Big wave')
+    const id = G.players[0].cards[index].id
+    const before = JSON.stringify(G)
+    const feedback = getR1CardFeedback(G, ctx, index)
+    expect(feedback.targets).toEqual([14])
+    expect(feedback.blocked.map(b => [b.id, b.code])).toEqual([[1, 'minimum'], [7, 'protected']])
+    expect(getR1TargetHighlight(G, ctx, null, id)).toMatchObject({ cellIds: [14], preview: true, blocked: feedback.blocked })
+    expect(r1SelectionTargets(G, ctx, null)).toEqual([])
+    const selected = { kind: 'card', index }
+    expect(getR1TargetHighlight(G, ctx, selected)).toMatchObject({ cellIds: [14], preview: false, blocked: feedback.blocked })
+    expect(r1SelectionTargets(G, ctx, selected)).toEqual([14])
+    expect(JSON.stringify(G)).toBe(before)
+    G.players[3].energy = 1
+    expect(getR1CardFeedback(G, ctx, index).playable).toBe(false)
+    expect(getR1TargetHighlight(G, ctx, null, id).cellIds).toEqual([])
+    expect(getR1TargetHighlight(G, ctx, null, id).blocked.map(b => b.code)).toEqual(['minimum', 'protected', 'minimum'])
+    expect(getR1TargetHighlight(G, ctx, { kind: 'drop' }).cellIds).toEqual([1, 14])
+})
+test('self cards and selected Surf Current preview effects without enabling a hex click', () => {
+    const { G, ctx } = fixture()
+    for (const name of ['Energy x2', 'Amulet', 'Surf Current']) {
+        const index = G.players[0].cards.findIndex(c => c.Name === name)
+        const card = G.players[0].cards[index]
+        const ids = name === 'Surf Current' ? r1MoveTargets({ ...G, currentMove: 'current_first' }, ctx) : [G.players[0].cellPosition]
+        expect(getR1TargetHighlight(G, ctx, null, card.id)).toMatchObject({ cellIds: ids, preview: true })
+        expect(getR1TargetHighlight(G, ctx, { kind: 'card', index })).toMatchObject({ cellIds: ids, preview: true })
+        expect(r1SelectionTargets(G, ctx, { kind: 'card', index })).toEqual([])
+    }
 })
