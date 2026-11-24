@@ -129,3 +129,20 @@ test('self cards and selected Surf Current preview effects without enabling a he
         expect(r1SelectionTargets(G, ctx, { kind: 'card', index })).toEqual([])
     }
 })
+
+test('mixed eligibility within a shared hex preserves both valid and blocked feedback', () => {
+    const ctx = { numPlayers: 3, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[1].cellPosition = 7
+    G.players[2].cellPosition = 7
+    G.players[2].activeCard = [{ Name: 'Hang loose' }]
+    G.players[0].cards = createR1Deck().filter((c,i,a) => a.findIndex(x => x.Name === c.Name) === i)
+    const drop = getR1TargetHighlight(G, ctx, { kind: 'drop' })
+    expect(drop.cellIds).toEqual([7])
+    expect(drop.blocked).toMatchObject([{ id: 7, playerId: 2, code: 'hangloose' }])
+    const index = G.players[0].cards.findIndex(c => c.Name === 'Change')
+    expect(getR1CardFeedback(G, ctx, index)).toMatchObject({ playable: true, targets: [7], playerIds: [1,2] })
+    G.players[2].activeCard = [{ Name: 'Amulet' }]
+    expect(getR1CardFeedback(G, ctx, index)).toMatchObject({ playerIds: [1], blocked: [{ id: 7, playerId: 2, code: 'protected' }] })
+})
