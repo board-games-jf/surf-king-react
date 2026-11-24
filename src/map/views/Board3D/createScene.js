@@ -256,6 +256,17 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (cyclonePreview) cyclonePreview.cyclone.scale.set(1, 1, 1)
     cyclonePreview = { cyclone, cellId, started: performance.now() }
   }
+  let islandPreview = null
+  function resetIsland(island) {
+    island.getObjectByName('island-sand')?.scale.set(1, 1, 1)
+    island.traverse(object => { if (object.name === 'island-palm') object.scale.set(1, 1, 1) })
+  }
+  function playIsland(cellId) {
+    const island = obstacles.get(cellId + ':Island:')
+    if (!island) return
+    if (islandPreview) resetIsland(islandPreview.island)
+    islandPreview = { island, cellId, started: performance.now() }
+  }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -785,6 +796,22 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         })
       }
     }
+    if (islandPreview) {
+      const { island, cellId, started } = islandPreview
+      const t = (now - started) / 1000
+      if (!obstacles.has(cellId + ':Island:') || t >= 4.4) {
+        resetIsland(island)
+        islandPreview = null
+      } else {
+        const sand = reduce ? 1 : THREE.MathUtils.smoothstep(t, .1, 1.7)
+        const growth = reduce ? 1 : THREE.MathUtils.smoothstep(t, 1.65, 3.8)
+        island.getObjectByName('island-sand')?.scale.set(1, Math.max(.001, sand), 1)
+        island.traverse(object => {
+          if (object.name === 'island-palm') object.scale.setScalar(Math.max(.001, growth))
+          if (object.name === 'island-falling-coconut' && growth < 1) object.visible = false
+        })
+      }
+    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
@@ -792,6 +819,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       turnMarker.position.y += 2.1
     }
     for(const g of obstacles.values())g.userData.animate?.(elapsed, reduce)
+    if (islandPreview && (now - islandPreview.started) < 3800) {
+      const coconut = islandPreview.island.getObjectByName('island-falling-coconut')
+      if (coconut) coconut.visible = false
+    }
     animateCamera(now)
     controls.update();renderer.render(scene,camera);raf=requestAnimationFrame(frame)
   }
@@ -842,5 +873,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }

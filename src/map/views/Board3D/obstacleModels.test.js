@@ -63,6 +63,30 @@ describe('card silhouette and environmental motion', () => {
     })
   })
 
+  test('Island palms sway and coconuts fall toward water, respecting reduced motion', () => {
+    const model = make('Island')
+    const palms = []
+    model.object.traverse(node => { if (node.name === 'island-palm') palms.push(node) })
+    const coconut = model.object.getObjectByName('island-falling-coconut')
+    model.update(.2, 0, false)
+    const firstY = coconut.position.y
+    const firstAngle = palms[0].rotation.z
+    expect(coconut.visible).toBe(true)
+    const initialX = coconut.position.x
+    model.update(.85, 0, false)
+    expect(coconut.position.y).toBeCloseTo(.26)
+    expect(coconut.position.x).toBeCloseTo(initialX)
+    model.update(1.8, 0, false)
+    expect(coconut.position.y).toBeLessThan(firstY)
+    expect(coconut.position.x).not.toBe(initialX)
+    expect(palms[0].rotation.z).not.toBe(firstAngle)
+    model.update(2.7, 0, false)
+    expect(coconut.position.y).toBeLessThan(0)
+    model.update(1.4, 0, true)
+    expect(coconut.visible).toBe(false)
+    expect(palms[0].rotation.z).toBe(0)
+  })
+
   test('the Island has orange sand and two recognizable palm crowns', () => {
     const model = make('Island')
     let sand = null

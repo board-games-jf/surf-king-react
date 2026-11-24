@@ -113,7 +113,7 @@ function stoneModel(parent, helpers) {
 
 function palm(parent, helpers, x, z, height, lean, angleOffset) {
   const { sphere, rod, mesh } = helpers
-  const base = .22
+  const base = 0
   const crown = [x + lean, base + height, z]
   const points = []
   for (let i = 0; i <= 6; i++) {
@@ -160,17 +160,57 @@ function palm(parent, helpers, x, z, height, lean, angleOffset) {
 
 function islandModel(parent, helpers) {
   const { sphere } = helpers
-  // Orange sand and two leaning palms, matching src/assets/cards/island.png.
-  const sand = sphere(parent, '#f8b348', [0,.09,0],[.58,.16,.49],2)
+  const sandGroup = new THREE.Group()
+  sandGroup.name = 'island-sand'
+  parent.add(sandGroup)
+  const sand = sphere(sandGroup, '#f8b348', [0,.09,0],[.58,.16,.49],2)
   sand.name = 'island-orange-sand'
-  sphere(parent, '#f5cf78', [-.11,.188,.09],[.38,.024,.31],2)
-  palm(parent, helpers, -.22, -.07, 1.02, -.20, -.35)
-  palm(parent, helpers, .17, .10, .76, .17, .60)
-  for(const [x,z] of [[-.45,-.12],[.43,.15]]) {
-    sphere(parent, '#ffe0a3', [x,.16,z],[.06,.018,.05],1)
+  sphere(sandGroup, '#f5cf78', [-.11,.188,.09],[.38,.024,.31],2)
+  for (const [x,z] of [[-.45,-.12],[.43,.15]]) {
+    sphere(sandGroup, '#ffe0a3', [x,.16,z],[.06,.018,.05],1)
   }
-  foamArc(parent, helpers, .55, .25, 1.6)
-  foamArc(parent, helpers, .57, 3.25, 1.35)
+  const shoreFoam = [foamArc(sandGroup, helpers, .55, .25, 1.6),
+    foamArc(sandGroup, helpers, .57, 3.25, 1.35)]
+  const palms = [[-.22, -.07, 1.02, -.20, -.35], [.17, .10, .76, .17, .60]].map(([x,z,height,lean,angle]) => {
+    const tree = new THREE.Group()
+    tree.name = 'island-palm'
+    tree.position.set(x, .22, z)
+    parent.add(tree)
+    palm(tree, helpers, 0, 0, height, lean, angle)
+    return tree
+  })
+  const coconut = sphere(parent, '#8f6738', [0,0,0], [.075,.075,.075], 1)
+  coconut.name = 'island-falling-coconut'
+  coconut.visible = false
+  return (time, phase = 0, reducedMotion = false) => {
+    palms.forEach((tree, i) => {
+      tree.rotation.z = reducedMotion ? 0 : .035 * Math.sin(time * .9 + phase * .31 + i * 1.7)
+      tree.rotation.x = reducedMotion ? 0 : .025 * Math.sin(time * .7 + phase * .19 + i)
+    })
+    shoreFoam.forEach((arc, i) => {
+      const pulse = reducedMotion ? 0 : Math.sin(time * 1.05 + phase * .25 + i * 2)
+      arc.scale.setScalar(1 + .06 * pulse)
+      arc.rotation.z = (i === 0 ? .25 : 3.25) + (reducedMotion ? 0 : .05 * Math.sin(time * .7 + i))
+    })
+    const cycle = Math.floor((time + phase * 1.7) / 13)
+    const t = (time + phase * 1.7) % 13
+    coconut.visible = !reducedMotion && t < 3
+    if (coconut.visible) {
+      const index = Math.floor(noise(cycle * 9 + phase * 3) * 2) % 2
+      const tree = palms[index]
+      const startX = tree.position.x + (index === 0 ? -.20 : .17)
+      const startZ = tree.position.z
+      const angle = noise(cycle * 17 + phase * 7 + 1) * Math.PI * 2
+      const fall = THREE.MathUtils.clamp(t / .85, 0, 1)
+      const roll = THREE.MathUtils.clamp((t - .85) / 1.8, 0, 1)
+      const endX = Math.cos(angle) * .95, endZ = Math.sin(angle) * .95
+      const startY = .22 + (index === 0 ? 1.02 : .76)
+      coconut.position.set(THREE.MathUtils.lerp(startX, endX, roll),
+        .26 + (startY - .26) * (1 - fall * fall) - .42 * THREE.MathUtils.smoothstep(roll, .7, 1),
+        THREE.MathUtils.lerp(startZ, endZ, roll))
+      coconut.rotation.set(roll * 9, 0, roll * 6)
+    }
+  }
 }
 
 function cloudCluster(parent, sphere, color) {
@@ -321,7 +361,7 @@ export function createObstacleModel(type, helpers) {
       update = stoneModel(object, helpers)
       break
     case 'Island':
-      islandModel(object, helpers)
+      update = islandModel(object, helpers)
       break
     case 'Storm':
       update = stormModel(object, helpers)
