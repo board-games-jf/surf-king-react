@@ -90,7 +90,7 @@
     right: max(var(--hud-inset), env(safe-area-inset-right));
     left: max(200px, calc(var(--hud-inset) + 180px));
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     align-items: stretch;
     gap: 6px;
     overflow-x: auto;
@@ -100,6 +100,7 @@
     scrollbar-width: thin;
     scrollbar-color: #60919a transparent;
 }
+.r1-floating-hud .r1-player-badge:first-child { margin-left: auto; }
 .r1-floating-hud .r1-player-badge {
     flex: 0 0 auto;
     min-width: 95px;
@@ -209,7 +210,7 @@
 .r1-hand-heading strong { color: var(--hud-gold); margin-left: 5px; }
 .r1-hand-heading button { padding: 4px 7px; font-size: 10px; }
 .r1-floating-hud .r1-hand {
-    display: flex; flex-wrap: nowrap; justify-content: center; align-items: center;
+    display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;
     gap: 7px; width: max-content; max-width: 100%;
     min-height: 0; overflow-x: auto; overflow-y: hidden;
     padding: 9px 10px 11px; margin: 0; box-sizing: border-box;
@@ -267,6 +268,7 @@
     .r1-hud-brand { padding: 8px; gap: 4px; }
     .r1-brand-wave { font-size: 21px; }
     .r1-floating-hud .r1-player-badge { min-width: 92px; }
+    .r1-floating-hud .r1-player-badge:first-child { margin-left: 0; }
 }
 @media (max-width: 520px) {
     .r1-hud-brand { top: max(8px, env(safe-area-inset-top)); left: var(--hud-inset); }
@@ -276,9 +278,9 @@
     .r1-energy-meter { gap: 3px; }
     .r1-energy-meter > span[data-filled] { width: 11px; height: 14px; }
     .surf-match-r1 .surf-map-toolbar { top: max(8px, env(safe-area-inset-top)); left: auto; right: var(--hud-inset); }
-    .surf-match-r1 .surf-map-controls { top: max(140px, calc(env(safe-area-inset-top) + 134px)); }
-    .surf-match-r1 .surf-orbit-controls { top: max(294px, calc(env(safe-area-inset-top) + 288px)); }
-    .r1-match-feedback { top: max(135px, calc(env(safe-area-inset-top) + 129px)); max-width: 67%; left: 43%; padding: 5px 8px; }
+    .surf-match-r1 .surf-map-controls { top: max(140px, calc(env(safe-area-inset-top) + 134px)); flex-direction: row; gap: 1px; max-width: 42%; flex-wrap: wrap; justify-content: flex-end; }
+    .surf-match-r1 .surf-orbit-controls { top: max(224px, calc(env(safe-area-inset-top) + 218px)); }
+    .r1-match-feedback { top: max(135px, calc(env(safe-area-inset-top) + 129px)); max-width: 48%; left: 27%; padding: 5px 8px; }
     .r1-hud-dock { max-height: min(48dvh, 320px); }
     .r1-floating-hud .r1-hand { justify-content: flex-start; max-width: 100%; gap: 5px; padding: 6px 4px 8px; }
     .r1-floating-hud .r1-hand button { flex-basis: clamp(66px, 19vw, 86px); width: clamp(66px, 19vw, 86px); transform: none; }
@@ -294,9 +296,9 @@
     .r1-floating-hud .r1-hand { padding-block: 5px; }
     .r1-hud-context { max-height: 15dvh; padding: 4px 7px; }
     .r1-hand-heading { padding-block: 1px; }
-    .r1-match-feedback { top: 78px; max-width: 52%; }
-    .surf-match-r1 .surf-map-controls { top: 83px; }
-    .surf-match-r1 .surf-orbit-controls { top: 224px; }
+    .r1-match-feedback { top: 78px; max-width: 42%; left: 36%; }
+    .surf-match-r1 .surf-map-controls { top: 83px; flex-direction: row; }
+    .surf-match-r1 .surf-orbit-controls { top: 125px; }
     .surf-match-r1 .surf-map-2d > svg { max-height: calc(100% - 130px); margin-top: 56px; }
 }
 @media (prefers-reduced-motion: reduce) {
