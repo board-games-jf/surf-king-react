@@ -36,8 +36,8 @@ test('attack stays visible, explains blocked states and selects a named two-edge
     const attack = screen.getByRole('button', { name: /Attack · Drop In/ })
     expect(attack).toBeEnabled()
     fireEvent.click(attack)
-    expect(setSelection).toHaveBeenCalledWith({ kind: 'drop' })
-    rerender(<R1Controls {...props} selection={{ kind: 'drop' }} />)
+    expect(setSelection).toHaveBeenCalledWith({ kind: 'drop', diceCount: 1 })
+    rerender(<R1Controls {...props} selection={{ kind: 'drop', diceCount: 1 }} />)
     expect(screen.getByText('2. Player 2').closest('.surf-hand')).toHaveAttribute('data-attack-target', 'true')
     fireEvent.click(screen.getByRole('button', { name: 'Attack Player 2' }))
     expect(onTarget).toHaveBeenCalledWith(14)
@@ -54,4 +54,27 @@ test('attack stays visible, explains blocked states and selects a named two-edge
     rerender(<R1Controls {...props} />)
     expect(screen.getByRole('button', { name: /Attack · Drop In/ })).toBeDisabled()
     expect(screen.getByText('Attack before moving.', { selector: '#r1-drop-status' })).toBeInTheDocument()
+})
+
+test('dice chooser limits risk to energy minus one and shows each pair result', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    delete G.cells[1].player
+    G.players[1].cellPosition = 14
+    G.cells[14].player = { position: 1 }
+    const setSelection = jest.fn()
+    const props = { G, ctx, moves: {}, setSelection, onTarget: jest.fn(), selection: { kind: 'drop', diceCount: 1 } }
+    const { rerender } = render(<R1Controls {...props} />)
+    expect(screen.getByRole('button', { name: '1 die' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '2 dice' })).not.toBeInTheDocument()
+    G.players[0].energy = 3
+    rerender(<R1Controls {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: '2 dice' }))
+    expect(setSelection).toHaveBeenCalledWith({ kind: 'drop', diceCount: 2 })
+    G.atkDices = [6, 2]
+    G.defDices = [5, 4]
+    rerender(<R1Controls {...props} />)
+    expect(screen.getByText('6 vs 5 — Defender −1')).toBeInTheDocument()
+    expect(screen.getByText('2 vs 4 — Attacker −1')).toBeInTheDocument()
 })
