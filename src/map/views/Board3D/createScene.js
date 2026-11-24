@@ -907,9 +907,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         energyBolts.forEach((bolt, i) => {
           const phase = reduce ? .5 : (t * .38 + i / energyBolts.length) % 1
           const eased = phase * phase * (3 - 2 * phase)
-          const angle = i * Math.PI * 2 / energyBolts.length + (reduce ? 0 : t * 1.1)
+          const angle = i * Math.PI * 2 / energyBolts.length
           bolt.position.set(Math.cos(angle) * .85, .25 + eased * 1.8, Math.sin(angle) * .85)
-          bolt.rotation.set(reduce ? 0 : .12 * Math.sin(t * 2 + i), angle + Math.PI / 2, reduce ? 0 : .1 * Math.sin(t * 1.8 + i))
+          bolt.rotation.set(0, angle + Math.PI / 2, 0)
           const size = reduce ? .65 : .65 * Math.min(1, phase * 5, (1 - phase) * 5)
           bolt.scale.setScalar(size)
           bolt.material.opacity = fade * Math.min(1, phase * 5, (1 - phase) * 5)
