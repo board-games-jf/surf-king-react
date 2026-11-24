@@ -11,9 +11,9 @@ test('shows distinct illustrations and current R1 effects, including Surf Curren
     render(<R1Controls G={G} ctx={ctx} moves={{}} selection={null} setSelection={() => {}} onTarget={() => {}} />)
     const hand = screen.getByLabelText('Player 1 hand')
     const buttons = within(hand).getAllByRole('button')
-    expect(buttons).toHaveLength(12)
+    expect(buttons).toHaveLength(14)
     const sources = buttons.map(button => button.querySelector('img').getAttribute('src'))
-    expect(new Set(sources).size).toBe(12)
+    expect(new Set(sources).size).toBe(14)
     expect(within(hand).getByRole('button', { name: /Surf Current/ })).toHaveTextContent('Move up to two legal steps')
     expect(within(hand).getByRole('button', { name: /Island/ })).toHaveTextContent('every ordinary entry restores 2 energy; Island stays in place')
     expect(screen.getByLabelText('Round play order').querySelector('[aria-current="step"]')).toHaveTextContent('Player 1')
@@ -40,7 +40,7 @@ test('attack stays visible, explains blocked states and selects a named two-edge
     rerender(<R1Controls {...props} selection={{ kind: 'drop', diceCount: 1 }} />)
     expect(screen.getByText('2. Player 2').closest('.surf-hand')).toHaveAttribute('data-attack-target', 'true')
     fireEvent.click(screen.getByRole('button', { name: 'Attack Player 2' }))
-    expect(onTarget).toHaveBeenCalledWith(14)
+    expect(onTarget).toHaveBeenCalledWith(14, 1)
     G.currentMove = 'maneuver'
     rerender(<R1Controls {...props} />)
     expect(screen.getByRole('button', { name: /Attack · Drop In/ })).toBeEnabled()
@@ -216,4 +216,24 @@ test('unavailable attack inspection shows each opponent reason and stays pinned 
     expect(moves.useCard).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: 'Close card information' }))
     expect(onPreviewCard).toHaveBeenLastCalledWith(null)
+})
+
+test('two opponents sharing a hex can be selected independently; protection is individual', () => {
+    const ctx = { numPlayers: 3, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[1].cellPosition = 7
+    G.players[2].cellPosition = 7
+    const onTarget = jest.fn()
+    const props = { G, ctx, moves: {}, selection: { kind: 'drop', diceCount: 1 }, setSelection: jest.fn(), onTarget }
+    const { rerender } = render(<R1Controls {...props}/>)
+    fireEvent.click(screen.getByRole('button', { name: 'Attack Player 2' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Attack Player 3' }))
+    expect(onTarget).toHaveBeenNthCalledWith(1, 7, 1)
+    expect(onTarget).toHaveBeenNthCalledWith(2, 7, 2)
+    G.players[2].activeCard = [{ Name: 'Hang loose' }]
+    rerender(<R1Controls {...props}/>)
+    expect(screen.getByRole('button', { name: 'Attack Player 2' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Attack Player 3' })).not.toBeInTheDocument()
+    expect(screen.getByText('Drop In shield')).toBeInTheDocument()
 })
