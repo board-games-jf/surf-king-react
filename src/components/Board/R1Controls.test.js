@@ -1,6 +1,7 @@
 import React from 'react'
 import { render, screen, within, fireEvent } from '@testing-library/react'
 import R1Controls from './R1Controls'
+import { getR1HexFeedback } from './r1HexFeedback'
 import { createR1Deck, setupR1 } from '../../game/r1/SurfKingR1'
 
 test('shows distinct illustrations and current R1 effects, including Surf Current', () => {
@@ -244,4 +245,30 @@ test('two opponents sharing a hex can be selected independently; protection is i
     expect(screen.getByRole('button', { name: 'Attack Player 2' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Attack Player 3' })).not.toBeInTheDocument()
     expect(screen.getByText('Drop In shield')).toBeInTheDocument()
+})
+
+test('shared hex panel shows terrain and both independent surfer details together', () => {
+    const ctx = { numPlayers: 3, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].cards = createR1Deck().filter(c => c.Name === 'Big wave').slice(0, 1)
+    G.players[1].cellPosition = G.players[2].cellPosition = 7
+    G.players[1].energy = 1
+    G.players[2].energy = 4
+    G.players[2].activeCard = [{ Name: 'Amulet' }]
+    G.cells[7].obstacle = { Name: 'Island' }
+    const selection = { kind: 'card', index: 0 }
+    render(<R1Controls G={G} ctx={ctx} moves={{}} selection={selection} setSelection={jest.fn()} onTarget={jest.fn()}
+        hexFeedback={getR1HexFeedback(G, ctx, 7, selection)} pinnedHex/>)
+    const panel = within(screen.getByLabelText('Hex information'))
+    expect(panel.getByText('Island')).toBeInTheDocument()
+    expect(panel.getByText('+2 energy')).toBeInTheDocument()
+    expect(panel.getByText('2/2 surfers · Full')).toBeInTheDocument()
+    const p2 = within(panel.getByRole('group', { name: 'Player 2 details' }))
+    const p3 = within(panel.getByRole('group', { name: 'Player 3 details' }))
+    expect(p2.getByRole('meter')).toHaveAttribute('aria-valuenow', '1')
+    expect(p3.getByRole('meter')).toHaveAttribute('aria-valuenow', '4')
+    expect(p2.getByText('1 energy · Drop In only')).toBeInTheDocument()
+    expect(p3.getByText('Amulet · Protected')).toBeInTheDocument()
+    expect(p3.getByText('Amulet')).toBeInTheDocument()
 })
