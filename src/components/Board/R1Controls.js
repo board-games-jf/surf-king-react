@@ -198,7 +198,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             {feedback.blocked.map(block => {
                                 const style = getTargetBlockStyle(block.code)
                                 const label = block.reason || style.label
-                                return <span key={block.id} className="r1-blocked-target-chip" style={{ color: style.color }} title={label} aria-label={'Player ' + (block.playerId + 1) + ': ' + label}>
+                                return <span key={`${block.id}:${block.playerId}`} className="r1-blocked-target-chip" style={{ color: style.color }} title={label} aria-label={'Player ' + (block.playerId + 1) + ': ' + label}>
                                     P{block.playerId + 1} <FeedbackIcon kind={style.symbol === 'one' ? 'energy' : style.symbol === 'shield' ? 'shield' : 'blocked'}/> {style.shortLabel}
                                 </span>
                             })}
