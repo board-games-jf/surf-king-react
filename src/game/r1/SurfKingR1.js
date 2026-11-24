@@ -70,7 +70,7 @@ export function setupR1(ctx) {
         ruleset: R1, cells: layout.cells.map(c => ({ position: c.id })),
         players: {}, deck: ctx.random.Shuffle(createR1Deck()), discardedCards: [],
         turn: 1, order, nextPlayer: order[0], completedInRound: 0,
-        currentMove: 'use_card', moved: false, redirected: false,
+        currentMove: 'use_card', moved: false, redirected: false, pendingSwap: null,
         winner: null, finishers: [], 
         message: 'Round 1: no attacks.', atkDices: [], defDices: [],
     }
@@ -90,6 +90,7 @@ export function beginR1Turn(G, ctx) {
     G.discardedCards.push(...p.activeCard)
     p.activeCard = []
     G.currentMove = p.energy === 0 ? 'recover' : 'use_card'
+    G.pendingSwap = null
     G.moved = false
     G.redirected = false
     G.atkDices = []
@@ -187,7 +188,8 @@ export function r1MoveTargets(G, ctx) {
 export function r1CardTargets(G, ctx, index) {
     const p = actor(G, ctx)
     const name = p?.cards[index]?.Name
-    if (!p || G.currentMove !== 'use_card' || !alive(p)) return []
+    if (!p || !['use_card', 'swap_card'].includes(G.currentMove) || !alive(p)) return []
+    if (G.currentMove === 'swap_card' && name === CardJumping.Name) return []
     const from = p.cellPosition
     if (placementNames.includes(name)) return G.cells.filter(c => c.position >= 7 && c.position < 49 &&
         !c.player && !c.obstacle && DIST[from][c.position] <= R1_PLACEMENT_RANGE[name]).map(c => c.position)
@@ -212,10 +214,11 @@ export function r1AttackUnavailableReason(G, ctx, range, targets, kind = 'drop')
     if (G.turn === 1) return 'Attacks unlock in round 2.'
     if (!p || p.energy === 0 || G.currentMove === 'recover') return 'Recover before attacking.'
     if (isBeach(p.cellPosition)) return 'You have reached the beach.'
+    if (G.currentMove === 'swap_choice') return 'Choose whether to swap positions first.'
     if (kind === 'drop') {
         if (!dropInPhase(G)) return G.currentMove === 'discard' ? 'Resolve the discard first.' : 'Attack before moving.'
         if (p.energy < DROP_IN_MIN_ENERGY) return 'Drop In requires at least 2 energy.'
-    } else if (G.currentMove !== 'use_card') return 'Play at most one card before moving.'
+    } else if (!['use_card', 'swap_card'].includes(G.currentMove)) return 'Play at most one card per turn.'
     if (targets.length) return null
     const nearby = Object.values(G.players).filter(q => q.position !== p.position &&
         DIST[p.cellPosition][q.cellPosition] <= range)
@@ -231,7 +234,8 @@ export function r1CardPlayable(G, ctx, index) {
     const name = p?.cards[index]?.Name
     if (!name) return false
     if (G.currentMove === 'recover') return name === CardLifeGuardFloat.Name && p.energy === 0
-    if (G.currentMove !== 'use_card' || !alive(p)) return false
+    if (!['use_card', 'swap_card'].includes(G.currentMove) || !alive(p)) return false
+    if (G.currentMove === 'swap_card' && [CardJumping.Name, CardSurfCurrent.Name].includes(name)) return false
     if (name === CardEnergyX2.Name) return p.energy < MAX_ENERGY
     if (name === CardAmulet.Name) return !shielded(p)
     if (name === CardSurfCurrent.Name) return freeNeighbors(G, p.cellPosition).length > 0
@@ -284,7 +288,10 @@ export function useR1Card(G, ctx, index, to) {
             return
         }
     }
-    continueAfterTactic(G, ctx)
+    if (G.currentMove === 'swap_card') {
+        G.currentMove = 'turn_end'
+        endR1Turn(G, ctx)
+    } else continueAfterTactic(G, ctx)
 }
 export function r1DropIn(G, ctx, to, diceCount) {
     if (!r1DropTargets(G, ctx).includes(to)) return INVALID_MOVE
@@ -310,7 +317,42 @@ export function r1DropIn(G, ctx, to, diceCount) {
     G.message = 'Drop In: Player ' + (p.position + 1) + ' loses ' + attackerLoss +
         ' energy; Player ' + (q.position + 1) + ' loses ' + defenderLoss + ' energy.' +
         (q.energy === 0 ? ' Player ' + (q.position + 1) + ' fell!' : '')
-    continueAfterTactic(G, ctx, G.currentMove)
+    if (q.energy === 0) {
+        G.pendingSwap = { targetPlayerId: q.position, resumeMove: G.currentMove }
+        G.currentMove = 'swap_choice'
+    } else continueAfterTactic(G, ctx, G.currentMove)
+}
+export function r1ResolveSwap(G, ctx, accept) {
+    const p = actor(G, ctx)
+    const pending = G.pendingSwap
+    const q = pending && G.players[pending.targetPlayerId]
+    if (G.currentMove !== 'swap_choice' || typeof accept !== 'boolean' ||
+        !p || !alive(p) || G.moved || !q || q.energy !== 0 || q.position === p.position ||
+        G.cells[p.cellPosition]?.player?.position !== p.position ||
+        G.cells[q.cellPosition]?.player?.position !== q.position) return INVALID_MOVE
+    G.pendingSwap = null
+    if (!accept) {
+        G.currentMove = pending.resumeMove
+        G.message = 'Kept your position. Continue your turn.'
+        return
+    }
+    const from = p.cellPosition
+    const to = q.cellPosition
+    // Exchange occupancy atomically, not by relocating one actor over the other.
+    p.cellPosition = to
+    q.cellPosition = from
+    G.cells[to].player = { position: p.position }
+    G.cells[from].player = { position: q.position }
+    G.moved = true
+    G.redirected = false
+    G.message = 'Swapped positions with Player ' + (q.position + 1) + '.'
+    arrive(G, ctx, p, from, to)
+    if (pending.resumeMove === 'use_card' && alive(p)) {
+        G.currentMove = 'swap_card'
+        if (p.cards.some((_, i) => r1CardPlayable(G, ctx, i))) return
+    }
+    G.currentMove = 'turn_end'
+    endR1Turn(G, ctx)
 }
 export function r1Maneuver(G, ctx, to) {
     if (!validCell(to) || !r1MoveTargets(G, ctx).includes(to)) return INVALID_MOVE
@@ -328,6 +370,7 @@ export function r1Maneuver(G, ctx, to) {
     } else endR1Turn(G, ctx)
 }
 export function passR1(G, ctx) {
+    if (G.currentMove === 'swap_card') { G.currentMove = 'turn_end'; endR1Turn(G, ctx); return }
     if (G.currentMove === 'use_card') { G.currentMove = 'maneuver'; return }
     if (G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && r1MoveTargets(G, ctx).length === 0)) endR1Turn(G, ctx)
@@ -339,7 +382,7 @@ export const SurfKingR1 = {
     minPlayers: 2, maxPlayers: 7, disableUndo: true,
     setup: setupR1,
     moves: {
-        recover: recoverR1, useCard: useR1Card, dropIn: r1DropIn,
+        recover: recoverR1, useCard: useR1Card, dropIn: r1DropIn, resolveSwap: r1ResolveSwap,
         maneuver: r1Maneuver, pass: passR1,
     },
     turn: {
