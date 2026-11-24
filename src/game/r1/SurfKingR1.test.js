@@ -3,7 +3,7 @@ import { Client } from 'boardgame.io/client'
 import {
     SurfKingR1, setupR1, beginR1Turn, createR1Deck, r1Neighbors,
     r1MoveTargets, r1CardTargets, r1DropTargets, useR1Card, r1Maneuver,
-    r1DropIn, passR1, recoverR1, r1AttackUnavailableReason, DROP_IN_RANGE, r1MaxAttackDice,
+    r1DropIn, r1ResolveSwap, r1CardPlayable, passR1, recoverR1, r1AttackUnavailableReason, DROP_IN_RANGE, r1MaxAttackDice,
 } from './SurfKingR1'
 
 function fixture(n = 2) {
@@ -207,6 +207,8 @@ describe('R1 rules', () => {
         expect(G.players[1].energy).toBe(0)
         expect(G.players[1].cards).toHaveLength(1)
         expect(G.players[0].cards).toHaveLength(3)
+        expect(G.currentMove).toBe('swap_choice')
+        expect(r1ResolveSwap(G, ctx, false)).toBeUndefined()
         expect(G.currentMove).toBe('maneuver')
         assertConserved(G)
     })
@@ -422,8 +424,115 @@ describe('R1 rules', () => {
         expect(G.players[1].energy).toBe(0)
         expect(G.discardedCards.length).toBe(cardUsed ? 2 : 1)
         expect(G.players[0].cards).toHaveLength(5)
+        expect(G.currentMove).toBe('swap_choice')
+        r1ResolveSwap(G, ctx, false)
         expect(G.currentMove).toBe(cardUsed ? 'maneuver' : 'use_card')
         expect(ctx.events.endTurn).toHaveBeenCalledTimes(0)
+        assertConserved(G)
+    })
+    test('conquest swaps occupancy, spends movement, allows an unused card and draws once', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 14)
+        G.players[1].energy = 1
+        const energyIndex = grant(G, 0, 'Energy x2')
+        const rolls = [6, 1]
+        ctx.random.D6 = () => rolls.shift()
+        const deckSize = G.deck.length
+        r1DropIn(G, ctx, 14, 1)
+        expect(G.currentMove).toBe('swap_choice')
+        expect(G.pendingSwap).toEqual({ targetPlayerId: 1, resumeMove: 'use_card' })
+        expect(r1DropTargets(G, ctx)).toEqual([])
+        expect(r1MoveTargets(G, ctx)).toEqual([])
+        expect(useR1Card(G, ctx, energyIndex)).toBe(INVALID_MOVE)
+        expect(passR1(G, ctx)).toBe(INVALID_MOVE)
+        expect(r1ResolveSwap(G, ctx, true)).toBeUndefined()
+        expect(G.players[0].cellPosition).toBe(14)
+        expect(G.players[1].cellPosition).toBe(0)
+        expect(G.players[1].energy).toBe(0)
+        expect(G.currentMove).toBe('swap_card')
+        expect(G.pendingSwap).toBeNull()
+        expect(r1ResolveSwap(G, ctx, true)).toBe(INVALID_MOVE)
+        expect(r1DropTargets(G, ctx)).toEqual([])
+        expect(r1MoveTargets(G, ctx)).toEqual([])
+        expect(useR1Card(G, ctx, energyIndex)).toBeUndefined()
+        expect(G.players[0].energy).toBe(4)
+        expect(G.deck).toHaveLength(deckSize - 1)
+        expect(ctx.events.endTurn).toHaveBeenCalledTimes(1)
+        assertConserved(G)
+    })
+    test.each(['Energy x2', 'Surf Current'])('swap after %s consumes all remaining movement and ends turn', name => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 4)
+        G.players[1].energy = 1
+        useR1Card(G, ctx, grant(G, 0, name))
+        const rolls = [6, 1, 1]
+        ctx.random.D6 = () => rolls.shift()
+        r1DropIn(G, ctx, 4, 1)
+        expect(G.currentMove).toBe('swap_choice')
+        r1ResolveSwap(G, ctx, true)
+        expect(G.players[0].cellPosition).toBe(4)
+        expect(G.currentMove).toBe('turn_end')
+        expect(ctx.events.endTurn).toHaveBeenCalledTimes(1)
+        expect(r1MoveTargets(G, ctx)).toEqual([])
+        assertConserved(G)
+    })
+    test('declining conquest keeps both positions and restores the original card phase', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 14)
+        G.players[1].energy = 1
+        const rolls = [6, 1]
+        ctx.random.D6 = () => rolls.shift()
+        r1DropIn(G, ctx, 14, 1)
+        expect(r1ResolveSwap(G, ctx, false)).toBeUndefined()
+        expect(G.players[0].cellPosition).toBe(0)
+        expect(G.players[1].cellPosition).toBe(14)
+        expect(G.currentMove).toBe('use_card')
+        expect(G.pendingSwap).toBeNull()
+        expect(ctx.events.endTurn).toHaveBeenCalledTimes(0)
+        assertConserved(G)
+    })
+    test('conquering a hazard applies ordinary entry only to the attacker', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 0, 21)
+        relocate(G, 1, 28)
+        G.players[1].energy = 1
+        G.players[0].energy = 2
+        const rolls = [6, 1]
+        ctx.random.D6 = () => rolls.shift()
+        r1DropIn(G, ctx, 28, 1)
+        const deckSize = G.deck.length
+        r1ResolveSwap(G, ctx, true)
+        expect(G.players[0].energy).toBe(0)
+        expect(G.players[0].cellPosition).toBe(28)
+        expect(G.players[1].cellPosition).toBe(21)
+        expect(G.deck).toHaveLength(deckSize)
+        expect(ctx.events.endTurn).toHaveBeenCalledTimes(1)
+        assertConserved(G)
+    })
+    test('conquest card phase excludes movement cards and can be skipped', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 4)
+        G.players[1].energy = 1
+        grant(G, 0, 'Energy x2')
+        grant(G, 0, 'Jumping')
+        grant(G, 0, 'Surf Current')
+        const rolls = [6, 1]
+        ctx.random.D6 = () => rolls.shift()
+        r1DropIn(G, ctx, 4, 1)
+        r1ResolveSwap(G, ctx, true)
+        expect(G.currentMove).toBe('swap_card')
+        for (const name of ['Jumping', 'Surf Current']) {
+            const i = G.players[0].cards.findIndex(c => c.Name === name)
+            expect(r1CardPlayable(G, ctx, i)).toBe(false)
+            expect(useR1Card(G, ctx, i)).toBe(INVALID_MOVE)
+        }
+        passR1(G, ctx)
+        expect(ctx.events.endTurn).toHaveBeenCalledTimes(1)
         assertConserved(G)
     })
     test('Surf Current permits attacks before its first step but not between steps', () => {
