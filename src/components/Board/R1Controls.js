@@ -150,7 +150,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     )
                 })}
             </div>
-            <div className="r1-top-feedback">
+            <div className="r1-top-feedback" data-pinned={pinnedHex}>
             {hexFeedback && <div className="r1-match-feedback r1-glass r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
                 {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt="" /> :
                     hexFeedback.occupant ? <span className="r1-inspection-avatar" style={{ background: PLAYER_BOARD_COLORS[hexFeedback.occupant.position] }}>{hexFeedback.occupant.position + 1}</span> :
