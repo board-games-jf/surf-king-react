@@ -447,7 +447,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
 
     const model = createObstacleModel(cell.obstacleType, modelHelpers)
     group.add(model.object)
-    group.userData.animate = elapsed => model.update(elapsed, cell.id)
+    group.userData.animate = (elapsed, reduced) => model.update(elapsed, cell.id, reduced)
 
     if (cell.remainingTurns !== null && Number.isFinite(cell.remainingTurns)) {
       const canvas = document.createElement('canvas')
@@ -726,7 +726,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       turnMarker.position.copy(activeActor.g.position)
       turnMarker.position.y += 2.1
     }
-    for(const g of obstacles.values())g.userData.animate?.(elapsed)
+    for(const g of obstacles.values())g.userData.animate?.(elapsed, reduce)
     animateCamera(now)
     controls.update();renderer.render(scene,camera);raf=requestAnimationFrame(frame)
   }

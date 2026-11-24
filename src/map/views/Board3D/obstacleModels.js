@@ -101,8 +101,13 @@ function stoneModel(parent, helpers) {
     ['#a4f4dd', '#71ddc1', '#3ebd9c', '#269c80', '#4fbca4', '#8be8d5', '#64d4bb'])
   crag(parent, helpers, .24, .14, .83, .32, -.08,
     ['#77dfc6', '#3eb79d', '#239a7f', '#53c3a5', '#b1f6df', '#49b69a'])
-  for (const [r, a, len] of [[.44,.3,1.4],[.50,3.0,1.1]]) {
-    foamArc(parent, helpers, r, a, len)
+  const ripples = [[.44,.3,1.4],[.50,3.0,1.1]].map(([r, a, len]) => foamArc(parent, helpers, r, a, len))
+  return (time, phase = 0, reducedMotion = false) => {
+    ripples.forEach((arc, index) => {
+      const pulse = reducedMotion ? 0 : Math.sin(time * 1.25 + phase * .3 + index * 2)
+      arc.scale.setScalar(1 + .055 * pulse)
+      arc.rotation.z = (index === 0 ? .3 : 3) + (reducedMotion ? 0 : .08 * Math.sin(time * .65 + index))
+    })
   }
 }
 
@@ -313,7 +318,7 @@ export function createObstacleModel(type, helpers) {
       break
     }
     case 'Stone':
-      stoneModel(object, helpers)
+      update = stoneModel(object, helpers)
       break
     case 'Island':
       islandModel(object, helpers)
