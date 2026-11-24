@@ -117,26 +117,48 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   }
   // Local review effect: a breaking wave passes through the chosen actor.
   const bigWave = new THREE.Group()
-  const waveShape = new THREE.Shape()
-  waveShape.moveTo(-1.35, 0)
-  waveShape.lineTo(1.35, 0)
-  waveShape.bezierCurveTo(1.25, .55, .95, 1.35, .4, 1.65)
-  waveShape.bezierCurveTo(-.05, 1.95, -.72, 1.72, -.82, 1.23)
-  waveShape.bezierCurveTo(-.54, 1.48, -.18, 1.43, -.06, 1.14)
-  waveShape.bezierCurveTo(-.5, .78, -.95, .48, -1.35, 0)
-  const water = new THREE.Mesh(new THREE.ShapeGeometry(waveShape, 32), new THREE.MeshBasicMaterial({ color: 0x159fb6, transparent: true, opacity: .82, side: THREE.DoubleSide, depthWrite: false }))
-  const foamCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-.82, 1.23, .03), new THREE.Vector3(-.55, 1.57, .03),
-    new THREE.Vector3(-.1, 1.75, .03), new THREE.Vector3(.4, 1.65, .03),
-    new THREE.Vector3(.85, 1.24, .03)
-  ])
-  const foam = new THREE.Mesh(new THREE.TubeGeometry(foamCurve, 32, .075, 8, false), new THREE.MeshBasicMaterial({ color: 0xe7ffff, transparent: true, depthWrite: false }))
-  const splash = new THREE.Mesh(new THREE.RingGeometry(.5, .62, 48), new THREE.MeshBasicMaterial({ color: 0xd5ffff, transparent: true, side: THREE.DoubleSide, depthWrite: false }))
-  splash.rotation.x = -Math.PI / 2
-  splash.position.y = .08
-  bigWave.add(water, foam, splash)
+  // Curved surface curls forward at the lip, giving the wave depth from all views.
+  const waveGeometry = new THREE.PlaneGeometry(3.4, 1, 36, 24)
+  const wavePositions = waveGeometry.attributes.position
+  const waveColors = []
+  const deep = new THREE.Color('#087d9c'), crest = new THREE.Color('#8de5df')
+  for (let i = 0; i < wavePositions.count; i++) {
+    const x = wavePositions.getX(i)
+    const u = wavePositions.getY(i) + .5
+    const edge = Math.max(.25, 1 - .55 * Math.pow(Math.abs(x) / 1.7, 2))
+    const height = (1.9 * u - .32 * Math.pow(u, 8)) * edge
+    const curl = -.45 * Math.sin(u * Math.PI) + .8 * Math.pow(u, 5)
+    wavePositions.setXYZ(i, x, height, curl)
+    const color = deep.clone().lerp(crest, Math.pow(u, 2.3))
+    waveColors.push(color.r, color.g, color.b)
+  }
+  waveGeometry.setAttribute('color', new THREE.Float32BufferAttribute(waveColors, 3))
+  waveGeometry.computeVertexNormals()
+  const water = new THREE.Mesh(waveGeometry, new THREE.MeshPhongMaterial({ vertexColors: true, transparent: true, opacity: .86, shininess: 95, side: THREE.DoubleSide, depthWrite: false }))
+  const foamPoints = []
+  for (let i = 0; i <= 16; i++) {
+    const x = -1.7 + 3.4 * i / 16
+    const edge = Math.max(.25, 1 - .55 * Math.pow(Math.abs(x) / 1.7, 2))
+    foamPoints.push(new THREE.Vector3(x, 1.58 * edge, .8))
+  }
+  const foam = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(foamPoints), 48, .095, 8, false), new THREE.MeshBasicMaterial({ color: 0xe7ffff, transparent: true, depthWrite: false }))
+  bigWave.add(water, foam)
   bigWave.visible = false
   scene.add(bigWave)
+  const waveImpact = new THREE.Group()
+  const splash = new THREE.Mesh(new THREE.RingGeometry(.52, .65, 48), new THREE.MeshBasicMaterial({ color: 0xd5ffff, transparent: true, side: THREE.DoubleSide, depthWrite: false }))
+  splash.rotation.x = -Math.PI / 2
+  splash.position.y = .08
+  waveImpact.add(splash)
+  const dropletGeometry = new THREE.SphereGeometry(.08, 8, 6)
+  const dropletMaterial = new THREE.MeshBasicMaterial({ color: 0xe4ffff, transparent: true, depthWrite: false })
+  const droplets = Array.from({ length: 18 }, () => {
+    const drop = new THREE.Mesh(dropletGeometry, dropletMaterial)
+    waveImpact.add(drop)
+    return drop
+  })
+  waveImpact.visible = false
+  scene.add(waveImpact)
   let bigWavePreview = null
   function playBigWave(playerId) {
     const actor = actors.get(String(playerId))
@@ -541,6 +563,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       const t = (now - bigWavePreview.started) / 1000
       if (!target || !target.g.visible || t >= 2.6) {
         bigWave.visible = false
+        waveImpact.visible = false
         bigWavePreview = null
       } else {
         bigWave.visible = true
@@ -549,8 +572,18 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         const fade = Math.min(1, t / .3, (2.6 - t) / .65)
         water.material.opacity = .82 * fade
         foam.material.opacity = fade
-        splash.material.opacity = .8 * fade
-        splash.scale.setScalar(reduce ? 1 : 1 + Math.max(0, t - .8) * .65)
+        const impact = reduce ? .5 : THREE.MathUtils.clamp((t - .85) / 1.3, 0, 1)
+        waveImpact.visible = impact > 0
+        waveImpact.position.copy(target.g.position)
+        splash.material.opacity = .8 * (1 - impact) * fade
+        splash.scale.setScalar(1 + impact * 1.6)
+        dropletMaterial.opacity = Math.sin(impact * Math.PI) * fade
+        droplets.forEach((drop, i) => {
+          const angle = i * Math.PI * 2 / droplets.length
+          const distance = .35 + impact * (1.1 + (i % 3) * .17)
+          drop.position.set(Math.cos(angle) * distance, .2 + Math.sin(impact * Math.PI) * (.55 + (i % 4) * .2), Math.sin(angle) * distance)
+          drop.scale.setScalar(1 - impact * .45)
+        })
       }
     }
     const activeActor = actors.get(turnMarkerPlayerId)
