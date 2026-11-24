@@ -2,9 +2,10 @@ import React, { useState } from 'react'
 import './R1Hud.css'
 import { PLAYER_BOARD_COLORS } from '../../constants/playerBoardColors'
 import {
-    R1_ATTACK_RANGE, r1CardPlayable, r1CardTargets, r1DropTargets, isBeach,
+    R1_ATTACK_RANGE, r1CardPlayable, r1DropTargets, isBeach,
     DROP_IN_RANGE, r1AttackUnavailableReason, r1MaxAttackDice,
 } from '../../game/r1/SurfKingR1'
+import { getR1CardFeedback } from './r1CardFeedback'
 import { getR1RoundOrder } from './r1RoundOrder'
 import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
 import { getTargetHighlightStyle } from '../../map/contract/targetHighlight'
@@ -67,7 +68,7 @@ function EnergyMeter({ energy }) {
     </div>
 }
 
-export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight }) {
+export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight, onPreviewCard = () => {} }) {
     const player = G.players[ctx.currentPlayer]
     const roundOrder = getR1RoundOrder(G, ctx)
     const hand = player
@@ -85,26 +86,31 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
     const [handHidden, setHandHidden] = useState(false)
-    const [inspectedId, setInspectedId] = useState(null)
-    const inspected = hand.cards.find(card => card.id === inspectedId)
-    const detailCard = selectedCard || inspected
+    const [inspection, setInspection] = useState(null)
+    const inspected = !handHidden && inspection?.playerId === ctx.currentPlayer && inspection?.turn === G.turn ?
+        hand.cards.find(card => card.id === inspection.cardId) : null
+    const detailCard = inspected || selectedCard
     const detailIndex = detailCard ? hand.cards.indexOf(detailCard) : -1
-    const detailRange = detailCard && R1_ATTACK_RANGE[detailCard.Name]
-    const detailReason = detailRange ? r1AttackUnavailableReason(G, ctx, detailRange,
-        r1CardTargets(G, ctx, detailIndex), 'card') : null
+    const feedback = getR1CardFeedback(G, ctx, detailIndex)
+    const inspectingOther = !!selection && !!inspected && inspected.id !== selectedCard?.id
+    function inspectCard(cardId) {
+        setInspection(cardId == null ? null : { cardId, playerId: ctx.currentPlayer, turn: G.turn })
+        onPreviewCard(cardId)
+    }
     const canConfirmCard = !!selectedCard && r1CardPlayable(G, ctx, selection.index) && targets.length === 0
     function playCard(index) {
         if (!r1CardPlayable(G, ctx, index)) return
-        setInspectedId(null)
+        inspectCard(null)
         setSelection({ kind: 'card', index })
     }
     function confirmCard() {
         if (!canConfirmCard) return
+        inspectCard(null)
         moves.useCard(selection.index)
         setSelection(null)
     }
     function resolveSwap(accept) {
-        setInspectedId(null)
+        inspectCard(null)
         setSelection(null)
         moves.resolveSwap(accept)
     }
@@ -170,9 +176,21 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         <span>Or use Lifeguard Float.</span>
                     </div>}
                     {detailCard && <div className="r1-card-detail" aria-live="polite">
-                        <strong>{detailCard.Name}</strong><span>{descriptions[detailCard.Name]}</span>
-                        {detailReason && <span className="r1-blocked-reason">{detailReason}</span>}
-                        {canConfirmCard && <button type="button" className="r1-confirm-card" onClick={confirmCard}>Use card</button>}
+                        <div className="r1-card-detail-heading">
+                            <strong>{detailCard.Name}</strong>
+                            <span className="r1-card-availability" data-playable={feedback.playable}>
+                                {feedback.playable ? '✓ Available' : 'Unavailable'}
+                            </span>
+                        </div>
+                        <span>{descriptions[detailCard.Name]}</span>
+                        {feedback.reason && <span className="r1-blocked-reason">{feedback.reason}</span>}
+                        {feedback.playable && <span className="r1-card-next-action">
+                            {feedback.action}{' · '}
+                            {inspectingOther ? 'Select this card to switch.' :
+                                selectedCard ? feedback.targets.length ? 'Choose a highlighted target.' : 'Confirm to use.' :
+                                    feedback.targets.length ? 'Select card, then choose a target.' : 'Select card, then confirm.'}
+                        </span>}
+                        {canConfirmCard && !inspectingOther && <button type="button" className="r1-confirm-card" onClick={confirmCard}>Use card</button>}
                     </div>}
                     {selection?.kind === 'drop' && !dropReason && <div className="r1-action-row" role="group" aria-label="Attack dice">
                         <strong>Choose attack dice</strong>
@@ -183,7 +201,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             </button>)}
                         <span className="r1-sr-only">Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
                     </div>}
-                    {highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
+                    {!(inspected && !selection) && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
                         <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
                         {highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
                     </div>}
@@ -195,22 +213,21 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 </div>
                 <div className="r1-hand-heading r1-glass">
                     <span>YOUR HAND <strong>{hand.cards.length}/5</strong></span>
-                    <button type="button" onClick={() => setHandHidden(value => !value)} aria-expanded={!handHidden}>{handHidden ? 'Show cards' : 'Hide cards'}</button>
+                    <button type="button" onClick={() => { inspectCard(null); setHandHidden(value => !value) }} aria-expanded={!handHidden}>{handHidden ? 'Show cards' : 'Hide cards'}</button>
                 </div>
                 {!handHidden && <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
                     {hand.cards.map((card, index) => {
-                        const range = R1_ATTACK_RANGE[card.Name]
-                        const reason = range ? r1AttackUnavailableReason(G, ctx, range, r1CardTargets(G, ctx, index), 'card') : null
-                        const playable = r1CardPlayable(G, ctx, index)
-                        return <button type="button" key={card.id} title={reason || descriptions[card.Name]}
+                        const { reason, playable } = getR1CardFeedback(G, ctx, index)
+                        return <button type="button" key={card.id}
                             aria-disabled={!playable} aria-pressed={selection?.kind === 'card' && selection.index === index}
                             style={{ '--r1-fan-angle': ((index - (hand.cards.length - 1) / 2) * 3) + 'deg' }}
-                            onMouseEnter={() => setInspectedId(card.id)}
-                            onMouseLeave={() => setInspectedId(null)}
-                            onFocus={() => setInspectedId(card.id)}
-                            onBlur={() => setInspectedId(null)}
-                            onClick={() => { setInspectedId(card.id); playCard(index) }}>
+                            onMouseEnter={() => inspectCard(card.id)}
+                            onMouseLeave={() => inspectCard(null)}
+                            onFocus={() => inspectCard(card.id)}
+                            onBlur={() => inspectCard(null)}
+                            onClick={() => { inspectCard(card.id); playCard(index) }}>
                             <img src={cardArt[card.Name]} alt="" className="r1-card-art" draggable="false" />
+                            <span className="r1-card-ready" data-playable={playable} aria-hidden="true">{playable ? '✓' : '–'}</span>
                             <strong>{card.Name}</strong><span className="r1-card-effect">{shortEffects[card.Name]}</span>
                             <span className="r1-sr-only">{descriptions[card.Name]} {reason}</span>
                         </button>
@@ -221,12 +238,12 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     <button type="button" className="r1-drop-button" disabled={!!dropReason}
                         aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
                         aria-label="Attack · Drop In (2 hexes)"
-                        onClick={() => { setInspectedId(null); setSelection({ kind: 'drop', diceCount: maxAttackDice }) }}>
+                        onClick={() => { inspectCard(null); setSelection({ kind: 'drop', diceCount: maxAttackDice }) }}>
                         <span aria-hidden="true">⚔</span> Drop In
                     </button>
-                    {selection && <button type="button" className="r1-cancel-button" onClick={() => { setInspectedId(null); setSelection(null) }}>Cancel selection</button>}
+                    {selection && <button type="button" className="r1-cancel-button" onClick={() => { inspectCard(null); setSelection(null) }}>Cancel selection</button>}
                     {!selection && !swapChoice && G.currentMove !== 'recover' && <button type="button" className="r1-move-button" disabled={!canPass}
-                        onClick={() => { setInspectedId(null); moves.pass() }}>{moveLabel} <span aria-hidden="true">→</span></button>}
+                        onClick={() => { inspectCard(null); moves.pass() }}>{moveLabel} <span aria-hidden="true">→</span></button>}
                     <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
                 </div>
             </div>}
