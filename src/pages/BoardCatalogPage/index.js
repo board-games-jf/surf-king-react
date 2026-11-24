@@ -22,6 +22,7 @@ const SURFER_COLORS = ['Orange', 'Coral', 'Teal', 'Blue', 'Yellow', 'Purple', 'G
 export default function BoardCatalogPage({ animationStudio = false }) {
   const [selectedCard, setSelectedCard] = useState('Sunburn')
   const [sunburnPreview, setSunburnPreview] = useState(null)
+  const [bigWavePreview, setBigWavePreview] = useState(null)
   const location = useLocation()
   const selectedProfilePlayer = normalizeLocalPlayerId(location.state?.athletePlayerId)
   const requestedType = location.state?.athleteBoardType
@@ -101,6 +102,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
             athleteBoardType={athleteBoardType}
             snapshot={snapshot}
             sunburnPreview={sunburnPreview}
+            bigWavePreview={bigWavePreview}
             onCellSelect={onCellSelect}
             onUnavailable={setError}
             focusCellId={tool === 'Inspect' ? selectedCellId : null}
@@ -111,7 +113,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
         <aside className="board-catalog-panel" aria-label="Catalog controls">
           {animationStudio && <section>
             <h2>Card interaction preview</h2>
-            <p>Hover, focus or select each card to replay the existing hand transition. Select a surfer below to preview Sunburn; other card effects are not implemented yet.</p>
+            <p>Hover, focus or select each card to replay the existing hand transition. Select a card and a surfer below, then press Play. Other card effects are not implemented yet.</p>
             <div className="r1-floating-hud animation-studio-cards"><div className="r1-hand">
               {Object.keys(cardArt).map(name => <button key={name} type="button"
                 data-card-tone={cardTone[name]} aria-pressed={selectedCard === name}
@@ -120,11 +122,11 @@ export default function BoardCatalogPage({ animationStudio = false }) {
                 <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
               </button>)}
             </div></div>
-            <button type="button" disabled={selectedCard !== 'Sunburn' || !Number.isInteger(catalog.surfers[surferId])}
-              onClick={() => { focusCell(catalog.surfers[surferId]); setSunburnPreview({ playerId: surferId }) }}>
+            <button type="button" disabled={!['Sunburn', 'Big wave'].includes(selectedCard) || !Number.isInteger(catalog.surfers[surferId])}
+              onClick={() => { focusCell(catalog.surfers[surferId]); (selectedCard === 'Sunburn' ? setSunburnPreview : setBigWavePreview)({ playerId: surferId }) }}>
               ▶ Play
             </button>
-            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. Visual prototype on the selected surfer.' : selectedCard + ': animation not available yet.'}</p>
+            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. Visual prototype on the selected surfer.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. Visual prototype on the selected surfer.' : selectedCard + ': animation not available yet.'}</p>
             <div className="board-catalog-divider" />
           </section>}
           <div className="board-catalog-panel-top">

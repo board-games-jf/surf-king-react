@@ -115,6 +115,34 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (!actor || !actor.g.visible) return
     sunburnPreview = { playerId: String(playerId), started: performance.now() }
   }
+  // Local review effect: a breaking wave passes through the chosen actor.
+  const bigWave = new THREE.Group()
+  const waveShape = new THREE.Shape()
+  waveShape.moveTo(-1.35, 0)
+  waveShape.lineTo(1.35, 0)
+  waveShape.bezierCurveTo(1.25, .55, .95, 1.35, .4, 1.65)
+  waveShape.bezierCurveTo(-.05, 1.95, -.72, 1.72, -.82, 1.23)
+  waveShape.bezierCurveTo(-.54, 1.48, -.18, 1.43, -.06, 1.14)
+  waveShape.bezierCurveTo(-.5, .78, -.95, .48, -1.35, 0)
+  const water = new THREE.Mesh(new THREE.ShapeGeometry(waveShape, 32), new THREE.MeshBasicMaterial({ color: 0x159fb6, transparent: true, opacity: .82, side: THREE.DoubleSide, depthWrite: false }))
+  const foamCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-.82, 1.23, .03), new THREE.Vector3(-.55, 1.57, .03),
+    new THREE.Vector3(-.1, 1.75, .03), new THREE.Vector3(.4, 1.65, .03),
+    new THREE.Vector3(.85, 1.24, .03)
+  ])
+  const foam = new THREE.Mesh(new THREE.TubeGeometry(foamCurve, 32, .075, 8, false), new THREE.MeshBasicMaterial({ color: 0xe7ffff, transparent: true, depthWrite: false }))
+  const splash = new THREE.Mesh(new THREE.RingGeometry(.5, .62, 48), new THREE.MeshBasicMaterial({ color: 0xd5ffff, transparent: true, side: THREE.DoubleSide, depthWrite: false }))
+  splash.rotation.x = -Math.PI / 2
+  splash.position.y = .08
+  bigWave.add(water, foam, splash)
+  bigWave.visible = false
+  scene.add(bigWave)
+  let bigWavePreview = null
+  function playBigWave(playerId) {
+    const actor = actors.get(String(playerId))
+    if (!actor || !actor.g.visible) return
+    bigWavePreview = { playerId: String(playerId), started: performance.now() }
+  }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -508,6 +536,23 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         })
       }
     }
+    if (bigWavePreview) {
+      const target = actors.get(bigWavePreview.playerId)
+      const t = (now - bigWavePreview.started) / 1000
+      if (!target || !target.g.visible || t >= 2.6) {
+        bigWave.visible = false
+        bigWavePreview = null
+      } else {
+        bigWave.visible = true
+        bigWave.position.copy(target.g.position)
+        bigWave.position.z += reduce ? 0 : 2.2 - Math.min(1, t / 1.45) * 2.8
+        const fade = Math.min(1, t / .3, (2.6 - t) / .65)
+        water.material.opacity = .82 * fade
+        foam.material.opacity = fade
+        splash.material.opacity = .8 * fade
+        splash.scale.setScalar(reduce ? 1 : 1 + Math.max(0, t - .8) * .65)
+      }
+    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
@@ -565,5 +610,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }
