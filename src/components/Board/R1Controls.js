@@ -1,6 +1,7 @@
 import React from 'react'
 import {
     r1CardPlayable, r1CardTargets, r1DropTargets, r1MoveTargets, isBeach,
+    DROP_IN_RANGE, r1AttackUnavailableReason,
 } from '../../game/r1/SurfKingR1'
 import { getR1RoundOrder } from './r1RoundOrder'
 import cardArt0 from '../../assets/cards/energyx2.png'
@@ -50,6 +51,10 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const overflow = G.currentMove === 'discard'
     const hand = overflow ? G.players[G.overflowPlayer] : player
     const targets = r1SelectionTargets(G, ctx, selection)
+    const dropTargets = r1DropTargets(G, ctx)
+    const dropReason = r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, dropTargets)
+    const attacking = selection?.kind === 'drop' || (selection?.kind === 'card' &&
+        ['Big wave', 'Sunburn'].includes(player.cards[selection.index]?.Name))
     const canPass = G.currentMove === 'use_card' || G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
@@ -90,30 +95,35 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     <span>Or use Lifeguard Float.</span>
                 </div>}
                 <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
-                    {hand.cards.map((card, index) => (
-                        <button type="button" key={card.id} title={descriptions[card.Name]}
+                    {hand.cards.map((card, index) => {
+                        const range = card.Name === 'Big wave' ? 2 : card.Name === 'Sunburn' ? 3 : null
+                        const reason = !overflow && range ? r1AttackUnavailableReason(G, ctx, range, r1CardTargets(G, ctx, index)) : null
+                        return <button type="button" key={card.id} title={reason || descriptions[card.Name]}
                             disabled={!overflow && !r1CardPlayable(G, ctx, index)}
                             aria-pressed={selection?.kind === 'card' && selection.index === index}
                             onClick={() => playCard(index)}>
                             <img src={cardArt[card.Name]} alt="" className="r1-card-art" />
                             <strong>{card.Name}</strong><span>{descriptions[card.Name]}</span>
+                            {reason && <span className="r1-attack-reason">{reason}</span>}
                         </button>
-                    ))}
+                    })}
                 </div>
                 <div className="surf-turn">
-                    {r1DropTargets(G, ctx).length > 0 &&
-                        <button type="button" aria-pressed={selection?.kind === 'drop'}
-                            onClick={() => setSelection({ kind: 'drop' })}>Drop In</button>}
+                    <button type="button" className="r1-drop-button" disabled={!!dropReason}
+                        aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
+                        onClick={() => setSelection({ kind: 'drop' })}>Attack · Drop In (2 hexes)</button>
+                    <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range')}</span>
                     {selection && <button type="button" onClick={() => setSelection(null)}>Cancel selection</button>}
                     {canPass && !selection && <button type="button" onClick={() => moves.pass()}>
                         {G.currentMove === 'use_card' ? 'No tactic — move' :
                             G.currentMove === 'current_second' ? 'Finish movement' : 'No legal move — end turn'}
                     </button>}
-                    {targets.length > 0 && <span>Select a highlighted hex on the map.</span>}
+                    {targets.length > 0 && <span>{attacking ? 'Select a highlighted opponent.' : 'Select a highlighted hex on the map.'}</span>}
                 </div>
                 {targets.length > 0 && <div className="r1-targets" aria-label="Legal target hexes">
                     {targets.map(id => <button type="button" key={id}
-                        aria-label={'Select hex ' + (id + 1)} onClick={() => onTarget(id)}>{id + 1}</button>)}
+                        aria-label={attacking ? 'Attack Player ' + (G.cells[id].player.position + 1) : 'Select hex ' + (id + 1)}
+                        onClick={() => onTarget(id)}>{attacking ? 'Player ' + (G.cells[id].player.position + 1) : id + 1}</button>)}
                 </div>}
             </div>}
         </section>
