@@ -136,3 +136,8 @@
     .r1-round-order { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .r1-hand button { flex: 1 1 85px; }
 }
+
+.surf-turn .r1-drop-button:not(:disabled) { background: #a23c29; color: #fffdf1; font-weight: bold; }
+.surf-turn .r1-drop-button[aria-pressed="true"] { outline: 3px solid #ffcf53; }
+.surf-turn .r1-drop-button:disabled { opacity: .65; cursor: not-allowed; }
+.r1-attack-reason { font-weight: bold; margin-top: 3px; }
