@@ -472,3 +472,7 @@
 @media (max-height: 520px) and (orientation: landscape) {
     .r1-top-feedback { max-height: calc(100dvh - 78px - var(--hud-inset)); }
 }
+
+.r1-top-feedback[data-pinned="true"] { pointer-events: auto; }
+.r1-dock-context-scroll > .r1-card-detail { pointer-events: auto; }
+.r1-dock-context-scroll { padding: 2px; }
