@@ -21,3 +21,10 @@ export const TARGET_BLOCK_STYLES = {
 export function getTargetBlockStyle(code) {
     return TARGET_BLOCK_STYLES[code] || TARGET_BLOCK_STYLES.unavailable
 }
+
+// Normalized icon strokes shared by SVG and WebGL.
+export const TARGET_BLOCK_SYMBOL_PATHS = {
+    shield: [[[.5,.16],[.79,.27],[.75,.58],[.64,.75],[.5,.85],[.36,.75],[.25,.58],[.21,.27],[.5,.16]]],
+    one: [[[.35,.35],[.5,.21],[.5,.78]],[[.32,.78],[.68,.78]]],
+    cross: [[[.28,.28],[.72,.72]],[[.72,.28],[.28,.72]]],
+}
