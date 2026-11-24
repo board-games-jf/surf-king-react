@@ -25,7 +25,7 @@ export function getR1TargetHighlight(G, ctx, selection, previewCardId = null) {
     if (!selection && previewCardId != null && ['use_card', 'swap_card', 'recover'].includes(G.currentMove)) {
         const index = G.players[ctx.currentPlayer]?.cards.findIndex(c => c.id === previewCardId)
         const feedback = getR1CardFeedback(G, ctx, index)
-        if (feedback) return withBlocks({ kind: feedback.kind, cellIds: feedback.previewIds, preview: true }, feedback.blocked)
+        if (feedback) return withBlocks({ kind: feedback.kind, cellIds: feedback.previewIds, preview: true }, feedback.blocked, feedback.playerIds)
     }
     const name = selection?.kind === 'card' ? G.players[ctx.currentPlayer]?.cards[selection.index]?.Name : null
     const kind = selection?.kind === 'drop' || r1PlayerCard(name) ? 'attack' :
@@ -39,10 +39,10 @@ export function getR1TargetHighlight(G, ctx, selection, previewCardId = null) {
             preview: cellIds.length === 0 && feedback.previewIds.length > 0 }, feedback.blocked)
     }
     if (selection?.kind === 'drop') return withBlocks({ kind, cellIds, preview },
-        r1AttackTargetBlocks(G, ctx, DROP_IN_RANGE, cellIds, 'drop', r1DropPlayerTargets(G, ctx)))
+        r1AttackTargetBlocks(G, ctx, DROP_IN_RANGE, cellIds, 'drop', r1DropPlayerTargets(G, ctx)), r1DropPlayerTargets(G, ctx))
     return { kind, cellIds, preview }
 }
 
-function withBlocks(highlight, blocked) {
-    return blocked?.length ? { ...highlight, blocked } : highlight
+function withBlocks(highlight, blocked, playerIds) {
+    return { ...highlight, ...(blocked?.length ? { blocked } : {}), ...(playerIds?.length ? { playerIds } : {}) }
 }
