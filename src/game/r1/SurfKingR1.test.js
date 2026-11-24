@@ -3,7 +3,7 @@ import { Client } from 'boardgame.io/client'
 import {
     SurfKingR1, setupR1, beginR1Turn, createR1Deck, r1Neighbors,
     r1MoveTargets, r1CardTargets, r1DropTargets, useR1Card, r1Maneuver,
-    r1DropIn, passR1, recoverR1, discardR1Overflow,
+    r1DropIn, passR1, recoverR1, discardR1Overflow, r1AttackUnavailableReason, DROP_IN_RANGE,
 } from './SurfKingR1'
 
 function fixture(n = 2) {
@@ -175,6 +175,48 @@ describe('R1 rules', () => {
         ctx.currentPlayer = '1'
         beginR1Turn(G, ctx)
         expect(G.players[1].activeCard).toHaveLength(0)
+        assertConserved(G)
+    })
+    test('Drop In reaches two graph edges but not three, with unchanged damage and one tactic', () => {
+        const { G, ctx } = fixture()
+        relocate(G, 1, 14)
+        expect(r1DropTargets(G, ctx)).toEqual([])
+        expect(r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, [])).toBe('Attacks unlock in round 2.')
+        G.turn = 2
+        relocate(G, 1, 21)
+        expect(r1DropTargets(G, ctx)).toEqual([])
+        expect(r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, [])).toBe('No opponent within 2 hexes.')
+        expect(r1DropIn(G, ctx, 21)).toBe(INVALID_MOVE)
+        relocate(G, 1, 14)
+        expect(r1DropTargets(G, ctx)).toEqual([14])
+        expect(r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, [14])).toBeNull()
+        const rolls = [6, 2, 4, 3]
+        ctx.random.D6 = () => rolls.shift()
+        r1DropIn(G, ctx, 14)
+        expect(G.players[1].energy).toBe(1)
+        expect(G.players[0].energy).toBe(2)
+        expect(G.currentMove).toBe('maneuver')
+        expect(r1DropIn(G, ctx, 14)).toBe(INVALID_MOVE)
+        expect(r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, [])).toBe('Attack before moving, instead of another tactic.')
+        assertConserved(G)
+    })
+    test('two-edge opponents remain protected or unavailable when fallen or finished', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 14)
+        ctx.currentPlayer = '1'
+        useR1Card(G, ctx, grant(G, 1, 'Amulet'))
+        ctx.currentPlayer = '0'
+        beginR1Turn(G, ctx)
+        expect(r1DropTargets(G, ctx)).toEqual([])
+        expect(r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, [])).toBe('Nearby standing opponents are protected by Amulet.')
+        G.players[1].energy = 0
+        expect(r1DropTargets(G, ctx)).toEqual([])
+        expect(r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, [])).toBe('Nearby opponents are fallen or finished.')
+        G.players[1].energy = 2
+        relocate(G, 0, 42)
+        relocate(G, 1, 49)
+        expect(r1DropTargets(G, ctx)).toEqual([])
         assertConserved(G)
     })
     test('Drop In tie does nothing, defender wins and chooses overflow discard', () => {
