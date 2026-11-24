@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 // The heavy Three.js scene is imported only after the 3D view is selected.
-export default function Board3D({ snapshot, onCellSelect, onUnavailable, focusCellId = null, previewFemaleAthlete = true, athleteBoardType = null }) {
+export default function Board3D({ snapshot, onCellSelect, onCellHover, onUnavailable, focusCellId = null, previewFemaleAthlete = true, athleteBoardType = null }) {
     const container = useRef(null)
     const scene = useRef(null)
     const latestClick = useRef(onCellSelect)
+    const latestHover = useRef(onCellHover)
     const latestSnapshot = useRef(snapshot)
     const latestIds = useRef(true)
     const latestError = useRef(onUnavailable)
@@ -12,6 +13,7 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable, focusCe
     const [error, setError] = useState(null)
     const [showIds, setShowIds] = useState(true)
     latestClick.current = onCellSelect
+    latestHover.current = onCellHover
     latestSnapshot.current = snapshot
     latestIds.current = showIds
     latestError.current = onUnavailable
@@ -29,7 +31,7 @@ export default function Board3D({ snapshot, onCellSelect, onUnavailable, focusCe
                     setError(message)
                     if (latestError.current) latestError.current(message)
                 },
-                { previewFemaleAthlete, athleteBoardType }
+                { previewFemaleAthlete, athleteBoardType, onCellHover: id => latestHover.current?.(id) }
             )
             scene.current = instance
             instance.update(latestSnapshot.current)
