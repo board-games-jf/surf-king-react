@@ -73,6 +73,7 @@ describe('card silhouette and environmental motion', () => {
     const firstAngle = palms[0].rotation.z
     expect(coconut.visible).toBe(true)
     const initialX = coconut.position.x
+    const initialZ = coconut.position.z
     model.update(.85, 0, false)
     expect(coconut.position.y).toBeCloseTo(.26)
     expect(coconut.position.x).toBeCloseTo(initialX)
@@ -82,6 +83,16 @@ describe('card silhouette and environmental motion', () => {
     expect(palms[0].rotation.z).not.toBe(firstAngle)
     model.update(2.7, 0, false)
     expect(coconut.position.y).toBeLessThan(0)
+    let nearest = null, best = Infinity
+    for (let i = 0; i < 128; i++) {
+      const angle = i * Math.PI * 2 / 128
+      const x = .58 * Math.cos(angle), z = .49 * Math.sin(angle)
+      const distance = Math.hypot(x - initialX, z - initialZ)
+      if (distance < best) { best = distance; nearest = { x, z } }
+    }
+    const shoreAngle = Math.atan2(nearest.z - initialZ, nearest.x - initialX)
+    const rollAngle = Math.atan2(coconut.position.z - initialZ, coconut.position.x - initialX)
+    expect(Math.cos(rollAngle - shoreAngle)).toBeGreaterThan(.999)
     model.update(1.4, 0, true)
     expect(coconut.visible).toBe(false)
     expect(palms[0].rotation.z).toBe(0)

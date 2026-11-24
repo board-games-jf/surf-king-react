@@ -179,6 +179,20 @@ function islandModel(parent, helpers) {
     palm(tree, helpers, 0, 0, height, lean, angle)
     return tree
   })
+  // Find the nearest point on the island's elliptical shore for each palm.
+  const coconutPaths = palms.map((tree, index) => {
+    const x = tree.position.x + (index === 0 ? -.20 : .17), z = tree.position.z
+    let nearest = null, best = Infinity
+    for (let i = 0; i < 128; i++) {
+      const angle = i * Math.PI * 2 / 128
+      const shoreX = .58 * Math.cos(angle), shoreZ = .49 * Math.sin(angle)
+      const distance = Math.hypot(shoreX - x, shoreZ - z)
+      if (distance < best) { best = distance; nearest = { x: shoreX, z: shoreZ } }
+    }
+    const dx = nearest.x - x, dz = nearest.z - z
+    const length = Math.hypot(dx, dz) || 1
+    return { x, z, endX: nearest.x + dx / length * .35, endZ: nearest.z + dz / length * .35 }
+  })
   const coconut = sphere(parent, '#8f6738', [0,0,0], [.075,.075,.075], 1)
   coconut.name = 'island-falling-coconut'
   coconut.visible = false
@@ -197,13 +211,9 @@ function islandModel(parent, helpers) {
     coconut.visible = !reducedMotion && t < 3
     if (coconut.visible) {
       const index = Math.floor(noise(cycle * 9 + phase * 3) * 2) % 2
-      const tree = palms[index]
-      const startX = tree.position.x + (index === 0 ? -.20 : .17)
-      const startZ = tree.position.z
-      const angle = noise(cycle * 17 + phase * 7 + 1) * Math.PI * 2
+      const { x: startX, z: startZ, endX, endZ } = coconutPaths[index]
       const fall = THREE.MathUtils.clamp(t / .85, 0, 1)
       const roll = THREE.MathUtils.clamp((t - .85) / 1.8, 0, 1)
-      const endX = Math.cos(angle) * .95, endZ = Math.sin(angle) * .95
       const startY = .22 + (index === 0 ? 1.02 : .76)
       coconut.position.set(THREE.MathUtils.lerp(startX, endX, roll),
         .26 + (startY - .26) * (1 - fall * fall) - .42 * THREE.MathUtils.smoothstep(roll, .7, 1),
