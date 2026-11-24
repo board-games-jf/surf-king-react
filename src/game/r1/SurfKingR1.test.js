@@ -3,7 +3,7 @@ import { Client } from 'boardgame.io/client'
 import {
     SurfKingR1, setupR1, beginR1Turn, createR1Deck, r1Neighbors,
     r1MoveTargets, r1CardTargets, r1DropTargets, useR1Card, r1Maneuver,
-    r1DropIn, r1ResolveSwap, r1CardPlayable, passR1, recoverR1, r1AttackUnavailableReason, DROP_IN_RANGE, r1MaxAttackDice,
+    r1DropIn, r1ResolveSwap, r1CardPlayable, passR1, recoverR1, r1AttackUnavailableReason, DROP_IN_RANGE, r1MaxAttackDice, r1Occupants, r1CardPlayerTargets, r1DropPlayerTargets,
 } from './SurfKingR1'
 
 function fixture(n = 2) {
@@ -37,18 +37,17 @@ function assertConserved(G) {
     const cards = [...G.deck, ...G.discardedCards,
         ...Object.values(G.players).flatMap(p => [...p.cards, ...p.activeCard]),
         ...G.cells.flatMap(c => c.obstacle?.id !== undefined ? [c.obstacle] : [])]
-    expect(cards).toHaveLength(60)
-    expect(new Set(cards.map(c => c.id)).size).toBe(60)
+    expect(cards).toHaveLength(64)
+    expect(new Set(cards.map(c => c.id)).size).toBe(64)
     const players = Object.values(G.players)
-    expect(new Set(players.map(p => p.cellPosition)).size).toBe(players.length)
-    for (const p of players) expect(G.cells[p.cellPosition].player.position).toBe(p.position)
+    for (const p of players) expect(r1Occupants(G, p.cellPosition).length).toBeLessThanOrEqual(2)
 }
 describe('R1 rules', () => {
     test('exact deck inventory, starts, sharks and real graph for every player count', () => {
         const counts = createR1Deck().reduce((a,c) => ({ ...a, [c.Name]: (a[c.Name] || 0) + 1 }), {})
         expect(counts).toEqual({
             'Energy x2': 8, 'Lifeguard float': 6, 'Big wave': 7, Sunburn: 10,
-            Tsunami: 3, Stone: 4, Storm: 5, Cyclone: 3, Island: 3, Jumping: 4, Amulet: 4, 'Surf Current': 3,
+            Tsunami: 3, Stone: 4, Storm: 5, Cyclone: 3, Island: 3, Jumping: 4, Amulet: 4, 'Surf Current': 3, Change: 1, 'Hang loose': 3,
         })
         expect(r1Neighbors(21)).toEqual([14, 18, 25, 28])
         for (let n = 2; n <= 7; n++) {
@@ -69,7 +68,7 @@ describe('R1 rules', () => {
             reachable = new Set([...reachable, ...Array.from(reachable).flatMap(r1Neighbors)])
         }
         expect(targets).toEqual(Array.from(reachable).filter(id => id >= 7 && id < 49 &&
-            !G.cells[id].player && !G.cells[id].obstacle).sort((a,b) => a-b))
+            !r1Occupants(G, id).length && !G.cells[id].obstacle).sort((a,b) => a-b))
         for (const invalid of [0, 6, 14, 21, 28, 31, 48, 49, 52, 53]) {
             expect(useR1Card(G, ctx, index, invalid)).toBe(INVALID_MOVE)
         }
@@ -130,7 +129,7 @@ describe('R1 rules', () => {
         const { G, ctx } = fixture()
         expect(passR1(G, ctx)).toBeUndefined()
         expect(passR1(G, ctx)).toBe(INVALID_MOVE)
-        expect(r1Maneuver(G, ctx, 1)).toBe(INVALID_MOVE)
+        expect(r1Maneuver(G, ctx, 53)).toBe(INVALID_MOVE)
         const target = r1MoveTargets(G, ctx)[0]
         r1Maneuver(G, ctx, target)
         expect(G.players[0].energy).toBe(2)
@@ -653,4 +652,77 @@ describe('R1 rules', () => {
         assertConserved(G)
         client.stop()
     })
+})
+
+test('shared hex permits two including fallen, never three; individual attacks reject ambiguity', () => {
+    const { G, ctx } = fixture(3)
+    relocate(G, 1, 7)
+    relocate(G, 2, 7)
+    G.turn = 2
+    const index = grant(G, 0, 'Big wave')
+    expect(r1CardPlayerTargets(G, ctx, index)).toEqual([1,2])
+    expect(r1CardTargets(G, ctx, index)).toEqual([7])
+    expect(useR1Card(G, ctx, index, 7)).toBe(INVALID_MOVE)
+    expect(r1DropIn(G, ctx, 7, 1)).toBe(INVALID_MOVE)
+    expect(useR1Card(G, ctx, index, 7, 2)).toBeUndefined()
+    expect(G.players[1].energy).toBe(2)
+    expect(G.players[2].energy).toBe(1)
+    expect(r1MoveTargets(G, ctx)).not.toContain(7)
+    G.players[2].energy = 0
+    expect(r1MoveTargets(G, ctx)).not.toContain(7)
+    relocate(G, 2, 14)
+    expect(r1Maneuver(G, ctx, 7)).toBeUndefined()
+    expect(r1Occupants(G, 7).map(p => p.position)).toEqual([0,1])
+    assertConserved(G)
+})
+test('Change swaps one selected opponent, consumes movement and observes range/protection/round', () => {
+    const { G, ctx } = fixture(3)
+    relocate(G, 1, 14)
+    relocate(G, 2, 14)
+    const index = grant(G, 0, 'Change')
+    expect(r1CardPlayerTargets(G, ctx, index)).toEqual([])
+    G.turn = 2
+    expect(r1CardPlayerTargets(G, ctx, index)).toEqual([1,2])
+    G.players[2].activeCard.push(G.deck.splice(G.deck.findIndex(c => c.Name === 'Amulet'),1)[0])
+    expect(r1CardPlayerTargets(G, ctx, index)).toEqual([1])
+    expect(useR1Card(G, ctx, index, 14, 2)).toBe(INVALID_MOVE)
+    expect(useR1Card(G, ctx, index, 14, 1)).toBeUndefined()
+    expect(G.players[0].cellPosition).toBe(14)
+    expect(G.players[1].cellPosition).toBe(0)
+    expect(G.players[2].cellPosition).toBe(14)
+    expect(G.moved).toBe(true)
+    expect(ctx.events.endTurn).toHaveBeenCalledTimes(1)
+    assertConserved(G)
+})
+test('Hang Loose blocks only Drop In until next personal turn', () => {
+    const { G, ctx } = fixture()
+    G.turn = 2
+    relocate(G, 1, 7)
+    ctx.currentPlayer = '1'
+    useR1Card(G, ctx, grant(G, 1, 'Hang loose'))
+    ctx.currentPlayer = '0'
+    beginR1Turn(G, ctx)
+    expect(r1DropPlayerTargets(G, ctx)).toEqual([])
+    expect(r1CardPlayerTargets(G, ctx, grant(G, 0, 'Big wave'))).toEqual([1])
+    expect(r1CardPlayerTargets(G, ctx, grant(G, 0, 'Change'))).toEqual([1])
+    ctx.currentPlayer = '1'
+    beginR1Turn(G, ctx)
+    expect(G.players[1].activeCard).toHaveLength(0)
+    ctx.currentPlayer = '0'
+    expect(r1DropPlayerTargets(G, ctx)).toEqual([1])
+    assertConserved(G)
+})
+test('same-cell lethal Drop In transfers a card but never offers a meaningless swap', () => {
+    const { G, ctx } = fixture()
+    G.turn = 2
+    relocate(G, 1, 0)
+    G.players[1].energy = 1
+    const rolls = [6,1]
+    ctx.random.D6 = () => rolls.shift()
+    expect(r1DropIn(G, ctx, 0, 1, 1)).toBeUndefined()
+    expect(G.players[1].energy).toBe(0)
+    expect(G.pendingSwap).toBeNull()
+    expect(G.currentMove).toBe('use_card')
+    expect(G.players[0].cards).toHaveLength(3)
+    assertConserved(G)
 })

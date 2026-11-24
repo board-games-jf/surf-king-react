@@ -48,3 +48,21 @@ test('blocked opponent icons are distinct from valid targets and clear on cancel
     markers.group.traverse(child => { if (child.material) materials.add(child.material) })
     materials.forEach(material => { material.map?.dispose(); material.dispose() })
 })
+
+test('mixed eligibility keeps a legal highlight and a blocked icon on the same hex', () => {
+    const geometry = new THREE.BufferGeometry()
+    const markers = createTargetHighlights(BOARD_LAYOUT, geometry, geometry)
+    const first = markers.group.children[0]
+    markers.update({ kind: 'attack', cellIds: [0], preview: true,
+        playerIds: [1], blocked: [{ id: 0, playerId: 2, code: 'hangloose' }] })
+    expect(first.visible).toBe(true)
+    expect(first.children[0].material.color.getHexString()).toBe(getTargetHighlightStyle('attack').color.slice(1))
+    expect(first.children[2].visible).toBe(true)
+    expect(first.userData.blocked).toBe('hangloose')
+    markers.update(undefined)
+    expect(first.visible).toBe(false)
+    geometry.dispose()
+    const materials = new Set()
+    markers.group.traverse(child => { if (child.material) materials.add(child.material) })
+    materials.forEach(material => { material.map?.dispose(); material.dispose() })
+})

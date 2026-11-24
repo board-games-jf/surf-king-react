@@ -10,6 +10,7 @@ import { PRESET_SURFERS } from './surferStyle'
 import { createObstacleModel } from './obstacleModels'
 import { createHexDepth } from './hexDepth'
 import { createTargetHighlights } from './createTargetHighlights'
+import { getTargetBlockStyle } from '../../contract/targetHighlight'
 import { createBoardViewportResize } from './resizeBoardViewport'
 import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, shortestHeading, MOVE_SECONDS } from './surferMotion'
 
@@ -242,7 +243,21 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     scene.remove(model.group)
     group.add(model.group)
     scene.add(group)
+    // A separate camera-facing identity badge follows the actor, not its roll.
+    const badgeCanvas = document.createElement('canvas')
+    badgeCanvas.width = 256
+    badgeCanvas.height = 64
+    const badgeTexture = new THREE.CanvasTexture(badgeCanvas)
+    badgeTexture.colorSpace = THREE.SRGBColorSpace
+    const badge = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: badgeTexture, transparent: true, depthTest: false, depthWrite: false, toneMapped: false
+    }))
+    badge.visible = false
+    badge.scale.set(1.28,.32,1)
+    badge.renderOrder = 998
+    scene.add(badge)
     const actor = {
+      badge, badgeCanvas, badgeKey: null,
       g: group, legacy: model, avatar: null, id,
       cellId: null, from: null, to: null, t: 1,
       anchor: new THREE.Vector3(), heading: 0, startHeading: 0, endHeading: 0,
@@ -296,6 +311,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     // procedural geometry here, never a shared GLB or pooled material.
     actor.legacy.group.traverse(node => { if (node.geometry) node.geometry.dispose() })
     scene.remove(actor.g)
+    scene.remove(actor.badge)
+    actor.badge.material.map.dispose()
+    actor.badge.material.dispose()
     delete renderer.domElement.dataset['surferMotion'+actor.id]
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
@@ -311,12 +329,42 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
       const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell
-      if(!cell){a.cellId=null;a.from=null;a.to=null;continue}
-      const target=new THREE.Vector3(cell.x,.13,cell.z)
+      if(!cell){a.cellId=null;a.from=null;a.to=null;a.badge.visible=false;continue}
+      const occupants = snapshot.players.filter(other => other.cellId === p.cellId).sort((a,b) => Number(a.id)-Number(b.id))
+      const shared = occupants.length > 1
+      const slot = occupants.findIndex(other => other.id === p.id)
+      const offset = shared ? (slot === 0 ? -.56 : .56) : 0
+      const target=new THREE.Vector3(cell.x+offset,.13,cell.z)
+      a.g.scale.setScalar(shared ? .74 : 1)
+      a.badge.visible = shared
+      const blocked = snapshot.targetHighlight?.blocked?.find(item => String(item.playerId) === p.id)
+      const legal = snapshot.targetHighlight?.playerIds?.includes(Number(p.id))
+      const label = 'P' + (Number(p.id)+1) + (legal ? '  OK' : blocked ? '  ' + ({
+        protected: 'AMULET', hangloose: 'HANG LOOSE', minimum: '1 ENERGY',
+        range: 'RANGE', fallen: 'FALLEN', finished: 'FINISHED', samecell: 'SAME HEX'
+      }[blocked.code] || 'BLOCKED') : p.fallen ? '  FALLEN' : '')
+      const tint = legal ? '#ff9882' : blocked ? getTargetBlockStyle(blocked.code).color : PLAYER_BOARD_COLORS[Number(p.id)]
+      const badgeKey = label + tint
+      if (a.badgeKey !== badgeKey) {
+        const c = a.badgeCanvas.getContext('2d')
+        c.clearRect(0,0,256,64)
+        c.fillStyle = '#173640'
+        c.fillRect(2,5,252,54)
+        c.strokeStyle = tint || '#fff4c5'
+        c.lineWidth = 5
+        c.strokeRect(4,7,248,50)
+        c.fillStyle = tint || '#fff4c5'
+        c.font = 'bold 30px sans-serif'
+        c.textAlign = 'center'
+        c.textBaseline = 'middle'
+        c.fillText(label,128,32,238)
+        a.badge.material.map.needsUpdate = true
+        a.badgeKey = badgeKey
+      }
       const immediate = a.cellId === null || reducedMotion.matches
       a.fallMotion = targetFallMotion(a.fallMotion, p.fallen === true, immediate)
       if(immediate){a.anchor.copy(target);a.g.position.copy(target);a.from=null;a.to=null;a.t=1}
-      else if(a.cellId!==p.cellId){
+      else if(a.cellId!==p.cellId || a.slotOffset!==offset){
         a.from=a.anchor.clone();a.to=target;a.t=0
         a.dx=target.x-a.from.x;a.dz=target.z-a.from.z
         a.distance=Math.hypot(a.dx,a.dz)
@@ -324,6 +372,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         a.endHeading=shortestHeading(a.heading,Math.atan2(-a.dz,a.dx)-a.boardYaw)
       }
       a.cellId=p.cellId
+      a.slotOffset=offset
     }
     for(const [id,a] of actors)if(!live.has(id)){removeSurfer(a);actors.delete(id)}
     const keys=new Set()
@@ -361,6 +410,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       const bank=carve.bank
       // Roll around the board's own longitudinal axis, not a fixed world axis.
       a.g.rotateOnAxis(a.rollAxis,bank)
+      if (a.badge.visible) { a.badge.position.copy(a.g.position); a.badge.position.y += 1.6 }
       const sample=a.fallMotion.remount
         ? sampleRemount(1-fall,phase,reduce)
         : sampleRiderMotion(fall,a.t,phase,reduce,bank)

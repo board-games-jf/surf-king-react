@@ -1,10 +1,19 @@
 # Project Handoff
 
-**Last GitHub verification:** 2026-11-22  
+**Last GitHub verification:** 2026-11-24  
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)  
-**Main before PR #38 integration:** `b51c9854262cf0289b693343d47d67e5a8dd6b99` (PR #36 merged; verification run 44995028044 passed; deployment not established).
+**Verified main before documentation reconciliation:** `1383a117c5ba63313603d7dbb8edb73846bcd46c` (PR #47 merged; no deployment authorized).
 
-## R1 local rules pilot — implementation branch (2026-11-24)
+## R1 card art integration (2026-11-24)
+
+- [PR #47](https://github.com/board-games-jf/surf-king-react/pull/47) merged at `1383a117c5ba63313603d7dbb8edb73846bcd46c`. Final [CI 45443708908](https://github.com/board-games-jf/surf-king-react/actions/runs/45443708908) passed exact verification of 16 approved WebP assets, 377 tests (2 skipped), strict build and responsive Chromium HUD checks. R1 hand and inspection share the card art registry, functional CSS frames and existing SVG effect icons; Stone explicitly labels entry damage. Rules, targeting, HUD dimensions, board geometry and legacy art remain unchanged. #44 remains open for manual in-game acceptance and rights review; no deployment authorized. PR #45 reconciles historical concept provenance with the accepted SK-DEC-045 instead of reviving obsolete artwork proposals.
+
+## R1 shared-hex / defense trial (2026-11-24)
+
+- PR #43 merged into main at `8a3bbd88265c52c97935beb9c942c4a11b066f01`; final [CI 45397926576](https://github.com/board-games-jf/surf-king-react/actions/runs/45397926576) passed tests, strict build and Chromium HUD validation. No deployment.
+- SK-DEC-044: branch `feat/42-r1-shared-hex-defense` implements 64-card trial (capacity two, Change ×1 range two, Hang Loose ×3). Individual targeting rejects ambiguous cell-only requests; 2D/3D separate shared occupants; HUD shows individual eligibility and protection. Existing rules and legacy game preserved. 72 isolated rule/card/hex fixtures passed, three real client fixtures skipped by isolated harness. [PR #46](https://github.com/board-games-jf/surf-king-react/pull/46) passed full [CI 45424945218](https://github.com/board-games-jf/surf-king-react/actions/runs/45424945218) (all configured tests, strict build and Chromium HUD validation) at `d181106161f2675e294b025b821659a0427690b9`. Owner explicitly authorized integration into main on 2026-11-24; consult PR #46 for verified merge status. Manual shared-hex 3D visual acceptance and human playtesting remain pending. See #42 and #11 for experimental balance evidence. Start a fresh local match; old match state is not migrated. No deployment authorized.
+
+## Earlier R1 local rules pilot (merged PR #43)
 
 - Latest HUD refinement SK-DEC-043: stronger card hover/selection hex overlays, opponent-specific blocked target icons (Amulet shield, one-energy damage floor, crossed-out other reasons), compact per-opponent reason chips and dismissible pinned disabled-card inspection. Self cards highlight the actor and Surf Current previews first steps; selected action takes priority, executable targets remain unchanged. Nineteen isolated highlight/card/hex feedback fixtures passed; SVG, pooled Three.js and React regressions added. Full CI and visual review of new markers pending. Previous bounded HUD revision passed full CI [45393838031](https://github.com/board-games-jf/surf-king-react/actions/runs/45393838031). No rule changes, merge or deployment.
 
@@ -60,6 +69,3 @@
 - Historical provenance and earlier validations are preserved in DATA_SOURCES.md, relevant issues/PRs and Git history. Maintain regression coverage and measure production/mobile performance before release. Run `CI=true npm test -- --watchAll=false` and `npm run build` in an updated dependency-enabled checkout.
 
 Character phase is paused; #33 remains the continuation issue. No deployment is authorized.
-
-## Card art direction (2026-11-24)
-- [Issue #44](https://github.com/board-games-jf/surf-king-react/issues/44) tracks original card artwork independently of the R1 rules pilot. The owner approved the tropical cartoon 3D concept direction (SK-DEC-ART-001) and requested a simpler board-game card treatment. A complete visual mockup is pending owner review; its example costs and effects are not authoritative. Next: approve compact artwork and layout at real hand size, reconcile the current deck, then scope production assets and integration. No application code, image binaries, rules, merge or deployment in this documentation change.

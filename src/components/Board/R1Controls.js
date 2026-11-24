@@ -2,62 +2,37 @@ import React, { useState } from 'react'
 import './R1Hud.css'
 import { PLAYER_BOARD_COLORS } from '../../constants/playerBoardColors'
 import {
-    R1_ATTACK_RANGE, r1CardPlayable, r1DropTargets, isBeach,
+    r1PlayerCard, r1CardPlayable, r1DropPlayerTargets, isBeach, HEX_CAPACITY,
     DROP_IN_RANGE, r1AttackUnavailableReason, r1MaxAttackDice,
 } from '../../game/r1/SurfKingR1'
-import { CardEffects, HexEffects, FeedbackIcon, terrainArt, compactReason, compactHexAction } from './r1FeedbackVisuals'
+import { CardEffects, HexEffects, FeedbackIcon, cardEffectKind, terrainArt, compactReason, compactHexAction } from './r1FeedbackVisuals'
 import { getR1CardFeedback } from './r1CardFeedback'
 import { getR1RoundOrder } from './r1RoundOrder'
-import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
+import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
 import { getTargetHighlightStyle, getTargetBlockStyle } from '../../map/contract/targetHighlight'
-import cardArt0 from '../../assets/cards/energyx2.png'
-import cardArt1 from '../../assets/cards/lifeguardfloat.png'
-import cardArt2 from '../../assets/cards/bigwave.png'
-import cardArt3 from '../../assets/cards/sunburn.png'
-import cardArt4 from '../../assets/cards/storm.png'
-import cardArt5 from '../../assets/cards/cyclone.png'
-import cardArt6 from '../../assets/cards/island.png'
-import cardArt7 from '../../assets/cards/jumping.png'
-import cardArt8 from '../../assets/cards/amulet.png'
-import stoneArt from '../../assets/cards/stone.png'
-import tsunamiArt from '../../assets/cards/tsunami.png'
-import surfCurrentArt from '../../assets/cards/surfcurrent.svg'
-
-const cardArt = {
-    'Energy x2': cardArt0,
-    'Lifeguard float': cardArt1,
-    'Big wave': cardArt2,
-    'Sunburn': cardArt3,
-    'Storm': cardArt4,
-    'Cyclone': cardArt5,
-    'Island': cardArt6,
-    'Jumping': cardArt7,
-    'Amulet': cardArt8,
-    Stone: stoneArt,
-    Tsunami: tsunamiArt,
-    'Surf Current': surfCurrentArt,
-}
-
+import { cardArt, cardTone } from './r1CardArt'
 
 const descriptions = {
     'Energy x2': 'Gain 2 energy (max 5).',
     'Lifeguard float': 'Recover with 3 energy.',
     'Big wave': 'Opponent within 2 edges loses up to 2 energy (minimum 1 remaining).',
     Sunburn: 'Opponent within 3 edges loses 1 energy (minimum 1 remaining).',
-    Stone: 'Place within 3 edges; first ordinary entry costs 1 energy and removes Stone.',
+    Stone: 'Place within 3 edges; the surfer who first enters normally loses 1 energy and Stone is removed.',
     Tsunami: 'Adjacent opponent loses up to 3 energy (minimum 1 remaining).',
     Storm: 'Place within 2 edges; entry costs 1 energy.',
     Cyclone: 'Place within 2 edges; entry redirects to a random free neighboring hex.',
     Island: 'Place within 2 edges; every ordinary entry restores 2 energy; Island stays in place.',
     Jumping: 'Land on an adjacent hazard, stay there and ignore its effect.',
-    Amulet: 'Protect against opponent attacks until your next turn.',
+    Amulet: 'Protect against opponent attacks and Change until your next turn.',
+    Change: 'Swap positions with an unprotected standing opponent within 2 hexes instead of moving.',
+    'Hang loose': 'Block Drop In until your next turn; attack cards and Change still apply.',
     'Surf Current': 'Move up to two legal steps; draw only once.',
 }
 const shortEffects = {
     'Energy x2': '+2 energy', 'Lifeguard float': 'Recover to 3',
     'Big wave': 'Up to −2', Sunburn: '−1 energy', Tsunami: 'Up to −3',
-    Stone: 'Place · −1', Storm: 'Place · −1', Cyclone: 'Redirect', Island: 'Place · +2',
-    Jumping: 'Safe landing', Amulet: 'Shield', 'Surf Current': '2 steps',
+    Stone: 'Entry −1', Storm: 'Entry −1', Cyclone: 'Redirect', Island: 'Entry +2',
+    Jumping: 'Safe landing', Amulet: 'Shield', 'Surf Current': '2 steps', Change: 'Swap · 2 hexes', 'Hang loose': 'Block Drop In',
 }
 
 export { r1SelectionTargets } from './r1TargetHighlight'
@@ -76,11 +51,12 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const targets = r1SelectionTargets(G, ctx, selection)
     const highlight = targetHighlight || getR1TargetHighlight(G, ctx, selection)
     const highlightStyle = getTargetHighlightStyle(highlight.kind)
-    const dropTargets = r1DropTargets(G, ctx)
+    const playerTargets = r1SelectionPlayerTargets(G, ctx, selection)
+    const dropTargets = r1DropPlayerTargets(G, ctx)
     const dropReason = r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, dropTargets)
     const maxAttackDice = r1MaxAttackDice(player.energy)
     const selectedCard = selection?.kind === 'card' ? hand.cards[selection.index] : null
-    const attacking = selection?.kind === 'drop' || Boolean(R1_ATTACK_RANGE[selectedCard?.Name])
+    const attacking = selection?.kind === 'drop' || r1PlayerCard(selectedCard?.Name)
     const swapChoice = G.currentMove === 'swap_choice' && G.pendingSwap
     const swapCard = G.currentMove === 'swap_card'
     const canPass = swapCard || G.currentMove === 'use_card' || G.currentMove === 'current_second' ||
@@ -133,12 +109,12 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 {roundOrder.map(({ id, status }, slot) => {
                     const p = G.players[id]
                     const state = isBeach(p.cellPosition) ? 'Finished' : p.energy === 0 ? 'Fallen' :
-                        p.activeCard.length ? 'Protected' : ''
+                        p.activeCard.some(c => c.Name === 'Amulet') ? 'Protected' : p.activeCard.some(c => c.Name === 'Hang loose') ? 'Drop In shield' : ''
                     return (
                         <div key={p.position} className="surf-hand r1-player-badge r1-glass"
                             style={{ '--r1-player-color': PLAYER_BOARD_COLORS[p.position % PLAYER_BOARD_COLORS.length] }}
                             data-current={status === 'now'} data-order-status={status}
-                            data-attack-target={attacking && targets.includes(p.cellPosition)}
+                            data-attack-target={highlight.playerIds?.includes(p.position) || false}
                             aria-current={status === 'now' ? 'step' : undefined}>
                             <div className="r1-player-heading">
                                 <span className="r1-player-avatar" aria-hidden="true">{p.position + 1}</span>
@@ -161,7 +137,11 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     <span className="r1-inspection-symbol"><FeedbackIcon kind={hexFeedback.title === 'Beach' ? 'flag' : 'wave'}/></span>}
                 <div className="r1-inspection-body">
                     <div className="r1-inspection-heading"><strong>{hexFeedback.title}</strong><span className="r1-hex-number">#{hexFeedback.id + 1}</span></div>
-                    {hexFeedback.occupant && <div className="r1-hex-occupant">
+                    {hexFeedback.occupants?.length > 0 && <span className="r1-hex-number">{hexFeedback.occupants.length}/{HEX_CAPACITY} surfers</span>}
+                    {hexFeedback.occupants ? hexFeedback.occupants.map(p => <div key={p.position} className="r1-hex-occupant">
+                        <span>{p.text}</span><EnergyMeter energy={p.energy}/>{p.state && <span>{p.state}</span>}
+                        {p.blocked && <span title={p.blocked}><FeedbackIcon kind="blocked"/>{p.blocked}</span>}
+                    </div>) : hexFeedback.occupant && <div className="r1-hex-occupant">
                         <span>{hexFeedback.occupantText.split(' · ')[0]}</span>
                         <EnergyMeter energy={hexFeedback.occupant.energy}/>
                         {hexFeedback.occupantText.split(' · ')[2] && <span>{hexFeedback.occupantText.split(' · ')[2]}</span>}
@@ -205,7 +185,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         {feedback.reason && <span className="r1-blocked-reason"><FeedbackIcon kind="blocked"/>{compactReason(feedback.reason)}</span>}
                         {feedback.playable && <span className="r1-card-next-action">
                             <FeedbackIcon kind={feedback.targets.length ? 'range' : 'move'}/>
-                            {feedback.targets.length && attacking ? feedback.targets.length + (feedback.targets.length === 1 ? ' target' : ' targets') : feedback.action}{' · '}{inspectingOther ? 'Switch card' : selectedCard ? feedback.targets.length ? 'Pick target' : 'Confirm' : 'Select card'}
+                            {feedback.targets.length && attacking ? feedback.playerIds.length + (feedback.playerIds.length === 1 ? ' target' : ' targets') : feedback.action}{' · '}{inspectingOther ? 'Switch card' : selectedCard ? feedback.targets.length ? 'Pick target' : 'Confirm' : 'Select card'}
                         </span>}
                         {feedback.blocked?.length > 0 && <div className="r1-blocked-targets" aria-label="Blocked opponents">
                             {feedback.blocked.map(block => {
@@ -241,9 +221,11 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         {highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
                     </div>}
                     {targets.length > 0 && <div className="r1-targets" aria-label="Legal target hexes">
-                        {targets.map(id => <button type="button" key={id}
-                            aria-label={attacking ? 'Attack Player ' + (G.cells[id].player.position + 1) : 'Select hex ' + (id + 1)}
-                            onClick={() => onTarget(id)}>{attacking ? 'Player ' + (G.cells[id].player.position + 1) : id + 1}</button>)}
+                        {attacking ? playerTargets.map(id => <button type="button" key={id}
+                            aria-label={(selectedCard?.Name === 'Change' ? 'Swap with Player ' : 'Attack Player ') + (id + 1)}
+                            onClick={() => onTarget(G.players[id].cellPosition, id)}>Player {id + 1}</button>) :
+                            targets.map(id => <button type="button" key={id} aria-label={'Select hex ' + (id + 1)}
+                                onClick={() => onTarget(id)}>{id + 1}</button>)}
                     </div>}
                 </div>
                 <div className="r1-hand-heading r1-glass">
@@ -253,7 +235,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 {!handHidden && <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
                     {hand.cards.map((card, index) => {
                         const { reason, playable } = getR1CardFeedback(G, ctx, index)
-                        return <button type="button" key={card.id}
+                        return <button type="button" key={card.id} data-card-tone={cardTone[card.Name]}
                             aria-disabled={!playable} aria-pressed={selection?.kind === 'card' && selection.index === index}
                             style={{ '--r1-fan-angle': ((index - (hand.cards.length - 1) / 2) * 3) + 'deg' }}
                             onMouseEnter={() => inspectCard(card.id)}
@@ -263,7 +245,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             onClick={() => playCard(index)}>
                             <img src={cardArt[card.Name]} alt="" className="r1-card-art" draggable="false" />
                             <span className="r1-card-ready" data-playable={playable} aria-hidden="true">{playable ? '✓' : '–'}</span>
-                            <strong>{card.Name}</strong><span className="r1-card-effect">{shortEffects[card.Name]}</span>
+                            <strong>{card.Name}</strong><span className="r1-card-effect"><FeedbackIcon kind={cardEffectKind(card.Name)}/>{shortEffects[card.Name]}</span>
                             <span className="r1-sr-only">{descriptions[card.Name]} {reason}</span>
                         </button>
                     })}

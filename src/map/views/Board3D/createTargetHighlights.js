@@ -56,7 +56,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
     }
     // All three icon variants are referenced by the scene for its lifetime.
     // Hidden holders let the existing scene disposal collect every material.
-    const icons = ['protected', 'minimum', 'range'].map(materials)
+    const icons = ['protected', 'hangloose', 'minimum', 'range'].map(materials)
     const markers = new Map(cells.map(cell => {
         const marker = new THREE.Group()
         marker.position.set(cell.x, .36, cell.z)
@@ -100,7 +100,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 const code = blocked.get(id)
                 const [surface, outline, icon] = marker.children
                 marker.visible = valid || !!code
-                marker.userData.blocked = !valid ? code : undefined
+                marker.userData.blocked = code
                 if (!valid && code) {
                     const m = materials(code)
                     surface.material = m.fill
@@ -110,7 +110,8 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 } else {
                     surface.material = fill
                     outline.material = stroke
-                    icon.visible = false
+                    icon.visible = !!code
+                    if (code) icon.material = materials(code).icon
                 }
             })
         },
