@@ -177,12 +177,11 @@
     flex-direction: column;
     align-items: center;
     gap: 5px;
-    max-height: min(48dvh, 330px);
+    max-height: calc(100dvh - 112px - max(var(--hud-inset), env(safe-area-inset-bottom)));
 }
 .r1-hud-context {
     max-width: 100%;
-    max-height: min(16dvh, 126px);
-    overflow: auto;
+    overflow: visible;
     display: grid;
     gap: 5px;
     padding: 7px 11px;
@@ -281,20 +280,20 @@
     .surf-match-r1 .surf-map-controls { top: max(140px, calc(env(safe-area-inset-top) + 134px)); flex-direction: row; gap: 1px; max-width: 42%; flex-wrap: wrap; justify-content: flex-end; }
     .surf-match-r1 .surf-orbit-controls { top: max(224px, calc(env(safe-area-inset-top) + 218px)); }
     .r1-match-feedback { top: max(135px, calc(env(safe-area-inset-top) + 129px)); max-width: 48%; left: 27%; padding: 5px 8px; }
-    .r1-hud-dock { max-height: min(48dvh, 320px); }
+    .r1-hud-dock { max-height: calc(100dvh - 140px - max(var(--hud-inset), env(safe-area-inset-bottom))); }
     .r1-floating-hud .r1-hand { justify-content: flex-start; max-width: 100%; gap: 5px; padding: 6px 4px 8px; }
     .r1-floating-hud .r1-hand button { flex-basis: clamp(66px, 19vw, 86px); width: clamp(66px, 19vw, 86px); transform: none; }
     .r1-floating-hud .r1-card-art { height: clamp(40px, 9dvh, 76px); }
     .r1-floating-hud .r1-hand button[aria-pressed="true"] { transform: translateY(-3px); }
-    .r1-hud-context { max-height: min(15dvh, 115px); padding: 5px 8px; }
+    .r1-hud-context { padding: 5px 8px; }
     .r1-floating-hud .r1-action-bar > button { min-height: 35px; min-width: 92px; padding: 6px 13px; }
     .surf-match-r1 .surf-map-2d > svg { max-height: calc(100% - 330px); margin-top: 142px; }
 }
 @media (max-height: 520px) and (orientation: landscape) {
-    .r1-hud-dock { left: 50%; max-height: 49dvh; width: min(620px, 76%); gap: 2px; }
+    .r1-hud-dock { left: 50%; max-height: calc(100dvh - 78px - max(var(--hud-inset), env(safe-area-inset-bottom))); width: min(620px, 76%); gap: 2px; }
     .r1-floating-hud .r1-card-art { height: 38px; }
     .r1-floating-hud .r1-hand { padding-block: 5px; }
-    .r1-hud-context { max-height: 15dvh; padding: 4px 7px; }
+    .r1-hud-context { padding: 4px 7px; }
     .r1-hand-heading { padding-block: 1px; }
     .r1-match-feedback { top: 78px; max-width: 42%; left: 36%; }
     .surf-match-r1 .surf-map-controls { top: 83px; flex-direction: row; }
@@ -436,4 +435,40 @@
     .r1-top-feedback { top: 78px; max-width: 42%; left: 36%; }
     .r1-card-detail { padding: 3px 6px; gap: 5px; }
     .r1-card-detail .r1-inspection-art { width: 32px; height: 32px; }
+}
+
+/* Let content take its natural height. Only the available viewport height
+   limits the contextual stack; keep the hand and main action bar outside it. */
+.r1-dock-context-scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: max-content;
+    max-width: 100%;
+    min-height: 0;
+    flex: 0 1 auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    pointer-events: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #60919a transparent;
+    box-sizing: border-box;
+}
+.r1-dock-context-scroll > * { flex-shrink: 0; }
+.r1-dock-context-scroll:not(:has(> :not(:empty))) { display: none; }
+.r1-top-feedback {
+    max-height: calc(100dvh - 112px - var(--hud-inset));
+    overflow-y: auto;
+    overflow-x: hidden;
+    align-content: start;
+    scrollbar-width: thin;
+    scrollbar-color: #60919a transparent;
+}
+.r1-top-feedback > * { min-width: 0; }
+@media (max-width: 520px) {
+    .r1-top-feedback { max-height: calc(100dvh - 135px - var(--hud-inset)); }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+    .r1-top-feedback { max-height: calc(100dvh - 78px - var(--hud-inset)); }
 }
