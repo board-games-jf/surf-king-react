@@ -39,7 +39,7 @@ test('Drop In, cancellation, recovery and game over clear or replace highlights'
     G.players[1].cellPosition = 14
     const selection = { kind: 'drop', diceCount: 1 }
     expect(r1DropTargets(G, ctx)).toEqual([14])
-    expect(getR1TargetHighlight(G, ctx, selection)).toEqual({ kind: 'attack', cellIds: [14], preview: false })
+    expect(getR1TargetHighlight(G, ctx, selection)).toEqual({ kind: 'attack', cellIds: [14], preview: false, playerIds: [1] })
     expect(getR1TargetHighlight(G, ctx, null).kind).toBe('move')
     G.currentMove = 'recover'
     expect(getR1TargetHighlight(G, ctx, null).cellIds).toEqual([])
