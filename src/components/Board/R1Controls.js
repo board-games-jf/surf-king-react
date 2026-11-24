@@ -1,7 +1,7 @@
 import React from 'react'
 import {
     r1CardPlayable, r1CardTargets, r1DropTargets, r1MoveTargets, isBeach,
-    DROP_IN_RANGE, r1AttackUnavailableReason,
+    DROP_IN_RANGE, r1AttackUnavailableReason, r1MaxAttackDice,
 } from '../../game/r1/SurfKingR1'
 import { getR1RoundOrder } from './r1RoundOrder'
 import cardArt0 from '../../assets/cards/energyx2.png'
@@ -53,6 +53,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const targets = r1SelectionTargets(G, ctx, selection)
     const dropTargets = r1DropTargets(G, ctx)
     const dropReason = r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, dropTargets)
+    const maxAttackDice = r1MaxAttackDice(player.energy)
     const attacking = selection?.kind === 'drop' || (selection?.kind === 'card' &&
         ['Big wave', 'Sunburn'].includes(player.cards[selection.index]?.Name))
     const canPass = G.currentMove === 'use_card' || G.currentMove === 'current_second' ||
@@ -73,7 +74,13 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 {!winner && G.turn === 1 && <span>No attacks this round</span>}
             </div>
             <div aria-live="polite">{G.message}</div>
-            {G.atkDices.length > 0 && <div>Drop In dice: {G.atkDices.join(', ')} vs {G.defDices.join(', ')}</div>}
+            {G.atkDices.length > 0 && <div className="r1-dice-results" aria-label="Drop In dice results">
+                {G.atkDices.map((die, i) => <span key={i}>
+                    {die}{G.defDices[i] !== undefined ? ' vs ' + G.defDices[i] + ' — ' +
+                        (die > G.defDices[i] ? 'Defender −1' : die < G.defDices[i] ? 'Attacker −1' : 'Tie') : ' (unpaired)'}
+                </span>)}
+                {G.defDices.slice(G.atkDices.length).map((die, i) => <span key={'def-' + i}>Defender {die} (unpaired)</span>)}
+            </div>}
             <div className="surf-hands r1-round-order" aria-label="Round play order">
                 {roundOrder.map(({ id, status }, slot) => {
                     const p = G.players[id]
@@ -97,8 +104,17 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 <div className="surf-turn">
                     <button type="button" className="r1-drop-button" disabled={!!dropReason}
                         aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
-                        onClick={() => setSelection({ kind: 'drop' })}>Attack · Drop In (2 hexes)</button>
-                    <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, requires 2+ energy')}</span>
+                        onClick={() => setSelection({ kind: 'drop', diceCount: maxAttackDice })}>Attack · Drop In (2 hexes)</button>
+                    <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
+                </div>
+                {selection?.kind === 'drop' && !dropReason && <div className="surf-turn" role="group" aria-label="Attack dice">
+                    <strong>Choose attack dice</strong>
+                    {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map(count =>
+                        <button type="button" key={count} aria-pressed={selection.diceCount === count}
+                            onClick={() => setSelection({ kind: 'drop', diceCount: count })}>
+                            {count} {count === 1 ? 'die' : 'dice'}
+                        </button>)}
+                    <span>Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
                 </div>
                 <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
                     {hand.cards.map((card, index) => {
