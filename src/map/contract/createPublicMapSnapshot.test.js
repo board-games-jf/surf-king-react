@@ -67,8 +67,10 @@ test('R1 turn marker follows the active surfer and disappears at game over', () 
     const G = { ...game(), ruleset: 'R1', currentMove: 'use_card', winner: null }
     expect(createPublicMapSnapshot(G, { currentPlayer: '0' }).turnMarkerPlayerId).toBe('0')
     expect(createPublicMapSnapshot(G, { currentPlayer: '1' }).turnMarkerPlayerId).toBe('1')
+    expect(createPublicMapSnapshot(G, { currentPlayer: '0' }).winnerPlayerId).toBeUndefined()
     G.winner = 0
     expect(createPublicMapSnapshot(G, { currentPlayer: '1' }).turnMarkerPlayerId).toBeNull()
+    expect(createPublicMapSnapshot(G, { currentPlayer: '1' }).winnerPlayerId).toBe('0')
     expect(createPublicMapSnapshot(game(), { currentPlayer: '0' }).turnMarkerPlayerId).toBeUndefined()
 })
 
