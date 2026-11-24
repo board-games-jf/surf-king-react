@@ -1,31 +1,34 @@
-# Surf King — R1 ten-type card sheet (TABLETOP TRIAL ONLY)
+# Surf King — Minimal R1 ten-type card sheet (TABLETOP TRIAL ONLY)
 
-**Status:** Proposed simple-deck alternative for [R1 quick-start rules](PLAYTEST_MINIMAL_R1_RULES.md), **not approved or implemented**. Use **exactly 60 physical cards**, with 10 recognizable effects. Fixed Sharks are already on the board; they are **not** in the deck. Compared against the previous [17-type B60 pilot](PLAYTEST_R0_CARDS.md) in [full-match simulations](R0_MINIMAL_DECK_STUDY.md).
+**Status:** Owner-requested thematic revision; **unapproved experimental deck, not production rules**. Read alongside the [one-page R1 quick-start](PLAYTEST_MINIMAL_R1_RULES.md). [Iteration AB comparison](R1_CYCLONE_JUMP_STUDY.md) tests this **10-type/60-card** option against a **11-type Stone-retaining alternative**. Preplaced Sharks 28–31 remain part of the board and are never shuffled or removed.
 
-## Print / shuffle this deck
+## Print and shuffle: one deck, exactly 60 cards
 
-| Card | Copies | Text to put on the card |
+| Card | Copies | Simple effect |
 | --- | ---: | --- |
-| **Energy x2** | **12** | Restore **2 energy** to yourself, up to 5. |
-| **Lifeguard Float** | **9** | When fallen, use your action to get up on your hex with **3 energy** (instead of the free 1). |
-| **Big Wave** | **3** | Choose an upright rival within **2 hex edges**. They lose **2 energy** unless protected. |
-| **Sunburn** | **7** | Choose an upright rival within **3 hex edges**. They lose **1 energy** unless protected. |
-| **Stone** | **4** | Place on an empty legal hex within **2 edges**. **Blocks entry** until your third following turn, or until removed. One active Stone per player. |
-| **Storm** | **7** | Place on an empty legal hex within **2 edges**. Entering it costs **1 energy**; it remains until removed. |
-| **Island** | **3** | Place on an empty legal hex within **2 edges**. The **first surfer to enter gains 2 energy**, then remove it. |
-| **Jumping** | **4** | Remove **one adjacent placed obstacle**, then take your normal move. **Never** remove a Shark. |
-| **Amulet** | **7** | Until the start of your next turn, **ignore rivals' damaging cards and Drop In**. Does not protect against Sharks or terrain. |
-| **Surf Current** | **4** | Instead of one normal step, take **up to two consecutive legal edge-steps**. Resolve terrain after each; stop if you fall or reach the beach. Draw at most one card. |
-| **TOTAL** | **60** | **10 types, no new card mechanics.** |
+| **Energy x2** | **12** | Gain **2 energy**, maximum 5. |
+| **Lifeguard Float** | **9** | While fallen, get up at **3 energy** rather than the free 1; uses this turn's card action. |
+| **Big Wave** | **3** | One upright opponent within **2 edges** loses **2 energy**, unless defended. |
+| **Sunburn** | **7** | One upright opponent within **3 edges** loses **1 energy**, unless defended. |
+| **Storm** | **7** | Place within **2 edges**. Entering its hex costs **1 energy**. Stays in place. |
+| **Cyclone** | **7** | Place within **2 edges**. On entry, immediately move the surfer to **one randomly chosen legal adjacent free hex** other than the one just left. If none, remain. Redirect at most once per maneuver; resolve the destination's effects. Cyclone stays in place. |
+| **Island** | **3** | Place within **2 edges**. First surfer entering gains **2 energy**, maximum 5; then discard Island. |
+| **Jumping** | **4** | **Move to an adjacent vacant hex with a Shark or placed obstacle. Stay on that hex and ignore its entry effect. Do not remove the obstacle. This replaces your normal movement.** |
+| **Amulet** | **7** | Until your next turn, ignore opponents' damage cards and Drop In. Does not cancel terrain or Sharks. |
+| **Surf Current** | **4** | Instead of your usual step, make **up to 2 legal consecutive edge-steps**, stopping on fall/beach. Draw at most once. |
+| **TOTAL** | **60** | **10 effect types**, no extra setup bonuses. |
 
-## Three common reminders (for all ten cards)
+### Shared reminders
 
-1. A played card uses your **one optional action for the turn**; no direct attacks in round one. **One successful normal/Surf Current maneuver allows at most one end-of-turn draw** while upright, and hand limit is five.
-2. Place Stone, Storm and Island **only on empty, obstacle-free, non-Shark, non-beach cells 7–48**, within two true edge steps from your surfer. Never stack placed obstacles. Stone has a time limit; Storm stays until Jumping removes it; Island disappears after first activation.
-3. At 0 energy you fall in place and lose **one random hand card**. If a rival caused the fall, the card goes to them (otherwise discard). Next own turn you **always get up for free with energy 1**, so Lifeguard Float is helpful but optional. At five-card hand limit, the recipient discards one card of their choice if necessary.
+- Each played card uses the **one optional tactical action**. A Jumping **counts as the turn's maneuver**: never add a second normal step. After a successful maneuver, draw at most one card if upright and below the five-card hand limit. No attacks in the first round.
+- Jumping ignores **all** entry effects on the chosen hex, whether harmful or beneficial. A Shark causes **no damage**, a Cyclone does **not** redirect, a Storm causes **no damage**, and an Island grants **no energy** to that jumping surfer. The obstacle and Shark remain. Normal arrival on them still uses their usual effects. Staying in the hex does not trigger a second arrival.
+- Placed Storm, Cyclone and Island cards go on a **vacant, obstacle-free, non-Shark, non-beach hex 7–48**, no more than two actual adjacent edges from the user. Storm and Cyclone persist for the pilot; Island disappears after its first ordinary entry. Never stack placed hazards.
+- At zero energy, fall on the same hex, lose a **random unplayed hand card** (to the responsible opponent if directly caused by them, otherwise discard), and get up next own turn at energy 1 without waiting. The active/placed cards are not eligible for the loss; no card loss if the hand is empty.
 
-## What was combined or removed?
+### Why Stone is absent in this specific ten-type trial
 
-Compared with the **17-type R0 pilot**, *Energy*, *Coconut* → more **Energy x2** copies; *Swimming Fin* → **Lifeguard Float**; *Cyclone* → **Storm**; *Change*, *Hang Loose* → **Amulet**; and *Tsunami* → **Sunburn**. **These are physical copy substitutions**, not new hybrid card effects. The exact 60-card counts were verified in the simulation model.
+The owner wants **Cyclone retained** and **Jumping to safely land and stay in a hazard hex**, **not** skip a hex or erase terrain. To keep only ten distinct effects, this pilot exchanges the old four **Stone** copies for four additional Cyclones, giving **7 Cyclone cards** in total. Stone's unique blocking and expiry rules disappear; this is a **candidate simplification, not approval to remove Stone from the game**. [The 11-type test option](R1_CYCLONE_JUMP_STUDY.md) retains all four Stones and has **3 Cyclones**, so both directions remain available if hands-on play shows seven Cyclones feel excessive.
 
-**Manual review:** Does losing Cyclone/Tsunami/Change make turns clearer? Do three obstacle cards (Stone/Storm/Island) already feel like too much? Do players still attack, steal, rescue and help/hinder one another enough? Record real **minutes**, unclear resolutions and whether each player wants a rematch. This sheet is deliberately a **proposal** until the owner tests it; do not modify production or merge as-is.
+Compared with the prior 17-effect model, the other eliminated names remain Energy (weaker heal), Coconut (full heal), Swimming Fin (weaker recovery), Change (swap), Tsunami (row push) and Hang Loose (second shield). The 60-card quantity is retained; all copies are reallocated to already implemented experimental effects. **Do not physically combine this deck with the archived B60 or previous ten-card sheet.**
+
+**Playtest focus:** Can players immediately understand Jumping's safe landing? Do the Cyclones produce funny surprises without causing repeated rules questions? Is losing Stone a worthwhile simplification? Are attack, defense, rescue and player interaction still lively? No actual human session or app engine test has been claimed.
