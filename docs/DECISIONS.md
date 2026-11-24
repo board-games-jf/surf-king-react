@@ -44,6 +44,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-032 | Accepted | R1 Drop In targets a standing, unprotected opponent within two graph edges, without a card or energy cost. Keep the first-round restriction, one pre-movement tactic, existing dice and damage, Big Wave and Sunburn ranges. Always show the attack control with availability reasons and highlight legal opponents when selected. | Owner approved the change after reporting no attack opportunities. The exploratory 1,500-match audit is recorded in issue #42; real interactive balance remains to be tested. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-033 | Accepted | Drop In remains free and can be repeated before movement while the attacker has at least 2 energy. Only losing the duel costs 1 energy; ties cost nothing. A maximum of one card may be played independently of Drop In attempts, in either order before movement. Jumping ends the turn; Surf Current permits attacks before its first step, not between steps. | Owner clarified the energy floor and explicitly rejected an attack initiation cost. Supersedes the one-tactic restriction in SK-DEC-032; its range, defense, dice, first-round restriction and attack UI remain unchanged. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
