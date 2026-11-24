@@ -5,7 +5,7 @@ import Board3D from '../../map/views/Board3D/Board3D'
 import R1Controls from './R1Controls'
 import { getR1HexFeedback } from './r1HexFeedback'
 import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
-import { getTargetHighlightStyle } from '../../map/contract/targetHighlight'
+import { getTargetHighlightStyle, getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import { createPublicMapSnapshot } from '../../map/contract/createPublicMapSnapshot'
 import { seaColor } from '../../constants/Colors'
 import {
@@ -80,7 +80,7 @@ const Board = ({ G, ctx, moves }) => {
     const pinnedHexId = clickedHex?.scope === inspectionScope ? clickedHex.id : null
     const inspectedHexId = hoveredHex ?? pinnedHexId
     const clearHexInspection = () => { setClickedHex(null); setHoveredHex(null) }
-    const hexFeedback = isR1 ? getR1HexFeedback(G, ctx, inspectedHexId, r1Selection) : null
+    const hexFeedback = isR1 ? getR1HexFeedback(G, ctx, inspectedHexId, r1Selection, targetHighlight) : null
     const onR1Target = (id) => {
         if (!r1Targets.includes(id)) {
             setClickedHex(previous => previous?.scope === inspectionScope && previous.id === id ? null : { id, scope: inspectionScope })
@@ -108,6 +108,7 @@ const Board = ({ G, ctx, moves }) => {
     const cellProps = (position) => {
         const cell = G.cells[position]
         const targetStyle = isR1 && r1Targets.includes(position) ? { cursor: 'pointer' } : {}
+        const blocked = targetHighlight?.blocked?.find(item => item.id === position)
         const highlight = targetHighlight?.cellIds.includes(position) ? {
             ...getTargetHighlightStyle(targetHighlight.kind), kind: targetHighlight.kind, preview: targetHighlight.preview,
         } : null
@@ -119,10 +120,10 @@ const Board = ({ G, ctx, moves }) => {
         if (cell.obstacle) {
             const name = cell.obstacle.Name.replace(/\s+/g, '').toLowerCase()
             const img = require(`../../assets/obstacles/${name}.png`)
-            return { backgroundImage: img, style: targetStyle, highlight }
+            return { backgroundImage: img, style: targetStyle, highlight, blocked: blocked ? { ...blocked, ...getTargetBlockStyle(blocked.code) } : null }
         }
 
-        return { style: { fill: seaColor, ...targetStyle }, highlight }
+        return { style: { fill: seaColor, ...targetStyle }, highlight, blocked: blocked ? { ...blocked, ...getTargetBlockStyle(blocked.code) } : null }
     }
 
     const renderCell = (cellPosition) => {
