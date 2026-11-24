@@ -67,7 +67,7 @@ const Board = ({ G, ctx, moves }) => {
     const onR1Target = (id) => {
         if (!r1Targets.includes(id)) return
         if (r1Selection?.kind === 'card') moves.useCard(r1Selection.index, id)
-        else if (r1Selection?.kind === 'drop') moves.dropIn(id)
+        else if (r1Selection?.kind === 'drop') moves.dropIn(id, r1Selection.diceCount)
         else moves.maneuver(id)
         setR1Selection(null)
     }
