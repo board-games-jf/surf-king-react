@@ -68,7 +68,7 @@ function EnergyMeter({ energy }) {
     </div>
 }
 
-export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight, onPreviewCard = () => {} }) {
+export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight, onPreviewCard = () => {}, hexFeedback = null }) {
     const player = G.players[ctx.currentPlayer]
     const roundOrder = getR1RoundOrder(G, ctx)
     const hand = player
@@ -152,6 +152,17 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             <div className="r1-match-feedback r1-glass" aria-live="polite">
                 <strong>{winner ? 'Player ' + (winner.position + 1) + ' wins!' : 'Player ' + (player.position + 1) + ' · Your turn'}</strong>
                 <span>{G.message}</span>
+                {hexFeedback && !inspected && <div className="r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
+                    <div className="r1-hex-feedback-heading">
+                        <strong>Hex {hexFeedback.id + 1} · {hexFeedback.title}</strong>
+                        <span className="r1-hex-status">{hexFeedback.status === 'ready' ? 'Available' :
+                            hexFeedback.status === 'preview' ? 'Prepare action' : 'Inspect'}</span>
+                    </div>
+                    {hexFeedback.occupantText && <span>{hexFeedback.occupantText}</span>}
+                    <span>{hexFeedback.entry}</span>
+                    {hexFeedback.risk && <strong className="r1-hex-risk">{hexFeedback.risk}</strong>}
+                    <span className="r1-hex-action">{hexFeedback.action}</span>
+                </div>}
                 {G.atkDices.length > 0 && <div className="r1-dice-results" aria-label="Drop In dice results">
                     {G.atkDices.map((die, i) => <span key={i} data-result={G.defDices[i] === undefined || die === G.defDices[i] ? 'tie' : die > G.defDices[i] ? 'win' : 'loss'}>
                         {die}{G.defDices[i] !== undefined ? ' vs ' + G.defDices[i] + ' — ' +
