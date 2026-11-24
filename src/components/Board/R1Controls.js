@@ -9,7 +9,7 @@ import { CardEffects, HexEffects, FeedbackIcon, terrainArt, compactReason, compa
 import { getR1CardFeedback } from './r1CardFeedback'
 import { getR1RoundOrder } from './r1RoundOrder'
 import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
-import { getTargetHighlightStyle } from '../../map/contract/targetHighlight'
+import { getTargetHighlightStyle, getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import cardArt0 from '../../assets/cards/energyx2.png'
 import cardArt1 from '../../assets/cards/lifeguardfloat.png'
 import cardArt2 from '../../assets/cards/bigwave.png'
@@ -94,13 +94,17 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const detailIndex = detailCard ? hand.cards.indexOf(detailCard) : -1
     const feedback = getR1CardFeedback(G, ctx, detailIndex)
     const inspectingOther = !!selection && !!inspected && inspected.id !== selectedCard?.id
-    function inspectCard(cardId) {
-        setInspection(cardId == null ? null : { cardId, playerId: ctx.currentPlayer, turn: G.turn })
+    function inspectCard(cardId, pinned = false) {
+        setInspection(cardId == null ? null : { cardId, pinned, playerId: ctx.currentPlayer, turn: G.turn })
         onPreviewCard(cardId)
     }
     const canConfirmCard = !!selectedCard && r1CardPlayable(G, ctx, selection.index) && targets.length === 0
     function playCard(index) {
-        if (!r1CardPlayable(G, ctx, index)) return
+        if (!r1CardPlayable(G, ctx, index)) {
+            if (selection) setSelection(null)
+            inspectCard(hand.cards[index].id, true)
+            return
+        }
         inspectCard(null)
         setSelection({ kind: 'card', index })
     }
@@ -203,8 +207,18 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             <FeedbackIcon kind={feedback.targets.length ? 'range' : 'move'}/>
                             {feedback.targets.length && attacking ? feedback.targets.length + (feedback.targets.length === 1 ? ' target' : ' targets') : feedback.action}{' · '}{inspectingOther ? 'Switch card' : selectedCard ? feedback.targets.length ? 'Pick target' : 'Confirm' : 'Select card'}
                         </span>}
+                        {feedback.blocked?.length > 0 && <div className="r1-blocked-targets" aria-label="Blocked opponents">
+                            {feedback.blocked.map(block => {
+                                const style = getTargetBlockStyle(block.code)
+                                const label = block.reason || style.label
+                                return <span key={block.id} className="r1-blocked-target-chip" style={{ color: style.color }} title={label} aria-label={'Player ' + (block.playerId + 1) + ': ' + label}>
+                                    P{block.playerId + 1} {style.symbol === 'one' ? <><FeedbackIcon kind="energy"/>1</> : <FeedbackIcon kind={style.symbol === 'shield' ? 'shield' : 'blocked'}/>}
+                                </span>
+                            })}
+                        </div>}
                         <span className="r1-sr-only">{descriptions[detailCard.Name]} {feedback.reason}</span>
                     </div>
+                    {inspection?.pinned && !selectedCard && <button type="button" className="r1-inspection-close" aria-label="Close card information" onClick={() => inspectCard(null)}>×</button>}
                     {canConfirmCard && !inspectingOther && <button type="button" className="r1-confirm-card" onClick={confirmCard}>Use card</button>}
                 </div>}
                 <div className="r1-hud-context r1-glass">
@@ -243,10 +257,10 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             aria-disabled={!playable} aria-pressed={selection?.kind === 'card' && selection.index === index}
                             style={{ '--r1-fan-angle': ((index - (hand.cards.length - 1) / 2) * 3) + 'deg' }}
                             onMouseEnter={() => inspectCard(card.id)}
-                            onMouseLeave={() => inspectCard(null)}
+                            onMouseLeave={() => { if (!inspection?.pinned) inspectCard(null) }}
                             onFocus={() => inspectCard(card.id)}
-                            onBlur={() => inspectCard(null)}
-                            onClick={() => { inspectCard(card.id); playCard(index) }}>
+                            onBlur={() => { if (!inspection?.pinned) inspectCard(null) }}
+                            onClick={() => playCard(index)}>
                             <img src={cardArt[card.Name]} alt="" className="r1-card-art" draggable="false" />
                             <span className="r1-card-ready" data-playable={playable} aria-hidden="true">{playable ? '✓' : '–'}</span>
                             <strong>{card.Name}</strong><span className="r1-card-effect">{shortEffects[card.Name]}</span>
