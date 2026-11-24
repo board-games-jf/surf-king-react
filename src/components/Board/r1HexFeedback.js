@@ -1,4 +1,5 @@
 import { isBeach, r1DropTargets, r1MoveTargets, R1_ATTACK_RANGE, R1_PLACEMENT_RANGE } from '../../game/r1/SurfKingR1'
+import { getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import { r1SelectionTargets } from './r1TargetHighlight'
 
 const terrain = {
@@ -10,7 +11,7 @@ const terrain = {
 }
 
 // Read-only presentation. All executable target decisions come from the engine.
-export function getR1HexFeedback(G, ctx, id, selection) {
+export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
     if (!Number.isInteger(id) || !G.cells[id]) return null
     const cell = G.cells[id]
     const player = G.players[ctx.currentPlayer]
@@ -62,6 +63,14 @@ export function getR1HexFeedback(G, ctx, id, selection) {
         action = 'Select Move first to enter this hex.'
     } else if (G.currentMove === 'swap_card') action = 'Movement already used; play a card or end turn.'
     else action = 'This hex is not available for movement now.'
+    const block = highlight?.blocked?.find(item => item.id === id)
+    if (block && !legal) {
+        action = block.reason || getTargetBlockStyle(block.code).label
+        status = 'blocked'
+    } else if (!selection && highlight?.preview && highlight.kind !== 'move' && highlight.cellIds.includes(id)) {
+        action = 'Select the card first.'
+        status = 'preview'
+    }
     const ordinaryMove = !selection && (legal || status === 'preview') && !occupant
     const risk = ordinaryMove && effect?.damage >= player.energy ? 'Entering will cause a fall.' : null
     return { id, title, entry, occupantText, action, status, risk, occupant: occupant ? { position: occupant.position, energy: occupant.energy } : null }
