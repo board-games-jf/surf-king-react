@@ -50,3 +50,32 @@ test('placement distinguishes occupied, existing obstacle and valid hexes', () =
     expect(getR1HexFeedback(G, ctx, id, selection)).toMatchObject({ status: 'blocked', action: 'An obstacle is already here.' })
     expect(getR1HexFeedback(G, ctx, null, selection)).toBeNull()
 })
+
+test('shared hazard inspection retains every public element and individual attack reason', () => {
+    const { G, ctx } = fixture()
+    G.turn = 2
+    G.players[2] = { ...G.players[1], position: 2, activeCard: [], cards: [{ Name: 'Hidden card' }] }
+    G.players[1].cellPosition = G.players[2].cellPosition = 7
+    G.players[1].energy = 1
+    G.players[2].energy = 4
+    G.players[2].activeCard = [{ Name: 'Amulet' }, { Name: 'Hang loose' }]
+    G.cells[7].obstacle = { Name: 'Island' }
+    const index = G.players[0].cards.findIndex(c => c.Name === 'Big wave')
+    const before = JSON.stringify(G)
+    const info = getR1HexFeedback(G, ctx, 7, { kind: 'card', index })
+    expect(info).toMatchObject({ title: 'Island', full: true, action: 'No eligible opponents here.', status: 'blocked' })
+    expect(info.entry).toContain('restores 2 energy')
+    expect(info.occupants).toEqual([
+        expect.objectContaining({ position: 1, energy: 1, blocked: '1 energy · Drop In only', eligible: false, states: [] }),
+        expect.objectContaining({ position: 2, energy: 4, blocked: 'Amulet', eligible: false, states: ['Amulet · Protected', 'Hang Loose · Drop In shield'] }),
+    ])
+    expect(JSON.stringify(info)).not.toContain('Hidden card')
+    expect(JSON.stringify(G)).toBe(before)
+    G.players[2].activeCard = []
+    const mixed = getR1HexFeedback(G, ctx, 7, { kind: 'card', index })
+    expect(mixed.occupants.map(p => p.eligible)).toEqual([false, true])
+    expect(mixed.status).toBe('ready')
+    expect(mixed.action).toBe('Click to use Big wave on Player 3.')
+    G.players[2].energy = 0
+    expect(getR1HexFeedback(G, ctx, 7, null).occupants[1].states).toContain('Fallen')
+})
