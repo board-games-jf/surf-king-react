@@ -43,6 +43,15 @@ test('attack stays visible, explains blocked states and selects a named two-edge
     expect(onTarget).toHaveBeenCalledWith(14)
     G.currentMove = 'maneuver'
     rerender(<R1Controls {...props} />)
+    expect(screen.getByRole('button', { name: /Attack · Drop In/ })).toBeEnabled()
+    G.players[0].energy = 1
+    rerender(<R1Controls {...props} />)
     expect(screen.getByRole('button', { name: /Attack · Drop In/ })).toBeDisabled()
-    expect(screen.getByText('Attack before moving, instead of another tactic.', { selector: '#r1-drop-status' })).toBeInTheDocument()
+    expect(screen.getByText('Drop In requires at least 2 energy.', { selector: '#r1-drop-status' })).toBeInTheDocument()
+    G.players[0].energy = 2
+    G.currentMove = 'current_second'
+    G.moved = true
+    rerender(<R1Controls {...props} />)
+    expect(screen.getByRole('button', { name: /Attack · Drop In/ })).toBeDisabled()
+    expect(screen.getByText('Attack before moving.', { selector: '#r1-drop-status' })).toBeInTheDocument()
 })
