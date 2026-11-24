@@ -58,6 +58,32 @@ describe('R1 rules', () => {
             assertConserved(G)
         }
     })
+    test.each(['Storm', 'Cyclone', 'Island'])('places %s anywhere on the free course, not on starts, beaches, sharks or occupied hexes', name => {
+        const { G, ctx } = fixture()
+        relocate(G, 1, 14)
+        place(G, 'Storm', 21)
+        const index = grant(G, 0, name)
+        const targets = r1CardTargets(G, ctx, index)
+        expect(targets).toEqual(Array.from({ length: 42 }, (_, i) => i + 7)
+            .filter(id => ![14, 21, 28, 29, 30, 31].includes(id)))
+        for (const invalid of [0, 6, 14, 21, 28, 31, 49, 52, 53]) {
+            expect(useR1Card(G, ctx, index, invalid)).toBe(INVALID_MOVE)
+        }
+        expect(useR1Card(G, ctx, index, 48)).toBeUndefined()
+        expect(G.cells[48].obstacle.Name).toBe(name)
+        expect(G.currentMove).toBe('maneuver')
+        assertConserved(G)
+    })
+    test('remote placement does not extend attack ranges or Jumping', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 42)
+        place(G, 'Island', 48)
+        for (const name of ['Big wave', 'Sunburn', 'Jumping']) {
+            const index = grant(G, 0, name)
+            expect(r1CardTargets(G, ctx, index)).toEqual([])
+        }
+    })
     test('ordinary movement is free, cannot pass if legal, draws one and advances', () => {
         const { G, ctx } = fixture()
         expect(passR1(G, ctx)).toBeUndefined()
