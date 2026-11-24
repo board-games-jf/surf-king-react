@@ -304,3 +304,17 @@
 @media (prefers-reduced-motion: reduce) {
     .r1-floating-hud .r1-hand button { transition: none; }
 }
+
+.r1-swap-choice {
+    pointer-events: auto;
+    display: grid;
+    gap: 5px;
+    padding: 9px 13px;
+    max-width: 100%;
+    box-sizing: border-box;
+    color: var(--hud-ink);
+    border-color: var(--hud-gold);
+}
+.r1-swap-choice > strong { color: var(--hud-gold); }
+.r1-swap-choice > span { color: var(--hud-mute); }
+.r1-swap-choice .r1-action-row { justify-content: center; }
