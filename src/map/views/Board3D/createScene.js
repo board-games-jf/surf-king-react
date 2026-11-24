@@ -114,6 +114,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     const actor = actors.get(String(playerId))
     if (!actor || !actor.g.visible) return
     sunburnPreview = { playerId: String(playerId), started: performance.now() }
+    showEnergyLoss(playerId, 1, .4)
   }
   // Local review effect: a breaking wave passes through the chosen actor.
   const bigWave = new THREE.Group()
@@ -180,6 +181,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     const actor = actors.get(String(playerId))
     if (!actor || !actor.g.visible) return
     bigWavePreview = { playerId: String(playerId), tsunami, started: performance.now() }
+    showEnergyLoss(playerId, tsunami ? 3 : 2, tsunami ? 1.5 : .9)
   }
   // Amulet activation preview: a golden charm summons a protective aqua bubble.
   const amuletEffect = new THREE.Group()
@@ -272,11 +274,32 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   const energyRing = new THREE.Mesh(new THREE.TorusGeometry(.8, .045, 8, 48), new THREE.MeshBasicMaterial({ color: 0xffd45a, transparent: true, depthWrite: false }))
   energyRing.rotation.x = -Math.PI / 2
   energyEffect.add(energyRing)
-  const energySparks = Array.from({ length: 12 }, () => {
-    const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTexture, color: 0xffdf55, transparent: true, depthWrite: false, toneMapped: false }))
-    spark.scale.set(.32, .32, 1)
-    energyEffect.add(spark)
-    return spark
+  const boltCanvas = document.createElement('canvas')
+  boltCanvas.width = 128
+  boltCanvas.height = 160
+  const boltContext = boltCanvas.getContext('2d')
+  boltContext.beginPath()
+  boltContext.moveTo(70, 7)
+  boltContext.lineTo(25, 87)
+  boltContext.lineTo(57, 87)
+  boltContext.lineTo(44, 151)
+  boltContext.lineTo(108, 63)
+  boltContext.lineTo(76, 63)
+  boltContext.lineTo(94, 7)
+  boltContext.closePath()
+  boltContext.lineJoin = 'round'
+  boltContext.strokeStyle = '#a95d09'
+  boltContext.lineWidth = 6
+  boltContext.stroke()
+  boltContext.fillStyle = '#ffe052'
+  boltContext.fill()
+  const boltTexture = new THREE.CanvasTexture(boltCanvas)
+  boltTexture.colorSpace = THREE.SRGBColorSpace
+  const energyBolts = Array.from({ length: 3 }, () => {
+    const bolt = new THREE.Sprite(new THREE.SpriteMaterial({ map: boltTexture, transparent: true, depthWrite: false, toneMapped: false }))
+    bolt.scale.set(.58, .72, 1)
+    energyEffect.add(bolt)
+    return bolt
   })
   const energyCanvas = document.createElement('canvas')
   energyCanvas.width = 256
@@ -302,6 +325,31 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     const actor = actors.get(String(playerId))
     if (!actor || !actor.g.visible) return
     energyPreview = { playerId: String(playerId), started: performance.now() }
+  }
+  const lossCanvas = document.createElement('canvas')
+  lossCanvas.width = 256
+  lossCanvas.height = 128
+  const lossTexture = new THREE.CanvasTexture(lossCanvas)
+  lossTexture.colorSpace = THREE.SRGBColorSpace
+  const lossText = new THREE.Sprite(new THREE.SpriteMaterial({ map: lossTexture, transparent: true, depthWrite: false, toneMapped: false }))
+  lossText.scale.set(1.4, .7, 1)
+  lossText.visible = false
+  scene.add(lossText)
+  let lossPreview = null
+  function showEnergyLoss(playerId, amount, delay) {
+    const context = lossCanvas.getContext('2d')
+    context.clearRect(0, 0, 256, 128)
+    context.font = 'bold 88px sans-serif'
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+    context.lineWidth = 10
+    context.strokeStyle = '#6d2119'
+    context.strokeText('−' + amount, 128, 64)
+    context.fillStyle = '#ffb0a1'
+    context.fillText('−' + amount, 128, 64)
+    lossTexture.needsUpdate = true
+    lossText.visible = false
+    lossPreview = { playerId: String(playerId), started: performance.now(), delay }
   }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
@@ -863,12 +911,25 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         energyRing.material.opacity = .8 * fade
         energyText.position.y = reduce ? 2.3 : 1.8 + Math.min(1, t / 1.4) * .8
         energyText.material.opacity = fade
-        energySparks.forEach((spark, i) => {
-          const phase = reduce ? .5 : (t * .5 + i / energySparks.length) % 1
-          const angle = i * Math.PI * 2 / energySparks.length + (reduce ? 0 : t)
-          spark.position.set(Math.cos(angle) * .85, .25 + phase * 1.75, Math.sin(angle) * .85)
-          spark.material.opacity = fade * Math.sin(phase * Math.PI)
+        energyBolts.forEach((bolt, i) => {
+          const phase = reduce ? .5 : (t * .45 + i / energyBolts.length) % 1
+          const angle = i * Math.PI * 2 / energyBolts.length + (reduce ? 0 : t * 1.3)
+          bolt.position.set(Math.cos(angle) * .85, .35 + phase * 1.6, Math.sin(angle) * .85)
+          bolt.material.opacity = fade * Math.sin(phase * Math.PI)
         })
+      }
+    }
+    if (lossPreview) {
+      const target = actors.get(lossPreview.playerId)
+      const t = (now - lossPreview.started) / 1000 - lossPreview.delay
+      if (!target || !target.g.visible || t >= 1.8) {
+        lossText.visible = false
+        lossPreview = null
+      } else if (t >= 0) {
+        lossText.visible = true
+        lossText.position.copy(target.g.position)
+        lossText.position.y += reduce ? 2.2 : 1.8 + Math.min(1, t) * .7
+        lossText.material.opacity = Math.min(1, t / .2, (1.8 - t) / .4)
       }
     }
     const activeActor = actors.get(turnMarkerPlayerId)
