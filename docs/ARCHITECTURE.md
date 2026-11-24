@@ -179,6 +179,19 @@ The local setup offers the experimental `SurfKingR1` alongside the original `Sur
 
 R1 occupancy is derived exclusively from player cellPosition, not the legacy single cell.player field. Movement queries enforce capacity two; obstacle placement requires zero occupants. Attack and Change queries return individual player IDs plus deduplicated cell IDs for highlights. Action handlers accept an explicit target player ID and reject ambiguous cell-only requests; the controller offers named target buttons and pins ambiguous hex inspection instead of acting. The public snapshot already supports multiple players in the same cell. SVG renders separate colored number markers, and Three.js offsets/scales shared actors and labels them with individual eligibility without changing logical cell IDs. Both renderers retain the shared legal-cell highlight descriptor and blocked reason codes. Hang Loose and Amulet are separate active-card types; their expiry uses existing begin-turn discard. Legacy rules are unchanged.
 
+## Browser-local athlete appearance mapping (Issue #40)
+
+`localSurferProfiles.js` stores only a validated `{character, boardType}` mapping for local player IDs 0–6, plus the last edited player. The unified creator continues to store its older global preview draft for compatibility. At 3D scene creation, the existing board pipeline resolves a player's saved appearance before choosing the independent approved male/female skinned clone and board silhouette. The seven player board colors remain fixed; no saved profile enters the public snapshot or game engine. Changes become visible when the 3D scene remounts. Missing/invalid storage preserves existing presets. Appearance beyond character and board shape requires separately authored materials and is not provided here.
+
+```mermaid
+flowchart LR
+  Creator[Unified creator] --> Local[Browser-local cosmetic mapping]
+  Local --> Board[Existing 3D scene and catalog]
+  Board --> Rig[Approved male or female rig clone]
+  Board --> Shape[Cosmetic board silhouette]
+  Game[Authoritative game state] --> Board
+```
+
 ## Limits and validation
 
 - Static concept illustrations guided the visual direction but are **not exact exported 3D models**.

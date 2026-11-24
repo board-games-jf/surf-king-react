@@ -1,7 +1,7 @@
 import { PLAYER_BOARD_COLORS } from '../../../constants/playerBoardColors'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js'
-import { PRESET_SURFERS } from './surferStyle'
+import { BOARD_TYPES, CHARACTER_TYPES, PRESET_SURFERS } from './surferStyle'
 import { decorateRiggedSurfer } from './riggedSurferArt'
 import { RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
 import { ATHLETE_ASSET_PATHS, createAthleteSurferArt, inspectRiggedAsset } from './athleteSurferArt'
@@ -13,10 +13,24 @@ export { RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
 // Keep seven established player identities separate from appearance presets.
 export { PLAYER_BOARD_COLORS } from '../../../constants/playerBoardColors'
 
-export function createRiggedBoardSurfer(templates, playerId, { previewFemaleAthlete = false, athleteBoardType = null } = {}) {
+export function resolveBoardSurferStyle(playerId, profile = null) {
   const id = Number(playerId)
   const index = Number.isInteger(id) && id >= 0 ? id % PLAYER_BOARD_COLORS.length : 0
-  const style = PRESET_SURFERS[index % PRESET_SURFERS.length]
+  const preset = PRESET_SURFERS[index % PRESET_SURFERS.length]
+  if (!profile || typeof profile !== 'object') return preset
+  return {
+    ...preset,
+    character: CHARACTER_TYPES.includes(profile.character) ? profile.character : preset.character,
+    boardType: BOARD_TYPES.includes(profile.boardType) ? profile.boardType : preset.boardType
+  }
+}
+
+export function createRiggedBoardSurfer(templates, playerId, {
+  previewFemaleAthlete = false, athleteBoardType = null, localProfile = null
+} = {}) {
+  const id = Number(playerId)
+  const index = Number.isInteger(id) && id >= 0 ? id % PLAYER_BOARD_COLORS.length : 0
+  const style = resolveBoardSurferStyle(playerId, localProfile)
   const character = style.character
   const template = templates?.[character]
   if (!template) throw new Error('Missing ' + character + ' skinned surfer GLB')
