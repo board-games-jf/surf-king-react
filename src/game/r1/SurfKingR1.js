@@ -160,16 +160,15 @@ function arrive(G, ctx, p, from, to) {
 function endR1Turn(G, ctx) {
     const p = actor(G, ctx)
     if (G.moved && p.energy > 0) draw(G, ctx, p)
-    if (isBeach(p.cellPosition)) G.finishers.push(p.position)
     G.completedInRound++
+    if (isBeach(p.cellPosition)) {
+        G.finishers.push(p.position)
+        G.winner = p.position
+        G.currentMove = 'finished'
+        G.message = 'Player ' + (p.position + 1) + ' reached the beach first!'
+        return
+    }
     if (G.completedInRound === ctx.numPlayers) {
-        if (G.finishers.length) {
-            const highest = Math.max(...G.finishers.map(id => G.players[id].energy))
-            const tied = G.finishers.filter(id => G.players[id].energy === highest)
-            G.winner = tied.length === 1 ? tied[0] : choose(ctx, tied)
-            G.currentMove = 'finished'
-            return
-        }
         G.turn++
         G.completedInRound = 0
     }
@@ -184,7 +183,7 @@ function continueAfterTactic(G, ctx, nextMove = 'maneuver') {
 }
 export function r1MoveTargets(G, ctx) {
     const p = actor(G, ctx)
-    if (!p || !alive(p) || !['maneuver', 'current_first', 'current_second'].includes(G.currentMove)) return []
+    if (!p || G.winner != null || !alive(p) || !['maneuver', 'current_first', 'current_second'].includes(G.currentMove)) return []
     return freeNeighbors(G, p.cellPosition)
 }
 export function r1CardPlayerTargets(G, ctx, index) {

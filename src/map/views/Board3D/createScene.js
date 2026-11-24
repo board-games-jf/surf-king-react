@@ -150,11 +150,11 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     context.closePath()
     context.fillStyle = 'rgba(17, 84, 78, .78)'
     context.fill()
-    context.font = 'bold 46px sans-serif'
+    context.font = cell.id >= 49 ? 'bold 28px sans-serif' : 'bold 46px sans-serif'
     context.fillStyle = '#fff'
     context.textAlign = 'center'
     context.textBaseline = 'middle'
-    context.fillText(String(cell.id + 1), 64, 41)
+    context.fillText(cell.id >= 49 ? 'FINISH' : String(cell.id + 1), 64, 41, 114)
     const texture = new THREE.CanvasTexture(canvas)
     texture.colorSpace = THREE.SRGBColorSpace
     const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }))
@@ -328,7 +328,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     maneuverRings.forEach((marker, index) => {
       positionRing(marker, snapshot.targetHighlight ? null : snapshot.maneuverDestinations?.[index])
     })
-    targetHighlights.update(snapshot.targetHighlight)
+    targetHighlights.update(snapshot.targetHighlight, true)
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
       const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell
@@ -339,14 +339,14 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       const offset = shared ? (slot === 0 ? -.56 : .56) : 0
       const target=new THREE.Vector3(cell.x+offset,.13,cell.z)
       a.g.scale.setScalar(shared ? .74 : 1)
-      a.badge.visible = shared
       const blocked = snapshot.targetHighlight?.blocked?.find(item => String(item.playerId) === p.id)
       const legal = snapshot.targetHighlight?.playerIds?.includes(Number(p.id))
-      const label = 'P' + (Number(p.id)+1) + (legal ? '  OK' : blocked ? '  ' + ({
-        protected: 'AMULET', hangloose: 'HANG LOOSE', minimum: '1 ENERGY',
-        range: 'RANGE', fallen: 'FALLEN', finished: 'FINISHED', samecell: 'SAME HEX'
-      }[blocked.code] || 'BLOCKED') : p.fallen ? '  FALLEN' : '')
-      const tint = legal ? '#ff9882' : blocked ? getTargetBlockStyle(blocked.code).color : PLAYER_BOARD_COLORS[Number(p.id)]
+      const winner = snapshot.winnerPlayerId === p.id
+      a.badge.visible = shared || !!blocked || !!legal || winner || p.fallen
+      a.badge.scale.set(shared ? 1.35 : 1.9, shared ? .34 : .48, 1)
+      const label = 'P' + (Number(p.id)+1) + (winner ? ' · WINNER' : legal ? ' · TARGET' :
+        blocked ? ' · ' + getTargetBlockStyle(blocked.code).shortLabel : p.fallen ? ' · Fallen' : '')
+      const tint = winner ? '#ffcf53' : legal ? '#ff9882' : blocked ? getTargetBlockStyle(blocked.code).color : PLAYER_BOARD_COLORS[Number(p.id)]
       const badgeKey = label + tint
       if (a.badgeKey !== badgeKey) {
         const c = a.badgeCanvas.getContext('2d')

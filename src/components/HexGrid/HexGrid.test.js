@@ -64,3 +64,11 @@ test('blocked hex icons are noninteractive and separate from valid highlights', 
     fireEvent.click(container.querySelector('[data-cell-id="1"]'))
     expect(onHexClick).toHaveBeenCalledWith({ position: 1 })
 })
+
+test('individual opponent labels replace duplicate ambiguous cell glyphs', () => {
+    const { container } = render(<HexGrid renderCell={() => null} onHexClick={jest.fn()}
+        cellProps={id => ({ blocked: id === 1 ? { playerId: 0, code: 'minimum', symbol: 'one', color: '#ffcc82', label: '1 energy · Drop In only' } : null })}/>)
+    const blocked = container.querySelector('[data-target-blocked="minimum"]')
+    expect(blocked).toBeInTheDocument()
+    expect(blocked.parentElement.querySelector('svg[aria-label="1 energy · Drop In only"]')).not.toBeInTheDocument()
+})

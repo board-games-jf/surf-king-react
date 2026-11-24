@@ -1,6 +1,6 @@
 import { isBeach, r1DropTargets, r1MoveTargets, R1_ATTACK_RANGE, R1_PLACEMENT_RANGE, r1Occupants, HEX_CAPACITY, r1PlayerCard, r1DropPlayerTargets, r1CardPlayerTargets } from '../../game/r1/SurfKingR1'
 import { getTargetBlockStyle } from '../../map/contract/targetHighlight'
-import { r1SelectionTargets } from './r1TargetHighlight'
+import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
 
 const terrain = {
     Shark: { text: 'Ordinary entry costs 2 energy.', damage: 2 },
@@ -13,6 +13,7 @@ const terrain = {
 // Read-only presentation. All executable target decisions come from the engine.
 export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
     if (!Number.isInteger(id) || !G.cells[id]) return null
+    highlight = highlight || getR1TargetHighlight(G, ctx, selection)
     const cell = G.cells[id]
     const player = G.players[ctx.currentPlayer]
     const occupants = r1Occupants(G, id)
@@ -28,7 +29,7 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
         ' · ' + occupant.energy + '/5 energy' +
         (isBeach(id) ? ' · Finished' : occupant.energy === 0 ? ' · Fallen' :
             occupant.activeCard.some(c => c.Name === 'Amulet') ? ' · Protected' : occupant.activeCard.some(c => c.Name === 'Hang loose') ? ' · Drop In shield' : '') : null
-    let entry = effect?.text || (isBeach(id) ? 'Reach the beach to finish the race.' : 'No terrain penalty.')
+    let entry = effect?.text || (isBeach(id) ? 'First to reach the beach wins immediately.' : 'No terrain penalty.')
     const card = selection?.kind === 'card' ? player.cards[selection.index]?.Name : null
     const legal = r1SelectionTargets(G, ctx, selection).includes(id)
     let action
@@ -69,8 +70,12 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
         action = 'Select Move first to enter this hex.'
     } else if (G.currentMove === 'swap_card') action = 'Movement already used; play a card or end turn.'
     else action = 'This hex is not available for movement now.'
-    const block = highlight?.blocked?.find(item => item.id === id)
-    if (block && !legal && !highlight?.cellIds.includes(id)) {
+    const blocks = highlight?.blocked?.filter(item => item.id === id) || []
+    const block = blocks.length === 1 ? blocks[0] : null
+    if (blocks.length > 1 && !legal && !highlight?.cellIds.includes(id)) {
+        action = 'No eligible opponents here.'
+        status = 'blocked'
+    } else if (block && !legal && !highlight?.cellIds.includes(id) && (occupants.length > 1 || !selection || block.reason)) {
         action = block.reason || getTargetBlockStyle(block.code).label
         status = 'blocked'
     } else if (!selection && highlight?.preview && highlight.kind !== 'move' && highlight.cellIds.includes(id)) {
@@ -80,8 +85,18 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
     }
     const ordinaryMove = !selection && (legal || status === 'preview') && !full && !own && (!highlight || highlight.kind === 'move')
     const risk = ordinaryMove && effect?.damage >= player.energy ? 'Entering will cause a fall.' : null
-    return { id, title, entry, occupantText, action, status, risk, occupants: occupants.map(p => {
+    return { id, title, entry, occupantText, action, status, risk, full, occupants: occupants.map(p => {
         const rejected = highlight?.blocked?.find(b => b.playerId === p.position)
-        return { blocked: rejected ? rejected.reason || getTargetBlockStyle(rejected.code).label : null, position: p.position, energy: p.energy, text: p.position === player.position ? 'Your surfer' : 'Player ' + (p.position + 1), state: isBeach(id) ? 'Finished' : p.energy === 0 ? 'Fallen' : p.activeCard.some(c => c.Name === 'Amulet') ? 'Protected' : p.activeCard.some(c => c.Name === 'Hang loose') ? 'Drop In shield' : '' }
+        const states = [
+            G.winner === p.position ? 'Winner' : isBeach(id) ? 'Finished' : p.energy === 0 ? 'Fallen' : null,
+            p.activeCard.some(c => c.Name === 'Amulet') ? 'Amulet · Protected' : null,
+            p.activeCard.some(c => c.Name === 'Hang loose') ? 'Hang Loose · Drop In shield' : null,
+        ].filter(Boolean)
+        return {
+            position: p.position, energy: p.energy, text: p.position === player.position ? 'Your surfer' : 'Player ' + (p.position + 1),
+            states,
+            eligible: p.position !== player.position && (playerIds.includes(p.position) || !!highlight?.playerIds?.includes(p.position)),
+            blocked: rejected ? rejected.reason || getTargetBlockStyle(rejected.code).label : null,
+        }
     }), occupant: occupant ? { position: occupant.position, energy: occupant.energy } : null }
 }

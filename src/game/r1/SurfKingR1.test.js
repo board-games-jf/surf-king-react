@@ -561,20 +561,32 @@ describe('R1 rules', () => {
         expect(G.players[0].cellPosition).toBe(14)
         assertConserved(G)
     })
-    test('finish round and highest energy wins among beach arrivals', () => {
+    test('first beach arrival wins immediately regardless of energy or round order', () => {
         const { G, ctx } = fixture()
         relocate(G, 0, 42)
         relocate(G, 1, 43)
+        G.players[0].energy = 1
         G.players[1].energy = 5
         passR1(G, ctx)
         r1Maneuver(G, ctx, 49)
-        expect(G.winner).toBeNull()
-        ctx.currentPlayer = '1'
-        beginR1Turn(G, ctx)
-        passR1(G, ctx)
-        r1Maneuver(G, ctx, 50)
-        expect(G.winner).toBe(1)
-        expect(G.finishers).toEqual([0,1])
+        expect(G.winner).toBe(0)
+        expect(G.currentMove).toBe('finished')
+        expect(SurfKingR1.endIf(G)).toEqual({ winner: 0 })
+        expect(ctx.events.endTurn).not.toHaveBeenCalled()
+        expect(G.finishers).toEqual([0])
+        expect(G.players[1].cellPosition).toBe(43)
+        expect(r1Maneuver(G, { ...ctx, currentPlayer: '1' }, 50)).toBe(INVALID_MOVE)
+        assertConserved(G)
+    })
+    test('Surf Current wins on its first step onto the beach', () => {
+        const { G, ctx } = fixture()
+        relocate(G, 0, 42)
+        const index = grant(G, 0, 'Surf Current')
+        useR1Card(G, ctx, index)
+        r1Maneuver(G, ctx, 49)
+        expect(G.winner).toBe(0)
+        expect(G.currentMove).toBe('finished')
+        expect(ctx.events.endTurn).not.toHaveBeenCalled()
         assertConserved(G)
     })
     test('Island remains on the board after entry by multiple surfers and re-entry', () => {
@@ -725,4 +737,27 @@ test('same-cell lethal Drop In transfers a card but never offers a meaningless s
     expect(G.currentMove).toBe('use_card')
     expect(G.players[0].cards).toHaveLength(3)
     assertConserved(G)
+})
+
+test('boardgame.io ends the actual match on the first beach arrival', () => {
+    const game = { ...SurfKingR1, seed: 'R1-finish-test', setup: ctx => {
+        const G = setupR1(ctx)
+        G.players[G.order[0]].cellPosition = 42
+        G.players[G.order[0]].energy = 1
+        return G
+    } }
+    const client = Client({ game, numPlayers: 3 })
+    client.start()
+    try {
+        const first = client.getState().G.order[0]
+        client.moves.pass()
+        client.moves.maneuver(49)
+        const { G, ctx } = client.getState()
+        expect(G.winner).toBe(first)
+        expect(G.finishers).toEqual([first])
+        expect(ctx.gameover).toEqual({ winner: first })
+        expect(ctx.currentPlayer).toBe(String(first))
+    } finally {
+        client.stop()
+    }
 })

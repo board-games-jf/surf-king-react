@@ -59,6 +59,11 @@ test('mixed eligibility keeps a legal highlight and a blocked icon on the same h
     expect(first.children[0].material.color.getHexString()).toBe(getTargetHighlightStyle('attack').color.slice(1))
     expect(first.children[2].visible).toBe(true)
     expect(first.userData.blocked).toBe('hangloose')
+    markers.update({ kind: 'attack', cellIds: [0], preview: true,
+        playerIds: [1], blocked: [{ id: 0, playerId: 2, code: 'hangloose' }] }, true)
+    expect(first.visible).toBe(true)
+    expect(first.children[2].visible).toBe(false)
+    expect(first.userData.blocked).toBe('hangloose')
     markers.update(undefined)
     expect(first.visible).toBe(false)
     geometry.dispose()

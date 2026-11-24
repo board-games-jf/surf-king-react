@@ -30,7 +30,7 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
             cellId: Number.isInteger(player.cellPosition) && player.cellPosition >= 0 && player.cellPosition < 53
                 ? player.cellPosition : null,
         })),
-        ...(G.ruleset === 'R1' ? { turnMarkerPlayerId: G.winner == null ? String(ctx.currentPlayer) : null } : {}),
+        ...(G.ruleset === 'R1' ? { turnMarkerPlayerId: G.winner == null ? String(ctx.currentPlayer) : null, ...(G.winner != null ? { winnerPlayerId: String(G.winner) } : {}) } : {}),
         turn: G.turn,
         activePlayerId: ctx?.currentPlayer == null ? null : String(ctx.currentPlayer),
         selectedCellId: Number.isInteger(selectedCellId) && selectedCellId >= 0 && selectedCellId < 53

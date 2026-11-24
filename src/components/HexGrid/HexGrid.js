@@ -58,7 +58,7 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                             viewBox="0 0 400 340" style={{ pointerEvents: 'none' }}>
                             {renderCell(id)}
                         </svg>
-                        {blocked && <svg x={radius * .25} y={-halfHeight * .88} width={radius * .52} height={radius * .52}
+                        {blocked && blocked.playerId == null && <svg x={radius * .25} y={-halfHeight * .88} width={radius * .52} height={radius * .52}
                             viewBox="0 0 1 1" pointerEvents="none" aria-label={blocked.reason || blocked.label}>
                             <circle cx=".5" cy=".5" r=".48" fill="#153640" stroke={blocked.color} strokeWidth=".045"/>
                             {TARGET_BLOCK_SYMBOL_PATHS[blocked.symbol].map((path, i) => <polyline key={i}

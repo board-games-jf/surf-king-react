@@ -153,10 +153,13 @@ const Board = ({ G, ctx, moves }) => {
                         <circle r={occupants.length === 1 ? 65 : 52} fill={PLAYER_BOARD_COLORS[p.position]}
                             stroke={current ? '#ffcf53' : valid ? '#ff9882' : '#173d36'} strokeWidth={current || valid ? 12 : 5}
                             opacity={p.energy === 0 ? .55 : 1}/>
-                        <text y="18" fontSize={54} fontWeight="bold" fill="#173d36" textAnchor="middle">{p.position + 1}</text>
+                        <text y="18" fontSize={54} fontWeight="bold" fill="#173d36" textAnchor="middle">P{p.position + 1}</text>
                         {current && <text y="-82" fontSize={34} fontWeight="bold" fill="#fff4c5" textAnchor="middle">NOW</text>}
                         <text y="94" fontSize={34} fontWeight="bold" fill="#fff4c5" stroke="#173d36" strokeWidth="2" textAnchor="middle">{p.energy}/5</text>
-                        {block && <text x="49" y="-46" fontSize={42} fontWeight="bold" fill={getTargetBlockStyle(block.code).color} stroke="#173d36" strokeWidth="2" textAnchor="middle">{block.code === 'minimum' ? '1' : ['protected','hangloose'].includes(block.code) ? '◆' : '×'}</text>}
+                        {(G.winner === p.position || block || p.energy === 0) && <g aria-label={G.winner === p.position ? 'Winner' : block?.reason || (block ? getTargetBlockStyle(block.code).label : 'Fallen')}>
+                            <rect x="-82" y="105" width="164" height="34" rx="12" fill="#153640" stroke={G.winner === p.position ? '#ffcf53' : block ? getTargetBlockStyle(block.code).color : '#b0c5ce'} strokeWidth="3"/>
+                            <text y="129" fontSize="23" fontWeight="bold" fill={G.winner === p.position ? '#ffcf53' : block ? getTargetBlockStyle(block.code).color : '#fff4c5'} textAnchor="middle">{G.winner === p.position ? 'WINNER' : block ? getTargetBlockStyle(block.code).shortLabel : 'Fallen'}</text>
+                        </g>}
                     </g>
                 })}
             </>
@@ -195,8 +198,8 @@ const Board = ({ G, ctx, moves }) => {
         }
 
         return (
-            <text x="50%" y="50%" fontSize={80} style={{ fill: 'white' }} textAnchor="middle">
-                {cellPosition + 1}
+            <text x="50%" y="50%" fontSize={isR1 && cellPosition >= 49 ? 43 : 80} fontWeight={isR1 && cellPosition >= 49 ? 'bold' : undefined} style={{ fill: isR1 && cellPosition >= 49 ? '#fff4c5' : 'white' }} textAnchor="middle">
+                {isR1 && cellPosition >= 49 ? 'FINISH' : cellPosition + 1}
             </text>
         )
     }

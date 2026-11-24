@@ -85,10 +85,11 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
     if (group.children.length) group.children[0].add(resources)
     return {
         group,
-        update(highlight) {
+        update(highlight, useIndividualLabels = false) {
             const style = getTargetHighlightStyle(highlight?.kind)
             const ids = new Set(style ? highlight.cellIds : [])
             const blocked = new Map((highlight?.blocked || []).map(item => [item.id, item.code]))
+            const labeledCells = new Set((highlight?.blocked || []).filter(item => item.playerId != null).map(item => item.id))
             if (style) {
                 fill.color.set(style.color)
                 stroke.color.set(style.color)
@@ -106,11 +107,11 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                     surface.material = m.fill
                     outline.material = m.stroke
                     icon.material = m.icon
-                    icon.visible = true
+                    icon.visible = !(useIndividualLabels && labeledCells.has(id))
                 } else {
                     surface.material = fill
                     outline.material = stroke
-                    icon.visible = !!code
+                    icon.visible = !!code && !(useIndividualLabels && labeledCells.has(id))
                     if (code) icon.material = materials(code).icon
                 }
             })
