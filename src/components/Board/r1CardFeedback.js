@@ -1,6 +1,6 @@
 import {
     MAX_ENERGY, R1_ATTACK_RANGE, R1_PLACEMENT_RANGE, isBeach,
-    r1CardPlayable, r1CardTargets, r1MoveTargets, r1AttackUnavailableReason,
+    r1CardPlayable, r1CardTargets, r1MoveTargets, r1AttackUnavailableReason, r1AttackTargetBlocks,
 } from '../../game/r1/SurfKingR1'
 
 // Presentation only: never change the game or infer a legal target independently.
@@ -15,7 +15,8 @@ export function getR1CardFeedback(G, ctx, index) {
     const playable = G.winner == null && r1CardPlayable(G, ctx, index)
     const targets = playable ? r1CardTargets(G, ctx, index) : []
     const previewIds = playable && name === 'Surf Current' ?
-        r1MoveTargets({ ...G, currentMove: 'current_first' }, ctx) : targets
+        r1MoveTargets({ ...G, currentMove: 'current_first' }, ctx) :
+        playable && ['Energy x2', 'Lifeguard float', 'Amulet'].includes(name) ? [player.cellPosition] : targets
     let reason = null
     if (!playable) {
         if (G.winner != null) reason = 'Match finished.'
@@ -42,5 +43,6 @@ export function getR1CardFeedback(G, ctx, index) {
         else if (name === 'Lifeguard float') action = '0 → 3 energy'
         else if (name === 'Amulet') action = 'Protected until your next turn'
     }
-    return { playable, reason, kind, targets, previewIds, action }
+    const blocked = attack ? r1AttackTargetBlocks(G, ctx, attack, targets) : []
+    return { playable, reason, kind, targets, previewIds, action, blocked }
 }
