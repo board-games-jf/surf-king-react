@@ -139,3 +139,30 @@ test('a fallen opponent exposes a mandatory swap or keep decision, not movement'
     expect(screen.getByRole('button', { name: 'End turn' })).toBeEnabled()
     expect(screen.getByText('Position conquered. Use one remaining non-movement card or end turn.')).toBeInTheDocument()
 })
+
+test('hover and keyboard focus instantly explain cards without selecting or playing them', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.players[0].cards = createR1Deck().filter((c, i, a) => a.findIndex(x => x.Name === c.Name) === i)
+    const setSelection = jest.fn()
+    const onPreviewCard = jest.fn()
+    const moves = { useCard: jest.fn() }
+    const props = { G, ctx, moves, selection: null, setSelection, onPreviewCard, onTarget: jest.fn() }
+    render(<R1Controls {...props} />)
+    const hand = screen.getByLabelText('Player 1 hand')
+    const energy = within(hand).getByRole('button', { name: /Energy x2/ })
+    fireEvent.mouseEnter(energy)
+    expect(screen.getByText('✓ Available')).toBeInTheDocument()
+    expect(screen.getByText(/2 → 4 energy · Select card, then confirm/)).toBeInTheDocument()
+    expect(onPreviewCard).toHaveBeenLastCalledWith(G.players[0].cards.find(c => c.Name === 'Energy x2').id)
+    expect(setSelection).not.toHaveBeenCalled()
+    expect(moves.useCard).not.toHaveBeenCalled()
+    fireEvent.mouseLeave(energy)
+    expect(onPreviewCard).toHaveBeenLastCalledWith(null)
+    const attack = within(hand).getByRole('button', { name: /Big wave/ })
+    fireEvent.focus(attack)
+    expect(screen.getByText('Unavailable')).toBeInTheDocument()
+    expect(screen.getByText('Attacks unlock in round 2.', { selector: '.r1-blocked-reason' })).toBeInTheDocument()
+    fireEvent.blur(attack)
+    expect(onPreviewCard).toHaveBeenLastCalledWith(null)
+})
