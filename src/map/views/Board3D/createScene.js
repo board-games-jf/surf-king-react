@@ -67,13 +67,45 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   scene.add(turnMarker)
   // Presentation-only Sunburn preview, owned and disposed by the scene.
   const sunburn = new THREE.Group()
-  const sun = new THREE.Mesh(new THREE.SphereGeometry(.34, 20, 12), new THREE.MeshBasicMaterial({ color: 0xffb829, transparent: true, depthWrite: false }))
-  sun.position.y = 3.4
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.18, .85, 2.7, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xffc83d, transparent: true, opacity: .25, depthWrite: false, side: THREE.DoubleSide }))
-  beam.position.y = 1.85
-  const flare = new THREE.Mesh(new THREE.RingGeometry(.55, .8, 32), new THREE.MeshBasicMaterial({ color: 0xff9832, transparent: true, opacity: .7, depthWrite: false, side: THREE.DoubleSide }))
+  const sunCanvas = document.createElement('canvas')
+  sunCanvas.width = sunCanvas.height = 256
+  const sunContext = sunCanvas.getContext('2d')
+  const glow = sunContext.createRadialGradient(128, 128, 20, 128, 128, 125)
+  glow.addColorStop(0, 'rgba(255,255,223,1)')
+  glow.addColorStop(.3, 'rgba(255,200,55,.95)')
+  glow.addColorStop(.65, 'rgba(255,137,23,.35)')
+  glow.addColorStop(1, 'rgba(255,115,0,0)')
+  sunContext.fillStyle = glow
+  sunContext.fillRect(0, 0, 256, 256)
+  sunContext.fillStyle = '#fff0a0'
+  for (let i = 0; i < 12; i++) {
+    const angle = i * Math.PI / 6
+    sunContext.save()
+    sunContext.translate(128, 128)
+    sunContext.rotate(angle)
+    sunContext.beginPath()
+    sunContext.moveTo(38, -6)
+    sunContext.lineTo(i % 2 ? 75 : 94, 0)
+    sunContext.lineTo(38, 6)
+    sunContext.fill()
+    sunContext.restore()
+  }
+  const sunTexture = new THREE.CanvasTexture(sunCanvas)
+  sunTexture.colorSpace = THREE.SRGBColorSpace
+  const sun = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTexture, transparent: true, depthWrite: false, toneMapped: false }))
+  sun.position.y = 3.5
+  sun.scale.set(2.1, 2.1, 1)
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.12, .68, 2.8, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xffd55e, transparent: true, opacity: .15, depthWrite: false, side: THREE.DoubleSide }))
+  beam.position.y = 1.9
+  const flare = new THREE.Mesh(new THREE.RingGeometry(.58, .67, 48), new THREE.MeshBasicMaterial({ color: 0xffad35, transparent: true, opacity: .7, depthWrite: false, side: THREE.DoubleSide }))
   flare.rotation.x = -Math.PI / 2
-  flare.position.y = .18
+  flare.position.y = .2
+  const sparks = Array.from({ length: 8 }, (_, i) => {
+    const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTexture, color: 0xffa52e, transparent: true, depthWrite: false, toneMapped: false }))
+    spark.scale.set(.28, .28, 1)
+    sunburn.add(spark)
+    return spark
+  })
   sunburn.add(sun, beam, flare)
   sunburn.visible = false
   scene.add(sunburn)
@@ -455,18 +487,25 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (sunburnPreview) {
       const target = actors.get(sunburnPreview.playerId)
       const t = (now - sunburnPreview.started) / 1000
-      if (!target || !target.g.visible || t >= 2.2) {
+      if (!target || !target.g.visible || t >= 3) {
         sunburn.visible = false
         sunburnPreview = null
       } else {
         sunburn.visible = true
         sunburn.position.copy(target.g.position)
-        const fade = Math.min(1, t / .25, (2.2 - t) / .45)
+        const fade = Math.min(1, t / .35, (3 - t) / .65)
         sun.material.opacity = fade
-        beam.material.opacity = .3 * fade
-        flare.material.opacity = .75 * fade
-        flare.scale.setScalar(reduce ? 1 : 1 + .25 * Math.sin(t * 8))
-        sun.scale.setScalar(reduce ? 1 : 1 + .12 * Math.sin(t * 9))
+        beam.material.opacity = .16 * fade
+        flare.material.opacity = .7 * fade
+        flare.scale.setScalar(reduce ? 1 : 1 + .45 * ((t * .65) % 1))
+        const sunSize = reduce ? 2.1 : 2.1 + .14 * Math.sin(t * 4)
+        sun.scale.set(sunSize, sunSize, 1)
+        sparks.forEach((spark, i) => {
+          const phase = reduce ? .5 : (t * .65 + i / sparks.length) % 1
+          const angle = i * Math.PI * 2 / sparks.length
+          spark.position.set(Math.cos(angle) * (.55 + phase * .3), .35 + phase * 1.6, Math.sin(angle) * (.55 + phase * .3))
+          spark.material.opacity = fade * Math.sin(phase * Math.PI) * .8
+        })
       }
     }
     const activeActor = actors.get(turnMarkerPlayerId)

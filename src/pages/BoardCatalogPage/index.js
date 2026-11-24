@@ -20,7 +20,7 @@ import './BoardCatalogPage.css'
 const SURFER_COLORS = ['Orange', 'Coral', 'Teal', 'Blue', 'Yellow', 'Purple', 'Green']
 
 export default function BoardCatalogPage({ animationStudio = false }) {
-  const [selectedCard, setSelectedCard] = useState(null)
+  const [selectedCard, setSelectedCard] = useState('Sunburn')
   const [sunburnPreview, setSunburnPreview] = useState(null)
   const location = useLocation()
   const selectedProfilePlayer = normalizeLocalPlayerId(location.state?.athletePlayerId)
@@ -116,15 +116,15 @@ export default function BoardCatalogPage({ animationStudio = false }) {
               {Object.keys(cardArt).map(name => <button key={name} type="button"
                 data-card-tone={cardTone[name]} aria-pressed={selectedCard === name}
                 style={{ '--r1-fan-angle': '0deg' }}
-                onClick={() => setSelectedCard(selectedCard === name ? null : name)}>
+                onClick={() => setSelectedCard(name)}>
                 <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
               </button>)}
             </div></div>
-            <button type="button" disabled={!Number.isInteger(catalog.surfers[surferId])}
+            <button type="button" disabled={selectedCard !== 'Sunburn' || !Number.isInteger(catalog.surfers[surferId])}
               onClick={() => { focusCell(catalog.surfers[surferId]); setSunburnPreview({ playerId: surferId }) }}>
-              Play Sunburn on selected surfer
+              ▶ Play
             </button>
-            <p>Sunburn preview: a sun and warm beam strike the selected surfer (−1 energy in the game). Visual prototype only.</p>
+            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. Visual prototype on the selected surfer.' : selectedCard + ': animation not available yet.'}</p>
             <div className="board-catalog-divider" />
           </section>}
           <div className="board-catalog-panel-top">
