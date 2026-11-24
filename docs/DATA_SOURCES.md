@@ -93,3 +93,6 @@ The official CC0 pack covers both male and female base characters. No additional
 ## Required validation
 
 For each external source or asset, record: provider, direct source URL, date accessed, license, redistribution restrictions, attribution, and verification method. Unverified sources must remain clearly labeled.
+
+## Original card artwork concepts (2026-11-24)
+- Two AI-generated visual references created with ChatGPT image generation on 2026-11-24: the Shark / Hang loose / Big wave triptych (owner-approved art direction), and a compact 19-type legacy card layout mockup (pending owner review). Neither is a production asset; the mockup contains illustrative, non-authoritative rules and costs. Image binaries have not been archived in this repository. Production artwork, source records and rights review remain pending under [#44](https://github.com/board-games-jf/surf-king-react/issues/44).
