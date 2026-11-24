@@ -69,7 +69,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             <div className="surf-turn">
                 <strong aria-live="polite">{winner ? 'Player ' + (winner.position + 1) + ' wins!' :
                     'R1 pilot · Round ' + G.turn + ' · Player ' + (player.position + 1)}</strong>
-                {!winner && <span>{G.currentMove.replace(/_/g, ' ')}</span>}
+                {!winner && <span>{G.currentMove === 'use_card' ? 'Card optional · attacks repeatable' : G.currentMove === 'maneuver' ? 'Attack or move' : G.currentMove.replace(/_/g, ' ')}</span>}
                 {!winner && G.turn === 1 && <span>No attacks this round</span>}
             </div>
             <div aria-live="polite">{G.message}</div>
@@ -98,12 +98,12 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     <button type="button" className="r1-drop-button" disabled={!!dropReason}
                         aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
                         onClick={() => setSelection({ kind: 'drop' })}>Attack · Drop In (2 hexes)</button>
-                    <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range')}</span>
+                    <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, requires 2+ energy')}</span>
                 </div>
                 <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
                     {hand.cards.map((card, index) => {
                         const range = card.Name === 'Big wave' ? 2 : card.Name === 'Sunburn' ? 3 : null
-                        const reason = !overflow && range ? r1AttackUnavailableReason(G, ctx, range, r1CardTargets(G, ctx, index)) : null
+                        const reason = !overflow && range ? r1AttackUnavailableReason(G, ctx, range, r1CardTargets(G, ctx, index), 'card') : null
                         return <button type="button" key={card.id} title={reason || descriptions[card.Name]}
                             disabled={!overflow && !r1CardPlayable(G, ctx, index)}
                             aria-pressed={selection?.kind === 'card' && selection.index === index}
@@ -117,7 +117,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 <div className="surf-turn">
                     {selection && <button type="button" onClick={() => setSelection(null)}>Cancel selection</button>}
                     {canPass && !selection && <button type="button" onClick={() => moves.pass()}>
-                        {G.currentMove === 'use_card' ? 'No tactic — move' :
+                        {G.currentMove === 'use_card' ? 'Skip card — move' :
                             G.currentMove === 'current_second' ? 'Finish movement' : 'No legal move — end turn'}
                     </button>}
                     {targets.length > 0 && <span>{attacking ? 'Select a highlighted opponent.' : 'Select a highlighted hex on the map.'}</span>}
