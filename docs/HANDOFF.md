@@ -60,3 +60,6 @@
 - Historical provenance and earlier validations are preserved in DATA_SOURCES.md, relevant issues/PRs and Git history. Maintain regression coverage and measure production/mobile performance before release. Run `CI=true npm test -- --watchAll=false` and `npm run build` in an updated dependency-enabled checkout.
 
 Character phase is paused; #33 remains the continuation issue. No deployment is authorized.
+
+## Card art direction (2026-11-24)
+- [Issue #44](https://github.com/board-games-jf/surf-king-react/issues/44) tracks original card artwork independently of the R1 rules pilot. The owner approved the tropical cartoon 3D concept direction (SK-DEC-ART-001) and requested a simpler board-game card treatment. A complete visual mockup is pending owner review; its example costs and effects are not authoritative. Next: approve compact artwork and layout at real hand size, reconcile the current deck, then scope production assets and integration. No application code, image binaries, rules, merge or deployment in this documentation change.
