@@ -188,7 +188,7 @@ describe('R1 rules', () => {
         r1Maneuver(second.G, second.ctx, 25)
         expect(second.G.players[0].energy).toBe(1)
     })
-    test('first round blocks direct attacks; second round fall transfers card', () => {
+    test('first round blocks direct attacks; only Drop In finishes a weakened opponent', () => {
         const { G, ctx } = fixture()
         relocate(G, 1, 4)
         const i = grant(G, 0, 'Big wave')
@@ -196,11 +196,41 @@ describe('R1 rules', () => {
         expect(r1DropTargets(G, ctx)).toEqual([])
         G.turn = 2
         useR1Card(G, ctx, i, 4)
+        expect(G.players[1].energy).toBe(1)
+        expect(G.players[1].fellOffTheBoard).toBe(-1)
+        expect(G.players[1].cards).toHaveLength(2)
+        expect(G.players[0].cards).toHaveLength(2)
+        expect(G.currentMove).toBe('maneuver')
+        const rolls = [6, 1]
+        ctx.random.D6 = () => rolls.shift()
+        r1DropIn(G, ctx, 4, 1)
         expect(G.players[1].energy).toBe(0)
         expect(G.players[1].cards).toHaveLength(1)
         expect(G.players[0].cards).toHaveLength(3)
         expect(G.currentMove).toBe('maneuver')
         assertConserved(G)
+    })
+    test.each(['Sunburn', 'Big wave', 'Tsunami'])('%s cannot cause a fall or take a card', name => {
+        for (let energy = 1; energy <= 5; energy++) {
+            const { G, ctx } = fixture()
+            G.turn = 2
+            relocate(G, 1, 4)
+            G.players[1].energy = energy
+            const index = grant(G, 0, name)
+            const hand = G.players[1].cards.slice()
+            const damage = { Sunburn: 1, 'Big wave': 2, Tsunami: 3 }[name]
+            if (energy === 1) {
+                expect(r1CardTargets(G, ctx, index)).toEqual([])
+                expect(useR1Card(G, ctx, index, 4)).toBe(INVALID_MOVE)
+                expect(r1DropTargets(G, ctx)).toEqual([4])
+            } else {
+                expect(useR1Card(G, ctx, index, 4)).toBeUndefined()
+            }
+            expect(G.players[1].energy).toBe(Math.max(1, energy - damage))
+            expect(G.players[1].fellOffTheBoard).toBe(-1)
+            expect(G.players[1].cards).toEqual(hand)
+            assertConserved(G)
+        }
     })
     test('Amulet protects against attacks but expires at next personal turn', () => {
         const { G, ctx } = fixture()
