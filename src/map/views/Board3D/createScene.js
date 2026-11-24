@@ -65,6 +65,24 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   turnMarker.renderOrder = 1000
   turnMarker.visible = false
   scene.add(turnMarker)
+  // Presentation-only Sunburn preview, owned and disposed by the scene.
+  const sunburn = new THREE.Group()
+  const sun = new THREE.Mesh(new THREE.SphereGeometry(.34, 20, 12), new THREE.MeshBasicMaterial({ color: 0xffb829, transparent: true, depthWrite: false }))
+  sun.position.y = 3.4
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.18, .85, 2.7, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xffc83d, transparent: true, opacity: .25, depthWrite: false, side: THREE.DoubleSide }))
+  beam.position.y = 1.85
+  const flare = new THREE.Mesh(new THREE.RingGeometry(.55, .8, 32), new THREE.MeshBasicMaterial({ color: 0xff9832, transparent: true, opacity: .7, depthWrite: false, side: THREE.DoubleSide }))
+  flare.rotation.x = -Math.PI / 2
+  flare.position.y = .18
+  sunburn.add(sun, beam, flare)
+  sunburn.visible = false
+  scene.add(sunburn)
+  let sunburnPreview = null
+  function playSunburn(playerId) {
+    const actor = actors.get(String(playerId))
+    if (!actor || !actor.g.visible) return
+    sunburnPreview = { playerId: String(playerId), started: performance.now() }
+  }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -434,6 +452,23 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       if(sample.remount!==undefined) renderer.domElement.dataset['surferRemount'+a.id]=sample.handContact>.9?'press':sample.remount>.7?'stand':'reach'
       else delete renderer.domElement.dataset['surferRemount'+a.id]
     }
+    if (sunburnPreview) {
+      const target = actors.get(sunburnPreview.playerId)
+      const t = (now - sunburnPreview.started) / 1000
+      if (!target || !target.g.visible || t >= 2.2) {
+        sunburn.visible = false
+        sunburnPreview = null
+      } else {
+        sunburn.visible = true
+        sunburn.position.copy(target.g.position)
+        const fade = Math.min(1, t / .25, (2.2 - t) / .45)
+        sun.material.opacity = fade
+        beam.material.opacity = .3 * fade
+        flare.material.opacity = .75 * fade
+        flare.scale.setScalar(reduce ? 1 : 1 + .25 * Math.sin(t * 8))
+        sun.scale.setScalar(reduce ? 1 : 1 + .12 * Math.sin(t * 9))
+      }
+    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
@@ -491,5 +526,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }

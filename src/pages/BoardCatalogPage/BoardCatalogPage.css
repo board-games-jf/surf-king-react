@@ -129,6 +129,8 @@
   .board-catalog-stage .surf-orbit-controls { top: 51px; }
 }
 
-.animation-studio-cards .r1-hand { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 3px; }
-.animation-studio-cards .r1-hand button { flex: 0 0 80px; width: 80px; cursor: pointer; }
-.board-catalog-actions p { width: 100%; font-size: 12px; }
+.board-catalog .animation-studio-cards { position: static; pointer-events: auto; }
+.board-catalog .animation-studio-cards .r1-hand { width: 100%; display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; padding: 10px 3px 14px; scrollbar-width: thin; }
+.board-catalog .animation-studio-cards .r1-hand button { flex: 0 0 80px; width: 80px; cursor: pointer; }
+.board-catalog-actions { flex-wrap: wrap; }
+.board-catalog-actions p { flex: 0 0 100%; font-size: 12px; }

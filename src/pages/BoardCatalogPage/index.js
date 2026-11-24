@@ -21,6 +21,7 @@ const SURFER_COLORS = ['Orange', 'Coral', 'Teal', 'Blue', 'Yellow', 'Purple', 'G
 
 export default function BoardCatalogPage({ animationStudio = false }) {
   const [selectedCard, setSelectedCard] = useState(null)
+  const [sunburnPreview, setSunburnPreview] = useState(null)
   const location = useLocation()
   const selectedProfilePlayer = normalizeLocalPlayerId(location.state?.athletePlayerId)
   const requestedType = location.state?.athleteBoardType
@@ -99,6 +100,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
             previewFemaleAthlete
             athleteBoardType={athleteBoardType}
             snapshot={snapshot}
+            sunburnPreview={sunburnPreview}
             onCellSelect={onCellSelect}
             onUnavailable={setError}
             focusCellId={tool === 'Inspect' ? selectedCellId : null}
@@ -109,7 +111,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
         <aside className="board-catalog-panel" aria-label="Catalog controls">
           {animationStudio && <section>
             <h2>Card interaction preview</h2>
-            <p>Hover, focus or select each card to replay the existing hand transition. Card-specific played effects are not implemented yet.</p>
+            <p>Hover, focus or select each card to replay the existing hand transition. Select a surfer below to preview Sunburn; other card effects are not implemented yet.</p>
             <div className="r1-floating-hud animation-studio-cards"><div className="r1-hand">
               {Object.keys(cardArt).map(name => <button key={name} type="button"
                 data-card-tone={cardTone[name]} aria-pressed={selectedCard === name}
@@ -118,6 +120,11 @@ export default function BoardCatalogPage({ animationStudio = false }) {
                 <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
               </button>)}
             </div></div>
+            <button type="button" disabled={!Number.isInteger(catalog.surfers[surferId])}
+              onClick={() => { focusCell(catalog.surfers[surferId]); setSunburnPreview({ playerId: surferId }) }}>
+              Play Sunburn on selected surfer
+            </button>
+            <p>Sunburn preview: a sun and warm beam strike the selected surfer (−1 energy in the game). Visual prototype only.</p>
             <div className="board-catalog-divider" />
           </section>}
           <div className="board-catalog-panel-top">

@@ -2,7 +2,7 @@
 
 ## Local animation review studio (#50)
 
-- The `/#/animations` sandbox reuses the 3D catalog to preview idle carving, glide, fall and remount, and displays all R1 cards with their existing hand interaction transition. Card-specific played effects are not implemented. Preview state is isolated from matches. The catalog state suite passed (13 tests) and the production build compiled; a desktop browser opened the studio and verified the fall control state. Full visual and mobile review remain pending. No merge or deployment authorized.
+- The `/#/animations` sandbox reuses the 3D catalog to preview idle carving, glide, fall and remount, and displays all R1 cards in a horizontal scrolling strip with their existing hand interaction transition. Sunburn has a replayable visual prototype (sun, beam and ring) on the selected surfer; other card-specific played effects are not implemented. The prototype is not connected to live matches. Preview state is isolated from matches. The catalog state suite passed (13 tests) and the production build compiled; a desktop browser opened the studio and verified the fall control state. Full visual and mobile review remain pending. No merge or deployment authorized.
 
 
 **Last GitHub verification:** 2026-11-24  
