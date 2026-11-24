@@ -185,3 +185,6 @@ R1 occupancy is derived exclusively from player cellPosition, not the legacy sin
 - One existing licensed local Quaternius GLB is reused in the scene; no new external runtime services or assets are required for Issue #26.
 - Full browser, WebGL, Jest and build validation remain pending; see [HANDOFF.md](HANDOFF.md).
 - No changes to authoritative turn logic, 2D fallback, backend architecture or hosting.
+
+## R1 card artwork (Issue #44)
+`r1CardArt.js` maps current R1 card names to locally bundled WebP art and presentation-only functional colors; terrain inspection reuses matching card art plus Shark. `R1Controls` renders live names and short effects, `r1FeedbackVisuals` retains effect/range SVG icons, and `R1Hud.css` owns the frame and visual state. No rule data or text is baked into the artwork. Legacy art, board geometry, selection, targeting and layout dimensions remain unchanged. The common back is bundled but not used by a new control.

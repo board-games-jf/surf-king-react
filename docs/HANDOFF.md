@@ -4,6 +4,10 @@
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)  
 **Main before PR #38 integration:** `b51c9854262cf0289b693343d47d67e5a8dd6b99` (PR #36 merged; verification run 44995028044 passed; deployment not established).
 
+## R1 card art integration candidate (2026-11-24)
+
+- Issue #44 / branch `feat/44-r1-card-art`: owner approved the tropical cartoon raster set after rejecting the simplified SVG trial. The candidate uses the exact 16 approved WebP files (14 cards, Shark inspection, common back reserved), verified against their original Git blob SHA values. R1 hand and inspection use one shared art registry, functional CSS colors and existing SVG effect icons; Stone explicitly describes entry damage rather than a placement cost. Existing game rules, targeting, HUD dimensions, board models and legacy assets are unchanged. R1 CI is configured to validate this branch, including exact asset hashes and responsive browser checks; full tests/build and manual visual acceptance are pending. No merge/deployment authorized. Documentation PR #45 overlaps this decision and should be reconciled rather than merged blindly.
+
 ## R1 shared-hex / defense trial (2026-11-24)
 
 - PR #43 merged into main at `8a3bbd88265c52c97935beb9c942c4a11b066f01`; final [CI 45397926576](https://github.com/board-games-jf/surf-king-react/actions/runs/45397926576) passed tests, strict build and Chromium HUD validation. No deployment.

@@ -1,12 +1,6 @@
 import React from 'react'
-import { R1_ATTACK_RANGE, R1_PLACEMENT_RANGE } from '../../game/r1/SurfKingR1'
-import shark from '../../assets/obstacles/shark.png'
-import stone from '../../assets/obstacles/stone.png'
-import storm from '../../assets/obstacles/storm.png'
-import cyclone from '../../assets/obstacles/cyclone.png'
-import island from '../../assets/obstacles/island.png'
-
-export const terrainArt = { Shark: shark, Stone: stone, Storm: storm, Cyclone: cyclone, Island: island }
+import { CHANGE_RANGE, R1_ATTACK_RANGE, R1_PLACEMENT_RANGE } from '../../game/r1/SurfKingR1'
+export { terrainArt } from './r1CardArt'
 
 export function FeedbackIcon({ kind }) {
     const paths = {
@@ -34,21 +28,23 @@ const cardEffects = {
     'Big wave': ['energy', 'Up to −2', 'bad'],
     Sunburn: ['energy', '−1', 'bad'],
     Tsunami: ['energy', 'Up to −3', 'bad'],
-    Stone: ['energy', '−1 · Once', 'bad'],
-    Storm: ['energy', '−1', 'bad'],
+    Stone: ['energy', 'Entry −1 · Once', 'bad'],
+    Storm: ['energy', 'Entry −1', 'bad'],
     Cyclone: ['swirl', 'Random redirect'],
-    Island: ['energy', '+2', 'good'],
+    Island: ['energy', 'Entry +2', 'good'],
     Jumping: ['shield', 'Ignore hazard', 'good'],
     Amulet: ['shield', 'Until next turn', 'good'],
     Change: ['move', 'Swap · replaces move', 'good'],
     'Hang loose': ['shield', 'Drop In only', 'good'],
     'Surf Current': ['move', 'Up to 2 steps', 'good'],
 }
+export const cardEffectKind = name => cardEffects[name]?.[0] || 'wave'
+
 export function CardEffects({ name }) {
     const effect = cardEffects[name]
-    const range = (name === 'Change' ? 2 : R1_ATTACK_RANGE[name]) || R1_PLACEMENT_RANGE[name] || (name === 'Jumping' ? 1 : 0)
+    const range = (name === 'Change' ? CHANGE_RANGE : R1_ATTACK_RANGE[name]) || R1_PLACEMENT_RANGE[name] || (name === 'Jumping' ? 1 : 0)
     return <div className="r1-effect-row">
-        {range > 0 && <EffectChip kind="range">{range} {range === 1 ? 'hex' : 'hexes'}</EffectChip>}
+        {range > 0 && <EffectChip kind="range">{R1_PLACEMENT_RANGE[name] ? 'Place: ' : ''}{range} {range === 1 ? 'hex' : 'hexes'}</EffectChip>}
         {effect && <EffectChip kind={effect[0]} tone={effect[2]}>{effect[1]}</EffectChip>}
         {R1_ATTACK_RANGE[name] && <span className="r1-effect-note">Min. 1 energy</span>}
     </div>
