@@ -8,6 +8,8 @@
     --hud-glass: rgba(12, 48, 58, .91);
     --hud-edge: rgba(164, 220, 218, .36);
     --hud-inset: clamp(8px, 1.5vw, 20px);
+    --hud-dock-bottom: max(24px, calc(env(safe-area-inset-bottom) + 12px));
+    --hud-dock-top: max(112px, calc(env(safe-area-inset-top) + 104px));
 }
 .surf-match-r1 .surf-map-2d {
     background: radial-gradient(ellipse at 50% 30%, #5dbbc2, #247e94 66%, #175468);
@@ -169,7 +171,7 @@
 .r1-floating-hud .r1-dice-results [data-result="loss"] { color: #ffc3ab; border-color: #e9a18d; }
 .r1-hud-dock {
     position: absolute;
-    bottom: max(var(--hud-inset), env(safe-area-inset-bottom));
+    bottom: var(--hud-dock-bottom);
     left: 50%;
     transform: translateX(-50%);
     width: min(680px, calc(100% - 2 * var(--hud-inset)));
@@ -177,7 +179,13 @@
     flex-direction: column;
     align-items: center;
     gap: 5px;
-    max-height: calc(100dvh - 112px - max(var(--hud-inset), env(safe-area-inset-bottom)));
+    max-height: max(0px, calc(100% - var(--hud-dock-top) - var(--hud-dock-bottom)));
+    min-height: 0;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #60919a transparent;
 }
 .r1-hud-context {
     max-width: 100%;
@@ -280,7 +288,7 @@
     .surf-match-r1 .surf-map-controls { top: max(140px, calc(env(safe-area-inset-top) + 134px)); flex-direction: row; gap: 1px; max-width: 42%; flex-wrap: wrap; justify-content: flex-end; }
     .surf-match-r1 .surf-orbit-controls { top: max(224px, calc(env(safe-area-inset-top) + 218px)); }
     .r1-match-feedback { top: max(135px, calc(env(safe-area-inset-top) + 129px)); max-width: 48%; left: 27%; padding: 5px 8px; }
-    .r1-hud-dock { max-height: calc(100dvh - 140px - max(var(--hud-inset), env(safe-area-inset-bottom))); }
+    .surf-match-r1 { --hud-dock-top: max(140px, calc(env(safe-area-inset-top) + 134px)); --hud-dock-bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px)); }
     .r1-floating-hud .r1-hand { justify-content: flex-start; max-width: 100%; gap: 5px; padding: 6px 4px 8px; }
     .r1-floating-hud .r1-hand button { flex-basis: clamp(66px, 19vw, 86px); width: clamp(66px, 19vw, 86px); transform: none; }
     .r1-floating-hud .r1-card-art { height: clamp(40px, 9dvh, 76px); }
@@ -437,9 +445,9 @@
     .r1-card-detail .r1-inspection-art { width: 32px; height: 32px; }
 }
 
-/* Let content take its natural height. Only the available viewport height
-   limits the contextual stack; keep the hand and main action bar outside it. */
-.r1-dock-context-scroll {
+/* Bound the complete dock to the match area. Context and hand share a
+   vertical scrollport; the primary action bar stays outside it. */
+.r1-dock-scroll {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -455,8 +463,7 @@
     scrollbar-color: #60919a transparent;
     box-sizing: border-box;
 }
-.r1-dock-context-scroll > * { flex-shrink: 0; }
-.r1-dock-context-scroll:not(:has(> :not(:empty))) { display: none; }
+.r1-dock-scroll > * { flex-shrink: 0; }
 .r1-top-feedback {
     max-height: calc(100dvh - 112px - var(--hud-inset));
     overflow-y: auto;
@@ -474,5 +481,22 @@
 }
 
 .r1-top-feedback[data-pinned="true"] { pointer-events: auto; }
-.r1-dock-context-scroll > .r1-card-detail { pointer-events: auto; }
-.r1-dock-context-scroll { padding: 2px; }
+.r1-dock-scroll > .r1-card-detail { pointer-events: auto; }
+.r1-dock-scroll { padding: 2px; overscroll-behavior-y: contain; }
+.r1-hud-dock > .r1-action-bar {
+    flex: 0 0 auto;
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+}
+/* Keep the main controls reachable even at unusually short heights. */
+@media (max-height: 360px) {
+    .surf-match-r1 { --hud-dock-top: 60px; }
+    .r1-hud-dock { pointer-events: auto; }
+    .r1-floating-hud .r1-hand { padding-block: 5px; }
+    .r1-floating-hud .r1-card-art { height: 32px; }
+    .r1-hand-heading { padding-block: 2px; }
+    .r1-floating-hud .r1-action-bar { padding: 4px 6px; }
+    .r1-floating-hud .r1-action-bar > button { min-height: 32px; }
+}
+
