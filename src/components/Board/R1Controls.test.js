@@ -114,3 +114,28 @@ test('floating HUD selects and confirms immediate cards, while disabled cards re
     fireEvent.click(screen.getByRole('button', { name: 'Move' }))
     expect(moves.pass).toHaveBeenCalledTimes(1)
 })
+
+test('a fallen opponent exposes a mandatory swap or keep decision, not movement', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[1].energy = 0
+    G.currentMove = 'swap_choice'
+    G.pendingSwap = { targetPlayerId: 1, resumeMove: 'use_card' }
+    const moves = { resolveSwap: jest.fn() }
+    const props = { G, ctx, moves, selection: null, setSelection: jest.fn(), onTarget: jest.fn() }
+    const { rerender } = render(<R1Controls {...props} />)
+    const choice = screen.getByRole('group', { name: 'Position conquest' })
+    expect(within(choice).getByText('Player 2 fell!')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Move', exact: true })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Attack · Drop In/ })).toBeDisabled()
+    fireEvent.click(within(choice).getByRole('button', { name: 'Swap positions' }))
+    fireEvent.click(within(choice).getByRole('button', { name: 'Keep position' }))
+    expect(moves.resolveSwap.mock.calls).toEqual([[true], [false]])
+    G.currentMove = 'swap_card'
+    G.pendingSwap = null
+    rerender(<R1Controls {...props} />)
+    expect(screen.queryByRole('group', { name: 'Position conquest' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'End turn' })).toBeEnabled()
+    expect(screen.getByText('Position conquered. Use one remaining non-movement card or end turn.')).toBeInTheDocument()
+})
