@@ -32,6 +32,37 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   renderer.domElement.setAttribute('aria-label','Interactive Surf King 3D board')
   Object.assign(renderer.domElement.style, { display: 'block', width: '100%', height: '100%' })
   container.appendChild(renderer.domElement)
+  // One scene-owned, camera-facing marker, independent of the surfer's roll.
+  const turnCanvas = document.createElement('canvas')
+  turnCanvas.width = 256
+  turnCanvas.height = 128
+  const turnContext = turnCanvas.getContext('2d')
+  turnContext.fillStyle = '#173d36'
+  turnContext.fillRect(24, 8, 208, 68)
+  turnContext.strokeStyle = '#ffcf53'
+  turnContext.lineWidth = 6
+  turnContext.strokeRect(24, 8, 208, 68)
+  turnContext.font = 'bold 44px sans-serif'
+  turnContext.textAlign = 'center'
+  turnContext.fillStyle = '#fff4c5'
+  turnContext.fillText('NOW', 128, 57)
+  turnContext.beginPath()
+  turnContext.moveTo(99, 76)
+  turnContext.lineTo(157, 76)
+  turnContext.lineTo(128, 117)
+  turnContext.closePath()
+  turnContext.fillStyle = '#ffcf53'
+  turnContext.fill()
+  const turnTexture = new THREE.CanvasTexture(turnCanvas)
+  turnTexture.colorSpace = THREE.SRGBColorSpace
+  const turnMarker = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: turnTexture, transparent: true, depthTest: false, depthWrite: false, toneMapped: false
+  }))
+  turnMarker.scale.set(1.6, .8, 1)
+  turnMarker.renderOrder = 1000
+  turnMarker.visible = false
+  scene.add(turnMarker)
+  let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
   controls.mouseButtons.LEFT = THREE.MOUSE.PAN
@@ -257,6 +288,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
   function update(snapshot){positionRing(selected,snapshot.selectedCellId);hexDepth.select(snapshot.selectedCellId)
+    turnMarkerPlayerId = snapshot.turnMarkerPlayerId ?? null
+    turnMarker.visible = false
+    if (turnMarkerPlayerId === null) delete renderer.domElement.dataset.activeTurnPlayer
+    else renderer.domElement.dataset.activeTurnPlayer = turnMarkerPlayerId
     maneuverRings.forEach((marker, index) => {
       positionRing(marker, snapshot.maneuverDestinations?.[index])
     })
@@ -332,6 +367,12 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       renderer.domElement.dataset['surferMotion'+a.id]=a.g.userData.motionState
       if(sample.remount!==undefined) renderer.domElement.dataset['surferRemount'+a.id]=sample.handContact>.9?'press':sample.remount>.7?'stand':'reach'
       else delete renderer.domElement.dataset['surferRemount'+a.id]
+    }
+    const activeActor = actors.get(turnMarkerPlayerId)
+    turnMarker.visible = !!activeActor && activeActor.g.visible
+    if (turnMarker.visible) {
+      turnMarker.position.copy(activeActor.g.position)
+      turnMarker.position.y += 2.1
     }
     for(const g of obstacles.values())g.userData.animate?.(elapsed)
     animateCamera(now)
