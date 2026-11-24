@@ -21,7 +21,7 @@ test('shows distinct illustrations and current R1 effects, including Surf Curren
     expect(stone).toHaveTextContent('Entry −1')
     expect(stone).toHaveTextContent('the surfer who first enters normally loses 1 energy and Stone is removed')
     expect(within(hand).getByRole('button', { name: /Hang loose/i })).toHaveAttribute('data-card-tone', 'protection')
-    expect(within(hand).getByRole('button', { name: /Change/ })).toHaveAttribute('data-card-tone', 'jump')
+    expect(within(hand).getByRole('button', { name: /^Change\b/ })).toHaveAttribute('data-card-tone', 'jump')
     expect(within(hand).getByRole('button', { name: /Surf Current/ })).toHaveTextContent('Move up to two legal steps')
     expect(within(hand).getByRole('button', { name: /Island/ })).toHaveTextContent('every ordinary entry restores 2 energy; Island stays in place')
     expect(screen.getByLabelText('Round play order').querySelector('[aria-current="step"]')).toHaveTextContent('Player 1')
