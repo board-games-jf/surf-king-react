@@ -61,10 +61,8 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
     else if (card === 'Jumping') action = full ? 'Hex full.' : !name ? 'Jumping requires a hazard.' : 'Choose an adjacent hazard.'
     else if (selection?.kind === 'card') action = 'Confirm the selected card first.'
     else if (occupant && r1DropTargets(G, ctx).includes(id)) {
-        if (r1DropTargets(G, ctx).includes(id)) {
-            status = 'preview'
-            action = 'Select Drop In to attack this opponent.'
-        } else action = 'Hex full.'
+        status = 'preview'
+        action = 'Select Drop In to attack this opponent.'
     } else if (full) action = 'Hex full.'
     else if (G.currentMove === 'use_card' && r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx).includes(id)) {
         status = 'preview'
@@ -72,7 +70,7 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
     } else if (G.currentMove === 'swap_card') action = 'Movement already used; play a card or end turn.'
     else action = 'This hex is not available for movement now.'
     const block = highlight?.blocked?.find(item => item.id === id)
-    if (block && !legal) {
+    if (block && !legal && !highlight?.cellIds.includes(id)) {
         action = block.reason || getTargetBlockStyle(block.code).label
         status = 'blocked'
     } else if (!selection && highlight?.preview && highlight.kind !== 'move' && highlight.cellIds.includes(id)) {
@@ -82,5 +80,8 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
     }
     const ordinaryMove = !selection && (legal || status === 'preview') && !full && !own && (!highlight || highlight.kind === 'move')
     const risk = ordinaryMove && effect?.damage >= player.energy ? 'Entering will cause a fall.' : null
-    return { id, title, entry, occupantText, action, status, risk, occupants: occupants.map(p => ({ position: p.position, energy: p.energy, text: p.position === player.position ? 'Your surfer' : 'Player ' + (p.position + 1), state: isBeach(id) ? 'Finished' : p.energy === 0 ? 'Fallen' : p.activeCard.some(c => c.Name === 'Amulet') ? 'Protected' : p.activeCard.some(c => c.Name === 'Hang loose') ? 'Drop In shield' : '' })), occupant: occupant ? { position: occupant.position, energy: occupant.energy } : null }
+    return { id, title, entry, occupantText, action, status, risk, occupants: occupants.map(p => {
+        const rejected = highlight?.blocked?.find(b => b.playerId === p.position)
+        return { blocked: rejected ? rejected.reason || getTargetBlockStyle(rejected.code).label : null, position: p.position, energy: p.energy, text: p.position === player.position ? 'Your surfer' : 'Player ' + (p.position + 1), state: isBeach(id) ? 'Finished' : p.energy === 0 ? 'Fallen' : p.activeCard.some(c => c.Name === 'Amulet') ? 'Protected' : p.activeCard.some(c => c.Name === 'Hang loose') ? 'Drop In shield' : '' }
+    }), occupant: occupant ? { position: occupant.position, energy: occupant.energy } : null }
 }
