@@ -10,6 +10,8 @@ export const MAX_ENERGY = 5
 export const MAX_HAND = 5
 export const DROP_IN_RANGE = 2
 export const DROP_IN_MIN_ENERGY = 2
+export const DROP_IN_MAX_DICE = 2
+export const r1MaxAttackDice = energy => Math.max(0, Math.min(DROP_IN_MAX_DICE, energy - 1))
 const dropInPhase = G => ['use_card', 'maneuver', 'current_first'].includes(G.currentMove) && !G.moved
 export const CardSurfCurrent = { Name: 'Surf Current', Category: 'Action' }
 export const R1_INVENTORY = [
@@ -268,19 +270,30 @@ export function useR1Card(G, ctx, index, to) {
     }
     continueAfterTactic(G, ctx)
 }
-export function r1DropIn(G, ctx, to) {
+export function r1DropIn(G, ctx, to, diceCount) {
     if (!r1DropTargets(G, ctx).includes(to)) return INVALID_MOVE
     const p = actor(G, ctx)
     const q = G.players[G.cells[to].player.position]
-    const roll = player => Array.from({ length: player.energy === 1 ? 1 : 2 }, () => ctx.random.D6())
-    G.atkDices = roll(p)
-    G.defDices = roll(q)
-    const attack = Math.max(...G.atkDices)
-    const defense = Math.max(...G.defDices)
-    G.message = 'Drop In: ' + attack + ' vs ' + defense + '.'
-    if (attack > defense) hurt(G, ctx, q, 1, p)
-    else if (defense > attack) hurt(G, ctx, p, 1, q)
-    // No initiation cost. Repeated duels preserve the current pre-movement phase.
+    const maxDice = r1MaxAttackDice(p.energy)
+    const count = diceCount === undefined ? maxDice : diceCount
+    if (!Number.isInteger(count) || count < 1 || count > maxDice) return INVALID_MOVE
+
+    const roll = n => Array.from({ length: n }, () => ctx.random.D6()).sort((a, b) => b - a)
+    G.atkDices = roll(count)
+    G.defDices = roll(Math.min(DROP_IN_MAX_DICE, q.energy))
+    let attackerLoss = 0
+    let defenderLoss = 0
+    for (let i = 0; i < Math.min(G.atkDices.length, G.defDices.length); i++) {
+        if (G.atkDices[i] > G.defDices[i]) defenderLoss++
+        else if (G.atkDices[i] < G.defDices[i]) attackerLoss++
+    }
+    // Each losing pair costs one energy, even if the other pair is won.
+    // The attacker never risks their last energy; ties and initiation are free.
+    if (attackerLoss) hurt(G, ctx, p, attackerLoss, q)
+    if (defenderLoss) hurt(G, ctx, q, defenderLoss, p)
+    G.message = 'Drop In: Player ' + (p.position + 1) + ' loses ' + attackerLoss +
+        ' energy; Player ' + (q.position + 1) + ' loses ' + defenderLoss + ' energy.' +
+        (q.energy === 0 ? ' Player ' + (q.position + 1) + ' fell!' : '')
     continueAfterTactic(G, ctx, G.currentMove)
 }
 export function discardR1Overflow(G, ctx, index) {
