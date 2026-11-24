@@ -61,7 +61,7 @@ export function getR1HexFeedback(G, ctx, id, selection) {
         status = 'preview'
         action = 'Select Move first to enter this hex.'
     } else if (G.currentMove === 'swap_card') action = 'Movement already used; play a card or end turn.'
-    else action = 'Choose a highlighted hex.'
+    else action = 'This hex is not available for movement now.'
     const ordinaryMove = !selection && (legal || status === 'preview') && !occupant
     const risk = ordinaryMove && effect?.damage >= player.energy ? 'Entering will cause a fall.' : null
     return { id, title, entry, occupantText, action, status, risk }
