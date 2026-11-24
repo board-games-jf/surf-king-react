@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { BOARD_TYPES } from '../../map/views/Board3D/surferStyle'
 import { normalizeLocalPlayerId } from '../../map/views/Board3D/localSurferProfiles'
@@ -29,6 +29,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
   const [cyclonePreview, setCyclonePreview] = useState(null)
   const [islandPreview, setIslandPreview] = useState(null)
   const [energyPreview, setEnergyPreview] = useState(null)
+  const [lifeguardPreview, setLifeguardPreview] = useState(null)
   const location = useLocation()
   const selectedProfilePlayer = normalizeLocalPlayerId(location.state?.athletePlayerId)
   const requestedType = location.state?.athleteBoardType
@@ -45,6 +46,15 @@ export default function BoardCatalogPage({ animationStudio = false }) {
       : null)
   const [error, setError] = useState(null)
 
+  useEffect(() => {
+    if (!lifeguardPreview) return
+    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 150 : 1900
+    const timer = window.setTimeout(() => {
+      setCatalog(current => setCatalogSurferFallen(current, lifeguardPreview.playerId, false))
+    }, delay)
+    return () => window.clearTimeout(timer)
+  }, [lifeguardPreview])
+
   const snapshot = useMemo(
     () => createCatalogSnapshot(catalog, selectedCellId),
     [catalog, selectedCellId]
@@ -59,12 +69,14 @@ export default function BoardCatalogPage({ animationStudio = false }) {
     setSelectedCellId(id)
   }
   const reset = () => {
+    setLifeguardPreview(null)
     setCatalog(createBoardCatalog())
     setTool('Inspect')
     setSelectedCellId(null)
     setError(null)
   }
   const clear = () => {
+    setLifeguardPreview(null)
     setCatalog(createEmptyBoardCatalog())
     setTool('Inspect')
     setSelectedCellId(null)
@@ -119,6 +131,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
             cyclonePreview={cyclonePreview}
             islandPreview={islandPreview}
             energyPreview={energyPreview}
+            lifeguardPreview={lifeguardPreview}
             onCellSelect={onCellSelect}
             onUnavailable={setError}
             focusCellId={tool === 'Inspect' ? selectedCellId : null}
@@ -138,11 +151,11 @@ export default function BoardCatalogPage({ animationStudio = false }) {
                 <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
               </button>)}
             </div></div>
-            <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami', 'Amulet', 'Stone', 'Storm', 'Cyclone', 'Island', 'Energy x2'].includes(selectedCard) || (selectedCard === 'Stone' ? stoneCell === undefined : selectedCard === 'Storm' ? stormCell === undefined : selectedCard === 'Cyclone' ? cycloneCell === undefined : selectedCard === 'Island' ? islandCell === undefined : !Number.isInteger(catalog.surfers[surferId]))}
-              onClick={() => { if (selectedCard === 'Stone') { focusCell(Number(stoneCell)); setStonePreview({ cellId: Number(stoneCell) }) } else if (selectedCard === 'Storm') { focusCell(Number(stormCell)); setStormPreview({ cellId: Number(stormCell) }) } else if (selectedCard === 'Cyclone') { focusCell(Number(cycloneCell)); setCyclonePreview({ cellId: Number(cycloneCell) }) } else if (selectedCard === 'Island') { focusCell(Number(islandCell)); setIslandPreview({ cellId: Number(islandCell) }) } else { focusCell(catalog.surfers[surferId]); (selectedCard === 'Sunburn' ? setSunburnPreview : selectedCard === 'Amulet' ? setAmuletPreview : selectedCard === 'Energy x2' ? setEnergyPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) } }}>
+            <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami', 'Amulet', 'Stone', 'Storm', 'Cyclone', 'Island', 'Energy x2', 'Lifeguard float'].includes(selectedCard) || (selectedCard === 'Stone' ? stoneCell === undefined : selectedCard === 'Storm' ? stormCell === undefined : selectedCard === 'Cyclone' ? cycloneCell === undefined : selectedCard === 'Island' ? islandCell === undefined : !Number.isInteger(catalog.surfers[surferId]) || (selectedCard === 'Lifeguard float' && !catalog.fallen?.[surferId]))}
+              onClick={() => { if (selectedCard === 'Stone') { focusCell(Number(stoneCell)); setStonePreview({ cellId: Number(stoneCell) }) } else if (selectedCard === 'Storm') { focusCell(Number(stormCell)); setStormPreview({ cellId: Number(stormCell) }) } else if (selectedCard === 'Cyclone') { focusCell(Number(cycloneCell)); setCyclonePreview({ cellId: Number(cycloneCell) }) } else if (selectedCard === 'Island') { focusCell(Number(islandCell)); setIslandPreview({ cellId: Number(islandCell) }) } else { focusCell(catalog.surfers[surferId]); (selectedCard === 'Sunburn' ? setSunburnPreview : selectedCard === 'Amulet' ? setAmuletPreview : selectedCard === 'Energy x2' ? setEnergyPreview : selectedCard === 'Lifeguard float' ? setLifeguardPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) } }}>
               ▶ Play
             </button>
-            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. The displayed amount is a preview example.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. The displayed amount is a preview example.' : selectedCard === 'Tsunami' ? 'Tsunami: up to −3 energy. The displayed amount is a preview example.' : selectedCard === 'Amulet' ? 'Amulet: protection against attacks and Change until your next turn. Visual activation preview.' : selectedCard === 'Stone' ? (stoneCell === undefined ? 'Place a Stone on the board to preview its arrival.' : 'Stone: placement preview. Entry costs 1 energy and removes the stone.') : selectedCard === 'Storm' ? (stormCell === undefined ? 'Place a Storm on the board to preview its arrival.' : 'Storm: placement preview. Entering costs 1 energy.') : selectedCard === 'Cyclone' ? (cycloneCell === undefined ? 'Place a Cyclone on the board to preview its arrival.' : 'Cyclone: formation preview. Entry redirects to a random free neighboring hex.') : selectedCard === 'Island' ? (islandCell === undefined ? 'Place an Island on the board to preview its arrival.' : 'Island: sand emerges and palms grow. Entry restores 2 energy.') : selectedCard === 'Energy x2' ? 'Energy x2: gain up to 2 energy (maximum 5). The displayed amount is a preview example.' : selectedCard + ': animation not available yet.'}</p>
+            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. The displayed amount is a preview example.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. The displayed amount is a preview example.' : selectedCard === 'Tsunami' ? 'Tsunami: up to −3 energy. The displayed amount is a preview example.' : selectedCard === 'Amulet' ? 'Amulet: protection against attacks and Change until your next turn. Visual activation preview.' : selectedCard === 'Stone' ? (stoneCell === undefined ? 'Place a Stone on the board to preview its arrival.' : 'Stone: placement preview. Entry costs 1 energy and removes the stone.') : selectedCard === 'Storm' ? (stormCell === undefined ? 'Place a Storm on the board to preview its arrival.' : 'Storm: placement preview. Entering costs 1 energy.') : selectedCard === 'Cyclone' ? (cycloneCell === undefined ? 'Place a Cyclone on the board to preview its arrival.' : 'Cyclone: formation preview. Entry redirects to a random free neighboring hex.') : selectedCard === 'Island' ? (islandCell === undefined ? 'Place an Island on the board to preview its arrival.' : 'Island: sand emerges and palms grow. Entry restores 2 energy.') : selectedCard === 'Energy x2' ? 'Energy x2: gain up to 2 energy (maximum 5). The displayed amount is a preview example.' : selectedCard === 'Lifeguard float' ? (catalog.fallen?.[surferId] ? 'Lifeguard float: recover with 3 energy. Visual preview.' : 'Use Fall off board below first to preview the rescue.') : selectedCard + ': animation not available yet.'}</p>
             <div className="board-catalog-divider" />
           </section>}
           <div className="board-catalog-panel-top">
