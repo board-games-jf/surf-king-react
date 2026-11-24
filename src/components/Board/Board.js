@@ -4,7 +4,9 @@ import './Board.css'
 import Board3D from '../../map/views/Board3D/Board3D'
 import R1Controls from './R1Controls'
 import { getR1HexFeedback } from './r1HexFeedback'
-import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
+import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
+import { r1Occupants } from '../../game/r1/SurfKingR1'
+import { PLAYER_BOARD_COLORS } from '../../constants/playerBoardColors'
 import { getTargetHighlightStyle, getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import { createPublicMapSnapshot } from '../../map/contract/createPublicMapSnapshot'
 import { seaColor } from '../../constants/Colors'
@@ -72,6 +74,7 @@ const Board = ({ G, ctx, moves }) => {
     const previewCard = cardId => setR1CardPreview(cardId == null ? null :
         { cardId, playerId: ctx.currentPlayer, turn: G.turn })
     const r1Targets = isR1 ? r1SelectionTargets(G, ctx, r1Selection) : []
+    const r1PlayerTargets = isR1 ? r1SelectionPlayerTargets(G, ctx, r1Selection) : []
     const targetHighlight = isR1 ? getR1TargetHighlight(G, ctx, r1Selection, previewId) : null
     const [hoveredHex, setHoveredHex] = useState(null)
     const [clickedHex, setClickedHex] = useState(null)
@@ -81,15 +84,23 @@ const Board = ({ G, ctx, moves }) => {
     const inspectedHexId = hoveredHex ?? pinnedHexId
     const clearHexInspection = () => { setClickedHex(null); setHoveredHex(null) }
     const hexFeedback = isR1 ? getR1HexFeedback(G, ctx, inspectedHexId, r1Selection, targetHighlight) : null
-    const onR1Target = (id) => {
+    const onR1Target = (id, playerId) => {
+        const candidates = r1PlayerTargets.filter(pid => G.players[pid].cellPosition === id)
+        // Multiple legal occupants require an explicit named player choice.
+        if (candidates.length > 1 && playerId === undefined) {
+            setClickedHex({ id, scope: inspectionScope })
+            return
+        }
+        if (playerId !== undefined && !candidates.includes(playerId)) return
+        const chosen = playerId ?? candidates[0]
         if (!r1Targets.includes(id)) {
             setClickedHex(previous => previous?.scope === inspectionScope && previous.id === id ? null : { id, scope: inspectionScope })
             return
         }
         setClickedHex(null)
         setHoveredHex(null)
-        if (r1Selection?.kind === 'card') moves.useCard(r1Selection.index, id)
-        else if (r1Selection?.kind === 'drop') moves.dropIn(id, r1Selection.diceCount)
+        if (r1Selection?.kind === 'card') moves.useCard(r1Selection.index, id, chosen)
+        else if (r1Selection?.kind === 'drop') moves.dropIn(id, r1Selection.diceCount, chosen)
         else moves.maneuver(id)
         setR1CardPreview(null)
         setR1Selection(null)
@@ -128,15 +139,27 @@ const Board = ({ G, ctx, moves }) => {
 
     const renderCell = (cellPosition) => {
         const cell = G.cells[cellPosition]
-        if (cell.player) {
-            if (isR1 && G.winner == null && String(cell.player.position) === String(ctx.currentPlayer)) {
-                return <g>
-                    <rect x={75} y={28} width={250} height={78} rx={24} fill="#173d36" stroke="#ffcf53" strokeWidth={8}/>
-                    <text x={200} y={84} fontSize={50} fontWeight="bold" fill="#fff4c5" textAnchor="middle">NOW</text>
-                    <path d="M 170 106 L 230 106 L 200 145 Z" fill="#ffcf53"/>
-                    <text x={200} y={235} fontSize={95} fontWeight="bold" fill="#173d36" stroke="#fff4c5" strokeWidth={2} textAnchor="middle">#{cell.player.position + 1}</text>
-                </g>
-            }
+        if (isR1) {
+            const occupants = r1Occupants(G, cellPosition)
+            if (occupants.length) return <>
+                {occupants.map((p, slot) => {
+                    const x = occupants.length === 1 ? 200 : slot === 0 ? 115 : 285
+                    const current = G.winner == null && String(p.position) === String(ctx.currentPlayer)
+                    const block = targetHighlight?.blocked?.find(item => item.playerId === p.position)
+                    const valid = r1PlayerTargets.includes(p.position)
+                    return <g key={p.position} data-surfer-id={p.position} transform={`translate(${x},170)`}>
+                        <circle r={occupants.length === 1 ? 65 : 52} fill={PLAYER_BOARD_COLORS[p.position]}
+                            stroke={current ? '#ffcf53' : valid ? '#ff9882' : '#173d36'} strokeWidth={current || valid ? 12 : 5}
+                            opacity={p.energy === 0 ? .55 : 1}/>
+                        <text y="18" fontSize={54} fontWeight="bold" fill="#173d36" textAnchor="middle">{p.position + 1}</text>
+                        {current && <text y="-82" fontSize={34} fontWeight="bold" fill="#fff4c5" textAnchor="middle">NOW</text>}
+                        <text y="94" fontSize={34} fontWeight="bold" fill="#fff4c5" stroke="#173d36" strokeWidth="2" textAnchor="middle">{p.energy}/5</text>
+                        {block && <text x="49" y="-46" fontSize={42} fontWeight="bold" fill={getTargetBlockStyle(block.code).color} stroke="#173d36" strokeWidth="2" textAnchor="middle">{block.code === 'minimum' ? '1' : ['protected','hangloose'].includes(block.code) ? '◆' : '×'}</text>}
+                    </g>
+                })}
+            </>
+        }
+        if (!isR1 && cell.player) {
             return (
                 <text x="50%" y="50%" fontSize={80} style={{ fill: 'black' }} textAnchor="middle">
                     {`#${cell.player.position + 1}`}
