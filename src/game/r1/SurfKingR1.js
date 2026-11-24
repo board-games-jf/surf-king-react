@@ -57,11 +57,11 @@ function draw(G, ctx, p) {
 }
 export function setupR1(ctx) {
     const starts = ctx.random.Shuffle([0, 1, 2, 3, 4, 5, 6])
-    const firstPlayer = Math.floor(ctx.random.Number() * ctx.numPlayers)
+    const order = ctx.random.Shuffle(Array.from({ length: ctx.numPlayers }, (_, id) => id))
     const G = {
         ruleset: R1, cells: layout.cells.map(c => ({ position: c.id })),
         players: {}, deck: ctx.random.Shuffle(createR1Deck()), discardedCards: [],
-        turn: 1, firstPlayer, nextPlayer: firstPlayer, completedInRound: 0,
+        turn: 1, order, nextPlayer: order[0], completedInRound: 0,
         currentMove: 'use_card', moved: false, redirected: false,
         winner: null, finishers: [], overflowPlayer: null, pendingEnd: false,
         message: 'Round 1: no attacks.', atkDices: [], defDices: [],
@@ -120,8 +120,7 @@ function arrive(G, ctx, p, from, to) {
         case CardStorm.Name: hurt(G, ctx, p, 1); break
         case CardIsland.Name:
             capEnergy(p, p.energy + 2)
-            G.discardedCards.push(tile)
-            delete G.cells[to].obstacle
+            // Island is persistent terrain; every ordinary entry restores energy.
             break
         case CardCyclone.Name: {
             if (G.redirected) break
@@ -152,9 +151,8 @@ function endR1Turn(G, ctx) {
         }
         G.turn++
         G.completedInRound = 0
-        G.firstPlayer = (G.firstPlayer + 1) % ctx.numPlayers
-        G.nextPlayer = G.firstPlayer
-    } else G.nextPlayer = (p.position + 1) % ctx.numPlayers
+    }
+    G.nextPlayer = G.order[G.completedInRound]
     ctx.events.endTurn()
 }
 function continueAfterTactic(G, ctx) {
@@ -304,7 +302,7 @@ export const SurfKingR1 = {
         maneuver: r1Maneuver, pass: passR1, discardOverflow: discardR1Overflow,
     },
     turn: {
-        order: { first: G => G.firstPlayer, next: G => G.nextPlayer },
+        order: { first: G => G.order[0], next: G => G.nextPlayer },
         onBegin: beginR1Turn,
     },
     endIf: G => G.winner !== null ? { winner: G.winner } : undefined,
