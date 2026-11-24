@@ -52,6 +52,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-036 | Accepted | Display subtle action-specific hex markings in both R1 views using authoritative eligible cell IDs: mint for movement, amber for obstacle placement, coral for attacks, violet for Jumping. Before the optional card is skipped, show movement as a dim preview, not an enabled action. Preserve cell contents, click validation and existing gameplay. | Owner requested visual guidance for valid moves, obstacle placement and card effects. Exact colors, opacity and visibility require hands-on visual review. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-037 | Accepted | Direct attack cards Sunburn, Big Wave and Tsunami reduce opponent energy only to a minimum of 1. Opponents already at 1 energy are not valid card targets. Only Drop In can directly knock another surfer off and transfer a card; ordinary terrain-entry damage can still cause a fall. Existing card ranges, nominal damage, protection and Drop In rules remain unchanged. | Owner clarified that direct falls require a duel, not a card effect. Supersedes the lethal direct-card damage behavior in SK-DEC-035. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
