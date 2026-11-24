@@ -1,4 +1,29 @@
 import React from 'react'
+import { getR1RoundOrder } from './r1RoundOrder'
+import cardArt0 from '../../assets/cards/energyx2.png'
+import cardArt1 from '../../assets/cards/lifeguardfloat.png'
+import cardArt2 from '../../assets/cards/bigwave.png'
+import cardArt3 from '../../assets/cards/sunburn.png'
+import cardArt4 from '../../assets/cards/storm.png'
+import cardArt5 from '../../assets/cards/cyclone.png'
+import cardArt6 from '../../assets/cards/island.png'
+import cardArt7 from '../../assets/cards/jumping.png'
+import cardArt8 from '../../assets/cards/amulet.png'
+import surfCurrentArt from '../../assets/cards/surfcurrent.svg'
+
+const cardArt = {
+    'Energy x2': cardArt0,
+    'Lifeguard float': cardArt1,
+    'Big wave': cardArt2,
+    'Sunburn': cardArt3,
+    'Storm': cardArt4,
+    'Cyclone': cardArt5,
+    'Island': cardArt6,
+    'Jumping': cardArt7,
+    'Amulet': cardArt8,
+    'Surf Current': surfCurrentArt,
+}
+
 import {
     r1CardPlayable, r1CardTargets, r1DropTargets, r1MoveTargets, isBeach,
 } from '../../game/r1/SurfKingR1'
@@ -21,6 +46,7 @@ export const r1SelectionTargets = (G, ctx, selection) => selection?.kind === 'ca
 
 export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget }) {
     const player = G.players[ctx.currentPlayer]
+    const roundOrder = getR1RoundOrder(G, ctx)
     const overflow = G.currentMove === 'discard'
     const hand = overflow ? G.players[G.overflowPlayer] : player
     const targets = r1SelectionTargets(G, ctx, selection)
@@ -43,15 +69,19 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             </div>
             <div aria-live="polite">{G.message}</div>
             {G.atkDices.length > 0 && <div>Drop In dice: {G.atkDices.join(', ')} vs {G.defDices.join(', ')}</div>}
-            <div className="surf-hands">
-                {Object.values(G.players).map(p => (
-                    <div key={p.position} className="surf-hand" data-current={p.position === player.position}>
-                        <strong>Player {p.position + 1}</strong>
+            <div className="surf-hands r1-round-order" aria-label="Round play order">
+                {roundOrder.map(({ id, status }, slot) => {
+                    const p = G.players[id]
+                    return (
+                    <div key={p.position} className="surf-hand" data-current={status === 'now'} data-order-status={status} aria-current={status === 'now' ? 'step' : undefined}>
+                        <strong>{slot + 1}. Player {p.position + 1}</strong>
+                        <span className="r1-order-status">{status === 'now' ? 'NOW' : status === 'played' ? 'Played' : 'Up next'}</span>
                         <div>{p.energy}/5 energy · {p.cards.length} cards</div>
                         <div>{isBeach(p.cellPosition) ? 'Finished' : p.energy === 0 ? 'Fallen' :
                             p.activeCard.length ? 'Protected' : ''}</div>
                     </div>
-                ))}
+                    )
+                })}
             </div>
             {!winner && <div>
                 {overflow && <strong>Player {hand.position + 1}: choose one card to discard.</strong>}
@@ -65,6 +95,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             disabled={!overflow && !r1CardPlayable(G, ctx, index)}
                             aria-pressed={selection?.kind === 'card' && selection.index === index}
                             onClick={() => playCard(index)}>
+                            <img src={cardArt[card.Name]} alt="" className="r1-card-art" />
                             <strong>{card.Name}</strong><span>{descriptions[card.Name]}</span>
                         </button>
                     ))}
