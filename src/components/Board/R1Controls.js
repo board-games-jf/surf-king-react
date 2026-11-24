@@ -38,10 +38,10 @@ const cardArt = {
 const descriptions = {
     'Energy x2': 'Gain 2 energy (max 5).',
     'Lifeguard float': 'Recover with 3 energy.',
-    'Big wave': 'Opponent within 2 edges loses 2 energy.',
-    Sunburn: 'Opponent within 3 edges loses 1 energy.',
+    'Big wave': 'Opponent within 2 edges loses up to 2 energy (minimum 1 remaining).',
+    Sunburn: 'Opponent within 3 edges loses 1 energy (minimum 1 remaining).',
     Stone: 'Place within 3 edges; first ordinary entry costs 1 energy and removes Stone.',
-    Tsunami: 'Adjacent opponent loses 3 energy.',
+    Tsunami: 'Adjacent opponent loses up to 3 energy (minimum 1 remaining).',
     Storm: 'Place within 2 edges; entry costs 1 energy.',
     Cyclone: 'Place within 2 edges; entry redirects to a random free neighboring hex.',
     Island: 'Place within 2 edges; every ordinary entry restores 2 energy; Island stays in place.',
