@@ -36,3 +36,19 @@ test('draws noninteractive inset highlights without changing original cell click
     expect(container.querySelectorAll('[data-target-highlight="move"]')).toHaveLength(0)
     expect(container.querySelectorAll('[data-target-highlight="attack"]')).toHaveLength(1)
 })
+
+test('hover and leave forward exact IDs independently of clicks', () => {
+    const onHexHover = jest.fn()
+    const onHexClick = jest.fn()
+    const { container } = render(<HexGrid cellProps={() => ({})} renderCell={() => null}
+        onHexClick={onHexClick} onHexHover={onHexHover} inspectedCellId={7} />)
+    const hex = container.querySelector('[data-cell-id="7"]')
+    expect(hex).toHaveAttribute('data-inspected', 'true')
+    fireEvent.mouseEnter(hex)
+    expect(onHexHover).toHaveBeenLastCalledWith(7)
+    expect(onHexClick).not.toHaveBeenCalled()
+    fireEvent.mouseLeave(hex)
+    expect(onHexHover).toHaveBeenLastCalledWith(null)
+    fireEvent.click(hex)
+    expect(onHexClick).toHaveBeenCalledWith({ position: 7 })
+})
