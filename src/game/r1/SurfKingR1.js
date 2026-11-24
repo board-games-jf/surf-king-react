@@ -177,7 +177,7 @@ export function r1CardTargets(G, ctx, index) {
     if (!p || G.currentMove !== 'use_card' || !alive(p)) return []
     const from = p.cellPosition
     if (placementNames.includes(name)) return G.cells.filter(c => c.position >= 7 && c.position < 49 &&
-        !c.player && !c.obstacle && DIST[from][c.position] <= 2).map(c => c.position)
+        !c.player && !c.obstacle).map(c => c.position)
     if (name === CardJumping.Name) return freeNeighbors(G, from).filter(to => !!G.cells[to].obstacle)
     if (attackNames.includes(name) && G.turn > 1) {
         const range = name === CardBigWave.Name ? 2 : 3
