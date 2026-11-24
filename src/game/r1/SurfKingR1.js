@@ -2,7 +2,7 @@ import { INVALID_MOVE } from 'boardgame.io/core'
 import layout from '../../map/layout/board-layout.json'
 import {
     CardAmulet, CardBigWave, CardCyclone, CardEnergyX2, CardIsland,
-    CardJumping, CardLifeGuardFloat, CardShark, CardStorm, CardSunburn,
+    CardJumping, CardLifeGuardFloat, CardShark, CardStone, CardStorm, CardSunburn, CardTsunami,
 } from '../Cards'
 
 export const R1 = 'R1'
@@ -15,9 +15,9 @@ export const r1MaxAttackDice = energy => Math.max(0, Math.min(DROP_IN_MAX_DICE, 
 const dropInPhase = G => ['use_card', 'maneuver', 'current_first'].includes(G.currentMove) && !G.moved
 export const CardSurfCurrent = { Name: 'Surf Current', Category: 'Action' }
 export const R1_INVENTORY = [
-    [CardEnergyX2, 12], [CardLifeGuardFloat, 9], [CardBigWave, 3],
-    [CardSunburn, 7], [CardStorm, 7], [CardCyclone, 4], [CardIsland, 3],
-    [CardJumping, 4], [CardAmulet, 7], [CardSurfCurrent, 4],
+    [CardEnergyX2, 8], [CardLifeGuardFloat, 6], [CardBigWave, 7],
+    [CardSunburn, 10], [CardTsunami, 3], [CardStone, 4], [CardStorm, 5],
+    [CardCyclone, 3], [CardIsland, 3], [CardJumping, 4], [CardAmulet, 4], [CardSurfCurrent, 3],
 ]
 const ADJ = layout.cells.map(c => layout.cells.filter(d => d.id !== c.id &&
     Math.abs(Math.hypot(c.x - d.x, c.z - d.z) - Math.sqrt(3) * layout.hexRadius) < 0.005
@@ -43,8 +43,11 @@ const freeNeighbors = (G, from) => (ADJ[from] || []).filter(to => !G.cells[to].p
 export const r1Neighbors = from => (ADJ[from] || []).slice()
 const alive = p => p.energy > 0 && !isBeach(p.cellPosition)
 const capEnergy = (p, value) => { p.energy = Math.min(MAX_ENERGY, value) }
-const placementNames = [CardStorm.Name, CardCyclone.Name, CardIsland.Name]
-const attackNames = [CardBigWave.Name, CardSunburn.Name]
+export const R1_PLACEMENT_RANGE = { Stone: 3, Storm: 2, Cyclone: 2, Island: 2 }
+export const R1_ATTACK_RANGE = { 'Big wave': 2, Sunburn: 3, Tsunami: 1 }
+const attackDamage = { 'Big wave': 2, Sunburn: 1, Tsunami: 3 }
+const placementNames = Object.keys(R1_PLACEMENT_RANGE)
+const attackNames = Object.keys(R1_ATTACK_RANGE)
 const validCell = id => Number.isInteger(id) && id >= 0 && id < ADJ.length
 
 export function createR1Deck() {
@@ -53,12 +56,12 @@ export function createR1Deck() {
         Array.from({ length: count }, () => ({ ...card, id: id++ })))
 }
 function draw(G, ctx, p) {
-    if (p.cards.length >= MAX_HAND) return
+
     if (!G.deck.length && G.discardedCards.length) {
         G.deck = ctx.random.Shuffle(G.discardedCards)
         G.discardedCards = []
     }
-    if (G.deck.length) p.cards.push(G.deck.pop())
+    if (G.deck.length) receiveCard(G, ctx, p, G.deck.pop())
 }
 export function setupR1(ctx) {
     const starts = ctx.random.Shuffle([0, 1, 2, 3, 4, 5, 6])
@@ -68,7 +71,7 @@ export function setupR1(ctx) {
         players: {}, deck: ctx.random.Shuffle(createR1Deck()), discardedCards: [],
         turn: 1, order, nextPlayer: order[0], completedInRound: 0,
         currentMove: 'use_card', moved: false, redirected: false,
-        winner: null, finishers: [], overflowPlayer: null, pendingEnd: false, pendingMove: null,
+        winner: null, finishers: [], 
         message: 'Round 1: no attacks.', atkDices: [], defDices: [],
     }
     for (const id of [28, 29, 30, 31]) G.cells[id].obstacle = { ...CardShark }
@@ -99,6 +102,12 @@ function spend(G, p, index, zone = 'discard') {
     if (zone === 'discard') G.discardedCards.push(card)
     return card
 }
+function receiveCard(G, ctx, p, card) {
+    p.cards.push(card)
+    if (p.cards.length > MAX_HAND) {
+        spend(G, p, Math.floor(ctx.random.Number() * p.cards.length))
+    }
+}
 function hurt(G, ctx, p, damage, attacker = null) {
     if (!alive(p)) return
     p.energy = Math.max(0, p.energy - damage)
@@ -109,8 +118,7 @@ function hurt(G, ctx, p, damage, attacker = null) {
     const index = Math.floor(ctx.random.Number() * p.cards.length)
     const [card] = p.cards.splice(index, 1)
     if (attacker && attacker.position !== p.position) {
-        attacker.cards.push(card)
-        if (attacker.cards.length > MAX_HAND) G.overflowPlayer = attacker.position
+        receiveCard(G, ctx, attacker, card)
     } else G.discardedCards.push(card)
 }
 function relocate(G, p, to) {
@@ -122,6 +130,11 @@ function arrive(G, ctx, p, from, to) {
     const tile = G.cells[to].obstacle
     switch (tile?.Name) {
         case CardShark.Name: hurt(G, ctx, p, 2); break
+        case CardStone.Name:
+            G.discardedCards.push(tile)
+            delete G.cells[to].obstacle
+            hurt(G, ctx, p, 1)
+            break
         case CardStorm.Name: hurt(G, ctx, p, 1); break
         case CardIsland.Name:
             capEnergy(p, p.energy + 2)
@@ -163,11 +176,7 @@ function endR1Turn(G, ctx) {
 function continueAfterTactic(G, ctx, nextMove = 'maneuver') {
     const p = actor(G, ctx)
     const mustEnd = p.energy === 0 || isBeach(p.cellPosition)
-    if (G.overflowPlayer !== null) {
-        G.currentMove = 'discard'
-        G.pendingEnd = mustEnd
-        G.pendingMove = nextMove
-    } else if (mustEnd) endR1Turn(G, ctx)
+    if (mustEnd) endR1Turn(G, ctx)
     else G.currentMove = nextMove
 }
 export function r1MoveTargets(G, ctx) {
@@ -181,10 +190,10 @@ export function r1CardTargets(G, ctx, index) {
     if (!p || G.currentMove !== 'use_card' || !alive(p)) return []
     const from = p.cellPosition
     if (placementNames.includes(name)) return G.cells.filter(c => c.position >= 7 && c.position < 49 &&
-        !c.player && !c.obstacle).map(c => c.position)
+        !c.player && !c.obstacle && DIST[from][c.position] <= R1_PLACEMENT_RANGE[name]).map(c => c.position)
     if (name === CardJumping.Name) return freeNeighbors(G, from).filter(to => !!G.cells[to].obstacle)
     if (attackNames.includes(name) && G.turn > 1) {
-        const range = name === CardBigWave.Name ? 2 : 3
+        const range = R1_ATTACK_RANGE[name]
         return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
             !shielded(q) && DIST[from][q.cellPosition] <= range).map(q => q.cellPosition)
     }
@@ -255,7 +264,7 @@ export function useR1Card(G, ctx, index, to) {
         spend(G, p, index)
         if (name === CardEnergyX2.Name) capEnergy(p, p.energy + 2)
         else if (attackNames.includes(name)) {
-            hurt(G, ctx, G.players[G.cells[to].player.position], name === CardBigWave.Name ? 2 : 1, p)
+            hurt(G, ctx, G.players[G.cells[to].player.position], attackDamage[name], p)
         } else if (name === CardJumping.Name) {
             relocate(G, p, to)
             G.moved = true
@@ -296,19 +305,6 @@ export function r1DropIn(G, ctx, to, diceCount) {
         (q.energy === 0 ? ' Player ' + (q.position + 1) + ' fell!' : '')
     continueAfterTactic(G, ctx, G.currentMove)
 }
-export function discardR1Overflow(G, ctx, index) {
-    if (G.currentMove !== 'discard' || G.overflowPlayer === null || !Number.isInteger(index)) return INVALID_MOVE
-    const p = G.players[G.overflowPlayer]
-    if (!p.cards[index] || p.cards.length !== MAX_HAND + 1) return INVALID_MOVE
-    spend(G, p, index)
-    G.overflowPlayer = null
-    const end = G.pendingEnd
-    const nextMove = G.pendingMove
-    G.pendingEnd = false
-    G.pendingMove = null
-    if (end) endR1Turn(G, ctx)
-    else G.currentMove = nextMove || 'maneuver'
-}
 export function r1Maneuver(G, ctx, to) {
     if (!validCell(to) || !r1MoveTargets(G, ctx).includes(to)) return INVALID_MOVE
     const p = actor(G, ctx)
@@ -337,7 +333,7 @@ export const SurfKingR1 = {
     setup: setupR1,
     moves: {
         recover: recoverR1, useCard: useR1Card, dropIn: r1DropIn,
-        maneuver: r1Maneuver, pass: passR1, discardOverflow: discardR1Overflow,
+        maneuver: r1Maneuver, pass: passR1,
     },
     turn: {
         order: { first: G => G.order[0], next: G => G.nextPlayer },
