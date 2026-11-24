@@ -34,6 +34,23 @@ async function verifyStableViewport(page, name) {
     assert.ok(await detail.locator('.r1-card-availability').count())
     assert.ok(await detail.locator('.r1-inspection-art').count())
     assert.ok(await detail.evaluate(el => el.scrollHeight <= el.clientHeight + 1), 'Card feedback must not need vertical scrolling')
+    const context = page.locator('.r1-dock-context-scroll')
+    assert.equal(await context.evaluate(el => getComputedStyle(el).overflowY), 'auto')
+    assert.ok(await context.evaluate(el => el.scrollHeight <= el.clientHeight + 1), 'Normal inspection must fit naturally')
+    // Simulate reduced available height using the real dock's flex layout.
+    const overflow = await context.evaluate(el => {
+        const dock = el.parentElement
+        const saved = dock.style.maxHeight
+        const naturalHeight = el.clientHeight
+        dock.style.maxHeight = Math.max(1, dock.clientHeight - Math.max(8, Math.floor(naturalHeight / 2))) + 'px'
+        const constrained = el.scrollHeight > el.clientHeight
+        el.scrollTop = el.scrollHeight
+        const scrollable = el.scrollTop > 0
+        dock.style.maxHeight = saved
+        el.scrollTop = 0
+        return { constrained, scrollable }
+    })
+    assert.ok(overflow.constrained && overflow.scrollable, 'Context must scroll only when available space is insufficient')
     assert.equal(await firstCard.getAttribute('aria-pressed'), 'false')
     assert.deepEqual(await map.boundingBox(), before)
     await page.screenshot({ path: output + '/' + name + '-card-feedback.png', timeout: 60000 })
@@ -42,7 +59,7 @@ async function verifyStableViewport(page, name) {
         const hex = page.locator('.surf-map-2d [data-cell-id="28"]')
         // Dispatch exact SVG events rather than assume a pixel is unobscured.
         await hex.dispatchEvent('mouseover')
-        const info = page.getByLabel('Hex information')
+        const info = page.getByLabel('Hex information', { exact: true })
         await info.waitFor({ state: 'visible' })
         assert.ok((await info.textContent()).includes('Shark'))
         assert.ok((await info.textContent()).includes('2 energy'))
