@@ -1,4 +1,5 @@
 import { canManeuver } from '../../game/SurfKingGame'
+import { r1MoveTargets } from '../../game/r1/SurfKingR1'
 
 // Expose only the information required to draw the map: no cards or deck contents.
 export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
@@ -15,7 +16,7 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
     })
     const activeCellId = G.players?.[ctx?.currentPlayer]?.cellPosition
     return {
-        maneuverDestinations: G.cells.flatMap((_, id) =>
+        maneuverDestinations: G.ruleset === 'R1' ? r1MoveTargets(G, ctx) : G.cells.flatMap((_, id) =>
             G.cells[activeCellId] && canManeuver(G, ctx, activeCellId, id) ? [id] : []
         ),
         cells: G.cells.map((cell, id) => ({
@@ -29,6 +30,7 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
             cellId: Number.isInteger(player.cellPosition) && player.cellPosition >= 0 && player.cellPosition < 53
                 ? player.cellPosition : null,
         })),
+        ...(G.ruleset === 'R1' ? { turnMarkerPlayerId: G.winner == null ? String(ctx.currentPlayer) : null } : {}),
         turn: G.turn,
         activePlayerId: ctx?.currentPlayer == null ? null : String(ctx.currentPlayer),
         selectedCellId: Number.isInteger(selectedCellId) && selectedCellId >= 0 && selectedCellId < 53
