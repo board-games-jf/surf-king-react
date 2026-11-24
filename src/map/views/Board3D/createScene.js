@@ -267,6 +267,42 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (islandPreview) resetIsland(islandPreview.island)
     islandPreview = { island, cellId, started: performance.now() }
   }
+  // Preview only: a rising golden charge around the selected rider.
+  const energyEffect = new THREE.Group()
+  const energyRing = new THREE.Mesh(new THREE.TorusGeometry(.8, .045, 8, 48), new THREE.MeshBasicMaterial({ color: 0xffd45a, transparent: true, depthWrite: false }))
+  energyRing.rotation.x = -Math.PI / 2
+  energyEffect.add(energyRing)
+  const energySparks = Array.from({ length: 12 }, () => {
+    const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTexture, color: 0xffdf55, transparent: true, depthWrite: false, toneMapped: false }))
+    spark.scale.set(.32, .32, 1)
+    energyEffect.add(spark)
+    return spark
+  })
+  const energyCanvas = document.createElement('canvas')
+  energyCanvas.width = 256
+  energyCanvas.height = 128
+  const energyContext = energyCanvas.getContext('2d')
+  energyContext.font = 'bold 88px sans-serif'
+  energyContext.textAlign = 'center'
+  energyContext.textBaseline = 'middle'
+  energyContext.lineWidth = 10
+  energyContext.strokeStyle = '#87500c'
+  energyContext.strokeText('+2', 128, 64)
+  energyContext.fillStyle = '#fff4a3'
+  energyContext.fillText('+2', 128, 64)
+  const energyTexture = new THREE.CanvasTexture(energyCanvas)
+  energyTexture.colorSpace = THREE.SRGBColorSpace
+  const energyText = new THREE.Sprite(new THREE.SpriteMaterial({ map: energyTexture, transparent: true, depthWrite: false, toneMapped: false }))
+  energyText.scale.set(1.4, .7, 1)
+  energyEffect.add(energyText)
+  energyEffect.visible = false
+  scene.add(energyEffect)
+  let energyPreview = null
+  function playEnergy(playerId) {
+    const actor = actors.get(String(playerId))
+    if (!actor || !actor.g.visible) return
+    energyPreview = { playerId: String(playerId), started: performance.now() }
+  }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -812,6 +848,29 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         })
       }
     }
+    if (energyPreview) {
+      const target = actors.get(energyPreview.playerId)
+      const t = (now - energyPreview.started) / 1000
+      if (!target || !target.g.visible || t >= 3) {
+        energyEffect.visible = false
+        energyPreview = null
+      } else {
+        energyEffect.visible = true
+        energyEffect.position.copy(target.g.position)
+        const fade = Math.min(1, t / .3, (3 - t) / .55)
+        energyRing.position.y = reduce ? .7 : .18 + (t * .7 % 1) * 1.3
+        energyRing.scale.setScalar(reduce ? 1 : 1 + .12 * Math.sin(t * 5))
+        energyRing.material.opacity = .8 * fade
+        energyText.position.y = reduce ? 2.3 : 1.8 + Math.min(1, t / 1.4) * .8
+        energyText.material.opacity = fade
+        energySparks.forEach((spark, i) => {
+          const phase = reduce ? .5 : (t * .5 + i / energySparks.length) % 1
+          const angle = i * Math.PI * 2 / energySparks.length + (reduce ? 0 : t)
+          spark.position.set(Math.cos(angle) * .85, .25 + phase * 1.75, Math.sin(angle) * .85)
+          spark.material.opacity = fade * Math.sin(phase * Math.PI)
+        })
+      }
+    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
@@ -873,5 +932,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,playEnergy,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }
