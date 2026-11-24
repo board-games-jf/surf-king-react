@@ -62,6 +62,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-041 | Accepted | R1 hex hover and non-action clicks/taps expose immediate context in the floating HUD: hex number, terrain/ordinary entry effect, public occupant energy/status, action availability and fall warning. Committed legal clicks still execute the existing action; inspection never enables or consumes actions. Jumping explicitly explains safe entry. Both renderers share the read-only feedback helper; 3D uses its existing raycast/ring and suppresses hover during drag. | Owner requested clearer feedback when hovering or clicking a hex. Presentation only; no rule change. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-042 | Accepted | Replace verbose R1 inspection text with compact illustrated card/hex feedback, using existing art, visual effect/range/energy icons and short action or blocking labels; preserve detailed accessible text. The hex inspection island is absent without hover or an explicitly pinned hex, and a pinned hex can be dismissed or toggled. Match events are independent of hex inspection. | Owner requested less text, more imagery, no clipped feedback and no persistent empty hex panel after reviewing screenshots. Presentation only; no gameplay change. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
