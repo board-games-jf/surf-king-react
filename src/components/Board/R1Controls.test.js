@@ -189,3 +189,31 @@ test('compact hex panel exists only during inspection and pinned selection can b
     expect(screen.queryByLabelText('Hex information')).not.toBeInTheDocument()
     expect(screen.queryByText('Round 1: no attacks.')).not.toBeInTheDocument()
 })
+
+test('unavailable attack inspection shows each opponent reason and stays pinned without selecting', () => {
+    const ctx = { numPlayers: 3, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].cards = createR1Deck().filter((c, i, a) => a.findIndex(x => x.Name === c.Name) === i)
+    G.players[1].energy = 1
+    delete G.cells[G.players[2].cellPosition].player
+    G.players[2].cellPosition = 7
+    G.cells[7].player = { position: 2 }
+    G.players[2].activeCard = [{ Name: 'Amulet' }]
+    const setSelection = jest.fn()
+    const onPreviewCard = jest.fn()
+    const moves = { useCard: jest.fn() }
+    render(<R1Controls G={G} ctx={ctx} moves={moves} selection={null}
+        setSelection={setSelection} onPreviewCard={onPreviewCard} onTarget={jest.fn()} />)
+    const attack = within(screen.getByLabelText('Player 1 hand')).getByRole('button', { name: /Big wave/ })
+    fireEvent.mouseEnter(attack)
+    expect(screen.getByLabelText('Player 2: 1 energy · Drop In only')).toBeInTheDocument()
+    expect(screen.getByLabelText('Player 3: Amulet')).toBeInTheDocument()
+    fireEvent.click(attack)
+    fireEvent.mouseLeave(attack)
+    expect(screen.getByRole('button', { name: 'Close card information' })).toBeInTheDocument()
+    expect(setSelection).not.toHaveBeenCalled()
+    expect(moves.useCard).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Close card information' }))
+    expect(onPreviewCard).toHaveBeenLastCalledWith(null)
+})
