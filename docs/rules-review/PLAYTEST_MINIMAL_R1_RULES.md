@@ -12,11 +12,11 @@ The goal is to race across the **53 edge-connected hexes** to the beach (**49–
 
 1. **Recover, if fallen:** Stand in the same hex with **1 energy**, free. Alternatively, use a *Lifeguard Float* to stand at **3 energy**; this uses your one optional action. **Never skip a turn because of a fall.**
 2. **One optional action:** Play **one card**, attempt **one Drop In** against an edge-adjacent upright rival, or do neither. Card effects are written in the [R1 card sheet](PLAYTEST_MINIMAL_R1_CARDS.md). **First round: no attacks or forced displacement of opponents**, but preparations/defenses are allowed. For Drop In, each rolls **one d6 at energy 1, otherwise two d6**, using their highest die. Higher result wins; loser takes **−1 energy**; a tie does nothing. **No Drop In position swap.**
-3. **Move, then draw:** If upright and an edge-adjacent free hex exists, **move exactly one hex**, free; you cannot voluntarily pass or share a hex. Cards/terrain may modify this as printed. Resolve effects **on entry**. If you finish a successful maneuver upright and hold fewer than **5 cards**, draw **one**. No legal exit means no move/draw.
+3. **Move, then draw:** If upright and an edge-adjacent free hex exists, **move exactly one hex**, free; you cannot voluntarily pass or share a hex. Cards/terrain may modify this as printed. **Jumping** replaces your usual move: land **in an adjacent free Shark/obstacle hex**, remain there, ignore its entry effect, and leave the obstacle in place. Other moves resolve terrain effects **on entry**. If you finish a successful maneuver upright and hold fewer than **5 cards**, draw **one**. No legal exit means no move/draw.
 
 ## Falling and Sharks
 
-Entering a **Shark** costs **2 energy**; remaining there does not repeat the damage. At **0 energy**, fall in that hex and lose **one random hand card** (if any): to the opponent who caused the fall, otherwise to discard. Only one card penalty per fall. If a card transfer overfills the attacker's hand, that player discards one card of their choice.
+Entering a **Shark** normally costs **2 energy**. **Jumping is the exception:** no Shark damage (or Cyclone push/other entry effect) on its destination. Remaining on a tile does not retrigger the entry effect. At **0 energy**, fall in that hex and lose **one random hand card** (if any): to the opponent who caused the fall, otherwise to discard. Only one card penalty per fall. If a card transfer overfills the attacker's hand, that player discards one card of their choice.
 
 ## Order and victory
 
@@ -26,4 +26,4 @@ When someone reaches a beach hex, **finish the current round**. Already-finished
 
 ---
 
-**Testing notes (not rules):** Record actual game minutes, fun, confusing cards, falls, and whether changing the first player feels natural. At 2P, rotation can create two consecutive turns across round boundaries; assess this manually. The **10-type / 60-card R1 deck** is provisional; the old 17-type pilot was retained only for comparison. [Rule simulations](R0_MINIMAL_RULES_STUDY.md) and [deck comparison](R0_MINIMAL_DECK_STUDY.md). No production-game changes, accepted rules, merge or deploy.
+**Testing notes (not rules):** Record actual game minutes, fun, confusing cards, falls, and whether changing the first player feels natural. At 2P, rotation can create two consecutive turns across round boundaries; assess this manually. The **10-type / 60-card R1 deck** is provisional; the old 17-type pilot was retained only for comparison. [Rule simulations](R0_MINIMAL_RULES_STUDY.md) and [deck comparison](R0_MINIMAL_DECK_STUDY.md), and [Cyclone/Jumping revision](R1_CYCLONE_JUMP_STUDY.md). No production-game changes, accepted rules, merge or deploy.
