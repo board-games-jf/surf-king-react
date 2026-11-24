@@ -285,6 +285,7 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
      if(!options.length)return false
      const closest=Math.min(...options.map(to=>D[to]))
      const chosen=choice(options.filter(to=>D[to]===closest))
+     const energyBefore=p.e,placedObstacleBefore=board.get(chosen)
      use(p,'Jumping')
      p.pos=chosen;st.moves++;st.jumpLandings++
      if(SHARK.has(chosen))st.sharkJumpLandings++
@@ -298,6 +299,9 @@ function play(n,seed,mode='balanced',shift=0,roundOrder='fixed',startMode='fixed
      }
      // Do not call arrival: the card explicitly ignores entry effects.
      // Remaining on this cell never retriggers the effect on later turns.
+     assert.equal(p.e,energyBefore,'Jumping landing unexpectedly changed energy')
+     assert.equal(board.get(chosen),placedObstacleBefore,'Jumping removed the hazard')
+     assert.equal(p.pos,chosen,'Jumping did not stay on the hazard hex')
      return true
    }
    const options=[...board].filter(([to])=>ADJ[p.pos].includes(to))
