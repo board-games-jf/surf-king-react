@@ -150,6 +150,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     )
                 })}
             </div>
+            <div className="r1-top-feedback">
             {hexFeedback && <div className="r1-match-feedback r1-glass r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
                 {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt="" /> :
                     hexFeedback.occupant ? <span className="r1-inspection-avatar" style={{ background: PLAYER_BOARD_COLORS[hexFeedback.occupant.position] }}>{hexFeedback.occupant.position + 1}</span> :
@@ -178,6 +179,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     {G.defDices.slice(G.atkDices.length).map((die, i) => <span key={'def-' + i}>Defender {die} (unpaired)</span>)}
                 </div>}
                 </div>}
+            </div>
             {!winner && <div className="r1-hud-dock">
                 {swapChoice && <div className="r1-swap-choice r1-glass" role="group" aria-label="Position conquest">
                     <strong>Player {G.pendingSwap.targetPlayerId + 1} fell!</strong>
@@ -192,13 +194,13 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     <div className="r1-inspection-body">
                         <div className="r1-inspection-heading">
                             <strong>{detailCard.Name}</strong>
-                            <span className="r1-card-availability" data-playable={feedback.playable} aria-label={feedback.playable ? 'Available' : 'Unavailable'}><FeedbackIcon kind={feedback.playable ? 'check' : 'blocked'}/></span>
+                            <span className="r1-card-availability" data-playable={feedback.playable} role="img" aria-label={feedback.playable ? 'Available' : 'Unavailable'} title={feedback.playable ? 'Available' : 'Unavailable'}><FeedbackIcon kind={feedback.playable ? 'check' : 'blocked'}/></span>
                         </div>
                         <CardEffects name={detailCard.Name}/>
                         {feedback.reason && <span className="r1-blocked-reason"><FeedbackIcon kind="blocked"/>{compactReason(feedback.reason)}</span>}
                         {feedback.playable && <span className="r1-card-next-action">
                             <FeedbackIcon kind={feedback.targets.length ? 'range' : 'move'}/>
-                            {feedback.action}{' · '}{inspectingOther ? 'Switch card' : selectedCard ? feedback.targets.length ? 'Pick target' : 'Confirm' : 'Select card'}
+                            {feedback.targets.length && attacking ? feedback.targets.length + (feedback.targets.length === 1 ? ' target' : ' targets') : feedback.action}{' · '}{inspectingOther ? 'Switch card' : selectedCard ? feedback.targets.length ? 'Pick target' : 'Confirm' : 'Select card'}
                         </span>}
                         <span className="r1-sr-only">{descriptions[detailCard.Name]} {feedback.reason}</span>
                     </div>
