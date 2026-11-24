@@ -10,10 +10,8 @@ import { ATHLETE_ASSET_PATHS, createAthleteSurferArt, inspectRiggedAsset } from 
 export { RIGGED_SURFER_ASSETS } from './riggedSurferAssets'
 
 // Keep seven established player identities separate from appearance presets.
-export const PLAYER_BOARD_COLORS = Object.freeze([
-  '#ffbb41', '#f27763', '#38b4ae', '#337a91',
-  '#e4c45a', '#b17bb6', '#83c16e'
-])
+import { PLAYER_BOARD_COLORS } from '../../../constants/playerBoardColors'
+export { PLAYER_BOARD_COLORS } from '../../../constants/playerBoardColors'
 
 export function createRiggedBoardSurfer(templates, playerId, { previewFemaleAthlete = false, athleteBoardType = null } = {}) {
   const id = Number(playerId)
