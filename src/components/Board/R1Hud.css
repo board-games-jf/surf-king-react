@@ -340,3 +340,29 @@
 }
 .r1-floating-hud .r1-hand, .r1-hand-heading, .r1-action-bar { flex-shrink: 0; }
 .r1-hud-context { min-height: 0; }
+
+/* Hex information shares the top feedback island; never captures map input. */
+.r1-hex-feedback {
+    border-top: 1px solid var(--hud-edge);
+    margin-top: 4px;
+    padding-top: 6px;
+    display: grid;
+    gap: 3px;
+    text-align: left;
+    color: var(--hud-mute);
+    max-width: 340px;
+    pointer-events: none;
+}
+.r1-hex-feedback-heading { display: flex; gap: 7px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.r1-hex-feedback-heading strong { color: var(--hud-gold); }
+.r1-hex-status { border-radius: 999px; padding: 2px 6px; background: #385861; font-size: .78em; font-weight: 800; color: #d6e6e6; }
+.r1-hex-feedback[data-status="ready"] .r1-hex-status { background: #225a4c; color: #c6ffe0; }
+.r1-hex-feedback[data-status="preview"] .r1-hex-status { background: #5b512e; color: #ffe0a1; }
+.r1-hex-action { font-weight: 650; color: #f3f8ef; }
+.r1-hex-feedback[data-status="ready"] .r1-hex-action { color: #c6ffe0; }
+.r1-hex-risk { color: #ffc0aa; }
+.surf-match-r1 .surf-map-2d polygon[data-inspected="true"] { stroke: #fff7dd; stroke-width: .085; }
+@media (max-width: 520px) {
+    .r1-hex-feedback { font-size: .94em; gap: 2px; }
+    .r1-hex-status { display: none; }
+}
