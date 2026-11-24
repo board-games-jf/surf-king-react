@@ -42,6 +42,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-031 | Accepted | Island is persistent terrain: every ordinary entry restores 2 energy (cap 5); staying does not restore energy, Jumping bypasses the effect, and the card stays on the board. | Owner clarified Island is an obstacle, not a consumable. Supersedes the historical first-entry-only rule. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-032 | Accepted | R1 Drop In targets a standing, unprotected opponent within two graph edges, without a card or energy cost. Keep the first-round restriction, one pre-movement tactic, existing dice and damage, Big Wave and Sunburn ranges. Always show the attack control with availability reasons and highlight legal opponents when selected. | Owner approved the change after reporting no attack opportunities. The exploratory 1,500-match audit is recorded in issue #42; real interactive balance remains to be tested. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
