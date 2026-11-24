@@ -209,6 +209,25 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (!actor || !actor.g.visible) return
     amuletPreview = { playerId: String(playerId), started: performance.now() }
   }
+  const stoneSplash = new THREE.Group()
+  const stoneRing = new THREE.Mesh(new THREE.RingGeometry(.4, .52, 48), new THREE.MeshBasicMaterial({ color: 0xd8ffff, transparent: true, side: THREE.DoubleSide, depthWrite: false }))
+  stoneRing.rotation.x = -Math.PI / 2
+  stoneRing.position.y = .12
+  stoneSplash.add(stoneRing)
+  const stoneDrops = Array.from({ length: 14 }, () => {
+    const drop = new THREE.Mesh(dropletGeometry, dropletMaterial.clone())
+    stoneSplash.add(drop)
+    return drop
+  })
+  stoneSplash.visible = false
+  scene.add(stoneSplash)
+  let stonePreview = null
+  function playStone(cellId) {
+    const stone = obstacles.get(cellId + ':Stone:')
+    if (!stone) return
+    if (stonePreview) stonePreview.stone.position.y = .1
+    stonePreview = { stone, cellId, started: performance.now() }
+  }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -678,6 +697,29 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         })
       }
     }
+    if (stonePreview) {
+      const { stone, cellId, started } = stonePreview
+      const t = (now - started) / 1000
+      if (!obstacles.has(cellId + ':Stone:') || t >= 2.7) {
+        stone.position.y = .1
+        stoneSplash.visible = false
+        stonePreview = null
+      } else {
+        const falling = reduce ? 1 : THREE.MathUtils.clamp(t / .7, 0, 1)
+        stone.position.y = .1 + 3.2 * (1 - falling * falling)
+        const impact = reduce ? .4 : THREE.MathUtils.clamp((t - .7) / 1.4, 0, 1)
+        stoneSplash.visible = impact > 0 && impact < 1
+        stoneSplash.position.set(BOARD_LAYOUT[cellId].x, .1, BOARD_LAYOUT[cellId].z)
+        stoneRing.scale.setScalar(1 + impact * 2)
+        stoneRing.material.opacity = .85 * (1 - impact)
+        stoneDrops.forEach((drop, i) => {
+          const angle = i * Math.PI * 2 / stoneDrops.length
+          const distance = .35 + impact * (1.1 + (i % 3) * .16)
+          drop.position.set(Math.cos(angle) * distance, .1 + Math.sin(impact * Math.PI) * (.55 + (i % 3) * .2), Math.sin(angle) * distance)
+          drop.material.opacity = Math.sin(impact * Math.PI)
+        })
+      }
+    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
@@ -735,5 +777,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }

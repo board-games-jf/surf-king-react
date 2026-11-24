@@ -24,6 +24,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
   const [sunburnPreview, setSunburnPreview] = useState(null)
   const [bigWavePreview, setBigWavePreview] = useState(null)
   const [amuletPreview, setAmuletPreview] = useState(null)
+  const [stonePreview, setStonePreview] = useState(null)
   const location = useLocation()
   const selectedProfilePlayer = normalizeLocalPlayerId(location.state?.athletePlayerId)
   const requestedType = location.state?.athleteBoardType
@@ -65,6 +66,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
     setSelectedCellId(null)
   }
 
+  const stoneCell = Object.keys(catalog.obstacles).find(id => catalog.obstacles[id] === 'Stone')
   const nearby = nearbyCatalogCell(catalog, surferId)
   const previewGlide = () => {
     if (nearby === null) return
@@ -105,6 +107,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
             sunburnPreview={sunburnPreview}
             bigWavePreview={bigWavePreview}
             amuletPreview={amuletPreview}
+            stonePreview={stonePreview}
             onCellSelect={onCellSelect}
             onUnavailable={setError}
             focusCellId={tool === 'Inspect' ? selectedCellId : null}
@@ -124,11 +127,11 @@ export default function BoardCatalogPage({ animationStudio = false }) {
                 <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
               </button>)}
             </div></div>
-            <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami', 'Amulet'].includes(selectedCard) || !Number.isInteger(catalog.surfers[surferId])}
-              onClick={() => { focusCell(catalog.surfers[surferId]); (selectedCard === 'Sunburn' ? setSunburnPreview : selectedCard === 'Amulet' ? setAmuletPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) }}>
+            <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami', 'Amulet', 'Stone'].includes(selectedCard) || (selectedCard === 'Stone' ? stoneCell === undefined : !Number.isInteger(catalog.surfers[surferId]))}
+              onClick={() => { if (selectedCard === 'Stone') { focusCell(Number(stoneCell)); setStonePreview({ cellId: Number(stoneCell) }) } else { focusCell(catalog.surfers[surferId]); (selectedCard === 'Sunburn' ? setSunburnPreview : selectedCard === 'Amulet' ? setAmuletPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) } }}>
               ▶ Play
             </button>
-            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. Visual prototype on the selected surfer.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. Visual prototype on the selected surfer.' : selectedCard === 'Tsunami' ? 'Tsunami: up to −3 energy. Visual prototype on the selected surfer.' : selectedCard === 'Amulet' ? 'Amulet: protection against attacks and Change until your next turn. Visual activation preview.' : selectedCard + ': animation not available yet.'}</p>
+            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. Visual prototype on the selected surfer.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. Visual prototype on the selected surfer.' : selectedCard === 'Tsunami' ? 'Tsunami: up to −3 energy. Visual prototype on the selected surfer.' : selectedCard === 'Amulet' ? 'Amulet: protection against attacks and Change until your next turn. Visual activation preview.' : selectedCard === 'Stone' ? (stoneCell === undefined ? 'Place a Stone on the board to preview its arrival.' : 'Stone: placement preview. Entry costs 1 energy and removes the stone.') : selectedCard + ': animation not available yet.'}</p>
             <div className="board-catalog-divider" />
           </section>}
           <div className="board-catalog-panel-top">
