@@ -61,7 +61,7 @@ export default function Board3D({ snapshot, onCellSelect, onCellHover, onUnavail
     }, [sunburnPreview])
 
     useEffect(() => {
-        if (bigWavePreview) scene.current?.playBigWave(bigWavePreview.playerId)
+        if (bigWavePreview) scene.current?.playBigWave(bigWavePreview.playerId, bigWavePreview.tsunami)
     }, [bigWavePreview])
 
     useEffect(() => {

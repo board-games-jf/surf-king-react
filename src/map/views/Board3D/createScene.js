@@ -145,6 +145,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   bigWave.add(water, foam)
   bigWave.visible = false
   scene.add(bigWave)
+  const tsunamiFollower = bigWave.clone()
+  tsunamiFollower.visible = false
+  scene.add(tsunamiFollower)
   const waveImpact = new THREE.Group()
   const splash = new THREE.Mesh(new THREE.RingGeometry(.52, .65, 48), new THREE.MeshBasicMaterial({ color: 0xd5ffff, transparent: true, side: THREE.DoubleSide, depthWrite: false }))
   splash.rotation.x = -Math.PI / 2
@@ -160,10 +163,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   waveImpact.visible = false
   scene.add(waveImpact)
   let bigWavePreview = null
-  function playBigWave(playerId) {
+  function playBigWave(playerId, tsunami = false) {
     const actor = actors.get(String(playerId))
     if (!actor || !actor.g.visible) return
-    bigWavePreview = { playerId: String(playerId), started: performance.now() }
+    bigWavePreview = { playerId: String(playerId), tsunami, started: performance.now() }
   }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
@@ -561,15 +564,25 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (bigWavePreview) {
       const target = actors.get(bigWavePreview.playerId)
       const t = (now - bigWavePreview.started) / 1000
-      if (!target || !target.g.visible || t >= 2.6) {
+      const tsunami = bigWavePreview.tsunami
+      const duration = tsunami ? 3.5 : 2.6
+      if (!target || !target.g.visible || t >= duration) {
         bigWave.visible = false
+        tsunamiFollower.visible = false
         waveImpact.visible = false
         bigWavePreview = null
       } else {
         bigWave.visible = true
         bigWave.position.copy(target.g.position)
-        bigWave.position.z += reduce ? 0 : 2.2 - Math.min(1, t / 1.45) * 2.8
-        const fade = Math.min(1, t / .3, (2.6 - t) / .65)
+        bigWave.scale.setScalar(tsunami ? 1.45 : 1)
+        bigWave.position.z += reduce ? 0 : (tsunami ? 3.2 - Math.min(1, t / 1.8) * 4.2 : 2.2 - Math.min(1, t / 1.45) * 2.8)
+        tsunamiFollower.visible = tsunami && !reduce
+        if (tsunamiFollower.visible) {
+          tsunamiFollower.scale.setScalar(1.15)
+          tsunamiFollower.position.copy(target.g.position)
+          tsunamiFollower.position.z += 5.2 - Math.min(1, t / 2.65) * 6.1
+        }
+        const fade = Math.min(1, t / .3, (duration - t) / .65)
         water.material.opacity = .82 * fade
         foam.material.opacity = fade
         const impact = reduce ? .5 : THREE.MathUtils.clamp((t - .85) / 1.3, 0, 1)

@@ -122,11 +122,11 @@ export default function BoardCatalogPage({ animationStudio = false }) {
                 <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
               </button>)}
             </div></div>
-            <button type="button" disabled={!['Sunburn', 'Big wave'].includes(selectedCard) || !Number.isInteger(catalog.surfers[surferId])}
-              onClick={() => { focusCell(catalog.surfers[surferId]); (selectedCard === 'Sunburn' ? setSunburnPreview : setBigWavePreview)({ playerId: surferId }) }}>
+            <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami'].includes(selectedCard) || !Number.isInteger(catalog.surfers[surferId])}
+              onClick={() => { focusCell(catalog.surfers[surferId]); (selectedCard === 'Sunburn' ? setSunburnPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) }}>
               ▶ Play
             </button>
-            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. Visual prototype on the selected surfer.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. Visual prototype on the selected surfer.' : selectedCard + ': animation not available yet.'}</p>
+            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. Visual prototype on the selected surfer.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. Visual prototype on the selected surfer.' : selectedCard === 'Tsunami' ? 'Tsunami: up to −3 energy. Visual prototype on the selected surfer.' : selectedCard + ': animation not available yet.'}</p>
             <div className="board-catalog-divider" />
           </section>}
           <div className="board-catalog-panel-top">
