@@ -285,7 +285,7 @@ const Board = ({ G, ctx, moves }) => {
 
     const choosingTarget = placingObstacle || removingObstacle || selectPlayerTarget || selectTsunami
     return (
-        <div className="surf-match">
+        <div className={isR1 ? "surf-match surf-match-r1" : "surf-match"}>
             <div className="surf-map-toolbar" aria-label="Board view">
                 <button type="button" aria-pressed={viewMode === '2d'} onClick={() => setViewMode('2d')}>2D</button>
                 <button type="button" aria-pressed={viewMode === '3d'} onClick={() => { setViewError(null); setViewMode('3d') }}>3D</button>
