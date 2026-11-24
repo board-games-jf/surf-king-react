@@ -18,7 +18,7 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, getRef }) => {
     return (
         <svg ref={getRef} viewBox={[-halfWidth, -halfDepth, 2 * halfWidth, 2 * halfDepth].join(' ')}>
             {BOARD_LAYOUT.map(({ id, x, z }) => {
-                const { backgroundImage, style } = cellProps(id)
+                const { backgroundImage, style, highlight } = cellProps(id)
                 const patternId = `${gridId}-cell-${id}`
 
                 return (
@@ -38,6 +38,14 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, getRef }) => {
                             style={style}
                             onClick={() => onHexClick({ position: id })}
                         />
+                        {highlight && (
+                            <polygon points={points} transform="scale(.91)"
+                                fill={highlight.color} fillOpacity={highlight.preview ? .09 : .16}
+                                stroke={highlight.color} strokeOpacity={highlight.preview ? .6 : .95}
+                                strokeWidth=".065" strokeDasharray={highlight.preview ? '.12 .09' : undefined}
+                                pointerEvents="none" data-target-highlight={highlight.kind}
+                                data-target-preview={highlight.preview ? 'true' : 'false'} />
+                        )}
                         <svg x={-radius} y={-halfHeight} width={2 * radius} height={2 * halfHeight}
                             viewBox="0 0 400 340" style={{ pointerEvents: 'none' }}>
                             {renderCell(id)}
