@@ -52,3 +52,15 @@ test('hover and leave forward exact IDs independently of clicks', () => {
     fireEvent.click(hex)
     expect(onHexClick).toHaveBeenCalledWith({ position: 7 })
 })
+
+test('blocked hex icons are noninteractive and separate from valid highlights', () => {
+    const onHexClick = jest.fn()
+    const { container } = render(<HexGrid renderCell={() => null} onHexClick={onHexClick}
+        cellProps={id => ({ blocked: id === 1 ? { code: 'minimum', symbol: 'one', color: '#ffcc82', label: '1 energy · Drop In only' } : null })}/>)
+    const blocked = container.querySelector('[data-target-blocked="minimum"]')
+    expect(blocked).toHaveAttribute('pointer-events', 'none')
+    expect(blocked.parentElement.querySelector('svg[aria-label="1 energy · Drop In only"]')).toBeInTheDocument()
+    expect(container.querySelectorAll('[data-target-highlight]')).toHaveLength(0)
+    fireEvent.click(container.querySelector('[data-cell-id="1"]'))
+    expect(onHexClick).toHaveBeenCalledWith({ position: 1 })
+})
