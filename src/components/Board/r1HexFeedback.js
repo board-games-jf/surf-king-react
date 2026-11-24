@@ -69,9 +69,10 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
         status = 'blocked'
     } else if (!selection && highlight?.preview && highlight.kind !== 'move' && highlight.cellIds.includes(id)) {
         action = 'Select the card first.'
+        if (highlight.kind === 'jump') entry = 'Safe landing: ignore this terrain effect.'
         status = 'preview'
     }
-    const ordinaryMove = !selection && (legal || status === 'preview') && !occupant
+    const ordinaryMove = !selection && (legal || status === 'preview') && !occupant && (!highlight || highlight.kind === 'move')
     const risk = ordinaryMove && effect?.damage >= player.energy ? 'Entering will cause a fall.' : null
     return { id, title, entry, occupantText, action, status, risk, occupant: occupant ? { position: occupant.position, energy: occupant.energy } : null }
 }
