@@ -106,6 +106,14 @@ const Board = ({ G, ctx, moves }) => {
         }
 
         if (cell.player) {
+            if (isR1 && G.winner == null && String(cell.player.position) === String(ctx.currentPlayer)) {
+                return <g>
+                    <rect x={75} y={28} width={250} height={78} rx={24} fill="#173d36" stroke="#ffcf53" strokeWidth={8}/>
+                    <text x={200} y={84} fontSize={50} fontWeight="bold" fill="#fff4c5" textAnchor="middle">NOW</text>
+                    <path d="M 170 106 L 230 106 L 200 145 Z" fill="#ffcf53"/>
+                    <text x={200} y={235} fontSize={95} fontWeight="bold" fill="#173d36" stroke="#fff4c5" strokeWidth={2} textAnchor="middle">#{cell.player.position + 1}</text>
+                </g>
+            }
             return (
                 <text x="50%" y="50%" fontSize={80} style={{ fill: 'black' }} textAnchor="middle">
                     {`#${cell.player.position + 1}`}
