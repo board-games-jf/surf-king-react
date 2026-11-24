@@ -9,6 +9,7 @@ import { PLAYER_BOARD_COLORS, createRiggedBoardSurfer, loadRiggedBoardTemplates 
 import { PRESET_SURFERS } from './surferStyle'
 import { createObstacleModel } from './obstacleModels'
 import { createHexDepth } from './hexDepth'
+import { createTargetHighlights } from './createTargetHighlights'
 import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, shortestHeading, MOVE_SECONDS } from './surferMotion'
 
 // This renderer receives public state and never validates moves or changes rules.
@@ -162,6 +163,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   function ring(color){const o=new THREE.LineLoop(outlineGeo,new THREE.LineBasicMaterial({color}));o.position.y=.22;o.visible=false;scene.add(o);return o}
   const hovered=ring('#f8ffff'),selected=ring('#ffda57')
   const maneuverRings = Array.from({ length: 6 }, () => ring('#ffda57'))
+  const targetHighlights = createTargetHighlights(BOARD_LAYOUT, shapeGeo, outlineGeo)
+  scene.add(targetHighlights.group)
   function positionRing(ring,id){const cell=Number.isInteger(id)?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2()
   function pick(event){const box=renderer.domElement.getBoundingClientRect();if(!box.width||!box.height)return null;pointer.set((event.clientX-box.left)/box.width*2-1,-(event.clientY-box.top)/box.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets,false)[0]?.object.userData.cellId??null}
@@ -293,8 +296,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (turnMarkerPlayerId === null) delete renderer.domElement.dataset.activeTurnPlayer
     else renderer.domElement.dataset.activeTurnPlayer = turnMarkerPlayerId
     maneuverRings.forEach((marker, index) => {
-      positionRing(marker, snapshot.maneuverDestinations?.[index])
+      positionRing(marker, snapshot.targetHighlight ? null : snapshot.maneuverDestinations?.[index])
     })
+    targetHighlights.update(snapshot.targetHighlight)
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
       const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell
