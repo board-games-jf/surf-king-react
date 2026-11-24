@@ -54,6 +54,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-037 | Accepted | Direct attack cards Sunburn, Big Wave and Tsunami reduce opponent energy only to a minimum of 1. Opponents already at 1 energy are not valid card targets. Only Drop In can directly knock another surfer off and transfer a card; ordinary terrain-entry damage can still cause a fall. Existing card ranges, nominal damage, protection and Drop In rules remain unchanged. | Owner clarified that direct falls require a duel, not a card effect. Supersedes the lethal direct-card damage behavior in SK-DEC-035. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-038 | Accepted | Replace the R1 pilot's fixed bottom panel with a responsive floating maritime HUD over a full-viewport map. Brand/round and ordered color-coded player badges with energy meters float above the map; original card art, compact effect summaries, contextual details, dice, move and attack controls occupy a collapsible/scrollable bottom dock. Non-target cards require an explicit Use card confirmation in the UI; targeted cards still use highlighted hexes. Keep all rule handlers, legacy UI and camera interaction unchanged. | Owner approved the floating HUD concept and authorized implementation. Exact visual quality and mobile usability require owner review. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
