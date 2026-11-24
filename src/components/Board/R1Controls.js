@@ -5,6 +5,7 @@ import {
     R1_ATTACK_RANGE, r1CardPlayable, r1DropTargets, isBeach,
     DROP_IN_RANGE, r1AttackUnavailableReason, r1MaxAttackDice,
 } from '../../game/r1/SurfKingR1'
+import { CardEffects, HexEffects, FeedbackIcon, terrainArt, compactReason, compactHexAction } from './r1FeedbackVisuals'
 import { getR1CardFeedback } from './r1CardFeedback'
 import { getR1RoundOrder } from './r1RoundOrder'
 import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
@@ -68,7 +69,7 @@ function EnergyMeter({ energy }) {
     </div>
 }
 
-export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight, onPreviewCard = () => {}, hexFeedback = null }) {
+export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight, onPreviewCard = () => {}, hexFeedback = null, pinnedHex = false, onClearHex = () => {} }) {
     const player = G.players[ctx.currentPlayer]
     const roundOrder = getR1RoundOrder(G, ctx)
     const hand = player
@@ -149,20 +150,26 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     )
                 })}
             </div>
-            <div className="r1-match-feedback r1-glass" aria-live="polite">
-                <strong>{winner ? 'Player ' + (winner.position + 1) + ' wins!' : 'Player ' + (player.position + 1) + ' · Your turn'}</strong>
-                <span>{G.message}</span>
-                {hexFeedback && <div className="r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
-                    <div className="r1-hex-feedback-heading">
-                        <strong>Hex {hexFeedback.id + 1} · {hexFeedback.title}</strong>
-                        <span className="r1-hex-status">{hexFeedback.status === 'ready' ? 'Available' :
-                            hexFeedback.status === 'preview' ? 'Prepare action' : 'Inspect'}</span>
-                    </div>
-                    {hexFeedback.occupantText && <span>{hexFeedback.occupantText}</span>}
-                    <span>{hexFeedback.entry}</span>
-                    {hexFeedback.risk && <strong className="r1-hex-risk">{hexFeedback.risk}</strong>}
-                    <span className="r1-hex-action">{hexFeedback.action}</span>
-                </div>}
+            {hexFeedback && <div className="r1-match-feedback r1-glass r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
+                {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt="" /> :
+                    hexFeedback.occupant ? <span className="r1-inspection-avatar" style={{ background: PLAYER_BOARD_COLORS[hexFeedback.occupant.position] }}>{hexFeedback.occupant.position + 1}</span> :
+                    <span className="r1-inspection-symbol"><FeedbackIcon kind={hexFeedback.title === 'Beach' ? 'flag' : 'wave'}/></span>}
+                <div className="r1-inspection-body">
+                    <div className="r1-inspection-heading"><strong>{hexFeedback.title}</strong><span className="r1-hex-number">#{hexFeedback.id + 1}</span></div>
+                    {hexFeedback.occupant && <div className="r1-hex-occupant">
+                        <span>{hexFeedback.occupantText.split(' · ')[0]}</span>
+                        <EnergyMeter energy={hexFeedback.occupant.energy}/>
+                        {hexFeedback.occupantText.split(' · ')[2] && <span>{hexFeedback.occupantText.split(' · ')[2]}</span>}
+                    </div>}
+                    <HexEffects info={hexFeedback}/>
+                    <span className="r1-hex-action"><FeedbackIcon kind={hexFeedback.status === 'ready' ? 'check' : hexFeedback.status === 'preview' ? 'move' : 'blocked'}/>{compactHexAction(hexFeedback)}</span>
+                    <span className="r1-sr-only">{hexFeedback.entry} {hexFeedback.occupantText} {hexFeedback.action} {hexFeedback.risk}</span>
+                </div>
+                {pinnedHex && <button type="button" className="r1-inspection-close" aria-label="Close hex information" onClick={onClearHex}>×</button>}
+            </div>}
+            {(winner || G.atkDices.length > 0 || (G.message && !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) && /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) &&
+                <div className="r1-match-event r1-glass" aria-live="polite">
+                    {winner ? <strong>Player {winner.position + 1} wins!</strong> : <span>{G.message}</span>}
                 {G.atkDices.length > 0 && <div className="r1-dice-results" aria-label="Drop In dice results">
                     {G.atkDices.map((die, i) => <span key={i} data-result={G.defDices[i] === undefined || die === G.defDices[i] ? 'tie' : die > G.defDices[i] ? 'win' : 'loss'}>
                         {die}{G.defDices[i] !== undefined ? ' vs ' + G.defDices[i] + ' — ' +
@@ -170,7 +177,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     </span>)}
                     {G.defDices.slice(G.atkDices.length).map((die, i) => <span key={'def-' + i}>Defender {die} (unpaired)</span>)}
                 </div>}
-            </div>
+                </div>}
             {!winner && <div className="r1-hud-dock">
                 {swapChoice && <div className="r1-swap-choice r1-glass" role="group" aria-label="Position conquest">
                     <strong>Player {G.pendingSwap.targetPlayerId + 1} fell!</strong>
@@ -180,28 +187,28 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         <button type="button" onClick={() => resolveSwap(false)}>Keep position</button>
                     </div>
                 </div>}
+                {detailCard && feedback && <div className="r1-card-detail r1-glass" aria-live="polite">
+                    <img className="r1-inspection-art" src={cardArt[detailCard.Name]} alt="" />
+                    <div className="r1-inspection-body">
+                        <div className="r1-inspection-heading">
+                            <strong>{detailCard.Name}</strong>
+                            <span className="r1-card-availability" data-playable={feedback.playable} aria-label={feedback.playable ? 'Available' : 'Unavailable'}><FeedbackIcon kind={feedback.playable ? 'check' : 'blocked'}/></span>
+                        </div>
+                        <CardEffects name={detailCard.Name}/>
+                        {feedback.reason && <span className="r1-blocked-reason"><FeedbackIcon kind="blocked"/>{compactReason(feedback.reason)}</span>}
+                        {feedback.playable && <span className="r1-card-next-action">
+                            <FeedbackIcon kind={feedback.targets.length ? 'range' : 'move'}/>
+                            {feedback.action}{' · '}{inspectingOther ? 'Switch card' : selectedCard ? feedback.targets.length ? 'Pick target' : 'Confirm' : 'Select card'}
+                        </span>}
+                        <span className="r1-sr-only">{descriptions[detailCard.Name]} {feedback.reason}</span>
+                    </div>
+                    {canConfirmCard && !inspectingOther && <button type="button" className="r1-confirm-card" onClick={confirmCard}>Use card</button>}
+                </div>}
                 <div className="r1-hud-context r1-glass">
                     {swapCard && <span>Position conquered. Use one remaining non-movement card or end turn.</span>}
                     {G.currentMove === 'recover' && <div className="r1-action-row">
                         <button type="button" className="r1-recover-button" onClick={() => { setSelection(null); moves.recover() }}>Recover free (1 energy)</button>
                         <span>Or use Lifeguard Float.</span>
-                    </div>}
-                    {detailCard && <div className="r1-card-detail" aria-live="polite">
-                        <div className="r1-card-detail-heading">
-                            <strong>{detailCard.Name}</strong>
-                            <span className="r1-card-availability" data-playable={feedback.playable}>
-                                {feedback.playable ? '✓ Available' : 'Unavailable'}
-                            </span>
-                        </div>
-                        <span>{descriptions[detailCard.Name]}</span>
-                        {feedback.reason && <span className="r1-blocked-reason">{feedback.reason}</span>}
-                        {feedback.playable && <span className="r1-card-next-action">
-                            {feedback.action}{' · '}
-                            {inspectingOther ? 'Select this card to switch.' :
-                                selectedCard ? feedback.targets.length ? 'Choose a highlighted target.' : 'Confirm to use.' :
-                                    feedback.targets.length ? 'Select card, then choose a target.' : 'Select card, then confirm.'}
-                        </span>}
-                        {canConfirmCard && !inspectingOther && <button type="button" className="r1-confirm-card" onClick={confirmCard}>Use card</button>}
                     </div>}
                     {selection?.kind === 'drop' && !dropReason && <div className="r1-action-row" role="group" aria-label="Attack dice">
                         <strong>Choose attack dice</strong>
@@ -212,7 +219,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             </button>)}
                         <span className="r1-sr-only">Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
                     </div>}
-                    {!(inspected && !selection) && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
+                    {!detailCard && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
                         <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
                         {highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
                     </div>}
