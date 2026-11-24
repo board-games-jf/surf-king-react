@@ -329,3 +329,14 @@
 .r1-floating-hud .r1-hand button .r1-card-ready { position: absolute; right: 6px; top: 6px; width: 17px; height: 17px; border-radius: 50%; line-height: 17px; font-size: 11px; font-weight: bold; color: #fff; background: #72524e; box-shadow: 0 1px 4px #1238; }
 .r1-floating-hud .r1-hand button .r1-card-ready[data-playable="true"] { background: #246d54; }
 .r1-floating-hud .r1-hand button[aria-disabled="true"]:hover { opacity: .83; }
+
+/* Inspection must not shift the hovered hit area. Lift only committed cards. */
+.r1-floating-hud .r1-hand button:not([aria-pressed="true"]):hover {
+    transform: rotate(var(--r1-fan-angle));
+    box-shadow: 0 5px 15px #082a3b70, 0 0 0 2px #ffe0a1;
+}
+@media (max-width: 520px) {
+    .r1-floating-hud .r1-hand button:not([aria-pressed="true"]):hover { transform: none; }
+}
+.r1-floating-hud .r1-hand, .r1-hand-heading, .r1-action-bar { flex-shrink: 0; }
+.r1-hud-context { min-height: 0; }
