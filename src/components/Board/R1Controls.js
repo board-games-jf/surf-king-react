@@ -115,7 +115,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             {count} {count === 1 ? 'die' : 'dice'}
                         </button>)}
                     <span>Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
-                </div>
+                </div>}
                 <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
                     {hand.cards.map((card, index) => {
                         const range = card.Name === 'Big wave' ? 2 : card.Name === 'Sunburn' ? 3 : null
