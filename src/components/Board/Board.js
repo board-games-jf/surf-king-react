@@ -2,6 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { HexGrid } from '../HexGrid'
 import './Board.css'
 import Board3D from '../../map/views/Board3D/Board3D'
+import R1Controls from './R1Controls'
+import { getR1HexFeedback } from './r1HexFeedback'
+import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
+import { getTargetHighlightStyle, getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import { createPublicMapSnapshot } from '../../map/contract/createPublicMapSnapshot'
 import { seaColor } from '../../constants/Colors'
 import {
@@ -60,6 +64,36 @@ const useKeyPress = function (targetKey) {
 
 const Board = ({ G, ctx, moves }) => {
     const gameMode = 1
+    const isR1 = G.ruleset === 'R1'
+    const [r1Selection, setR1Selection] = useState(null)
+    const [r1CardPreview, setR1CardPreview] = useState(null)
+    const previewId = r1CardPreview?.playerId === ctx.currentPlayer && r1CardPreview?.turn === G.turn ?
+        r1CardPreview.cardId : null
+    const previewCard = cardId => setR1CardPreview(cardId == null ? null :
+        { cardId, playerId: ctx.currentPlayer, turn: G.turn })
+    const r1Targets = isR1 ? r1SelectionTargets(G, ctx, r1Selection) : []
+    const targetHighlight = isR1 ? getR1TargetHighlight(G, ctx, r1Selection, previewId) : null
+    const [hoveredHex, setHoveredHex] = useState(null)
+    const [clickedHex, setClickedHex] = useState(null)
+    const inspectionScope = ctx.currentPlayer + ':' + G.turn + ':' + G.currentMove + ':' +
+        (r1Selection?.kind || '') + ':' + (r1Selection?.index ?? '')
+    const pinnedHexId = clickedHex?.scope === inspectionScope ? clickedHex.id : null
+    const inspectedHexId = hoveredHex ?? pinnedHexId
+    const clearHexInspection = () => { setClickedHex(null); setHoveredHex(null) }
+    const hexFeedback = isR1 ? getR1HexFeedback(G, ctx, inspectedHexId, r1Selection, targetHighlight) : null
+    const onR1Target = (id) => {
+        if (!r1Targets.includes(id)) {
+            setClickedHex(previous => previous?.scope === inspectionScope && previous.id === id ? null : { id, scope: inspectionScope })
+            return
+        }
+        setClickedHex(null)
+        setHoveredHex(null)
+        if (r1Selection?.kind === 'card') moves.useCard(r1Selection.index, id)
+        else if (r1Selection?.kind === 'drop') moves.dropIn(id, r1Selection.diceCount)
+        else moves.maneuver(id)
+        setR1CardPreview(null)
+        setR1Selection(null)
+    }
     const [viewMode, setViewMode] = useState('2d')
     const [selectedCellId, setSelectedCellId] = useState(null)
     const [viewError, setViewError] = useState(null)
@@ -73,6 +107,11 @@ const Board = ({ G, ctx, moves }) => {
 
     const cellProps = (position) => {
         const cell = G.cells[position]
+        const targetStyle = isR1 && r1Targets.includes(position) ? { cursor: 'pointer' } : {}
+        const blocked = targetHighlight?.blocked?.find(item => item.id === position)
+        const highlight = targetHighlight?.cellIds.includes(position) ? {
+            ...getTargetHighlightStyle(targetHighlight.kind), kind: targetHighlight.kind, preview: targetHighlight.preview,
+        } : null
 
         if (cell.player) {
             // TODO: Implement
@@ -81,16 +120,23 @@ const Board = ({ G, ctx, moves }) => {
         if (cell.obstacle) {
             const name = cell.obstacle.Name.replace(/\s+/g, '').toLowerCase()
             const img = require(`../../assets/obstacles/${name}.png`)
-            return { backgroundImage: img }
+            return { backgroundImage: img, style: targetStyle, highlight, blocked: blocked ? { ...blocked, ...getTargetBlockStyle(blocked.code) } : null }
         }
 
-        return { style: { fill: seaColor } }
+        return { style: { fill: seaColor, ...targetStyle }, highlight, blocked: blocked ? { ...blocked, ...getTargetBlockStyle(blocked.code) } : null }
     }
 
     const renderCell = (cellPosition) => {
         const cell = G.cells[cellPosition]
-
         if (cell.player) {
+            if (isR1 && G.winner == null && String(cell.player.position) === String(ctx.currentPlayer)) {
+                return <g>
+                    <rect x={75} y={28} width={250} height={78} rx={24} fill="#173d36" stroke="#ffcf53" strokeWidth={8}/>
+                    <text x={200} y={84} fontSize={50} fontWeight="bold" fill="#fff4c5" textAnchor="middle">NOW</text>
+                    <path d="M 170 106 L 230 106 L 200 145 Z" fill="#ffcf53"/>
+                    <text x={200} y={235} fontSize={95} fontWeight="bold" fill="#173d36" stroke="#fff4c5" strokeWidth={2} textAnchor="middle">#{cell.player.position + 1}</text>
+                </g>
+            }
             return (
                 <text x="50%" y="50%" fontSize={80} style={{ fill: 'black' }} textAnchor="middle">
                     {`#${cell.player.position + 1}`}
@@ -131,6 +177,7 @@ const Board = ({ G, ctx, moves }) => {
     }
 
     const onHexClickedHandle = (cell) => {
+        if (isR1) { onR1Target(cell.position); return }
         if (placingObstacle != null) {
             moves.useCard(placingObstacle.cardPos, [cell.position])
             setPlacingObstacle(null)
@@ -252,35 +299,36 @@ const Board = ({ G, ctx, moves }) => {
     useEffect(() => {
         const newPress = skipPress && !skipWasPressed.current
         skipWasPressed.current = skipPress
-        if (newPress) onSkipHandle()
-    }, [skipPress, onSkipHandle])
+        if (newPress && !isR1) onSkipHandle()
+    }, [skipPress, onSkipHandle, isR1])
 
-    useEffect(() => {
-        console.log('Board::useEffect G', G)
-    }, [G])
+    useEffect(() => { setR1Selection(null) }, [ctx.currentPlayer, G.turn, G.currentMove])
 
     const choosingTarget = placingObstacle || removingObstacle || selectPlayerTarget || selectTsunami
     return (
-        <div className="surf-match">
+        <div className={isR1 ? "surf-match surf-match-r1" : "surf-match"}>
             <div className="surf-map-toolbar" aria-label="Board view">
-                <button type="button" aria-pressed={viewMode === '2d'} onClick={() => setViewMode('2d')}>2D</button>
-                <button type="button" aria-pressed={viewMode === '3d'} onClick={() => { setViewError(null); setViewMode('3d') }}>3D</button>
+                <button type="button" aria-pressed={viewMode === '2d'} onClick={() => { setHoveredHex(null); setViewMode('2d') }}>2D</button>
+                <button type="button" aria-pressed={viewMode === '3d'} onClick={() => { setHoveredHex(null); setViewError(null); setViewMode('3d') }}>3D</button>
                 {viewError && <span role="alert">{viewError}</span>}
             </div>
             <div className={'surf-map surf-map-' + viewMode}>
                 {viewMode === '3d' ? (
                     <Board3D
-                        snapshot={createPublicMapSnapshot(G, ctx, selectedCellId)}
+                        snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, pinnedHexId), maneuverDestinations: r1Targets, targetHighlight } : createPublicMapSnapshot(G, ctx, selectedCellId)}
+                        onCellHover={isR1 ? setHoveredHex : undefined}
                         onCellSelect={(cellId) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }) }}
-                        onUnavailable={(message) => { setViewError(message); setViewMode('2d') }}
+                        onUnavailable={(message) => { setHoveredHex(null); setViewError(message); setViewMode('2d') }}
                     />
                 ) : (
                     <HexGrid cellProps={cellProps} renderCell={renderCell}
+                        onHexHover={isR1 ? setHoveredHex : undefined} inspectedCellId={isR1 ? inspectedHexId : null}
                         onHexClick={(cell) => { setSelectedCellId(cell.position); onHexClickedHandle(cell) }}
                     />
                 )}
             </div>
-            <section className="surf-hud" aria-label="Match controls">
+            {isR1 ? <R1Controls G={G} ctx={ctx} moves={moves} selection={r1Selection}
+                setSelection={setR1Selection} onTarget={onR1Target} targetHighlight={targetHighlight} onPreviewCard={previewCard} hexFeedback={hexFeedback} pinnedHex={pinnedHexId != null} onClearHex={clearHexInspection} /> : <section className="surf-hud" aria-label="Match controls">
                 <div className="surf-turn">
                     <strong aria-live="polite">{'Turn ' + G.turn + ' · Player ' + (Number(ctx.currentPlayer) + 1) + ' · ' + G.currentMove.replace(/_/g, ' ')}</strong>
                     {choosingTarget ? <span>Choose a hex</span> : (
@@ -303,7 +351,7 @@ const Board = ({ G, ctx, moves }) => {
                         </div>
                     ))}
                 </div>}
-            </section>
+            </section>}
         </div>
     )
 }

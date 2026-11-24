@@ -114,3 +114,9 @@
     .surf-hands:has(.surf-hand:nth-child(3):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .surf-card img { height: min(6dvh, 42px); }
 }
+
+
+/* Shared target legend shape; R1 HUD presentation lives in R1Hud.css. */
+.r1-target-legend { display: inline-flex; align-items: center; gap: 5px; }
+.r1-target-swatch { display: inline-block; width: 13px; height: 12px; flex: 0 0 13px; clip-path: polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); }
+.r1-targets { display: flex; gap: 3px; }

@@ -9,6 +9,8 @@ import { PLAYER_BOARD_COLORS, createRiggedBoardSurfer, loadRiggedBoardTemplates 
 import { PRESET_SURFERS } from './surferStyle'
 import { createObstacleModel } from './obstacleModels'
 import { createHexDepth } from './hexDepth'
+import { createTargetHighlights } from './createTargetHighlights'
+import { createBoardViewportResize } from './resizeBoardViewport'
 import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, shortestHeading, MOVE_SECONDS } from './surferMotion'
 
 // This renderer receives public state and never validates moves or changes rules.
@@ -17,7 +19,7 @@ const colors = { sand:'#f4d49b', rock:'#a6aaa0', trunk:'#b5804f', green:'#4c9755
   cream:'#fff3cb', orange:'#ffbb41', coral:'#f27763', teal:'#38b4ae', blue:'#337a91',
   skin:'#c8824b', dark:'#294b46' }
 
-export function createScene(container,onCellSelect,onError, { previewFemaleAthlete = false, athleteBoardType = null } = {}) {
+export function createScene(container,onCellSelect,onError, { previewFemaleAthlete = false, athleteBoardType = null, onCellHover } = {}) {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color('#c8e8e5')
   scene.fog = new THREE.Fog('#c8e8e5',42,105)
@@ -32,6 +34,37 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   renderer.domElement.setAttribute('aria-label','Interactive Surf King 3D board')
   Object.assign(renderer.domElement.style, { display: 'block', width: '100%', height: '100%' })
   container.appendChild(renderer.domElement)
+  // One scene-owned, camera-facing marker, independent of the surfer's roll.
+  const turnCanvas = document.createElement('canvas')
+  turnCanvas.width = 256
+  turnCanvas.height = 128
+  const turnContext = turnCanvas.getContext('2d')
+  turnContext.fillStyle = '#173d36'
+  turnContext.fillRect(24, 8, 208, 68)
+  turnContext.strokeStyle = '#ffcf53'
+  turnContext.lineWidth = 6
+  turnContext.strokeRect(24, 8, 208, 68)
+  turnContext.font = 'bold 44px sans-serif'
+  turnContext.textAlign = 'center'
+  turnContext.fillStyle = '#fff4c5'
+  turnContext.fillText('NOW', 128, 57)
+  turnContext.beginPath()
+  turnContext.moveTo(99, 76)
+  turnContext.lineTo(157, 76)
+  turnContext.lineTo(128, 117)
+  turnContext.closePath()
+  turnContext.fillStyle = '#ffcf53'
+  turnContext.fill()
+  const turnTexture = new THREE.CanvasTexture(turnCanvas)
+  turnTexture.colorSpace = THREE.SRGBColorSpace
+  const turnMarker = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: turnTexture, transparent: true, depthTest: false, depthWrite: false, toneMapped: false
+  }))
+  turnMarker.scale.set(1.6, .8, 1)
+  turnMarker.renderOrder = 1000
+  turnMarker.visible = false
+  scene.add(turnMarker)
+  let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
   controls.mouseButtons.LEFT = THREE.MOUSE.PAN
@@ -131,19 +164,29 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   function ring(color){const o=new THREE.LineLoop(outlineGeo,new THREE.LineBasicMaterial({color}));o.position.y=.22;o.visible=false;scene.add(o);return o}
   const hovered=ring('#f8ffff'),selected=ring('#ffda57')
   const maneuverRings = Array.from({ length: 6 }, () => ring('#ffda57'))
+  const targetHighlights = createTargetHighlights(BOARD_LAYOUT, shapeGeo, outlineGeo)
+  scene.add(targetHighlights.group)
   function positionRing(ring,id){const cell=Number.isInteger(id)?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2()
   function pick(event){const box=renderer.domElement.getBoundingClientRect();if(!box.width||!box.height)return null;pointer.set((event.clientX-box.left)/box.width*2-1,-(event.clientY-box.top)/box.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets,false)[0]?.object.userData.cellId??null}
   let start = null
   const pressedPointers = new Set()
+  let hoverId = null
+  function setHover(id) {
+    if (id === hoverId) return
+    hoverId = id
+    positionRing(hovered, id)
+    onCellHover?.(id)
+  }
   function move(e) {
     if (start && e.pointerId === start.id && Math.hypot(e.clientX - start.x, e.clientY - start.y) >= 6) start = null
-    const id = pick(e)
-    positionRing(hovered, id)
+    const id = pressedPointers.size ? null : pick(e)
+    setHover(id)
     renderer.domElement.style.cursor = id === null ? 'grab' : 'pointer'
   }
   function down(e) {
     pressedPointers.add(e.pointerId)
+    setHover(null)
     start = pressedPointers.size === 1 && e.button === 0 && !e.shiftKey && !e.ctrlKey && !e.metaKey
       ? { id: e.pointerId, x: e.clientX, y: e.clientY } : null
   }
@@ -159,7 +202,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       if (id !== null) onCellSelect(id)
     }
   }
-  function leave(){positionRing(hovered,null)}
+  function leave(){setHover(null)}
   renderer.domElement.addEventListener('pointermove',move)
   renderer.domElement.addEventListener('pointerdown',down)
   renderer.domElement.addEventListener('pointerup',up)
@@ -257,9 +300,14 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
   function update(snapshot){positionRing(selected,snapshot.selectedCellId);hexDepth.select(snapshot.selectedCellId)
+    turnMarkerPlayerId = snapshot.turnMarkerPlayerId ?? null
+    turnMarker.visible = false
+    if (turnMarkerPlayerId === null) delete renderer.domElement.dataset.activeTurnPlayer
+    else renderer.domElement.dataset.activeTurnPlayer = turnMarkerPlayerId
     maneuverRings.forEach((marker, index) => {
-      positionRing(marker, snapshot.maneuverDestinations?.[index])
+      positionRing(marker, snapshot.targetHighlight ? null : snapshot.maneuverDestinations?.[index])
     })
+    targetHighlights.update(snapshot.targetHighlight)
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
       const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell
@@ -333,11 +381,17 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       if(sample.remount!==undefined) renderer.domElement.dataset['surferRemount'+a.id]=sample.handContact>.9?'press':sample.remount>.7?'stand':'reach'
       else delete renderer.domElement.dataset['surferRemount'+a.id]
     }
+    const activeActor = actors.get(turnMarkerPlayerId)
+    turnMarker.visible = !!activeActor && activeActor.g.visible
+    if (turnMarker.visible) {
+      turnMarker.position.copy(activeActor.g.position)
+      turnMarker.position.y += 2.1
+    }
     for(const g of obstacles.values())g.userData.animate?.(elapsed)
     animateCamera(now)
     controls.update();renderer.render(scene,camera);raf=requestAnimationFrame(frame)
   }
-  function resize(){const width=Math.max(container.clientWidth,1),height=Math.max(container.clientHeight,1);camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setSize(width,height,false)}
+  const resize = createBoardViewportResize(container, camera, renderer)
   let observer
   if(typeof ResizeObserver!=='undefined'){observer=new ResizeObserver(resize);observer.observe(container)}else window.addEventListener('resize',resize)
   function contextLost(e){e.preventDefault();if(onError)onError('WebGL context lost. Switch back to 2D.')}

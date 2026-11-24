@@ -62,3 +62,12 @@ test('projects the engine fallen marker rather than inferring it from energy', (
     G.players[0].fellOffTheBoard = -1
     expect(createPublicMapSnapshot(G, {}).players[0].fallen).toBe(false)
 })
+
+test('R1 turn marker follows the active surfer and disappears at game over', () => {
+    const G = { ...game(), ruleset: 'R1', currentMove: 'use_card', winner: null }
+    expect(createPublicMapSnapshot(G, { currentPlayer: '0' }).turnMarkerPlayerId).toBe('0')
+    expect(createPublicMapSnapshot(G, { currentPlayer: '1' }).turnMarkerPlayerId).toBe('1')
+    G.winner = 0
+    expect(createPublicMapSnapshot(G, { currentPlayer: '1' }).turnMarkerPlayerId).toBeNull()
+    expect(createPublicMapSnapshot(game(), { currentPlayer: '0' }).turnMarkerPlayerId).toBeUndefined()
+})
