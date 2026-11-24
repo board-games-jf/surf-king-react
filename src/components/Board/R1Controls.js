@@ -78,7 +78,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 {roundOrder.map(({ id, status }, slot) => {
                     const p = G.players[id]
                     return (
-                    <div key={p.position} className="surf-hand" data-current={status === 'now'} data-order-status={status} aria-current={status === 'now' ? 'step' : undefined}>
+                    <div key={p.position} className="surf-hand" data-current={status === 'now'} data-order-status={status} data-attack-target={attacking && targets.includes(p.cellPosition)} aria-current={status === 'now' ? 'step' : undefined}>
                         <strong>{slot + 1}. Player {p.position + 1}</strong>
                         <span className="r1-order-status">{status === 'now' ? 'NOW' : status === 'played' ? 'Played' : 'Up next'}</span>
                         <div>{p.energy}/5 energy · {p.cards.length} cards</div>
@@ -94,6 +94,12 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     <button type="button" onClick={() => moves.recover()}>Recover free (1 energy)</button>
                     <span>Or use Lifeguard Float.</span>
                 </div>}
+                <div className="surf-turn">
+                    <button type="button" className="r1-drop-button" disabled={!!dropReason}
+                        aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
+                        onClick={() => setSelection({ kind: 'drop' })}>Attack · Drop In (2 hexes)</button>
+                    <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range')}</span>
+                </div>
                 <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
                     {hand.cards.map((card, index) => {
                         const range = card.Name === 'Big wave' ? 2 : card.Name === 'Sunburn' ? 3 : null
@@ -109,10 +115,6 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     })}
                 </div>
                 <div className="surf-turn">
-                    <button type="button" className="r1-drop-button" disabled={!!dropReason}
-                        aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
-                        onClick={() => setSelection({ kind: 'drop' })}>Attack · Drop In (2 hexes)</button>
-                    <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range')}</span>
                     {selection && <button type="button" onClick={() => setSelection(null)}>Cancel selection</button>}
                     {canPass && !selection && <button type="button" onClick={() => moves.pass()}>
                         {G.currentMove === 'use_card' ? 'No tactic — move' :
