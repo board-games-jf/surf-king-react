@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
+import './R1Hud.css'
+import { PLAYER_BOARD_COLORS } from '../../constants/playerBoardColors'
 import {
     R1_ATTACK_RANGE, r1CardPlayable, r1CardTargets, r1DropTargets, isBeach,
     DROP_IN_RANGE, r1AttackUnavailableReason, r1MaxAttackDice,
@@ -49,7 +51,21 @@ const descriptions = {
     Amulet: 'Protect against opponent attacks until your next turn.',
     'Surf Current': 'Move up to two legal steps; draw only once.',
 }
+const shortEffects = {
+    'Energy x2': '+2 energy', 'Lifeguard float': 'Recover +3',
+    'Big wave': '−2 energy', Sunburn: '−1 energy', Tsunami: '−3 energy',
+    Stone: 'Place · −1', Storm: 'Place · −1', Cyclone: 'Redirect', Island: 'Place · +2',
+    Jumping: 'Safe landing', Amulet: 'Shield', 'Surf Current': '2 steps',
+}
+
 export { r1SelectionTargets } from './r1TargetHighlight'
+
+function EnergyMeter({ energy }) {
+    return <div className="r1-energy-meter" aria-label={energy + ' of 5 energy'}>
+        {Array.from({ length: 5 }, (_, i) => <span key={i} aria-hidden="true" data-filled={i < energy} />)}
+        <span className="r1-sr-only">{energy}/5 energy</span>
+    </div>
+}
 
 export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight }) {
     const player = G.players[ctx.currentPlayer]
@@ -61,97 +77,142 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const dropTargets = r1DropTargets(G, ctx)
     const dropReason = r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, dropTargets)
     const maxAttackDice = r1MaxAttackDice(player.energy)
-    const attacking = selection?.kind === 'drop' || (selection?.kind === 'card' &&
-        Boolean(R1_ATTACK_RANGE[player.cards[selection.index]?.Name]))
+    const selectedCard = selection?.kind === 'card' ? hand.cards[selection.index] : null
+    const attacking = selection?.kind === 'drop' || Boolean(R1_ATTACK_RANGE[selectedCard?.Name])
     const canPass = G.currentMove === 'use_card' || G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
+    const [handHidden, setHandHidden] = useState(false)
+    const [inspectedId, setInspectedId] = useState(null)
+    const inspected = hand.cards.find(card => card.id === inspectedId)
+    const detailCard = selectedCard || inspected
+    const detailIndex = detailCard ? hand.cards.indexOf(detailCard) : -1
+    const detailRange = detailCard && R1_ATTACK_RANGE[detailCard.Name]
+    const detailReason = detailRange ? r1AttackUnavailableReason(G, ctx, detailRange,
+        r1CardTargets(G, ctx, detailIndex), 'card') : null
+    const canConfirmCard = !!selectedCard && r1CardPlayable(G, ctx, selection.index) && targets.length === 0
     function playCard(index) {
         if (!r1CardPlayable(G, ctx, index)) return
-        if (r1CardTargets(G, ctx, index).length) setSelection({ kind: 'card', index })
-        else { setSelection(null); moves.useCard(index) }
+        setInspectedId(null)
+        setSelection({ kind: 'card', index })
     }
+    function confirmCard() {
+        if (!canConfirmCard) return
+        moves.useCard(selection.index)
+        setSelection(null)
+    }
+    const moveLabel = G.currentMove === 'use_card' ? 'Move' :
+        G.currentMove === 'current_second' ? 'Finish movement' :
+        canPass ? 'End turn' : 'Choose a hex'
+
     return (
-        <section className="surf-hud" aria-label="R1 match controls">
-            <div className="surf-turn">
-                <strong aria-live="polite">{winner ? 'Player ' + (winner.position + 1) + ' wins!' :
-                    'R1 pilot · Round ' + G.turn + ' · Player ' + (player.position + 1)}</strong>
-                {!winner && <span>{G.currentMove === 'use_card' ? 'Card optional · attacks repeatable' : G.currentMove === 'maneuver' ? 'Attack or move' : G.currentMove.replace(/_/g, ' ')}</span>}
-                {!winner && G.turn === 1 && <span>No attacks this round</span>}
-            </div>
-            <div aria-live="polite">{G.message}</div>
-            {G.atkDices.length > 0 && <div className="r1-dice-results" aria-label="Drop In dice results">
-                {G.atkDices.map((die, i) => <span key={i}>
-                    {die}{G.defDices[i] !== undefined ? ' vs ' + G.defDices[i] + ' — ' +
-                        (die > G.defDices[i] ? 'Defender −1' : die < G.defDices[i] ? 'Attacker −1' : 'Tie') : ' (unpaired)'}
-                </span>)}
-                {G.defDices.slice(G.atkDices.length).map((die, i) => <span key={'def-' + i}>Defender {die} (unpaired)</span>)}
-            </div>}
-            <div className="surf-hands r1-round-order" aria-label="Round play order">
+        <section className="r1-floating-hud" aria-label="R1 match controls">
+            <header className="r1-hud-brand r1-glass">
+                <span className="r1-brand-wave" aria-hidden="true">〰</span>
+                <div><strong>SURF KING</strong><span>ROUND {String(G.turn).padStart(2, '0')}</span></div>
+            </header>
+            <div className="r1-round-order" aria-label="Round play order">
                 {roundOrder.map(({ id, status }, slot) => {
                     const p = G.players[id]
+                    const state = isBeach(p.cellPosition) ? 'Finished' : p.energy === 0 ? 'Fallen' :
+                        p.activeCard.length ? 'Protected' : ''
                     return (
-                    <div key={p.position} className="surf-hand" data-current={status === 'now'} data-order-status={status} data-attack-target={attacking && targets.includes(p.cellPosition)} aria-current={status === 'now' ? 'step' : undefined}>
-                        <strong>{slot + 1}. Player {p.position + 1}</strong>
-                        <span className="r1-order-status">{status === 'now' ? 'NOW' : status === 'played' ? 'Played' : 'Up next'}</span>
-                        <div>{p.energy}/5 energy · {p.cards.length} cards</div>
-                        <div>{isBeach(p.cellPosition) ? 'Finished' : p.energy === 0 ? 'Fallen' :
-                            p.activeCard.length ? 'Protected' : ''}</div>
-                    </div>
+                        <div key={p.position} className="surf-hand r1-player-badge r1-glass"
+                            style={{ '--r1-player-color': PLAYER_BOARD_COLORS[p.position % PLAYER_BOARD_COLORS.length] }}
+                            data-current={status === 'now'} data-order-status={status}
+                            data-attack-target={attacking && targets.includes(p.cellPosition)}
+                            aria-current={status === 'now' ? 'step' : undefined}>
+                            <div className="r1-player-heading">
+                                <span className="r1-player-avatar" aria-hidden="true">{p.position + 1}</span>
+                                <strong>{slot + 1}. Player {p.position + 1}</strong>
+                            </div>
+                            <EnergyMeter energy={p.energy} />
+                            <div className="r1-player-meta">
+                                <span className="r1-order-status">{status === 'now' ? 'NOW' : status === 'played' ? 'Played' : 'Up next'}</span>
+                                <span>{p.cards.length} cards</span>
+                            </div>
+                            {state && <span className="r1-player-state">{state}</span>}
+                        </div>
                     )
                 })}
             </div>
-            {!winner && <div>
-                <span>Draw after a successful move. Above 5 cards, discard one at random.</span>
-                {G.currentMove === 'recover' && <div className="surf-turn">
-                    <button type="button" onClick={() => moves.recover()}>Recover free (1 energy)</button>
-                    <span>Or use Lifeguard Float.</span>
+            <div className="r1-match-feedback r1-glass" aria-live="polite">
+                <strong>{winner ? 'Player ' + (winner.position + 1) + ' wins!' : 'Player ' + (player.position + 1) + ' · Your turn'}</strong>
+                <span>{G.message}</span>
+                {G.atkDices.length > 0 && <div className="r1-dice-results" aria-label="Drop In dice results">
+                    {G.atkDices.map((die, i) => <span key={i} data-result={G.defDices[i] === undefined || die === G.defDices[i] ? 'tie' : die > G.defDices[i] ? 'win' : 'loss'}>
+                        {die}{G.defDices[i] !== undefined ? ' vs ' + G.defDices[i] + ' — ' +
+                            (die > G.defDices[i] ? 'Defender −1' : die < G.defDices[i] ? 'Attacker −1' : 'Tie') : ' (unpaired)'}
+                    </span>)}
+                    {G.defDices.slice(G.atkDices.length).map((die, i) => <span key={'def-' + i}>Defender {die} (unpaired)</span>)}
                 </div>}
-                <div className="surf-turn">
-                    <button type="button" className="r1-drop-button" disabled={!!dropReason}
-                        aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
-                        onClick={() => setSelection({ kind: 'drop', diceCount: maxAttackDice })}>Attack · Drop In (2 hexes)</button>
-                    <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
+            </div>
+            {!winner && <div className="r1-hud-dock">
+                <div className="r1-hud-context r1-glass">
+                    {G.currentMove === 'recover' && <div className="r1-action-row">
+                        <button type="button" className="r1-recover-button" onClick={() => { setSelection(null); moves.recover() }}>Recover free (1 energy)</button>
+                        <span>Or use Lifeguard Float.</span>
+                    </div>}
+                    {detailCard && <div className="r1-card-detail" aria-live="polite">
+                        <strong>{detailCard.Name}</strong><span>{descriptions[detailCard.Name]}</span>
+                        {detailReason && <span className="r1-blocked-reason">{detailReason}</span>}
+                        {canConfirmCard && <button type="button" className="r1-confirm-card" onClick={confirmCard}>Use card</button>}
+                    </div>}
+                    {selection?.kind === 'drop' && !dropReason && <div className="r1-action-row" role="group" aria-label="Attack dice">
+                        <strong>Choose attack dice</strong>
+                        {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map(count =>
+                            <button type="button" className="r1-dice-button" key={count} aria-pressed={selection.diceCount === count}
+                                onClick={() => setSelection({ kind: 'drop', diceCount: count })}>
+                                <span aria-hidden="true">{count === 1 ? '⚀' : '⚁'}</span> {count} {count === 1 ? 'die' : 'dice'}
+                            </button>)}
+                        <span className="r1-sr-only">Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
+                    </div>}
+                    {highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
+                        <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
+                        {highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
+                    </div>}
+                    {targets.length > 0 && <div className="r1-targets" aria-label="Legal target hexes">
+                        {targets.map(id => <button type="button" key={id}
+                            aria-label={attacking ? 'Attack Player ' + (G.cells[id].player.position + 1) : 'Select hex ' + (id + 1)}
+                            onClick={() => onTarget(id)}>{attacking ? 'Player ' + (G.cells[id].player.position + 1) : id + 1}</button>)}
+                    </div>}
                 </div>
-                {selection?.kind === 'drop' && !dropReason && <div className="surf-turn" role="group" aria-label="Attack dice">
-                    <strong>Choose attack dice</strong>
-                    {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map(count =>
-                        <button type="button" key={count} aria-pressed={selection.diceCount === count}
-                            onClick={() => setSelection({ kind: 'drop', diceCount: count })}>
-                            {count} {count === 1 ? 'die' : 'dice'}
-                        </button>)}
-                    <span>Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
-                </div>}
-                <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
+                <div className="r1-hand-heading r1-glass">
+                    <span>YOUR HAND <strong>{hand.cards.length}/5</strong></span>
+                    <button type="button" onClick={() => setHandHidden(value => !value)} aria-expanded={!handHidden}>{handHidden ? 'Show cards' : 'Hide cards'}</button>
+                </div>
+                {!handHidden && <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
                     {hand.cards.map((card, index) => {
                         const range = R1_ATTACK_RANGE[card.Name]
                         const reason = range ? r1AttackUnavailableReason(G, ctx, range, r1CardTargets(G, ctx, index), 'card') : null
+                        const playable = r1CardPlayable(G, ctx, index)
                         return <button type="button" key={card.id} title={reason || descriptions[card.Name]}
-                            disabled={!r1CardPlayable(G, ctx, index)}
-                            aria-pressed={selection?.kind === 'card' && selection.index === index}
-                            onClick={() => playCard(index)}>
-                            <img src={cardArt[card.Name]} alt="" className="r1-card-art" />
-                            <strong>{card.Name}</strong><span>{descriptions[card.Name]}</span>
-                            {reason && <span className="r1-attack-reason">{reason}</span>}
+                            aria-disabled={!playable} aria-pressed={selection?.kind === 'card' && selection.index === index}
+                            style={{ '--r1-fan-angle': ((index - (hand.cards.length - 1) / 2) * 3) + 'deg' }}
+                            onMouseEnter={() => setInspectedId(card.id)}
+                            onMouseLeave={() => setInspectedId(null)}
+                            onFocus={() => setInspectedId(card.id)}
+                            onBlur={() => setInspectedId(null)}
+                            onClick={() => { setInspectedId(card.id); playCard(index) }}>
+                            <img src={cardArt[card.Name]} alt="" className="r1-card-art" draggable="false" />
+                            <strong>{card.Name}</strong><span className="r1-card-effect">{shortEffects[card.Name]}</span>
+                            <span className="r1-sr-only">{descriptions[card.Name]} {reason}</span>
                         </button>
                     })}
-                </div>
-                <div className="surf-turn">
-                    {selection && <button type="button" onClick={() => setSelection(null)}>Cancel selection</button>}
-                    {canPass && !selection && <button type="button" onClick={() => moves.pass()}>
-                        {G.currentMove === 'use_card' ? 'Skip card — move' :
-                            G.currentMove === 'current_second' ? 'Finish movement' : 'No legal move — end turn'}
-                    </button>}
-                    {highlight.cellIds.length > 0 && highlightStyle && <span className="r1-target-legend">
-                        <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
-                        {highlight.preview ? 'Movement preview — skip card to move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
-                    </span>}
-                </div>
-                {targets.length > 0 && <div className="r1-targets" aria-label="Legal target hexes">
-                    {targets.map(id => <button type="button" key={id}
-                        aria-label={attacking ? 'Attack Player ' + (G.cells[id].player.position + 1) : 'Select hex ' + (id + 1)}
-                        onClick={() => onTarget(id)}>{attacking ? 'Player ' + (G.cells[id].player.position + 1) : id + 1}</button>)}
+                    {!hand.cards.length && <span className="r1-empty-hand r1-glass">No cards in hand</span>}
                 </div>}
+                <div className="r1-action-bar r1-glass">
+                    <button type="button" className="r1-drop-button" disabled={!!dropReason}
+                        aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
+                        aria-label="Attack · Drop In (2 hexes)"
+                        onClick={() => { setInspectedId(null); setSelection({ kind: 'drop', diceCount: maxAttackDice }) }}>
+                        <span aria-hidden="true">⚔</span> Drop In
+                    </button>
+                    {selection && <button type="button" className="r1-cancel-button" onClick={() => { setInspectedId(null); setSelection(null) }}>Cancel selection</button>}
+                    {!selection && G.currentMove !== 'recover' && <button type="button" className="r1-move-button" disabled={!canPass}
+                        onClick={() => { setInspectedId(null); moves.pass() }}>{moveLabel} <span aria-hidden="true">→</span></button>}
+                    <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
+                </div>
             </div>}
         </section>
     )
