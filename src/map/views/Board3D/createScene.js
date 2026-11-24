@@ -181,6 +181,34 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (!actor || !actor.g.visible) return
     bigWavePreview = { playerId: String(playerId), tsunami, started: performance.now() }
   }
+  // Amulet activation preview: a golden charm summons a protective aqua bubble.
+  const amuletEffect = new THREE.Group()
+  const barrier = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 20), new THREE.MeshBasicMaterial({ color: 0x60dcf2, transparent: true, opacity: .15, depthWrite: false, side: THREE.DoubleSide }))
+  barrier.position.y = .92
+  barrier.scale.set(1.05, 1.2, 1.05)
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(1.03, .045, 8, 64), new THREE.MeshBasicMaterial({ color: 0x9cffff, transparent: true, depthWrite: false }))
+  halo.rotation.x = Math.PI / 2
+  halo.position.y = .22
+  const charm = new THREE.Group()
+  const charmRing = new THREE.Mesh(new THREE.TorusGeometry(.25, .055, 10, 32), new THREE.MeshBasicMaterial({ color: 0xffc65a, transparent: true, depthWrite: false }))
+  const charmCore = new THREE.Mesh(new THREE.SphereGeometry(.14, 16, 12), new THREE.MeshBasicMaterial({ color: 0x6cf4ef, transparent: true, depthWrite: false }))
+  charm.add(charmRing, charmCore)
+  charm.position.y = 2.5
+  const amuletSparks = Array.from({ length: 10 }, () => {
+    const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTexture, color: 0x95fff4, transparent: true, depthWrite: false, toneMapped: false }))
+    spark.scale.set(.28, .28, 1)
+    amuletEffect.add(spark)
+    return spark
+  })
+  amuletEffect.add(barrier, halo, charm)
+  amuletEffect.visible = false
+  scene.add(amuletEffect)
+  let amuletPreview = null
+  function playAmulet(playerId) {
+    const actor = actors.get(String(playerId))
+    if (!actor || !actor.g.visible) return
+    amuletPreview = { playerId: String(playerId), started: performance.now() }
+  }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -625,6 +653,31 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         })
       }
     }
+    if (amuletPreview) {
+      const target = actors.get(amuletPreview.playerId)
+      const t = (now - amuletPreview.started) / 1000
+      if (!target || !target.g.visible || t >= 4) {
+        amuletEffect.visible = false
+        amuletPreview = null
+      } else {
+        amuletEffect.visible = true
+        amuletEffect.position.copy(target.g.position)
+        const fade = Math.min(1, t / .4, (4 - t) / .55)
+        const appear = reduce ? 1 : THREE.MathUtils.smoothstep(t, .15, .9)
+        barrier.scale.set(1.05 * appear, 1.2 * appear, 1.05 * appear)
+        barrier.material.opacity = .14 * fade
+        halo.material.opacity = .85 * fade
+        halo.scale.setScalar(reduce ? 1 : .75 + .25 * appear)
+        charm.rotation.y = reduce ? 0 : t * 2
+        charm.position.y = 2.5 + (reduce ? 0 : .1 * Math.sin(t * 3))
+        charmRing.material.opacity = charmCore.material.opacity = fade
+        amuletSparks.forEach((spark, i) => {
+          const angle = i * Math.PI * 2 / amuletSparks.length + (reduce ? 0 : t * 1.4)
+          spark.position.set(Math.cos(angle) * 1.05, .35 + (i % 5) * .32, Math.sin(angle) * 1.05)
+          spark.material.opacity = fade * .8
+        })
+      }
+    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
@@ -682,5 +735,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }
