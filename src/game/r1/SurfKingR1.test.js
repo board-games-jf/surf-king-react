@@ -177,7 +177,7 @@ describe('R1 rules', () => {
         expect(G.players[1].activeCard).toHaveLength(0)
         assertConserved(G)
     })
-    test('Drop In reaches two graph edges but not three, with unchanged damage and one tactic', () => {
+    test('Drop In reaches two graph edges but not three, with unchanged damage and no energy cost', () => {
         const { G, ctx } = fixture()
         relocate(G, 1, 14)
         expect(r1DropTargets(G, ctx)).toEqual([])
@@ -195,9 +195,14 @@ describe('R1 rules', () => {
         r1DropIn(G, ctx, 14)
         expect(G.players[1].energy).toBe(1)
         expect(G.players[0].energy).toBe(2)
-        expect(G.currentMove).toBe('maneuver')
+        expect(G.currentMove).toBe('use_card')
+        expect(r1DropTargets(G, ctx)).toEqual([14])
+        const again = [6, 1, 2]
+        ctx.random.D6 = () => again.shift()
+        r1DropIn(G, ctx, 14)
+        expect(G.players[0].energy).toBe(2)
+        expect(G.players[1].energy).toBe(0)
         expect(r1DropIn(G, ctx, 14)).toBe(INVALID_MOVE)
-        expect(r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, [])).toBe('Attack before moving, instead of another tactic.')
         assertConserved(G)
     })
     test('two-edge opponents remain protected or unavailable when fallen or finished', () => {
@@ -219,26 +224,84 @@ describe('R1 rules', () => {
         expect(r1DropTargets(G, ctx)).toEqual([])
         assertConserved(G)
     })
-    test('Drop In tie does nothing, defender wins and chooses overflow discard', () => {
+    test('Drop In ties cost nothing and losses stop attacks at one energy', () => {
         const { G, ctx } = fixture()
         relocate(G, 1, 4)
         G.turn = 2
+        G.players[0].energy = 3
         r1DropIn(G, ctx, 4)
-        expect(G.players[0].energy).toBe(2)
+        expect(G.players[0].energy).toBe(3)
         expect(G.players[1].energy).toBe(2)
-        beginR1Turn(G, ctx)
-        G.players[0].energy = 1
-        G.players[1].cards.push(...G.deck.splice(0, 3))
-        const rolls = [1, 5, 6]
+        const rolls = [1, 2, 5, 6, 2, 3, 4, 5]
         ctx.random.D6 = () => rolls.shift()
         r1DropIn(G, ctx, 4)
-        expect(G.players[0].energy).toBe(0)
-        expect(G.currentMove).toBe('discard')
-        expect(G.overflowPlayer).toBe(1)
-        expect(G.players[1].cards).toHaveLength(6)
-        discardR1Overflow(G, ctx, 0)
-        expect(G.players[1].cards).toHaveLength(5)
+        expect(G.players[0].energy).toBe(2)
+        r1DropIn(G, ctx, 4)
+        expect(G.players[0].energy).toBe(1)
+        expect(G.players[1].energy).toBe(2)
+        expect(r1DropTargets(G, ctx)).toEqual([])
+        expect(r1DropIn(G, ctx, 4)).toBe(INVALID_MOVE)
+        expect(r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, [])).toBe('Drop In requires at least 2 energy.')
+        expect(ctx.events.endTurn).toHaveBeenCalledTimes(0)
+        assertConserved(G)
+    })
+    test('one card and repeatable Drop In can be combined before movement', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 4)
+        const energyCard = grant(G, 0, 'Energy x2')
+        const secondCard = grant(G, 0, 'Energy x2')
+        const rolls = [1, 2, 5, 6, 6, 2, 4, 3]
+        ctx.random.D6 = () => rolls.shift()
+        r1DropIn(G, ctx, 4)
+        expect(G.players[0].energy).toBe(1)
+        useR1Card(G, ctx, energyCard)
+        expect(G.players[0].energy).toBe(3)
+        expect(G.currentMove).toBe('maneuver')
+        expect(useR1Card(G, ctx, secondCard - 1)).toBe(INVALID_MOVE)
+        expect(r1DropTargets(G, ctx)).toEqual([4])
+        r1DropIn(G, ctx, 4)
+        expect(G.players[0].energy).toBe(3)
+        expect(G.players[1].energy).toBe(1)
+        r1Maneuver(G, ctx, 7)
         expect(ctx.events.endTurn).toHaveBeenCalledTimes(1)
+        expect(r1DropIn(G, ctx, 4)).toBe(INVALID_MOVE)
+        assertConserved(G)
+    })
+    test.each([false, true])('discard overflow resumes the original pre-movement phase (card used: %s)', cardUsed => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 4)
+        G.players[1].energy = 1
+        if (cardUsed) useR1Card(G, ctx, grant(G, 0, 'Energy x2'))
+        G.players[0].cards.push(...G.deck.splice(0, 5 - G.players[0].cards.length))
+        const rolls = [6, 4, 1]
+        ctx.random.D6 = () => rolls.shift()
+        const energy = G.players[0].energy
+        r1DropIn(G, ctx, 4)
+        expect(G.players[0].energy).toBe(energy)
+        expect(G.players[1].energy).toBe(0)
+        expect(G.currentMove).toBe('discard')
+        expect(G.overflowPlayer).toBe(0)
+        expect(G.players[0].cards).toHaveLength(6)
+        discardR1Overflow(G, ctx, 0)
+        expect(G.players[0].cards).toHaveLength(5)
+        expect(G.currentMove).toBe(cardUsed ? 'maneuver' : 'use_card')
+        expect(ctx.events.endTurn).toHaveBeenCalledTimes(0)
+        assertConserved(G)
+    })
+    test('Surf Current permits attacks before its first step but not between steps', () => {
+        const { G, ctx } = fixture()
+        G.turn = 2
+        relocate(G, 1, 4)
+        useR1Card(G, ctx, grant(G, 0, 'Surf Current'))
+        expect(G.currentMove).toBe('current_first')
+        r1DropIn(G, ctx, 4)
+        expect(G.currentMove).toBe('current_first')
+        r1Maneuver(G, ctx, 7)
+        expect(G.currentMove).toBe('current_second')
+        expect(r1DropTargets(G, ctx)).toEqual([])
+        expect(r1DropIn(G, ctx, 4)).toBe(INVALID_MOVE)
         assertConserved(G)
     })
     test('Surf Current uses one card, up to two steps and one draw', () => {
