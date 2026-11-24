@@ -141,3 +141,5 @@
 .surf-turn .r1-drop-button[aria-pressed="true"] { outline: 3px solid #ffcf53; }
 .surf-turn .r1-drop-button:disabled { opacity: .65; cursor: not-allowed; }
 .r1-attack-reason { font-weight: bold; margin-top: 3px; }
+
+.r1-round-order .surf-hand[data-attack-target="true"] { border-color: #a23c29; background: #ffe0cc; }
