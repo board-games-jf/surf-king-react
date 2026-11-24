@@ -36,6 +36,21 @@ async function verifyStableViewport(page, name) {
     assert.deepEqual(await map.boundingBox(), before)
     await page.screenshot({ path: output + '/' + name + '-card-feedback.png', timeout: 60000 })
     await page.mouse.move(1, 1)
+    if (await page.locator('.surf-map-2d').count()) {
+        const hex = page.locator('.surf-map-2d [data-cell-id="28"]')
+        // Dispatch exact SVG events rather than assume a pixel is unobscured.
+        await hex.dispatchEvent('mouseover')
+        const info = page.getByLabel('Hex information')
+        await info.waitFor({ state: 'visible' })
+        assert.ok((await info.textContent()).includes('Shark'))
+        assert.ok((await info.textContent()).includes('2 energy'))
+        assert.deepEqual(await map.boundingBox(), before)
+        await hex.dispatchEvent('click')
+        await hex.dispatchEvent('mouseout')
+        await info.waitFor({ state: 'visible' })
+        assert.ok((await info.textContent()).includes('Shark'))
+        await page.screenshot({ path: output + '/' + name + '-hex-feedback.png', timeout: 60000 })
+    }
     const bounds = await page.locator('.r1-action-bar').boundingBox()
     assert.ok(bounds.x >= -1 && bounds.y >= -1)
     assert.ok(bounds.x + bounds.width <= page.viewportSize().width + 1)
