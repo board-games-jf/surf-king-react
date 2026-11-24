@@ -189,9 +189,7 @@ function islandModel(parent, helpers) {
       const distance = Math.hypot(shoreX - x, shoreZ - z)
       if (distance < best) { best = distance; nearest = { x: shoreX, z: shoreZ } }
     }
-    const dx = nearest.x - x, dz = nearest.z - z
-    const length = Math.hypot(dx, dz) || 1
-    return { x, z, endX: nearest.x + dx / length * .35, endZ: nearest.z + dz / length * .35 }
+    return { x, z, endX: nearest.x, endZ: nearest.z }
   })
   const coconut = sphere(parent, '#8f6738', [0,0,0], [.075,.075,.075], 1)
   coconut.name = 'island-falling-coconut'
@@ -213,10 +211,11 @@ function islandModel(parent, helpers) {
       const index = Math.floor(noise(cycle * 9 + phase * 3) * 2) % 2
       const { x: startX, z: startZ, endX, endZ } = coconutPaths[index]
       const fall = THREE.MathUtils.clamp(t / .85, 0, 1)
-      const roll = THREE.MathUtils.clamp((t - .85) / 1.8, 0, 1)
+      const roll = THREE.MathUtils.clamp((t - .85) / 1.3, 0, 1)
+      const sink = THREE.MathUtils.smoothstep(t, 2.15, 2.8)
       const startY = .22 + (index === 0 ? 1.02 : .76)
       coconut.position.set(THREE.MathUtils.lerp(startX, endX, roll),
-        .26 + (startY - .26) * (1 - fall * fall) - .42 * THREE.MathUtils.smoothstep(roll, .7, 1),
+        .26 + (startY - .26) * (1 - fall * fall) - .1 * roll - .32 * sink,
         THREE.MathUtils.lerp(startZ, endZ, roll))
       coconut.rotation.set(roll * 9, 0, roll * 6)
     }

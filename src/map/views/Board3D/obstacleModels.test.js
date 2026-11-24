@@ -83,6 +83,7 @@ describe('card silhouette and environmental motion', () => {
     expect(palms[0].rotation.z).not.toBe(firstAngle)
     model.update(2.7, 0, false)
     expect(coconut.position.y).toBeLessThan(0)
+    expect((coconut.position.x / .58) ** 2 + (coconut.position.z / .49) ** 2).toBeCloseTo(1, 4)
     let nearest = null, best = Infinity
     for (let i = 0; i < 128; i++) {
       const angle = i * Math.PI * 2 / 128
