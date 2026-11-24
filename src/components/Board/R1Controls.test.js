@@ -111,6 +111,6 @@ test('floating HUD selects and confirms immediate cards, while disabled cards re
     expect(screen.queryByLabelText('Player 1 hand')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Show cards' }))
     expect(screen.getByLabelText('Player 1 hand')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /Move/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Move' }))
     expect(moves.pass).toHaveBeenCalledTimes(1)
 })
