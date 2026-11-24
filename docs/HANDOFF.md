@@ -2,11 +2,11 @@
 
 **Last GitHub verification:** 2026-11-24  
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)  
-**Main before PR #38 integration:** `b51c9854262cf0289b693343d47d67e5a8dd6b99` (PR #36 merged; verification run 44995028044 passed; deployment not established).
+**Verified main before documentation reconciliation:** `1383a117c5ba63313603d7dbb8edb73846bcd46c` (PR #47 merged; no deployment authorized).
 
-## R1 card art integration candidate (2026-11-24)
+## R1 card art integration (2026-11-24)
 
-- Issue #44 / branch `feat/44-r1-card-art`: owner approved the tropical cartoon raster set after rejecting the simplified SVG trial. The candidate uses the exact 16 approved WebP files (14 cards, Shark inspection, common back reserved), verified against their original Git blob SHA values. R1 hand and inspection use one shared art registry, functional CSS colors and existing SVG effect icons; Stone explicitly describes entry damage rather than a placement cost. Existing game rules, targeting, HUD dimensions, board models and legacy assets are unchanged. R1 CI is configured to validate this branch, including exact asset hashes and responsive browser checks; full tests/build and manual visual acceptance are pending. No merge/deployment authorized. Documentation PR #45 overlaps this decision and should be reconciled rather than merged blindly.
+- [PR #47](https://github.com/board-games-jf/surf-king-react/pull/47) merged at `1383a117c5ba63313603d7dbb8edb73846bcd46c`. Final [CI 45443708908](https://github.com/board-games-jf/surf-king-react/actions/runs/45443708908) passed exact verification of 16 approved WebP assets, 377 tests (2 skipped), strict build and responsive Chromium HUD checks. R1 hand and inspection share the card art registry, functional CSS frames and existing SVG effect icons; Stone explicitly labels entry damage. Rules, targeting, HUD dimensions, board geometry and legacy art remain unchanged. #44 remains open for manual in-game acceptance and rights review; no deployment authorized. PR #45 reconciles historical concept provenance with the accepted SK-DEC-045 instead of reviving obsolete artwork proposals.
 
 ## R1 shared-hex / defense trial (2026-11-24)
 

@@ -96,3 +96,6 @@ For each external source or asset, record: provider, direct source URL, date acc
 
 ## R1 original card art (Issue #44)
 - 16 individual 304×304 WebP crops from the ChatGPT-generated original 4×4 tropical cartoon art sheet (2026-11-24, owner-approved). Exact bytes are preserved from the review package; `scripts/validate-r1-card-art.cjs` pins the Git blob hashes. Files live in `src/assets/cards/r1/`. No third-party reference image was imported into this generated sheet. Independent rights review remains pending before public distribution. Art carries no effect values or labels; legacy assets and 3D geometry are not replaced. Shark is used in R1 terrain inspection; the common back is reserved for future review.
+
+## Historical card artwork concepts (Issue #44)
+- ChatGPT-generated concept references from 2026-11-24: Shark / Hang loose / Big wave triptych (approved overall tropical cartoon direction) and the exploratory compact legacy-card mockup. They are not production assets, and the mockup's example effects/costs are not authoritative. Concept binaries are not archived in the repository. The native SVG trial was rejected for insufficient visual quality; the later owner-approved R1 WebP set is the integrated artwork documented above (SK-DEC-045).
