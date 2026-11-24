@@ -48,7 +48,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
 
   useEffect(() => {
     if (!lifeguardPreview) return
-    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 150 : 1900
+    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 150 : 2700
     const timer = window.setTimeout(() => {
       setCatalog(current => setCatalogSurferFallen(current, lifeguardPreview.playerId, false))
     }, delay)

@@ -378,6 +378,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   lifeguardEffect.visible = false
   scene.add(lifeguardEffect)
   let lifeguardPreview = null
+  const rescueRiderPosition = new THREE.Vector3()
   function playLifeguard(playerId) {
     const actor = actors.get(String(playerId))
     if (!actor || !actor.g.visible) return
@@ -969,21 +970,26 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (lifeguardPreview) {
       const target = actors.get(lifeguardPreview.playerId)
       const t = (now - lifeguardPreview.started) / 1000
-      if (!target || !target.g.visible || t >= 4.2) {
+      if (!target || !target.g.visible || t >= 5.2) {
         lifeguardEffect.visible = false
         lifeguardPreview = null
       } else {
         lifeguardEffect.visible = true
-        lifeguardEffect.position.copy(target.g.position)
-        const approach = reduce ? 1 : THREE.MathUtils.smoothstep(t, .1, 1.8)
-        const offsetX = -2.2 * (1 - approach) - .4
-        buoy.position.set(offsetX, sampleOceanHeight(target.g.position.x + offsetX, target.g.position.z, elapsed) - target.g.position.y + .16, .25)
-        buoy.rotation.z = reduce ? 0 : .08 * Math.sin(t * 3)
-        const buoyScale = t < 2.2 ? 1 : Math.max(0, 1 - (t - 2.2) / .5)
-        buoy.scale.setScalar(reduce ? 1 : buoyScale)
-        const textTime = t - (reduce ? .1 : 1.8)
+        const rider = target.avatar?.riderPivot || target.legacyBody || target.g
+        rider.getWorldPosition(rescueRiderPosition)
+        lifeguardEffect.position.copy(rescueRiderPosition)
+        lifeguardEffect.position.y = target.g.position.y
+        const arrival = reduce ? 1 : THREE.MathUtils.smoothstep(t, .15, 1.2)
+        const departure = reduce ? 0 : THREE.MathUtils.smoothstep(t, 3.2, 5)
+        const offsetX = -1.5 * (1 - arrival) - 1.3 * departure
+        const water = sampleOceanHeight(rescueRiderPosition.x + offsetX, rescueRiderPosition.z, elapsed) - lifeguardEffect.position.y
+        const arc = reduce ? 0 : 2.0 * (1 - arrival) + .45 * Math.sin(Math.PI * arrival)
+        buoy.position.set(offsetX, water + .16 + arc, 0)
+        buoy.rotation.z = reduce ? 0 : .1 * Math.sin(t * 2.5)
+        buoy.scale.setScalar(reduce ? 1 : 1 - .7 * departure)
+        const textTime = t - (reduce ? .1 : 2.6)
         rescueText.position.y = reduce ? 2.2 : 1.8 + Math.max(0, Math.min(1, textTime)) * .7
-        rescueText.material.opacity = textTime < 0 ? 0 : Math.min(1, textTime / .25, (4.2 - t) / .5)
+        rescueText.material.opacity = textTime < 0 ? 0 : Math.min(1, textTime / .25, (5.2 - t) / .5)
       }
     }
     const activeActor = actors.get(turnMarkerPlayerId)

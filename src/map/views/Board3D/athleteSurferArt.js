@@ -610,5 +610,5 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     }
     if (rescuing && handContact > 0) remountHands(handContact)
   }
-  return { display, get surfboard() { return reviewBoard }, setPose, setBoardStyle, setBoardMotion, animate, dispose }
+  return { display, get surfboard() { return reviewBoard }, get riderPivot() { return riderPivot }, setPose, setBoardStyle, setBoardMotion, animate, dispose }
 }
