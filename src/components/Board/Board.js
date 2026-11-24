@@ -3,6 +3,7 @@ import { HexGrid } from '../HexGrid'
 import './Board.css'
 import Board3D from '../../map/views/Board3D/Board3D'
 import R1Controls from './R1Controls'
+import { getR1HexFeedback } from './r1HexFeedback'
 import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
 import { getTargetHighlightStyle } from '../../map/contract/targetHighlight'
 import { createPublicMapSnapshot } from '../../map/contract/createPublicMapSnapshot'
@@ -72,8 +73,19 @@ const Board = ({ G, ctx, moves }) => {
         { cardId, playerId: ctx.currentPlayer, turn: G.turn })
     const r1Targets = isR1 ? r1SelectionTargets(G, ctx, r1Selection) : []
     const targetHighlight = isR1 ? getR1TargetHighlight(G, ctx, r1Selection, previewId) : null
+    const [hoveredHex, setHoveredHex] = useState(null)
+    const [clickedHex, setClickedHex] = useState(null)
+    const inspectionScope = ctx.currentPlayer + ':' + G.turn + ':' + G.currentMove + ':' +
+        (r1Selection?.kind || '') + ':' + (r1Selection?.index ?? '')
+    const inspectedHexId = hoveredHex ?? (clickedHex?.scope === inspectionScope ? clickedHex.id : null)
+    const hexFeedback = isR1 ? getR1HexFeedback(G, ctx, inspectedHexId, r1Selection) : null
     const onR1Target = (id) => {
-        if (!r1Targets.includes(id)) return
+        if (!r1Targets.includes(id)) {
+            setClickedHex({ id, scope: inspectionScope })
+            return
+        }
+        setClickedHex(null)
+        setHoveredHex(null)
         if (r1Selection?.kind === 'card') moves.useCard(r1Selection.index, id)
         else if (r1Selection?.kind === 'drop') moves.dropIn(id, r1Selection.diceCount)
         else moves.maneuver(id)
@@ -293,25 +305,27 @@ const Board = ({ G, ctx, moves }) => {
     return (
         <div className={isR1 ? "surf-match surf-match-r1" : "surf-match"}>
             <div className="surf-map-toolbar" aria-label="Board view">
-                <button type="button" aria-pressed={viewMode === '2d'} onClick={() => setViewMode('2d')}>2D</button>
-                <button type="button" aria-pressed={viewMode === '3d'} onClick={() => { setViewError(null); setViewMode('3d') }}>3D</button>
+                <button type="button" aria-pressed={viewMode === '2d'} onClick={() => { setHoveredHex(null); setViewMode('2d') }}>2D</button>
+                <button type="button" aria-pressed={viewMode === '3d'} onClick={() => { setHoveredHex(null); setViewError(null); setViewMode('3d') }}>3D</button>
                 {viewError && <span role="alert">{viewError}</span>}
             </div>
             <div className={'surf-map surf-map-' + viewMode}>
                 {viewMode === '3d' ? (
                     <Board3D
                         snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, selectedCellId), maneuverDestinations: r1Targets, targetHighlight } : createPublicMapSnapshot(G, ctx, selectedCellId)}
+                        onCellHover={isR1 ? setHoveredHex : undefined}
                         onCellSelect={(cellId) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }) }}
-                        onUnavailable={(message) => { setViewError(message); setViewMode('2d') }}
+                        onUnavailable={(message) => { setHoveredHex(null); setViewError(message); setViewMode('2d') }}
                     />
                 ) : (
                     <HexGrid cellProps={cellProps} renderCell={renderCell}
+                        onHexHover={isR1 ? setHoveredHex : undefined} inspectedCellId={isR1 ? inspectedHexId : null}
                         onHexClick={(cell) => { setSelectedCellId(cell.position); onHexClickedHandle(cell) }}
                     />
                 )}
             </div>
             {isR1 ? <R1Controls G={G} ctx={ctx} moves={moves} selection={r1Selection}
-                setSelection={setR1Selection} onTarget={onR1Target} targetHighlight={targetHighlight} onPreviewCard={previewCard} /> : <section className="surf-hud" aria-label="Match controls">
+                setSelection={setR1Selection} onTarget={onR1Target} targetHighlight={targetHighlight} onPreviewCard={previewCard} hexFeedback={hexFeedback} /> : <section className="surf-hud" aria-label="Match controls">
                 <div className="surf-turn">
                     <strong aria-live="polite">{'Turn ' + G.turn + ' · Player ' + (Number(ctx.currentPlayer) + 1) + ' · ' + G.currentMove.replace(/_/g, ' ')}</strong>
                     {choosingTarget ? <span>Choose a hex</span> : (
