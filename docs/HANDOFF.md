@@ -6,6 +6,8 @@
 
 ## R1 first-arrival victory and map feedback (#48)
 
+- Owner follow-up (SK-DEC-047) in [PR #49](https://github.com/board-games-jf/surf-king-react/pull/49): shared inspection displays the terrain, all occupants, capacity, separate player colors/energy, all active defenses, falls and individual target eligibility/reasons. Selected player-target cards now propagate individual legal IDs into the presentation descriptor. No gameplay or action dispatch changes. Added helper and React regressions; 20 isolated exact-source scenarios passed (six terrain variants with blocked/mixed/fallen occupants, single-target compatibility and entry risk). Actual React/browser/build validation remains pending; previous draft PR workflows were skipped.
+
 - Branch `fix/48-first-arrival-board-feedback` implements immediate first beach arrival, preserving the existing turn-end draw and legacy game rules. Shared short restriction labels replace individual X/1 markers; 3D actor labels suppress duplicate hex symbols. Both views identify the finish and winner. Regression fixtures cover first arrival, Surf Current, boardgame.io gameover, winner snapshot and 2D/3D duplicate marker suppression. 125 isolated scenarios passed using the exact branch engine, cards and layout with deterministic context stubs (120 ordinary arrivals across 2–7 players, four beaches and five energy levels; four Surf Current first-step arrivals; one ordinary nonfinish). Actual boardgame.io/Jest/build/browser CI and manual visual acceptance remain pending. No merge or deployment authorized.
 
 ## R1 card art integration (2026-11-24)
