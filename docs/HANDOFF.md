@@ -1,10 +1,15 @@
 # Project Handoff
 
-**Last GitHub verification:** 2026-11-22  
+**Last GitHub verification:** 2026-11-24  
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)  
 **Main before PR #38 integration:** `b51c9854262cf0289b693343d47d67e5a8dd6b99` (PR #36 merged; verification run 44995028044 passed; deployment not established).
 
-## R1 local rules pilot — implementation branch (2026-11-24)
+## R1 shared-hex / defense trial (2026-11-24)
+
+- PR #43 merged into main at `8a3bbd88265c52c97935beb9c942c4a11b066f01`; final [CI 45397926576](https://github.com/board-games-jf/surf-king-react/actions/runs/45397926576) passed tests, strict build and Chromium HUD validation. No deployment.
+- SK-DEC-044: branch `feat/42-r1-shared-hex-defense` implements 64-card trial (capacity two, Change ×1 range two, Hang Loose ×3). Individual targeting rejects ambiguous cell-only requests; 2D/3D separate shared occupants; HUD shows individual eligibility and protection. Existing rules and legacy game preserved. 71 isolated rule/card/hex fixtures passed, three real client fixtures skipped by isolated harness. Additional regressions and full PR CI pending. See #42 and #11 for experimental balance evidence. Start a fresh local match; old match state is not migrated. No merge/deploy authorization for this branch.
+
+## Earlier R1 local rules pilot (merged PR #43)
 
 - Latest HUD refinement SK-DEC-043: stronger card hover/selection hex overlays, opponent-specific blocked target icons (Amulet shield, one-energy damage floor, crossed-out other reasons), compact per-opponent reason chips and dismissible pinned disabled-card inspection. Self cards highlight the actor and Surf Current previews first steps; selected action takes priority, executable targets remain unchanged. Nineteen isolated highlight/card/hex feedback fixtures passed; SVG, pooled Three.js and React regressions added. Full CI and visual review of new markers pending. Previous bounded HUD revision passed full CI [45393838031](https://github.com/board-games-jf/surf-king-react/actions/runs/45393838031). No rule changes, merge or deployment.
 
