@@ -239,6 +239,23 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (stormPreview) stormPreview.storm.position.y = .1
     stormPreview = { storm, cellId, started: performance.now() }
   }
+  const cycloneArrival = new THREE.Group()
+  const cycloneRings = Array.from({ length: 3 }, (_, i) => {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(.5 + i * .2, .035, 8, 48, Math.PI * 1.5), new THREE.MeshBasicMaterial({ color: 0xd9ffff, transparent: true, depthWrite: false }))
+    ring.rotation.x = -Math.PI / 2
+    ring.position.y = .13 + i * .03
+    cycloneArrival.add(ring)
+    return ring
+  })
+  cycloneArrival.visible = false
+  scene.add(cycloneArrival)
+  let cyclonePreview = null
+  function playCyclone(cellId) {
+    const cyclone = obstacles.get(cellId + ':Cyclone:')
+    if (!cyclone) return
+    if (cyclonePreview) cyclonePreview.cyclone.scale.set(1, 1, 1)
+    cyclonePreview = { cyclone, cellId, started: performance.now() }
+  }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -749,6 +766,25 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         stormArrival.material.opacity = .65 * (1 - ripple)
       }
     }
+    if (cyclonePreview) {
+      const { cyclone, cellId, started } = cyclonePreview
+      const t = (now - started) / 1000
+      if (!obstacles.has(cellId + ':Cyclone:') || t >= 3.4) {
+        cyclone.scale.set(1, 1, 1)
+        cycloneArrival.visible = false
+        cyclonePreview = null
+      } else {
+        const rise = reduce ? 1 : THREE.MathUtils.smoothstep(t, .25, 2)
+        cyclone.scale.set(1, .04 + .96 * rise, 1)
+        cycloneArrival.visible = true
+        cycloneArrival.position.set(BOARD_LAYOUT[cellId].x, .1, BOARD_LAYOUT[cellId].z)
+        cycloneRings.forEach((ring, i) => {
+          ring.rotation.z = reduce ? 0 : t * (i % 2 ? -2 : 2) + i * 2
+          ring.scale.setScalar(reduce ? 1 : .8 + .2 * rise)
+          ring.material.opacity = Math.min(1, t / .3, (3.4 - t) / .7) * .7
+        })
+      }
+    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
@@ -806,5 +842,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }

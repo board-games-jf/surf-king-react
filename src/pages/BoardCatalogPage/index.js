@@ -26,6 +26,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
   const [amuletPreview, setAmuletPreview] = useState(null)
   const [stonePreview, setStonePreview] = useState(null)
   const [stormPreview, setStormPreview] = useState(null)
+  const [cyclonePreview, setCyclonePreview] = useState(null)
   const location = useLocation()
   const selectedProfilePlayer = normalizeLocalPlayerId(location.state?.athletePlayerId)
   const requestedType = location.state?.athleteBoardType
@@ -69,6 +70,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
 
   const stoneCell = Object.keys(catalog.obstacles).find(id => catalog.obstacles[id] === 'Stone')
   const stormCell = Object.keys(catalog.obstacles).find(id => catalog.obstacles[id] === 'Storm')
+  const cycloneCell = Object.keys(catalog.obstacles).find(id => catalog.obstacles[id] === 'Cyclone')
   const nearby = nearbyCatalogCell(catalog, surferId)
   const previewGlide = () => {
     if (nearby === null) return
@@ -111,6 +113,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
             amuletPreview={amuletPreview}
             stonePreview={stonePreview}
             stormPreview={stormPreview}
+            cyclonePreview={cyclonePreview}
             onCellSelect={onCellSelect}
             onUnavailable={setError}
             focusCellId={tool === 'Inspect' ? selectedCellId : null}
@@ -130,11 +133,11 @@ export default function BoardCatalogPage({ animationStudio = false }) {
                 <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
               </button>)}
             </div></div>
-            <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami', 'Amulet', 'Stone', 'Storm'].includes(selectedCard) || (selectedCard === 'Stone' ? stoneCell === undefined : selectedCard === 'Storm' ? stormCell === undefined : !Number.isInteger(catalog.surfers[surferId]))}
-              onClick={() => { if (selectedCard === 'Stone') { focusCell(Number(stoneCell)); setStonePreview({ cellId: Number(stoneCell) }) } else if (selectedCard === 'Storm') { focusCell(Number(stormCell)); setStormPreview({ cellId: Number(stormCell) }) } else { focusCell(catalog.surfers[surferId]); (selectedCard === 'Sunburn' ? setSunburnPreview : selectedCard === 'Amulet' ? setAmuletPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) } }}>
+            <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami', 'Amulet', 'Stone', 'Storm', 'Cyclone'].includes(selectedCard) || (selectedCard === 'Stone' ? stoneCell === undefined : selectedCard === 'Storm' ? stormCell === undefined : selectedCard === 'Cyclone' ? cycloneCell === undefined : !Number.isInteger(catalog.surfers[surferId]))}
+              onClick={() => { if (selectedCard === 'Stone') { focusCell(Number(stoneCell)); setStonePreview({ cellId: Number(stoneCell) }) } else if (selectedCard === 'Storm') { focusCell(Number(stormCell)); setStormPreview({ cellId: Number(stormCell) }) } else if (selectedCard === 'Cyclone') { focusCell(Number(cycloneCell)); setCyclonePreview({ cellId: Number(cycloneCell) }) } else { focusCell(catalog.surfers[surferId]); (selectedCard === 'Sunburn' ? setSunburnPreview : selectedCard === 'Amulet' ? setAmuletPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) } }}>
               ▶ Play
             </button>
-            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. Visual prototype on the selected surfer.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. Visual prototype on the selected surfer.' : selectedCard === 'Tsunami' ? 'Tsunami: up to −3 energy. Visual prototype on the selected surfer.' : selectedCard === 'Amulet' ? 'Amulet: protection against attacks and Change until your next turn. Visual activation preview.' : selectedCard === 'Stone' ? (stoneCell === undefined ? 'Place a Stone on the board to preview its arrival.' : 'Stone: placement preview. Entry costs 1 energy and removes the stone.') : selectedCard === 'Storm' ? (stormCell === undefined ? 'Place a Storm on the board to preview its arrival.' : 'Storm: placement preview. Entering costs 1 energy.') : selectedCard + ': animation not available yet.'}</p>
+            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. Visual prototype on the selected surfer.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. Visual prototype on the selected surfer.' : selectedCard === 'Tsunami' ? 'Tsunami: up to −3 energy. Visual prototype on the selected surfer.' : selectedCard === 'Amulet' ? 'Amulet: protection against attacks and Change until your next turn. Visual activation preview.' : selectedCard === 'Stone' ? (stoneCell === undefined ? 'Place a Stone on the board to preview its arrival.' : 'Stone: placement preview. Entry costs 1 energy and removes the stone.') : selectedCard === 'Storm' ? (stormCell === undefined ? 'Place a Storm on the board to preview its arrival.' : 'Storm: placement preview. Entering costs 1 energy.') : selectedCard === 'Cyclone' ? (cycloneCell === undefined ? 'Place a Cyclone on the board to preview its arrival.' : 'Cyclone: formation preview. Entry redirects to a random free neighboring hex.') : selectedCard + ': animation not available yet.'}</p>
             <div className="board-catalog-divider" />
           </section>}
           <div className="board-catalog-panel-top">
