@@ -8,6 +8,8 @@ import {
   placeCatalogAsset,
   setCatalogSurferFallen,
   nearbyCatalogCell,
+  catalogJumpTarget,
+  jumpCatalogSurfer,
 } from './catalogState'
 
 describe('interactive board catalog fixtures', () => {
@@ -97,4 +99,16 @@ test('glide preview picks a nearby vacant cell and never moves a fallen surfer a
   expect(catalog.obstacles[next]).toBeUndefined()
   expect(nearbyCatalogCell(setCatalogSurferFallen(catalog, '0', true), '0')).toBeNull()
   expect(nearbyCatalogCell(catalog, '9')).toBeNull()
+})
+
+test('jump preview lands on an adjacent hazard without removing it or moving another surfer', () => {
+  const initial = createBoardCatalog()
+  expect(catalogJumpTarget(initial, '0')).toBe(8)
+  const landed = jumpCatalogSurfer(initial, '0')
+  expect(landed.surfers['0']).toBe(8)
+  expect(landed.surfers['1']).toBe(initial.surfers['1'])
+  expect(landed.obstacles[8]).toBe('Shark')
+  expect(initial.surfers['0']).toBe(1)
+  expect(catalogJumpTarget(setCatalogSurferFallen(initial, '0', true), '0')).toBeNull()
+  expect(catalogJumpTarget(createEmptyBoardCatalog(), '0')).toBeNull()
 })

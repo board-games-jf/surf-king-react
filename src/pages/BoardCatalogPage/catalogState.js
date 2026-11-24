@@ -1,4 +1,5 @@
 import { BOARD_LAYOUT } from '../../map/layout/boardLayout'
+import layoutManifest from '../../map/layout/board-layout.json'
 
 export const CATALOG_TOOLS = Object.freeze(['Inspect', 'Shark', 'Stone', 'Island', 'Storm', 'Cyclone', 'Surfer', 'Erase'])
 export const OBSTACLE_TYPES = Object.freeze(['Shark', 'Stone', 'Island', 'Storm', 'Cyclone'])
@@ -82,4 +83,22 @@ export function nearbyCatalogCell(catalog, id) {
     if (d < distance) { distance = d; best = cell.id }
   }
   return best
+}
+
+// Isolated preview: land on a neighboring hazard without removing it.
+export function catalogJumpTarget(catalog, id) {
+  const origin = BOARD_LAYOUT[catalog.surfers[id]]
+  if (!origin || catalog.fallen?.[id]) return null
+  const occupied = new Set(Object.entries(catalog.surfers).filter(([other]) => other !== String(id)).map(([, cell]) => cell))
+  const spacing = Math.sqrt(3) * layoutManifest.hexRadius
+  const target = Object.keys(catalog.obstacles).map(Number).find(cellId => {
+    const cell = BOARD_LAYOUT[cellId]
+    return cell && !occupied.has(cellId) && Math.abs(Math.hypot(cell.x - origin.x, cell.z - origin.z) - spacing) < .005
+  })
+  return target === undefined ? null : target
+}
+
+export function jumpCatalogSurfer(catalog, id) {
+  const target = catalogJumpTarget(catalog, id)
+  return target === null ? catalog : { ...catalog, surfers: { ...catalog.surfers, [id]: target } }
 }

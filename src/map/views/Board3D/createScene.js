@@ -384,6 +384,25 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (!actor || !actor.g.visible) return
     lifeguardPreview = { playerId: String(playerId), started: performance.now() }
   }
+  const jumpWaveShape = new THREE.Shape()
+  jumpWaveShape.moveTo(-.8, 0)
+  jumpWaveShape.lineTo(.8, 0)
+  jumpWaveShape.bezierCurveTo(.6, .24, .34, .65, -.06, .7)
+  jumpWaveShape.bezierCurveTo(-.35, .75, -.55, .53, -.6, .35)
+  jumpWaveShape.bezierCurveTo(-.35, .46, -.12, .37, -.12, .24)
+  jumpWaveShape.bezierCurveTo(-.4, .18, -.62, .1, -.8, 0)
+  const jumpWave = new THREE.Mesh(new THREE.ShapeGeometry(jumpWaveShape, 24), new THREE.MeshBasicMaterial({ color: 0x76e3dc, transparent: true, opacity: .75, side: THREE.DoubleSide, depthWrite: false }))
+  jumpWave.visible = false
+  scene.add(jumpWave)
+  let jumpingPreview = null
+  function playJump(playerId) {
+    const actor = actors.get(String(playerId))
+    if (!actor || !actor.g.visible || !actor.from || !actor.to) return
+    actor.previewJump = true
+    jumpWave.position.copy(actor.from)
+    jumpWave.rotation.y = Math.atan2(actor.dz, actor.dx)
+    jumpingPreview = { playerId: String(playerId), started: performance.now() }
+  }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -732,7 +751,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       a.g.position.z+=Math.cos(heading)*carve.idle
       a.g.position.x+=Math.cos(heading)*carve.idleForward
       a.g.position.z-=Math.sin(heading)*carve.idleForward
-      a.g.position.y=.13+carve.lift+(reduce?0:Math.sin(phase*1.6)*.012)
+      const jumpHeight = a.previewJump && !reduce ? 1.15 * Math.sin(Math.PI * a.t) : 0
+      if (a.t >= 1) a.previewJump = false
+      a.g.position.y=.13+carve.lift+jumpHeight+(reduce?0:Math.sin(phase*1.6)*.012)
       a.g.rotation.set(0,a.heading+carve.yaw,0)
       const bank=carve.bank
       // Roll around the board's own longitudinal axis, not a fixed world axis.
@@ -997,6 +1018,19 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         rescueText.material.opacity = textTime < 0 ? 0 : Math.min(1, textTime / .25, (5.2 - t) / .5)
       }
     }
+    if (jumpingPreview) {
+      const actor = actors.get(jumpingPreview.playerId)
+      const t = (now - jumpingPreview.started) / 1000
+      if (!actor || t >= .85 || reduce) {
+        jumpWave.visible = false
+        jumpingPreview = null
+      } else {
+        jumpWave.visible = true
+        const rise = THREE.MathUtils.smoothstep(t, 0, .22)
+        jumpWave.scale.set(1, .15 + .85 * rise, 1)
+        jumpWave.material.opacity = .8 * Math.min(1, t / .1, (.85 - t) / .35)
+      }
+    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
@@ -1065,5 +1099,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,playEnergy,playLifeguard,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,playEnergy,playLifeguard,playJump,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }
