@@ -8,6 +8,7 @@ import {
 export const R1 = 'R1'
 export const MAX_ENERGY = 5
 export const MAX_HAND = 5
+export const DROP_IN_RANGE = 2
 export const CardSurfCurrent = { Name: 'Surf Current', Category: 'Action' }
 export const R1_INVENTORY = [
     [CardEnergyX2, 12], [CardLifeGuardFloat, 9], [CardBigWave, 3],
@@ -188,7 +189,22 @@ export function r1DropTargets(G, ctx) {
     const p = actor(G, ctx)
     if (!p || !alive(p) || G.currentMove !== 'use_card' || G.turn === 1) return []
     return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
-        !shielded(q) && ADJ[p.cellPosition].includes(q.cellPosition)).map(q => q.cellPosition)
+        !shielded(q) && DIST[p.cellPosition][q.cellPosition] <= DROP_IN_RANGE).map(q => q.cellPosition)
+}
+// UI guidance shares the authoritative target calculation.
+export function r1AttackUnavailableReason(G, ctx, range, targets) {
+    const p = actor(G, ctx)
+    if (G.winner != null) return 'Match finished.'
+    if (G.turn === 1) return 'Attacks unlock in round 2.'
+    if (!p || p.energy === 0 || G.currentMove === 'recover') return 'Recover before attacking.'
+    if (isBeach(p.cellPosition)) return 'You have reached the beach.'
+    if (G.currentMove !== 'use_card') return 'Attack before moving, instead of another tactic.'
+    if (targets.length) return null
+    const nearby = Object.values(G.players).filter(q => q.position !== p.position &&
+        DIST[p.cellPosition][q.cellPosition] <= range)
+    if (!nearby.length) return 'No opponent within ' + range + ' hexes.'
+    if (nearby.every(q => !alive(q))) return 'Nearby opponents are fallen or finished.'
+    return 'Nearby standing opponents are protected by Amulet.'
 }
 export function r1CardPlayable(G, ctx, index) {
     const p = actor(G, ctx)
