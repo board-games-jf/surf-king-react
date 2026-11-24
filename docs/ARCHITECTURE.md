@@ -188,3 +188,5 @@ R1 occupancy is derived exclusively from player cellPosition, not the legacy sin
 
 ## R1 card artwork (Issue #44)
 `r1CardArt.js` maps current R1 card names to locally bundled WebP art and presentation-only functional colors; terrain inspection reuses matching card art plus Shark. `R1Controls` renders live names and short effects, `r1FeedbackVisuals` retains effect/range SVG icons, and `R1Hud.css` owns the frame and visual state. No rule data or text is baked into the artwork. Legacy art, board geometry, selection, targeting and layout dimensions remain unchanged. The common back is bundled but not used by a new control.
+
+R1 first-arrival victory (#48): the engine sets the winner before advancing the turn order; the public map snapshot optionally exposes the winner ID. Individual restriction labels use the shared map palette, replacing ambiguous per-cell glyphs when an opponent is identified. The HUD and both map views identify the winner without changing target eligibility.
