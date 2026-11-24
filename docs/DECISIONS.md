@@ -64,6 +64,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-042 | Accepted | Replace verbose R1 inspection text with compact illustrated card/hex feedback, using existing art, visual effect/range/energy icons and short action or blocking labels; preserve detailed accessible text. Panels use natural content height and automatic overflow only when the available viewport space is insufficient. The hex inspection island is absent without hover or an explicitly pinned hex, and a pinned hex can be dismissed or toggled. Match events are independent of hex inspection. | Owner requested less text, more imagery, no clipped feedback and no persistent empty hex panel after reviewing screenshots. Presentation only; no gameplay change. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-043 | Accepted | Card hover and selection use stronger legal-cell highlights in both map views. Attack previews also mark rejected opponents with distinct shield (Amulet), one-energy (card damage floor), or crossed-out (range, fallen, finished, or unavailable phase) symbols, with exact reasons in compact inspection feedback. Disabled-card clicks pin inspection only; self cards highlight the current surfer and Surf Current previews its first steps without enabling extra actions. Committed selections take precedence over hover, and all legal clicks remain engine-authoritative. | Owner requested visual hex feedback and specific reasons why each opponent cannot be targeted. No gameplay rule changes. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
