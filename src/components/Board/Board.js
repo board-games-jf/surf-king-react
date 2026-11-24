@@ -159,7 +159,7 @@ const Board = ({ G, ctx, moves }) => {
                         {(G.winner === p.position || block || p.energy === 0) && <g aria-label={G.winner === p.position ? 'Winner' : block?.reason || (block ? getTargetBlockStyle(block.code).label : 'Fallen')}>
                             <rect x="-82" y="105" width="164" height="34" rx="12" fill="#153640" stroke={G.winner === p.position ? '#ffcf53' : block ? getTargetBlockStyle(block.code).color : '#b0c5ce'} strokeWidth="3"/>
                             <text y="129" fontSize="23" fontWeight="bold" fill={G.winner === p.position ? '#ffcf53' : block ? getTargetBlockStyle(block.code).color : '#fff4c5'} textAnchor="middle">{G.winner === p.position ? 'WINNER' : block ? getTargetBlockStyle(block.code).shortLabel : 'Fallen'}</text>
-                        </g>
+                        </g>}
                     </g>
                 })}
             </>
