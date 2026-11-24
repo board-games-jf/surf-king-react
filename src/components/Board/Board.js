@@ -99,8 +99,10 @@ const Board = ({ G, ctx, moves }) => {
         }
         setClickedHex(null)
         setHoveredHex(null)
-        if (r1Selection?.kind === 'card') chosen === undefined ? moves.useCard(r1Selection.index, id) : moves.useCard(r1Selection.index, id, chosen)
-        else if (r1Selection?.kind === 'drop') moves.dropIn(id, r1Selection.diceCount, chosen)
+        if (r1Selection?.kind === 'card') {
+            if (chosen === undefined) moves.useCard(r1Selection.index, id)
+            else moves.useCard(r1Selection.index, id, chosen)
+        } else if (r1Selection?.kind === 'drop') moves.dropIn(id, r1Selection.diceCount, chosen)
         else moves.maneuver(id)
         setR1CardPreview(null)
         setR1Selection(null)
