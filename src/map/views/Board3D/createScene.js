@@ -271,33 +271,28 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   }
   // Preview only: a rising golden charge around the selected rider.
   const energyEffect = new THREE.Group()
-  const energyRing = new THREE.Mesh(new THREE.TorusGeometry(.8, .045, 8, 48), new THREE.MeshBasicMaterial({ color: 0xffd45a, transparent: true, depthWrite: false }))
-  energyRing.rotation.x = -Math.PI / 2
-  energyEffect.add(energyRing)
-  const boltCanvas = document.createElement('canvas')
-  boltCanvas.width = 128
-  boltCanvas.height = 160
-  const boltContext = boltCanvas.getContext('2d')
-  boltContext.beginPath()
-  boltContext.moveTo(70, 7)
-  boltContext.lineTo(25, 87)
-  boltContext.lineTo(57, 87)
-  boltContext.lineTo(44, 151)
-  boltContext.lineTo(108, 63)
-  boltContext.lineTo(76, 63)
-  boltContext.lineTo(94, 7)
-  boltContext.closePath()
-  boltContext.lineJoin = 'round'
-  boltContext.strokeStyle = '#a95d09'
-  boltContext.lineWidth = 6
-  boltContext.stroke()
-  boltContext.fillStyle = '#ffe052'
-  boltContext.fill()
-  const boltTexture = new THREE.CanvasTexture(boltCanvas)
-  boltTexture.colorSpace = THREE.SRGBColorSpace
+  const energyHex = new THREE.Mesh(new THREE.CircleGeometry(R * .90, 6), new THREE.MeshBasicMaterial({ color: 0xffdb46, transparent: true, opacity: .3, depthWrite: false, side: THREE.DoubleSide }))
+  energyHex.rotation.x = -Math.PI / 2
+  energyHex.position.y = .10
+  energyEffect.add(energyHex)
+  const boltShape = new THREE.Shape()
+  boltShape.moveTo(.05, .48)
+  boltShape.lineTo(-.25, -.04)
+  boltShape.lineTo(-.035, -.04)
+  boltShape.lineTo(-.12, -.48)
+  boltShape.lineTo(.28, .12)
+  boltShape.lineTo(.06, .12)
+  boltShape.lineTo(.18, .48)
+  boltShape.closePath()
+  const boltGeometry = new THREE.ExtrudeGeometry(boltShape, {
+    depth: .10, bevelEnabled: true, bevelThickness: .025, bevelSize: .025, bevelSegments: 2
+  })
+  boltGeometry.center()
   const energyBolts = Array.from({ length: 3 }, () => {
-    const bolt = new THREE.Sprite(new THREE.SpriteMaterial({ map: boltTexture, transparent: true, depthWrite: false, toneMapped: false }))
-    bolt.scale.set(.58, .72, 1)
+    const bolt = new THREE.Mesh(boltGeometry, new THREE.MeshStandardMaterial({
+      color: 0xffc928, emissive: 0xff9500, emissiveIntensity: .45,
+      metalness: .45, roughness: .25, transparent: true, depthWrite: false
+    }))
     energyEffect.add(bolt)
     return bolt
   })
@@ -906,16 +901,18 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         energyEffect.visible = true
         energyEffect.position.copy(target.g.position)
         const fade = Math.min(1, t / .3, (3 - t) / .55)
-        energyRing.position.y = reduce ? .7 : .18 + (t * .7 % 1) * 1.3
-        energyRing.scale.setScalar(reduce ? 1 : 1 + .12 * Math.sin(t * 5))
-        energyRing.material.opacity = .8 * fade
+        energyHex.material.opacity = fade * (reduce ? .3 : .25 + .08 * Math.sin(t * 3))
         energyText.position.y = reduce ? 2.3 : 1.8 + Math.min(1, t / 1.4) * .8
         energyText.material.opacity = fade
         energyBolts.forEach((bolt, i) => {
-          const phase = reduce ? .5 : (t * .45 + i / energyBolts.length) % 1
-          const angle = i * Math.PI * 2 / energyBolts.length + (reduce ? 0 : t * 1.3)
-          bolt.position.set(Math.cos(angle) * .85, .35 + phase * 1.6, Math.sin(angle) * .85)
-          bolt.material.opacity = fade * Math.sin(phase * Math.PI)
+          const phase = reduce ? .5 : (t * .38 + i / energyBolts.length) % 1
+          const eased = phase * phase * (3 - 2 * phase)
+          const angle = i * Math.PI * 2 / energyBolts.length + (reduce ? 0 : t * 1.1)
+          bolt.position.set(Math.cos(angle) * .85, .25 + eased * 1.8, Math.sin(angle) * .85)
+          bolt.rotation.set(reduce ? 0 : .12 * Math.sin(t * 2 + i), angle + Math.PI / 2, reduce ? 0 : .1 * Math.sin(t * 1.8 + i))
+          const size = reduce ? .65 : .65 * Math.min(1, phase * 5, (1 - phase) * 5)
+          bolt.scale.setScalar(size)
+          bolt.material.opacity = fade * Math.min(1, phase * 5, (1 - phase) * 5)
         })
       }
     }
