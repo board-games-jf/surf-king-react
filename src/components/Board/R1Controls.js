@@ -79,7 +79,9 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const maxAttackDice = r1MaxAttackDice(player.energy)
     const selectedCard = selection?.kind === 'card' ? hand.cards[selection.index] : null
     const attacking = selection?.kind === 'drop' || Boolean(R1_ATTACK_RANGE[selectedCard?.Name])
-    const canPass = G.currentMove === 'use_card' || G.currentMove === 'current_second' ||
+    const swapChoice = G.currentMove === 'swap_choice' && G.pendingSwap
+    const swapCard = G.currentMove === 'swap_card'
+    const canPass = swapCard || G.currentMove === 'use_card' || G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
     const [handHidden, setHandHidden] = useState(false)
@@ -100,6 +102,11 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
         if (!canConfirmCard) return
         moves.useCard(selection.index)
         setSelection(null)
+    }
+    function resolveSwap(accept) {
+        setInspectedId(null)
+        setSelection(null)
+        moves.resolveSwap(accept)
     }
     const moveLabel = G.currentMove === 'use_card' ? 'Move' :
         G.currentMove === 'current_second' ? 'Finish movement' :
@@ -148,7 +155,16 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 </div>}
             </div>
             {!winner && <div className="r1-hud-dock">
+                {swapChoice && <div className="r1-swap-choice r1-glass" role="group" aria-label="Position conquest">
+                    <strong>Player {G.pendingSwap.targetPlayerId + 1} fell!</strong>
+                    <span>Take their hex instead of moving, or keep your position and continue.</span>
+                    <div className="r1-action-row">
+                        <button type="button" className="r1-move-button" onClick={() => resolveSwap(true)}>Swap positions</button>
+                        <button type="button" onClick={() => resolveSwap(false)}>Keep position</button>
+                    </div>
+                </div>}
                 <div className="r1-hud-context r1-glass">
+                    {swapCard && <span>Position conquered. Use one remaining non-movement card or end turn.</span>}
                     {G.currentMove === 'recover' && <div className="r1-action-row">
                         <button type="button" className="r1-recover-button" onClick={() => { setSelection(null); moves.recover() }}>Recover free (1 energy)</button>
                         <span>Or use Lifeguard Float.</span>
@@ -209,7 +225,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         <span aria-hidden="true">⚔</span> Drop In
                     </button>
                     {selection && <button type="button" className="r1-cancel-button" onClick={() => { setInspectedId(null); setSelection(null) }}>Cancel selection</button>}
-                    {!selection && G.currentMove !== 'recover' && <button type="button" className="r1-move-button" disabled={!canPass}
+                    {!selection && !swapChoice && G.currentMove !== 'recover' && <button type="button" className="r1-move-button" disabled={!canPass}
                         onClick={() => { setInspectedId(null); moves.pass() }}>{moveLabel} <span aria-hidden="true">→</span></button>}
                     <span id="r1-drop-status" role="status">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
                 </div>
