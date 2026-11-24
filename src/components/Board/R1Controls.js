@@ -1,4 +1,7 @@
 import React from 'react'
+import {
+    r1CardPlayable, r1CardTargets, r1DropTargets, r1MoveTargets, isBeach,
+} from '../../game/r1/SurfKingR1'
 import { getR1RoundOrder } from './r1RoundOrder'
 import cardArt0 from '../../assets/cards/energyx2.png'
 import cardArt1 from '../../assets/cards/lifeguardfloat.png'
@@ -24,9 +27,6 @@ const cardArt = {
     'Surf Current': surfCurrentArt,
 }
 
-import {
-    r1CardPlayable, r1CardTargets, r1DropTargets, r1MoveTargets, isBeach,
-} from '../../game/r1/SurfKingR1'
 
 const descriptions = {
     'Energy x2': 'Gain 2 energy (max 5).',
