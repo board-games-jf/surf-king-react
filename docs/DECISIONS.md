@@ -58,6 +58,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-039 | Accepted | After Drop In causes a defender fall, award the existing random card transfer once and offer an optional position exchange. Declining restores the exact previous action phase; accepting exchanges both occupied hexes, spends all remaining movement (including Surf Current steps), and ends further Drop Ins. The attacker resolves ordinary entry effects and draws once if upright at turn end; the fallen defender is forcibly relocated without a new entry effect. If the card allowance is unused, one non-movement card may be played from the new position before ending; no additional card allowance is granted. | Owner approved the experimental optional conquest mechanic to enable tactical racing and comeback opportunities without compounding card rewards. Balance requires playtest review. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
 
+| SK-DEC-040 | Accepted | Card inspection in the R1 floating HUD immediately shows availability, effect, blocking reason or next action. Hover/focus previews legal target cells (or Surf Current first steps) from engine queries, without committing a selection or enabling moves. Existing committed action and movement highlights take precedence. Touch inspection and explicit confirmation/target selection remain supported. | Owner approved the floating HUD and requested quicker feedback when hovering cards. Presentation only; no gameplay change. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
