@@ -84,6 +84,7 @@ describe('R1 rules', () => {
         passR1(G, ctx)
         r1Maneuver(G, ctx, 25)
         expect(G.players[0].energy).toBe(1)
+        expect(G.terrainEnergyEvent).toEqual({ id: 1, playerId: 0, amount: 1, source: 'Stone' })
         expect(G.cells[25].obstacle).toBeUndefined()
         expect(G.discardedCards).toContain(stone)
         assertConserved(G)
@@ -150,6 +151,7 @@ describe('R1 rules', () => {
         expect(G.players[0].cellPosition).toBe(to)
         expect(G.players[0].energy).toBe(2)
         expect(G.cells[to].obstacle).toBe(obstacle)
+        expect(G.terrainEnergyEvent).toBeUndefined()
         expect(ctx.events.endTurn).toHaveBeenCalledTimes(1)
         assertConserved(G)
     })
@@ -760,4 +762,46 @@ test('boardgame.io ends the actual match on the first beach arrival', () => {
     } finally {
         client.stop()
     }
+})
+
+test('an empty deck shuffles the discard on the next draw without touching cards on the board', () => {
+    const { G, ctx } = fixture()
+    const stone = G.deck.splice(G.deck.findIndex(card => card.Name === 'Stone'), 1)[0]
+    G.cells[25].obstacle = stone
+    G.discardedCards = G.deck.splice(0)
+    const discardedCount = G.discardedCards.length
+    const shuffle = jest.spyOn(ctx.random, 'Shuffle')
+    G.currentMove = 'maneuver'
+    const target = r1MoveTargets(G, ctx).find(id => !G.cells[id].obstacle && id < 49)
+    expect(target).toBeDefined()
+    const handSize = G.players[0].cards.length
+    r1Maneuver(G, ctx, target)
+    expect(shuffle).toHaveBeenCalledTimes(1)
+    expect(G.discardedCards).toHaveLength(0)
+    expect(G.deck).toHaveLength(discardedCount - 1)
+    expect(G.players[0].cards).toHaveLength(handSize + 1)
+    expect(G.cells[25].obstacle).toBe(stone)
+    assertConserved(G)
+})
+
+
+test('terrain feedback reports actual loss when a shark causes a fall', () => {
+    const { G, ctx } = fixture()
+    relocate(G, 0, 21)
+    G.players[0].energy = 1
+    passR1(G, ctx)
+    r1Maneuver(G, ctx, 28)
+    expect(G.players[0].energy).toBe(0)
+    expect(G.terrainEnergyEvent).toEqual({ id: 1, playerId: 0, amount: 1, source: 'Shark' })
+})
+
+
+test('storm entry records the energy lost without removing the storm', () => {
+    const { G, ctx } = fixture()
+    relocate(G, 0, 21)
+    place(G, 'Storm', 25)
+    passR1(G, ctx)
+    r1Maneuver(G, ctx, 25)
+    expect(G.terrainEnergyEvent).toEqual({ id: 1, playerId: 0, amount: 1, source: 'Storm' })
+    expect(G.cells[25].obstacle.Name).toBe('Storm')
 })

@@ -31,6 +31,7 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
                 ? player.cellPosition : null,
         })),
         ...(G.ruleset === 'R1' ? { turnMarkerPlayerId: G.winner == null ? String(ctx.currentPlayer) : null, ...(G.winner != null ? { winnerPlayerId: String(G.winner) } : {}) } : {}),
+        ...(G.ruleset === 'R1' && G.terrainEnergyEvent ? { terrainEnergyEvent: G.terrainEnergyEvent } : {}),
         turn: G.turn,
         activePlayerId: ctx?.currentPlayer == null ? null : String(ctx.currentPlayer),
         selectedCellId: Number.isInteger(selectedCellId) && selectedCellId >= 0 && selectedCellId < 53

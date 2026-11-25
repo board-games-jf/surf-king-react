@@ -272,3 +272,27 @@ test('shared hex panel shows terrain and both independent surfer details togethe
     expect(p3.getByText('Amulet · Protected')).toBeInTheDocument()
     expect(p3.getByText('Amulet')).toBeInTheDocument()
 })
+
+test('shows the draw and discard piles and allows inspecting discarded cards', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.discardedCards.push(G.deck.pop(), G.deck.pop())
+    render(<R1Controls G={G} ctx={ctx} moves={{}} selection={null} setSelection={() => {}} onTarget={() => {}} />)
+    expect(screen.getByLabelText(`Draw pile: ${G.deck.length} cards`)).toBeInTheDocument()
+    const discard = screen.getByRole('button', { name: /Discard 2/ })
+    fireEvent.click(discard)
+    expect(screen.getByLabelText('Discarded cards')).toHaveTextContent(G.discardedCards[0].Name)
+    expect(screen.getByLabelText('Discarded cards')).toHaveTextContent('shuffled on the next draw')
+    fireEvent.click(discard)
+    expect(screen.queryByLabelText('Discarded cards')).not.toBeInTheDocument()
+})
+
+test('shows the actual terrain energy loss when a new event arrives', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    const props = { G, ctx, moves: {}, selection: null, setSelection: () => {}, onTarget: () => {} }
+    const { rerender } = render(<R1Controls {...props} />)
+    G.terrainEnergyEvent = { id: 1, playerId: 0, source: 'Shark', amount: 1 }
+    rerender(<R1Controls {...props} />)
+    expect(screen.getByRole('status', { name: 'Terrain energy loss' })).toHaveTextContent('Player 1 · Shark · −1 energy')
+})

@@ -205,3 +205,8 @@ flowchart LR
 R1 first-arrival victory (#48): the engine sets the winner before advancing the turn order; the public map snapshot optionally exposes the winner ID. Individual restriction labels use the shared map palette, replacing ambiguous per-cell glyphs when an opponent is identified. The HUD and both map views identify the winner without changing target eligibility.
 
 Shared-hex inspection (#48, SK-DEC-047) retains terrain and all public occupants in one read-only HUD model, with independent state and target diagnostics per occupant. The selected-card descriptor includes individual legal player IDs. Both views reuse the same inspection panel; no private hands are projected into it and existing action dispatch is unchanged.
+
+
+## R1 card piles and terrain feedback (#42)
+
+R1 controls display the deck and discard counts and the discard contents; the draw pile's order remains hidden. The existing draw operation shuffles the discard when the draw pile is empty. For ordinary damaging terrain entry, the engine publishes a public event containing the player, obstacle and actual energy lost. The HUD and 3D map consume this event as transient presentation feedback without calculating damage. Jumping does not invoke terrain entry.

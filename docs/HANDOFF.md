@@ -1,5 +1,10 @@
 # Project Handoff
 
+## R1 card piles and terrain feedback (#42)
+
+- The local R1 HUD shows deck and discard counts and allows inspection of discarded card names. The existing engine shuffles discards into the deck only when a draw is needed and the deck is empty; cards on the board remain outside both piles.
+- Ordinary Stone, Storm and Shark entry publishes the actual energy loss as a presentation event. The HUD shows a short notice and the 3D board shows a rising loss indicator; Jumping does not trigger terrain damage. Existing game rules are unchanged. Automated tests and desktop smoke checks cover the new behavior; visual timing on real obstacle entry and mobile review remain pending. No deployment authorized.
+
 **Last GitHub verification:** 2026-11-24  
 **Repository:** [board-games-jf/surf-king-react](https://github.com/board-games-jf/surf-king-react)  
 **Verified main before PR #49 reconciliation:** `714267b044ae63b9b4890b8efb171bd72b5428c4` (PR #41 merged; no deployment authorized).

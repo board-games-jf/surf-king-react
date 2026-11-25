@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import './R1Hud.css'
 import { PLAYER_BOARD_COLORS } from '../../constants/playerBoardColors'
 import {
@@ -11,6 +11,7 @@ import { getR1RoundOrder } from './r1RoundOrder'
 import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
 import { getTargetHighlightStyle, getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import { cardArt, cardTone } from './r1CardArt'
+import cardBack from '../../assets/cards/r1/cardback.webp'
 
 const descriptions = {
     'Energy x2': 'Gain 2 energy (max 5).',
@@ -63,6 +64,17 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
     const [handHidden, setHandHidden] = useState(false)
+    const [discardOpen, setDiscardOpen] = useState(false)
+    const [terrainNotice, setTerrainNotice] = useState(null)
+    const { id: terrainEventId, playerId: terrainPlayer, amount: terrainAmount, source: terrainSource } = G.terrainEnergyEvent || {}
+    const seenTerrainEvent = useRef(terrainEventId ?? null)
+    useEffect(() => {
+        if (terrainEventId == null || terrainEventId === seenTerrainEvent.current) return
+        seenTerrainEvent.current = terrainEventId
+        setTerrainNotice({ playerId: terrainPlayer, amount: terrainAmount, source: terrainSource })
+        const timer = setTimeout(() => setTerrainNotice(null), 2800)
+        return () => clearTimeout(timer)
+    }, [terrainEventId, terrainPlayer, terrainAmount, terrainSource])
     const [inspection, setInspection] = useState(null)
     const inspected = !handHidden && inspection?.playerId === ctx.currentPlayer && inspection?.turn === G.turn ?
         hand.cards.find(card => card.id === inspection.cardId) : null
@@ -131,6 +143,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 })}
             </div>
             <div className="r1-top-feedback" data-pinned={pinnedHex}>
+            {terrainNotice && <div className="r1-match-feedback r1-glass r1-terrain-loss" role="status" aria-label="Terrain energy loss">Player {terrainNotice.playerId + 1} · {terrainNotice.source} · −{terrainNotice.amount} energy</div>}
             {hexFeedback && <div className="r1-match-feedback r1-glass r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
                 <div className="r1-inspection-body r1-hex-elements">
                     <div className="r1-inspection-heading"><strong>Hex {hexFeedback.id + 1}</strong>
@@ -233,6 +246,19 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             onClick={() => onTarget(G.players[id].cellPosition, id)}>Player {id + 1}</button>) :
                             targets.map(id => <button type="button" key={id} aria-label={'Select hex ' + (id + 1)}
                                 onClick={() => onTarget(id)}>{id + 1}</button>)}
+                    </div>}
+                </div>
+                <div className="r1-card-piles r1-glass" aria-label="Card piles">
+                    <div className="r1-pile" aria-label={'Draw pile: ' + G.deck.length + ' cards'}>
+                        <img src={cardBack} alt="" /> <span>Deck <strong>{G.deck.length}</strong></span>
+                    </div>
+                    <button type="button" className="r1-pile" aria-expanded={discardOpen} onClick={() => setDiscardOpen(value => !value)}>
+                        {G.discardedCards.length > 0 && <img src={cardArt[G.discardedCards[G.discardedCards.length - 1].Name]} alt="" />}
+                        <span>Discard <strong>{G.discardedCards.length}</strong></span>
+                    </button>
+                    {discardOpen && <div className="r1-discard-list" aria-label="Discarded cards">
+                        {G.discardedCards.length ? G.discardedCards.slice().reverse().map(card => <span key={card.id}>{card.Name}</span>) : <span>No discarded cards</span>}
+                        <small>When the deck is empty, the discard is shuffled on the next draw.</small>
                     </div>}
                 </div>
                 <div className="r1-hand-heading r1-glass">

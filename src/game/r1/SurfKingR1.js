@@ -129,16 +129,22 @@ function hurt(G, ctx, p, damage, attacker = null) {
     } else G.discardedCards.push(card)
 }
 function relocate(G, p, to) { p.cellPosition = to }
+function terrainDamage(G, ctx, p, amount, source) {
+    const before = p.energy
+    hurt(G, ctx, p, amount)
+    const loss = before - p.energy
+    if (loss > 0) G.terrainEnergyEvent = { id: (G.terrainEnergyEvent?.id || 0) + 1, playerId: p.position, amount: loss, source }
+}
 function arrive(G, ctx, p, from, to) {
     const tile = G.cells[to].obstacle
     switch (tile?.Name) {
-        case CardShark.Name: hurt(G, ctx, p, 2); break
+        case CardShark.Name: terrainDamage(G, ctx, p, 2, 'Shark'); break
         case CardStone.Name:
             G.discardedCards.push(tile)
             delete G.cells[to].obstacle
-            hurt(G, ctx, p, 1)
+            terrainDamage(G, ctx, p, 1, 'Stone')
             break
-        case CardStorm.Name: hurt(G, ctx, p, 1); break
+        case CardStorm.Name: terrainDamage(G, ctx, p, 1, 'Storm'); break
         case CardIsland.Name:
             capEnergy(p, p.energy + 2)
             // Island is persistent terrain; every ordinary entry restores energy.

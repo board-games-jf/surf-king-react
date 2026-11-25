@@ -65,6 +65,17 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   turnMarker.renderOrder = 1000
   turnMarker.visible = false
   scene.add(turnMarker)
+  const lossCanvas = document.createElement('canvas')
+  lossCanvas.width = 256
+  lossCanvas.height = 128
+  const lossTexture = new THREE.CanvasTexture(lossCanvas)
+  lossTexture.colorSpace = THREE.SRGBColorSpace
+  const lossText = new THREE.Sprite(new THREE.SpriteMaterial({ map: lossTexture, transparent: true, depthTest: false, depthWrite: false, toneMapped: false }))
+  lossText.scale.set(1.4, .7, 1)
+  lossText.renderOrder = 1000
+  lossText.visible = false
+  scene.add(lossText)
+  let lastTerrainEvent = null, receivedSnapshot = false, lossAnimation = null
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -377,6 +388,21 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       a.cellId=p.cellId
       a.slotOffset=offset
     }
+    const energyEvent = snapshot.terrainEnergyEvent
+    if (receivedSnapshot && energyEvent && energyEvent.id !== lastTerrainEvent) {
+      const c = lossCanvas.getContext('2d')
+      c.clearRect(0, 0, 256, 128)
+      c.font = 'bold 88px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'
+      c.lineWidth = 10; c.strokeStyle = '#6d2119'; c.strokeText('−' + energyEvent.amount, 148, 64)
+      c.fillStyle = '#ffb0a1'; c.fillText('−' + energyEvent.amount, 148, 64)
+      c.beginPath(); c.moveTo(50, 23); c.lineTo(28, 66); c.lineTo(45, 66)
+      c.lineTo(35, 105); c.lineTo(75, 52); c.lineTo(57, 52); c.closePath()
+      c.fillStyle = '#ffb0a1'; c.fill()
+      lossTexture.needsUpdate = true
+      lossAnimation = { playerId: String(energyEvent.playerId), started: performance.now() }
+    }
+    lastTerrainEvent = energyEvent?.id ?? null
+    receivedSnapshot = true
     for(const [id,a] of actors)if(!live.has(id)){removeSurfer(a);actors.delete(id)}
     const keys=new Set()
     for(const c of snapshot.cells)if(c.obstacleType){const key=c.id+':'+c.obstacleType+':'+(c.remainingTurns??'');keys.add(key);if(!obstacles.has(key))obstacles.set(key,createObstacle(c))}
@@ -433,6 +459,17 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       renderer.domElement.dataset['surferMotion'+a.id]=a.g.userData.motionState
       if(sample.remount!==undefined) renderer.domElement.dataset['surferRemount'+a.id]=sample.handContact>.9?'press':sample.remount>.7?'stand':'reach'
       else delete renderer.domElement.dataset['surferRemount'+a.id]
+    }
+    if (lossAnimation) {
+      const target = actors.get(lossAnimation.playerId)
+      const t = (now - lossAnimation.started) / 1000 - (reduce ? 0 : MOVE_SECONDS)
+      if (!target || t >= 1.8) { lossText.visible = false; lossAnimation = null }
+      else if (t >= 0) {
+        lossText.visible = true
+        lossText.position.copy(target.g.position)
+        lossText.position.y += reduce ? 2.3 : 1.8 + Math.min(1, t / 1.4) * .8
+        lossText.material.opacity = Math.min(1, t / .2, (1.8 - t) / .4)
+      }
     }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible

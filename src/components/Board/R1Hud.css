@@ -527,3 +527,13 @@
 .r1-hex-player-status { display: flex; align-items: center; gap: 4px; font-size: .9em; }
 .r1-hex-player-status[data-eligible="true"] { color: #a6f3cb; }
 .r1-hex-entry { font-size: .8em; color: var(--hud-mute); }
+
+.r1-card-piles { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 4px 7px; pointer-events: auto; max-width: min(100%, 420px); font-size: 11px; }
+.r1-card-piles .r1-pile { display: flex; align-items: center; gap: 5px; min-height: 36px; padding: 2px 7px; }
+.r1-card-piles .r1-pile img { width: 25px; height: 32px; object-fit: cover; border-radius: 3px; }
+.r1-card-piles strong { color: var(--hud-gold); }
+.r1-discard-list { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px; max-height: 90px; overflow-y: auto; }
+.r1-discard-list span { padding: 2px 5px; border-radius: 4px; background: #28525a; }
+.r1-discard-list small { flex-basis: 100%; color: var(--hud-mute); }
+
+.r1-terrain-loss { padding: 7px 11px; color: #ffd4bd; font-weight: 800; }
