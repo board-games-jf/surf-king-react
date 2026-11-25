@@ -429,7 +429,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     currentPreview = { playerId: String(playerId), started: performance.now() }
   }
   const changeEffects = [0, 1].map(i => {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(.66, .045, 8, 48), new THREE.MeshBasicMaterial({ color: i ? 0xffb462 : 0x7debe3, transparent: true, depthWrite: false }))
+    const ring = new THREE.Mesh(new THREE.CircleGeometry(R * .82, 6), new THREE.MeshBasicMaterial({ color: i ? 0xffd7a4 : 0xb8fff5, transparent: true, depthWrite: false, side: THREE.DoubleSide }))
     ring.rotation.x = -Math.PI / 2
     ring.visible = false
     scene.add(ring)
@@ -449,7 +449,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     second.endHeading = shortestHeading(second.heading, Math.atan2(-second.dz, second.dx) - second.boardYaw)
     second.t = 0
     first.previewChange = second.previewChange = true
-    changePreview = { playerId: String(playerId), targetId: String(targetId), started: performance.now() }
+    changePreview = { playerId: String(playerId), targetId: String(targetId), origins: [first.from.clone(), second.from.clone()], started: performance.now() }
   }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
@@ -729,7 +729,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       const slot = occupants.findIndex(other => other.id === p.id)
       const offset = shared ? (slot === 0 ? -.56 : .56) : 0
       const target=new THREE.Vector3(cell.x+offset,.13,cell.z)
-      a.g.scale.setScalar(shared ? .74 : 1)
+      a.presentationScale = shared ? .74 : 1
+      a.g.scale.setScalar(a.presentationScale)
       const blocked = snapshot.targetHighlight?.blocked?.find(item => String(item.playerId) === p.id)
       const legal = snapshot.targetHighlight?.playerIds?.includes(Number(p.id))
       const winner = snapshot.winnerPlayerId === p.id
@@ -789,13 +790,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       }
       const carve=sampleCarve(a.t,phase,a.distance,a.fallMotion.remount ? 1 : fall,reduce)
       if(a.from&&a.to){
-        a.anchor.lerpVectors(a.from,a.to,carve.progress)
-        if (a.previewChange && !reduce && a.distance > 1e-6) {
-          const separation = .45 * Math.sin(Math.PI * a.t)
-          a.anchor.x += -a.dz / a.distance * separation
-          a.anchor.z += a.dx / a.distance * separation
-        }
-        if(a.distance>1e-6){
+        const teleporting = a.previewChange && !reduce
+        a.anchor.lerpVectors(a.from,a.to,teleporting ? (a.t < .5 ? 0 : 1) : carve.progress)
+        if(!teleporting && a.distance>1e-6){
           a.anchor.x+=-a.dz/a.distance*carve.travel
           a.anchor.z+=a.dx/a.distance*carve.travel
         }
@@ -809,7 +806,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       a.g.position.x+=Math.cos(heading)*carve.idleForward
       a.g.position.z-=Math.sin(heading)*carve.idleForward
       const jumpHeight = a.previewJump && !reduce ? 1.25 * Math.sin(Math.PI * a.t) ** 1.2 : 0
-      if (a.t >= 1) { a.previewJump = false; a.previewChange = false }
+      a.g.scale.setScalar(a.presentationScale || 1)
+      if (a.previewChange) a.g.visible = reduce || a.t < .4 || a.t > .6
+      if (a.t >= 1) { a.previewJump = false; a.previewChange = false; a.g.visible = true }
       a.g.position.y=.13+carve.lift+jumpHeight+(reduce?0:Math.sin(phase*1.6)*.012)
       a.g.rotation.set(0,a.heading+carve.yaw,0)
       const bank=carve.bank
@@ -1125,7 +1124,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (changePreview) {
       const t = (now - changePreview.started) / 1000
       const pair = [actors.get(changePreview.playerId), actors.get(changePreview.targetId)]
-      if (pair.some(actor => !actor || !actor.g.visible) || t >= 1.6) {
+      if (pair.some(actor => !actor || actor.cellId === null) || t >= 1.6) {
         changeEffects.forEach(ring => { ring.visible = false })
         changePreview = null
       } else {
@@ -1133,10 +1132,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         pair.forEach((actor, i) => {
           const ring = changeEffects[i]
           ring.visible = true
-          ring.position.copy(actor.g.position)
-          ring.position.y += .12
-          ring.scale.setScalar(reduce ? 1 : .9 + .12 * Math.sin(t * 5 + i))
-          ring.material.opacity = fade * .8
+          ring.position.copy(changePreview.origins[i])
+          ring.position.y = .22
+          ring.material.opacity = fade * .24
         })
       }
     }
