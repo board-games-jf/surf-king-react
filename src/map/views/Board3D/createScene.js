@@ -428,6 +428,29 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (!actor || !actor.g.visible) return
     currentPreview = { playerId: String(playerId), started: performance.now() }
   }
+  const changeEffects = [0, 1].map(i => {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(.66, .045, 8, 48), new THREE.MeshBasicMaterial({ color: i ? 0xffb462 : 0x7debe3, transparent: true, depthWrite: false }))
+    ring.rotation.x = -Math.PI / 2
+    ring.visible = false
+    scene.add(ring)
+    return ring
+  })
+  let changePreview = null
+  function playChange(playerId, targetId, targetCell) {
+    const first = actors.get(String(playerId)), second = actors.get(String(targetId))
+    const staged = BOARD_LAYOUT[targetCell]
+    if (!first?.to || !second?.to || !staged) return
+    second.anchor.set(staged.x, .13, staged.z)
+    second.from = second.anchor.clone()
+    second.dx = second.to.x - second.from.x
+    second.dz = second.to.z - second.from.z
+    second.distance = Math.hypot(second.dx, second.dz)
+    second.startHeading = second.heading
+    second.endHeading = shortestHeading(second.heading, Math.atan2(-second.dz, second.dx) - second.boardYaw)
+    second.t = 0
+    first.previewChange = second.previewChange = true
+    changePreview = { playerId: String(playerId), targetId: String(targetId), started: performance.now() }
+  }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
   Object.assign(controls,{enableDamping:true,enablePan:true,enableRotate:true,zoomToCursor:true,minDistance:9,maxDistance:105,minPolarAngle:.08,maxPolarAngle:Math.PI * .46})
@@ -767,6 +790,11 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       const carve=sampleCarve(a.t,phase,a.distance,a.fallMotion.remount ? 1 : fall,reduce)
       if(a.from&&a.to){
         a.anchor.lerpVectors(a.from,a.to,carve.progress)
+        if (a.previewChange && !reduce && a.distance > 1e-6) {
+          const separation = .45 * Math.sin(Math.PI * a.t)
+          a.anchor.x += -a.dz / a.distance * separation
+          a.anchor.z += a.dx / a.distance * separation
+        }
         if(a.distance>1e-6){
           a.anchor.x+=-a.dz/a.distance*carve.travel
           a.anchor.z+=a.dx/a.distance*carve.travel
@@ -781,7 +809,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       a.g.position.x+=Math.cos(heading)*carve.idleForward
       a.g.position.z-=Math.sin(heading)*carve.idleForward
       const jumpHeight = a.previewJump && !reduce ? 1.25 * Math.sin(Math.PI * a.t) ** 1.2 : 0
-      if (a.t >= 1) a.previewJump = false
+      if (a.t >= 1) { a.previewJump = false; a.previewChange = false }
       a.g.position.y=.13+carve.lift+jumpHeight+(reduce?0:Math.sin(phase*1.6)*.012)
       a.g.rotation.set(0,a.heading+carve.yaw,0)
       const bank=carve.bank
@@ -1094,6 +1122,24 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         })
       }
     }
+    if (changePreview) {
+      const t = (now - changePreview.started) / 1000
+      const pair = [actors.get(changePreview.playerId), actors.get(changePreview.targetId)]
+      if (pair.some(actor => !actor || !actor.g.visible) || t >= 1.6) {
+        changeEffects.forEach(ring => { ring.visible = false })
+        changePreview = null
+      } else {
+        const fade = Math.min(1, t / .2, (1.6 - t) / .4)
+        pair.forEach((actor, i) => {
+          const ring = changeEffects[i]
+          ring.visible = true
+          ring.position.copy(actor.g.position)
+          ring.position.y += .12
+          ring.scale.setScalar(reduce ? 1 : .9 + .12 * Math.sin(t * 5 + i))
+          ring.material.opacity = fade * .8
+        })
+      }
+    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
@@ -1162,5 +1208,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,playEnergy,playLifeguard,playJump,playSurfCurrent,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,playEnergy,playLifeguard,playJump,playSurfCurrent,playChange,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }

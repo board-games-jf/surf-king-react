@@ -11,6 +11,8 @@ import {
   catalogJumpTarget,
   jumpCatalogSurfer,
   catalogCurrentRoute,
+  catalogChangePlan,
+  applyCatalogChange,
 } from './catalogState'
 
 describe('interactive board catalog fixtures', () => {
@@ -131,4 +133,19 @@ test('Surf Current preview finds up to two distinct neighboring empty cells with
   }
   expect(JSON.stringify(catalog)).toBe(original)
   expect(catalogCurrentRoute(setCatalogSurferFallen(catalog, '0', true), '0')).toEqual([])
+})
+
+test('Change preview stages a nearby partner and swaps positions without changing hazards', () => {
+  const catalog = createBoardCatalog()
+  const plan = catalogChangePlan(catalog, '0')
+  expect(plan.targetId).toBe('1')
+  expect(plan.origin).toBe(catalog.surfers['0'])
+  expect(catalog.obstacles[plan.targetCell]).toBeUndefined()
+  const swapped = applyCatalogChange(catalog, plan)
+  expect(swapped.surfers['0']).toBe(plan.targetCell)
+  expect(swapped.surfers['1']).toBe(plan.origin)
+  expect(swapped.obstacles).toEqual(catalog.obstacles)
+  expect(catalog.surfers['1']).toBe(51)
+  expect(catalogChangePlan(setCatalogSurferFallen(catalog, '1', true), '0')).toBeNull()
+  expect(catalogChangePlan(createEmptyBoardCatalog(), '0')).toBeNull()
 })

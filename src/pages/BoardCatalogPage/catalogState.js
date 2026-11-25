@@ -123,3 +123,24 @@ export function catalogCurrentRoute(catalog, id) {
   }
   return route
 }
+
+// Prepare a nearby partner for an isolated position-exchange preview.
+export function catalogChangePlan(catalog, id) {
+  const origin = catalog.surfers[id]
+  if (!BOARD_LAYOUT[origin] || catalog.fallen?.[id]) return null
+  const targetId = Object.keys(catalog.surfers).find(other => other !== String(id) && !catalog.fallen?.[other])
+  if (targetId === undefined) return null
+  const source = BOARD_LAYOUT[origin], partner = BOARD_LAYOUT[catalog.surfers[targetId]]
+  const spacing = Math.sqrt(3) * layoutManifest.hexRadius
+  const adjacent = Math.abs(Math.hypot(partner.x - source.x, partner.z - source.z) - spacing) < .005
+  const used = new Set([...Object.values(catalog.surfers), ...Object.keys(catalog.obstacles).map(Number)])
+  const nearby = BOARD_LAYOUT.find(cell => !used.has(cell.id) &&
+    Math.abs(Math.hypot(cell.x - source.x, cell.z - source.z) - spacing) < .005)
+  const targetCell = adjacent ? partner.id : nearby?.id
+  return targetCell === undefined ? null : { playerId: String(id), targetId, origin, targetCell }
+}
+
+export function applyCatalogChange(catalog, plan) {
+  if (!plan || catalog.surfers[plan.playerId] !== plan.origin || !(plan.targetId in catalog.surfers) || catalog.fallen?.[plan.playerId] || catalog.fallen?.[plan.targetId]) return catalog
+  return { ...catalog, surfers: { ...catalog.surfers, [plan.playerId]: plan.targetCell, [plan.targetId]: plan.origin } }
+}
