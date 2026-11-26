@@ -72,7 +72,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const swapChoice = G.currentMove === 'swap_choice' && G.pendingSwap
     const swapCard = G.currentMove === 'swap_card'
     const showTurnSteps = ['use_card', 'maneuver', 'current_first', 'current_second'].includes(G.currentMove)
-    const actionStep = G.currentMove === 'use_card' || selection?.kind === 'drop'
+    const cardAvailable = G.currentMove === 'use_card' && hand.cards.some((_, index) => r1CardPlayable(G, ctx, index))
     const canPass = swapCard || G.currentMove === 'use_card' || G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
@@ -300,9 +300,13 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 <div className="r1-hud-context r1-glass" data-attack-open={selection?.kind === 'drop' || undefined}>
                     {selection?.kind === 'drop' && <button type="button" className="r1-attack-close" aria-label="Close attack selection" onClick={() => { inspectCard(null); setSelection(null) }}>×</button>}
                     {showTurnSteps && <div className="r1-turn-steps" aria-label="Turn progress">
-                        <span className="r1-turn-step" data-active={actionStep} aria-current={actionStep ? 'step' : undefined}><b>1</b> Card / Drop In <small>optional</small></span>
-                        <span className="r1-turn-step-arrow" aria-hidden="true">→</span>
-                        <span className="r1-turn-step" data-active={!actionStep} aria-current={!actionStep ? 'step' : undefined}><b>2</b> Move <small>{G.currentMove === 'current_first' || G.currentMove === 'current_second' ? 'Surf Current' : 'ends turn'}</small></span>
+                        {G.currentMove === 'current_second' ? <strong>Surf Current · choose a second hex or finish</strong> : <>
+                            <strong>Before moving</strong>
+                            <span className="r1-turn-option" data-available={cardAvailable}>Card {cardAvailable ? 'available' : 'unavailable'}</span>
+                            <span className="r1-turn-option" data-available={!dropReason}>Drop In {!dropReason ? 'available' : 'unavailable'}</span>
+                            <span aria-hidden="true">→</span>
+                            <strong>{G.currentMove === 'current_first' ? 'Surf Current · first step' : 'Move · ends turn'}</strong>
+                        </>}
                     </div>}
                     {swapCard && <span>Position conquered. Use one remaining non-movement card or end turn.</span>}
                     {G.currentMove === 'recover' && <div className="r1-action-row">
@@ -323,7 +327,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     </div>}
                     {!detailCard && !(G.currentMove === 'use_card' && !selection) && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
                         <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
-                        {highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
+                        {highlight.preview ? 'Choose a card, attack or move.' : !selection && G.currentMove === 'maneuver' ? 'Choose a highlighted hex · ends turn.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
                     </div>}
                     {(!selectedCard || (!attacking && !inspectingOther)) && targetButtons}
                 </div>

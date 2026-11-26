@@ -239,13 +239,10 @@
 .r1-dice-option-face i:nth-child(3) { grid-area: 3 / 3; }
 .r1-dice-option-risk { color: #ffd3ba; white-space: nowrap; font-size: .8em; font-weight: 700; }
 .r1-floating-hud .r1-target-legend { color: #d9f5ec; font-size: .92em; }
-.r1-turn-steps { display: flex; align-items: center; justify-content: center; gap: 6px; color: #9bbdbb; font-size: .85em; }
-.r1-turn-step { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-.r1-turn-step b { display: grid; place-items: center; width: 19px; height: 19px; border: 1px solid currentColor; border-radius: 50%; font-size: .9em; }
-.r1-turn-step small { font-size: .85em; }
-.r1-turn-step[data-active="true"] { color: #ffe0a1; font-weight: 800; }
-.r1-turn-step[data-active="true"] b { background: #ffe0a1; color: #173e49; }
-.r1-turn-step-arrow { color: #9bbdbb; }
+.r1-turn-steps { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 5px 7px; color: #b8d6d8; font-size: clamp(11px, 1vw, 13px); line-height: 1.25; }
+.r1-turn-steps strong { color: #ffe0a1; }
+.r1-turn-option { padding: 3px 6px; border-radius: 6px; background: #ffffff0c; white-space: nowrap; }
+.r1-turn-option[data-available="true"] { background: #286c5866; color: #b1f2d4; }
 .r1-floating-hud .r1-targets { flex-wrap: nowrap; overflow-x: auto; margin: 0; padding: 2px 1px; scrollbar-width: thin; }
 .r1-floating-hud .r1-targets button { flex: 0 0 auto; color: var(--hud-ink); background: #214e58; border-color: var(--hud-edge); padding: 4px 8px; }
 .r1-floating-hud .r1-targets button.r1-target-hex { display: grid; place-items: center; width: 36px; min-width: 36px; height: 36px; padding: 2px; border: 0; background: transparent; }
