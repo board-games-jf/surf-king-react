@@ -1,5 +1,9 @@
 # Project Handoff
 
+## Board side layout (#53)
+
+- The player shortcuts form a scrollable column on the left on spacious screens; the 3D card raft and 2D card piles are on the right. Compact screens retain their previous HUD layout. Desktop 3D visual review and the card-pile tests passed; mobile visual review remains pending. The proposed hex-local movement confirmation is separate and not implemented in this change.
+
 ## Local animation review studio (#50)
 
 - Latest island and finish follow-up: 84 focused tests passed and the strict production build passed. Studio review covered the seated pose, recovery and a second surfer entering the island; full match and mobile review remain pending.

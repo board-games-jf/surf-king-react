@@ -6,6 +6,7 @@ test('the raft follows the water and stays still with reduced motion', () => {
   const piles = createCardPiles()
   piles.update({ deck: 60, discard: 0, topDiscard: null })
   expect(piles.group.visible).toBe(true)
+  expect(piles.group.position.x).toBeGreaterThan(0)
   piles.animate(1000, false, 1)
   const first = { y: piles.group.position.y, x: piles.group.rotation.x, z: piles.group.rotation.z }
   piles.animate(2500, false, 2.5)

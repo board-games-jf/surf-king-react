@@ -10,7 +10,7 @@ export function createCardPiles() {
   const group = new THREE.Group()
   group.name = 'card-pile-raft'
   group.scale.setScalar(.65)
-  group.position.set(-9.3, .12, 1.1)
+  group.position.set(9.3, .12, 1.1)
   group.visible = false
   const raft = new THREE.Mesh(new THREE.BoxGeometry(2.4, .28, 5.6), new THREE.MeshStandardMaterial({ color: '#9a6842', roughness: .85 }))
   raft.position.y = .13

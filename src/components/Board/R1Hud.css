@@ -806,6 +806,26 @@
 .r1-floating-hud .r1-dice-results .r1-dice-side { justify-content: start; text-align: center; }
 .r1-floating-hud .r1-dice-results .r1-dice-energy { margin: 0; }
 .r1-floating-hud .r1-dice-results .r1-dice-side .r1-player-avatar { border-radius: 50%; }
+
+/* On spacious screens, keep player shortcuts at the left edge of the board. */
+@media (min-width: 801px) and (min-height: 521px) {
+    .r1-floating-hud .r1-round-order {
+        top: max(85px, calc(env(safe-area-inset-top) + 78px));
+        left: max(var(--hud-inset), env(safe-area-inset-left));
+        right: auto;
+        bottom: max(24px, env(safe-area-inset-bottom));
+        flex-direction: column;
+        align-items: flex-start;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 2px 4px 19px 2px;
+    }
+    .r1-floating-hud .r1-player-badge:first-child { margin-left: 0; }
+    .r1-floating-hud .r1-player-badge:not([data-current="true"]) { align-self: flex-start; }
+    .r1-floating-hud button.r1-player-badge[data-current="true"] { margin-bottom: 16px; }
+    .r1-floating-hud .r1-card-piles { left: auto; right: max(var(--hud-inset), env(safe-area-inset-right)); }
+    .r1-discard-list { left: auto; right: 0; }
+}
 .r1-dice-pairs { grid-template-columns: minmax(0, 1fr); justify-content: stretch; }
 .r1-floating-hud .r1-dice-results .r1-dice-versus { font-size: 16px; line-height: 1; }
 
