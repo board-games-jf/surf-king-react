@@ -3,7 +3,7 @@ import { HexGrid } from '../HexGrid'
 import './Board.css'
 import Board3D from '../../map/views/Board3D/Board3D'
 import R1Controls from './R1Controls'
-import { FeedbackIcon } from './r1FeedbackVisuals'
+import { FeedbackIcon, HexBadge } from './r1FeedbackVisuals'
 import { getR1HexFeedback } from './r1HexFeedback'
 import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
 import { r1Occupants, r1MoveTargets, r1DropPlayerTargets, r1MaxAttackDice } from '../../game/r1/SurfKingR1'
@@ -388,7 +388,7 @@ const Board = ({ G, ctx, moves }) => {
                     />
                 )}
                 {isR1 && boardAction?.scope === inspectionScope && !r1Selection && <div className="r1-board-action" data-below={boardAction.below} style={{ left: boardAction.x, top: boardAction.y }}>
-                    <span className="r1-board-action-hex" aria-label={'Hex ' + (boardAction.id + 1)}>{boardAction.id + 1}</span>
+                    <span aria-label={'Hex ' + (boardAction.id + 1)}><HexBadge id={boardAction.id}/></span>
                     {boardAction.canMove && <button type="button" onClick={() => { moves.quickManeuver(boardAction.id); setBoardAction(null) }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span> Move</button>}
                     {boardAction.targets.map(id => <button type="button" className="r1-board-action-attack" key={id} onClick={() => { moves.dropIn(boardAction.id, r1MaxAttackDice(G.players[ctx.currentPlayer].energy), id); setBoardAction(null) }}><span className="r1-board-action-icon"><FeedbackIcon kind="dropIn"/></span> {boardAction.targets.length > 1 ? 'Drop In ' + (id + 1) : 'Drop In'}</button>)}
                     <button type="button" className="r1-board-action-close" aria-label="Close board actions" onClick={() => setBoardAction(null)}>×</button>

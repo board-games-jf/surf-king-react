@@ -5,7 +5,7 @@ import {
     r1PlayerCard, r1CardPlayable, r1DropPlayerTargets, isBeach, HEX_CAPACITY,
     DROP_IN_RANGE, r1AttackUnavailableReason, r1MaxAttackDice,
 } from '../../game/r1/SurfKingR1'
-import { HexEffects, FeedbackIcon, terrainArt, compactHexAction } from './r1FeedbackVisuals'
+import { HexBadge, HexEffects, FeedbackIcon, terrainArt, compactHexAction } from './r1FeedbackVisuals'
 import { getR1CardFeedback } from './r1CardFeedback'
 import { getR1RoundOrder } from './r1RoundOrder'
 import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
@@ -151,8 +151,8 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             aria-label={(selectedCard?.Name === 'Change' ? 'Swap with Player ' : 'Attack Player ') + (id + 1)}
                             className="r1-target-player" title={'Player ' + (id + 1)}
                             onClick={() => onTarget(G.players[id].cellPosition, id)}><PlayerIcon playerId={id} variant="r1-target-player-avatar"/></button>) :
-                            targets.map(id => <button type="button" key={id} aria-label={'Select hex ' + (id + 1)}
-                                onClick={() => onTarget(id)}>{id + 1}</button>)}
+                            targets.map(id => <button type="button" key={id} className="r1-target-hex" aria-label={'Select hex ' + (id + 1)}
+                                onClick={() => onTarget(id)}><HexBadge id={id}/></button>)}
                     </div>
 
     return (

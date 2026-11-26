@@ -117,8 +117,8 @@
 .r1-board-action[data-below="true"] { transform: translate(-50%, 36px); }
 .r1-board-action .r1-board-action-icon { width: 24px; height: 24px; }
 .r1-board-action-icon { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; background: #ffffff2b; font-size: 18px; line-height: 1; }
-.r1-board-action-hex { position: relative; isolation: isolate; display: grid; place-items: center; width: 32px; height: 30px; flex: 0 0 32px; background: #a4dcda; clip-path: polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%); color: #e7f8ef; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.r1-board-action-hex::before { content: ''; position: absolute; z-index: -1; inset: 2px; background: #123d47; clip-path: polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%); }
+.r1-hex-badge { position: relative; isolation: isolate; display: grid; place-items: center; box-sizing: border-box; width: 32px; height: 30px; flex: 0 0 32px; background: #a4dcda; clip-path: polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%); color: #e7f8ef; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.r1-hex-badge::before { content: ''; position: absolute; z-index: -1; inset: 2px; background: #123d47; clip-path: polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%); }
 .r1-board-action-icon .r1-feedback-icon { width: 19px; height: 19px; }
 .r1-board-action button:focus-visible { outline: 3px solid #ffe0a1; }
 .r1-board-action .r1-board-action-attack { background: linear-gradient(135deg, #d16a52, #a63631); border-color: #ffc2a1; }
@@ -229,6 +229,7 @@
 .r1-floating-hud .r1-target-legend { color: #d9f5ec; font-size: .92em; }
 .r1-floating-hud .r1-targets { flex-wrap: nowrap; overflow-x: auto; margin: 0; padding: 2px 1px; scrollbar-width: thin; }
 .r1-floating-hud .r1-targets button { flex: 0 0 auto; color: var(--hud-ink); background: #214e58; border-color: var(--hud-edge); padding: 4px 8px; }
+.r1-floating-hud .r1-targets button.r1-target-hex { display: grid; place-items: center; width: 36px; min-width: 36px; height: 36px; padding: 2px; border: 0; background: transparent; }
 .r1-hand-heading {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding: 3px 8px 3px 12px; font-size: 10px; letter-spacing: .08em;

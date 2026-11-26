@@ -2,6 +2,10 @@ import React from 'react'
 import { CHANGE_RANGE, R1_ATTACK_RANGE, R1_PLACEMENT_RANGE } from '../../game/r1/SurfKingR1'
 export { terrainArt } from './r1CardArt'
 
+export function HexBadge({ id }) {
+    return <span className="r1-hex-badge" aria-hidden="true">{id + 1}</span>
+}
+
 export function FeedbackIcon({ kind }) {
     const paths = {
         energy: <path d="M13 2 4 14h7l-1 8 10-13h-7z" fill="currentColor" stroke="none"/>,
