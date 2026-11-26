@@ -366,8 +366,9 @@ const Board = ({ G, ctx, moves }) => {
             <div className={'surf-map surf-map-' + viewMode} onPointerDownCapture={event => {
                 if (event.target.closest('.r1-board-action')) return
                 const rect = event.currentTarget.getBoundingClientRect()
-                const margin = Math.min(155, rect.width / 2)
-                boardPointer.current = { x: Math.max(margin, Math.min(rect.width - margin, event.clientX - rect.left)), y: Math.max(55, Math.min(rect.height - 45, event.clientY - rect.top)) }
+                const margin = Math.min(135, rect.width / 2)
+                const y = Math.max(0, Math.min(rect.height, event.clientY - rect.top))
+                boardPointer.current = { x: Math.max(margin, Math.min(rect.width - margin, event.clientX - rect.left)), y, below: y < 96 }
                 setBoardAction(null)
             }}>
                 {viewMode === '3d' ? (
@@ -386,7 +387,7 @@ const Board = ({ G, ctx, moves }) => {
                         onHexClick={(cell) => { setSelectedCellId(cell.position); onHexClickedHandle(cell) }}
                     />
                 )}
-                {isR1 && boardAction?.scope === inspectionScope && !r1Selection && <div className="r1-board-action" style={{ left: boardAction.x, top: boardAction.y }}>
+                {isR1 && boardAction?.scope === inspectionScope && !r1Selection && <div className="r1-board-action" data-below={boardAction.below} style={{ left: boardAction.x, top: boardAction.y }}>
                     <span className="r1-board-action-hex" aria-label={'Hex ' + (boardAction.id + 1)}>{boardAction.id + 1}</span>
                     {boardAction.canMove && <button type="button" onClick={() => { moves.quickManeuver(boardAction.id); setBoardAction(null) }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span> Move</button>}
                     {boardAction.targets.map(id => <button type="button" className="r1-board-action-attack" key={id} onClick={() => { moves.dropIn(boardAction.id, r1MaxAttackDice(G.players[ctx.currentPlayer].energy), id); setBoardAction(null) }}><span className="r1-board-action-icon"><FeedbackIcon kind="dropIn"/></span> {boardAction.targets.length > 1 ? 'Drop In ' + (id + 1) : 'Drop In'}</button>)}
