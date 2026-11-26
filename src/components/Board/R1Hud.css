@@ -72,6 +72,9 @@
     white-space: nowrap !important;
     border: 0 !important;
 }
+.r1-movement-access { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.r1-movement-access:focus-within { position: static; display: flex; gap: 4px; width: auto; height: auto; overflow: visible; clip-path: none; padding: 6px; border-radius: 12px; background: var(--hud-glass); }
+.r1-floating-hud .r1-movement-access button { padding: 2px; border: 0; background: transparent; }
 .r1-hud-brand {
     position: absolute;
     top: max(var(--hud-inset), env(safe-area-inset-top));
@@ -653,6 +656,7 @@
     display: grid; place-items: center; border: 0; background: transparent;
 }
 .r1-hud-dock > .r1-action-bar { width: min(400px, 100%); max-width: 100%; }
+.r1-hud-dock > .r1-action-bar:has(> .r1-hand-toggle:only-child) { width: max-content; }
 .r1-hud-dock > .r1-dock-scroll { min-width: min(400px, 100%); }
 .r1-turn-progress { width: min(400px, 100%); box-sizing: border-box; padding: 5px 8px; text-align: center; }
 .r1-turn-reason { display: block; margin-top: 3px; color: #d6eae5; font-size: 12px; line-height: 1.25; }

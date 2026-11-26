@@ -6,7 +6,7 @@
 
 ## Contextual board actions (#54)
 
-- In the optional-card or maneuver phase, selecting an eligible hex offers a nearby movement confirmation. Eligible opponents on that hex also offer Drop In, using the existing target and dice limits. A validated atomic quick maneuver preserves the normal movement and turn resolution. Local desktop 2D and 3D movement was exercised; contextual Drop In and mobile interaction still require manual review.
+- Ordinary movement and Drop In are initiated from the selected hex; the persistent move/attack buttons and ordinary movement target panel have been removed. Drop In retains the selected opponent while the player chooses dice and confirms; keyboard shortcuts remain available on focus. Special finish/continue controls remain when necessary. A validated atomic quick maneuver preserves normal turn resolution. Local 2D movement and contextual Drop In were exercised; mobile and updated 3D interaction still require review.
 
 ## Local animation review studio (#50)
 

@@ -211,7 +211,7 @@ const Board = ({ G, ctx, moves }) => {
 
     const onHexClickedHandle = (cell) => {
         if (isR1) {
-            if (!r1Selection && ['use_card', 'maneuver'].includes(G.currentMove)) {
+            if (!r1Selection && ['use_card', 'maneuver', 'current_first'].includes(G.currentMove)) {
                 const state = G.currentMove === 'use_card' ? { ...G, currentMove: 'maneuver' } : G
                 const canMove = r1MoveTargets(state, ctx).includes(cell.position)
                 const targets = r1DropPlayerTargets(G, ctx).filter(id => G.players[id].cellPosition === cell.position)
@@ -389,8 +389,8 @@ const Board = ({ G, ctx, moves }) => {
                 )}
                 {isR1 && boardAction?.scope === inspectionScope && !r1Selection && <div className="r1-board-action" data-below={boardAction.below} style={{ left: boardAction.x, top: boardAction.y }}>
                     <span aria-label={'Hex ' + (boardAction.id + 1)}><HexBadge id={boardAction.id}/></span>
-                    {boardAction.canMove && <button type="button" onClick={() => { moves.quickManeuver(boardAction.id); setBoardAction(null) }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span> Move · end turn</button>}
-                    {boardAction.targets.map(id => <button type="button" className="r1-board-action-attack" key={id} onClick={() => { moves.dropIn(boardAction.id, r1MaxAttackDice(G.players[ctx.currentPlayer].energy), id); setBoardAction(null) }}><span className="r1-board-action-icon"><FeedbackIcon kind="dropIn"/></span> {boardAction.targets.length > 1 ? 'Drop In ' + (id + 1) : 'Drop In'}</button>)}
+                    {boardAction.canMove && <button type="button" onClick={() => { moves.quickManeuver(boardAction.id); setBoardAction(null) }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span> {G.currentMove === 'current_first' ? 'Move' : 'Move · end turn'}</button>}
+                    {boardAction.targets.map(id => <button type="button" className="r1-board-action-attack" key={id} onClick={() => { setR1Selection({ kind: 'drop', diceCount: r1MaxAttackDice(G.players[ctx.currentPlayer].energy), targetCell: boardAction.id, targetPlayerId: id }); setBoardAction(null) }}><span className="r1-board-action-icon"><FeedbackIcon kind="dropIn"/></span> {boardAction.targets.length > 1 ? 'Drop In ' + (id + 1) : 'Drop In'}</button>)}
                     <button type="button" className="r1-board-action-close" aria-label="Close board actions" onClick={() => setBoardAction(null)}>×</button>
                 </div>}
             </div>
