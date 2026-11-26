@@ -318,7 +318,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     </div>}
                     {!detailCard && !(G.currentMove === 'use_card' && !selection) && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
                         <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
-                        {highlight.preview ? 'Choose a card, attack or move.' : !selection && G.currentMove === 'maneuver' ? 'Choose a highlighted hex · ends turn.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
+                        {highlight.preview ? 'Choose a card, attack or move.' : !selection && G.currentMove === 'maneuver' ? 'Select a hex on the map for options. Numbers move immediately.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
                     </div>}
                     {(!selectedCard || (!attacking && !inspectingOther)) && targetButtons}
                 </div>
