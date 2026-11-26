@@ -363,7 +363,8 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         <span className="r1-board-action-icon"><FeedbackIcon kind="dropIn"/></span> {G.atkDices.length > 0 && !dropReason ? 'Attack again' : 'Drop In'}
                     </button>
                     {!swapChoice && G.currentMove !== 'recover' && <button type="button" className="r1-move-button" disabled={!canPass || !!selection}
-                        onClick={() => { inspectCard(null); moves.pass() }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span> {moveLabel}</button>}
+                        aria-label={moveLabel} aria-description={G.currentMove === 'use_card' ? 'Choose a destination; moving ends your turn.' : undefined}
+                        onClick={() => { inspectCard(null); moves.pass() }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span><span className="r1-move-label">{moveLabel}{G.currentMove === 'use_card' && <small>ends turn</small>}</span></button>}
                     <span id="r1-drop-status" role="status" className={dropReason ? "r1-drop-reason" : "r1-sr-only"}>{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
                 </div>
             </div>}
