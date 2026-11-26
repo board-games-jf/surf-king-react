@@ -342,11 +342,11 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
                         aria-label={G.atkDices.length > 0 && !dropReason ? "Attack again · Drop In (2 hexes)" : "Attack · Drop In (2 hexes)"}
                         onClick={() => { inspectCard(null); setSelection({ kind: 'drop', diceCount: maxAttackDice }) }}>
-                        <span aria-hidden="true">⚔</span> {G.atkDices.length > 0 && !dropReason ? 'Attack again' : 'Drop In'}
+                        <span className="r1-board-action-icon"><FeedbackIcon kind="dropIn"/></span> {G.atkDices.length > 0 && !dropReason ? 'Attack again' : 'Drop In'}
                     </button>
                     {selection?.kind === 'drop' && <button type="button" className="r1-cancel-button" onClick={() => { inspectCard(null); setSelection(null) }}>Cancel</button>}
                     {!swapChoice && G.currentMove !== 'recover' && <button type="button" className="r1-move-button" disabled={!canPass || !!selection}
-                        onClick={() => { inspectCard(null); moves.pass() }}>{moveLabel} <span aria-hidden="true">→</span></button>}
+                        onClick={() => { inspectCard(null); moves.pass() }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span> {moveLabel}</button>}
                     <span id="r1-drop-status" role="status" className={dropReason ? "r1-drop-reason" : "r1-sr-only"}>{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
                 </div>
             </div>}
