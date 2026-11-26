@@ -10,7 +10,7 @@ test('shows legal Drop In targets alongside movement without overriding card pre
     const highlight = getR1TargetHighlight(G, ctx, null)
     expect(highlight.cellIds).toEqual(r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx))
     expect(highlight.attackCellIds).toEqual(r1DropTargets(G, ctx))
-    expect(highlight.attackPlayerIds).toEqual([1])
+    expect(highlight.playerIds).toBeUndefined()
     G.turn = 1
     expect(getR1TargetHighlight(G, ctx, null).attackCellIds).toBeUndefined()
 })

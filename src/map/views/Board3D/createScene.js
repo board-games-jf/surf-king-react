@@ -852,7 +852,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         marker.scale.set(protection === 'Hang loose' ? .60 : .40, .40, 1)
       })
       const blocked = snapshot.targetHighlight?.blocked?.find(item => String(item.playerId) === p.id)
-      const legal = snapshot.targetHighlight?.playerIds?.includes(Number(p.id)) || snapshot.targetHighlight?.attackPlayerIds?.includes(Number(p.id))
+      const legal = snapshot.targetHighlight?.playerIds?.includes(Number(p.id))
       const winner = snapshot.winnerPlayerId === p.id
       a.badge.visible = !!blocked || !!legal || winner
       const playerIcon = (legal || blocked) && !winner
