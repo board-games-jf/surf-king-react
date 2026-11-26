@@ -104,8 +104,8 @@
 }
 .r1-floating-hud .r1-player-badge:first-child { margin-left: auto; }
 .r1-board-action {
-    position: absolute; z-index: 5; display: flex; align-items: center; gap: 5px;
-    transform: translate(-50%, -115%); padding: 5px;
+    position: absolute; z-index: 5; display: flex; align-items: center; gap: 8px;
+    transform: translate(-50%, -115%); padding: 6px 8px;
     border: 1px solid #a4dcda; border-radius: 18px;
     background: #0c303a; box-shadow: 0 5px 16px #09252f80;
 }
@@ -115,7 +115,8 @@
     background: linear-gradient(135deg, #25866d, #155844); color: #fff; font-weight: 800; white-space: nowrap;
 }
 .r1-board-action-icon { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; background: #ffffff2b; font-size: 18px; line-height: 1; }
-.r1-board-action-hex { display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 3px; border: 1px solid #a4dcda; border-radius: 9px; color: #e7f8ef; font-weight: 800; font-variant-numeric: tabular-nums; }
+.r1-board-action-hex { position: relative; isolation: isolate; display: grid; place-items: center; width: 38px; height: 34px; flex: 0 0 38px; background: #a4dcda; clip-path: polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%); color: #e7f8ef; font-weight: 800; font-variant-numeric: tabular-nums; }
+.r1-board-action-hex::before { content: ''; position: absolute; z-index: -1; inset: 2px; background: #123d47; clip-path: polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%); }
 .r1-board-action-icon .r1-feedback-icon { width: 19px; height: 19px; }
 .r1-board-action button:focus-visible { outline: 3px solid #ffe0a1; }
 .r1-board-action .r1-board-action-attack { background: linear-gradient(135deg, #d16a52, #a63631); border-color: #ffc2a1; }
@@ -680,8 +681,8 @@
     width: 18px; height: 18px; border-radius: 50%; color: #c6ffe0; background: #286c58;
 }
 .r1-player-played, .r1-player-waiting, .r1-player-turn-board { margin-left: auto; }
-.r1-player-turn-board { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; flex: 0 0 27px; background: #ffd477; clip-path: polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%); }
-.r1-player-turn-board svg { width: 21px; height: 15px; fill: #fff4c5; stroke: #805929; stroke-width: 1.2; stroke-linecap: round; }
+.r1-player-turn-board { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 20px; flex: 0 0 24px; }
+.r1-player-turn-board svg { width: 24px; height: 16px; fill: #ffd477; stroke: #fff4c5; stroke-width: 1.2; stroke-linecap: round; }
 .r1-player-played .r1-feedback-icon { width: 12px; height: 12px; flex-basis: 12px; }
 
 .r1-player-waiting {
