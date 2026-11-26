@@ -115,6 +115,7 @@
     background: linear-gradient(135deg, #25866d, #155844); color: #fff; font-weight: 800; white-space: nowrap;
 }
 .r1-board-action-icon { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; background: #ffffff2b; font-size: 18px; line-height: 1; }
+.r1-board-action-hex { display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 3px; border: 1px solid #a4dcda; border-radius: 9px; color: #e7f8ef; font-weight: 800; font-variant-numeric: tabular-nums; }
 .r1-board-action-icon .r1-feedback-icon { width: 19px; height: 19px; }
 .r1-board-action button:focus-visible { outline: 3px solid #ffe0a1; }
 .r1-board-action .r1-board-action-attack { background: linear-gradient(135deg, #d16a52, #a63631); border-color: #ffc2a1; }
