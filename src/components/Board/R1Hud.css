@@ -227,7 +227,17 @@
 .r1-card-detail .r1-blocked-reason { color: #ffb9a0; font-size: .87em; }
 .r1-floating-hud .r1-confirm-card, .r1-floating-hud .r1-recover-button { background: #286c58; color: #fff; }
 .r1-action-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.r1-dice-button > span { font-size: 18px; line-height: 1; vertical-align: middle; }
+.r1-attack-dice { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.r1-attack-dice > strong { font-size: .9em; }
+.r1-dice-options { display: flex; gap: 5px; }
+.r1-floating-hud .r1-dice-options .r1-dice-button { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 7px; }
+.r1-dice-option-faces { display: inline-flex; gap: 3px; }
+.r1-dice-option-face { display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); width: 22px; height: 22px; box-sizing: border-box; padding: 3px; border-radius: 5px; background: #fff5e3; box-shadow: 0 2px 0 #c3ad8e; }
+.r1-dice-option-face i { width: 3px; height: 3px; border-radius: 50%; background: #194650; }
+.r1-dice-option-face i:nth-child(1) { grid-area: 1 / 1; }
+.r1-dice-option-face i:nth-child(2) { grid-area: 2 / 2; }
+.r1-dice-option-face i:nth-child(3) { grid-area: 3 / 3; }
+.r1-dice-option-risk { color: #ffd3ba; white-space: nowrap; font-size: .8em; font-weight: 700; }
 .r1-floating-hud .r1-target-legend { color: #d9f5ec; font-size: .92em; }
 .r1-turn-guide { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 7px; color: #cde7df; font-size: .9em; }
 .r1-turn-guide small { color: #a9c9c5; font-size: .85em; }

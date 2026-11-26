@@ -302,13 +302,16 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         <button type="button" className="r1-recover-button" onClick={() => { setSelection(null); moves.recover() }}>Recover free (1 energy)</button>
                         <span>Or use Lifeguard Float.</span>
                     </div>}
-                    {selection?.kind === 'drop' && !dropReason && <div className="r1-action-row" role="group" aria-label="Attack dice">
-                        <strong>Choose attack dice</strong>
+                    {selection?.kind === 'drop' && !dropReason && <div className="r1-attack-dice" role="group" aria-label="Attack dice">
+                        <strong>How many dice?</strong>
+                        <div className="r1-dice-options">
                         {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map(count =>
-                            <button type="button" className="r1-dice-button" key={count} aria-pressed={selection.diceCount === count}
+                            <button type="button" className="r1-dice-button" key={count} aria-label={count === 1 ? '1 die' : count + ' dice'} aria-description={'Risk up to ' + count + ' energy'} aria-pressed={selection.diceCount === count}
                                 onClick={() => setSelection({ kind: 'drop', diceCount: count })}>
-                                <span aria-hidden="true">{count === 1 ? '⚀' : '⚁'}</span> {count} {count === 1 ? 'die' : 'dice'}
+                                <span className="r1-dice-option-faces" aria-hidden="true">{Array.from({ length: count }, (_, i) => <span className="r1-dice-option-face" key={i}><i/><i/><i/></span>)}</span>
+                                <span className="r1-dice-option-risk" aria-hidden="true">up to ⚡−{count}</span>
                             </button>)}
+                        </div>
                         <span className="r1-sr-only">Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
                     </div>}
                     {!detailCard && !selection && G.currentMove === 'use_card' && <div className="r1-turn-guide" aria-label="Optional: use a card and/or Drop In, then move to end your turn">
