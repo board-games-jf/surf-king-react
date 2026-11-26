@@ -57,8 +57,8 @@ test('attack stays visible, explains blocked states and selects a named two-edge
     G.currentMove = 'maneuver'
     rerender(<R1Controls {...props} />)
     expect(screen.getByRole('button', { name: /Attack · Drop In/ })).toBeEnabled()
-    expect(screen.getByText('Card unavailable')).toBeInTheDocument()
-    expect(screen.getByText('Drop In available')).toBeInTheDocument()
+    expect(screen.getByTitle('Card unavailable')).toBeInTheDocument()
+    expect(screen.getByTitle('Drop In available')).toBeInTheDocument()
     expect(screen.getByText('Move · ends turn')).toBeInTheDocument()
     G.players[0].energy = 1
     rerender(<R1Controls {...props} />)
