@@ -15,15 +15,9 @@ const halfDepth = Math.max(...BOARD_LAYOUT.map(({ z }) => Math.abs(z))) + halfHe
 
 const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellId, getRef }) => {
     const gridId = useId()
-    const flowPatternId = `${gridId}-target-flow`
 
     return (
         <svg ref={getRef} viewBox={[-halfWidth, -halfDepth, 2 * halfWidth, 2 * halfDepth].join(' ')}>
-            <defs><pattern id={flowPatternId} patternUnits="userSpaceOnUse" width=".55" height=".8">
-                <g className="r1-target-flow-lines" fill="none" stroke="#fff" strokeWidth=".025" strokeLinecap="round" opacity=".6">
-                    <path d="M.10 -.70v.30 M.10 .10v.30 M.10 .90v.30 M.31 -.48v.25 M.31 .32v.25 M.31 1.12v.25 M.49 -.60v.36 M.49 .20v.36 M.49 1v.36"/>
-                </g>
-            </pattern></defs>
             {BOARD_LAYOUT.map(({ id, x, z }) => {
                 const { backgroundImage, style, highlight, attackHighlight, blocked } = cellProps(id)
                 const patternId = `${gridId}-cell-${id}`
@@ -60,10 +54,6 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                         {attackHighlight && <polygon points={points} transform={highlight ? 'scale(.76)' : 'scale(.91)'}
                             fill={attackHighlight.color} fillOpacity=".36" stroke={attackHighlight.color} strokeOpacity="1"
                             strokeWidth=".10" pointerEvents="none" data-target-highlight="attack"/>}
-                        {(highlight?.kind === 'move' || highlight?.kind === 'attack') && <polygon points={points}
-                            transform="scale(.91)" fill={`url(#${flowPatternId})`} pointerEvents="none" data-target-flow="true"/>}
-                        {attackHighlight && <polygon points={points} transform={highlight ? 'scale(.76)' : 'scale(.91)'}
-                            fill={`url(#${flowPatternId})`} pointerEvents="none" data-target-flow="true"/>}
                         {blocked && <polygon points={points} transform="scale(.91)" fill={blocked.color}
                             fillOpacity=".07" stroke={blocked.color} strokeOpacity=".85" strokeWidth=".075"
                             strokeDasharray=".14 .10" pointerEvents="none" data-target-blocked={blocked.code}/>}

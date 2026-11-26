@@ -37,14 +37,14 @@ test('draws noninteractive inset highlights without changing original cell click
     expect(container.querySelectorAll('[data-target-highlight="attack"]')).toHaveLength(1)
 })
 
-test('renders moving water inside highlighted hexes behind the surfer', () => {
+test('renders highlighted hexes behind the surfer', () => {
     const { container } = render(<HexGrid onHexClick={jest.fn()}
         cellProps={id => id === 7 ? { highlight: { kind: 'move', color: '#9bf4d4' }, attackHighlight: { color: '#ff9882' } } : {}}
         renderCell={id => id === 7 ? <circle data-surfer="true" r="10"/> : null} />)
-    const flow = container.querySelectorAll('[data-target-flow="true"]')
+    const highlights = container.querySelectorAll('[data-target-highlight]')
     const surfer = container.querySelector('[data-surfer="true"]')
-    expect(flow).toHaveLength(2)
-    flow.forEach(layer => {
+    expect(highlights).toHaveLength(2)
+    highlights.forEach(layer => {
         expect(layer).toHaveAttribute('pointer-events', 'none')
         expect(layer.compareDocumentPosition(surfer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     })

@@ -31,12 +31,6 @@
     height: 96%;
 }
 
-.surf-match-r1 .r1-target-flow-lines { animation: r1-target-flow 2.8s linear infinite; }
-@keyframes r1-target-flow { from { transform: translateY(0); } to { transform: translateY(.8px); } }
-@media (prefers-reduced-motion: reduce) {
-    .surf-match-r1 .r1-target-flow-lines { animation: none; }
-}
-
 .surf-map-toolbar, .surf-map-controls {
     position: absolute;
     z-index: 1;
