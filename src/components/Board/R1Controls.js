@@ -71,6 +71,8 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const attacking = selection?.kind === 'drop' || r1PlayerCard(selectedCard?.Name)
     const swapChoice = G.currentMove === 'swap_choice' && G.pendingSwap
     const swapCard = G.currentMove === 'swap_card'
+    const showTurnSteps = ['use_card', 'maneuver', 'current_first', 'current_second'].includes(G.currentMove)
+    const actionStep = G.currentMove === 'use_card' || selection?.kind === 'drop'
     const canPass = swapCard || G.currentMove === 'use_card' || G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
@@ -297,6 +299,11 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 </div>}
                 <div className="r1-hud-context r1-glass" data-attack-open={selection?.kind === 'drop' || undefined}>
                     {selection?.kind === 'drop' && <button type="button" className="r1-attack-close" aria-label="Close attack selection" onClick={() => { inspectCard(null); setSelection(null) }}>×</button>}
+                    {showTurnSteps && <div className="r1-turn-steps" aria-label="Turn progress">
+                        <span className="r1-turn-step" data-active={actionStep} aria-current={actionStep ? 'step' : undefined}><b>1</b> Card / Drop In <small>optional</small></span>
+                        <span className="r1-turn-step-arrow" aria-hidden="true">→</span>
+                        <span className="r1-turn-step" data-active={!actionStep} aria-current={!actionStep ? 'step' : undefined}><b>2</b> Move <small>{G.currentMove === 'current_first' || G.currentMove === 'current_second' ? 'Surf Current' : 'ends turn'}</small></span>
+                    </div>}
                     {swapCard && <span>Position conquered. Use one remaining non-movement card or end turn.</span>}
                     {G.currentMove === 'recover' && <div className="r1-action-row">
                         <button type="button" className="r1-recover-button" onClick={() => { setSelection(null); moves.recover() }}>Recover free (1 energy)</button>
@@ -313,9 +320,6 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             </button>)}
                         </div>
                         <span className="r1-sr-only">Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
-                    </div>}
-                    {!detailCard && !selection && G.currentMove === 'use_card' && <div className="r1-turn-guide" aria-label="Optional: use a card and/or Drop In, then move to end your turn">
-                        <span>Card · Drop In <small>optional</small></span><span aria-hidden="true">→</span><strong>Move to end turn</strong>
                     </div>}
                     {!detailCard && !(G.currentMove === 'use_card' && !selection) && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
                         <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
