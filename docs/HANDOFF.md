@@ -2,6 +2,8 @@
 
 ## Local animation review studio (#50)
 
+- Local validation: 426 tests passed, two skipped; strict production build passed. PR #51 overlaps with draft PR #52 and requires reconciliation. Mobile and complete match visual review remain pending. GitHub rejected workflow changes because the credential lacks `workflow` scope, so PR #51 CI remains skipped. The local Husky bootstrap is missing; commits used a temporary hook override.
+
 - Local preview includes perspective-styled card piles with the latest discarded face and a reshuffle transition, actual terrain energy-loss feedback from PR #52, compact camera controls, and equal-height hand cards; the 3D view places interactive card piles on a gently floating, partially submerged raft beside the course with readable labels beside the piles, while the 2D view retains perspective-styled overlays. The raft has layered rounded card edges, raised faces to avoid depth flicker, rounded side labels controlled by the map-number toggle, count-proportional card layers and face-up card-to-discard motion. This is a local reconciliation, not a merge into main. Manual mobile and in-game obstacle feedback review remain pending.
 
 - The 3D active-turn marker is a small gold-edged rotating surfboard marker with the active player color, rounded top, deck stripe and integrated downward point; reduced motion keeps it still. Owner visual review is pending.
