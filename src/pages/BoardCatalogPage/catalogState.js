@@ -30,15 +30,20 @@ export function placeCatalogAsset(catalog, cellId, tool, surferId = '0') {
 
   const obstacles = { ...catalog.obstacles }
   const surfers = { ...catalog.surfers }
-  delete obstacles[cellId]
-  for (const id of Object.keys(surfers)) {
-    if (surfers[id] === cellId) delete surfers[id]
+  if (tool === 'Surfer') {
+    if (!/^[0-6]$/.test(String(surferId))) return catalog
+    const occupants = Object.entries(surfers).filter(([id, position]) => id !== String(surferId) && position === cellId)
+    if (occupants.length >= 2) return catalog
+  } else {
+    delete obstacles[cellId]
+    for (const id of Object.keys(surfers)) {
+      if (surfers[id] === cellId) delete surfers[id]
+    }
   }
 
   if (OBSTACLE_TYPES.includes(tool)) {
     obstacles[cellId] = tool
   } else if (tool === 'Surfer') {
-    if (!/^[0-6]$/.test(String(surferId))) return catalog
     surfers[String(surferId)] = cellId
   }
   const fallen = Object.fromEntries(Object.entries(catalog.fallen || {}).filter(([id]) => id in surfers))

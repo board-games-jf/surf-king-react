@@ -44,17 +44,19 @@ describe('interactive board catalog fixtures', () => {
     expect(updated.surfers).toEqual(original.surfers)
   })
 
-  test('moving a surfer clears conflicting objects and avoids duplicate surfers', () => {
-    const original = createBoardCatalog()
+  test.each(OBSTACLE_TYPES)('moving a surfer onto %s keeps the obstacle visible', type => {
+    const original = placeCatalogAsset(createEmptyBoardCatalog(), 8, type)
     const moved = placeCatalogAsset(original, 8, 'Surfer', '0')
-    expect(moved.obstacles[8]).toBeUndefined()
-    expect(moved.surfers['0']).toBe(8)
-    expect(Object.values(moved.surfers)).not.toContain(1)
-    expect(createCatalogSnapshot(moved).players).toHaveLength(2)
+    expect(moved.obstacles[8]).toBe(type)
+    expect(createCatalogSnapshot(moved).cells[8].obstacleType).toBe(type)
+    expect(createCatalogSnapshot(moved).players).toEqual([{ id: '0', cellId: 8, fallen: false }])
+  })
 
-    const replaced = placeCatalogAsset(moved, 8, 'Surfer', '1')
-    expect(replaced.surfers).toEqual({ '1': 8 })
-    expect(original.surfers).toEqual({ '0': 1, '1': 51 })
+  test('keeps two surfers on one cell and rejects a third', () => {
+    const first = placeCatalogAsset(createEmptyBoardCatalog(), 8, 'Surfer', '0')
+    const shared = placeCatalogAsset(first, 8, 'Surfer', '1')
+    expect(shared.surfers).toEqual({ '0': 8, '1': 8 })
+    expect(placeCatalogAsset(shared, 8, 'Surfer', '2')).toBe(shared)
   })
 
   test('placing an obstacle over a surfer removes the surfer from the catalog only', () => {

@@ -38,6 +38,8 @@ export default function BoardCatalogPage({ animationStudio = false }) {
   const [jumpPreview, setJumpPreview] = useState(null)
   const [currentPreview, setCurrentPreview] = useState(null)
   const [changePreview, setChangePreview] = useState(null)
+  const [hangLoosePreview, setHangLoosePreview] = useState(null)
+  const [activeProtections, setActiveProtections] = useState({})
   const location = useLocation()
   const selectedProfilePlayer = normalizeLocalPlayerId(location.state?.athletePlayerId)
   const requestedType = location.state?.athleteBoardType
@@ -80,8 +82,12 @@ export default function BoardCatalogPage({ animationStudio = false }) {
   }, [currentPreview])
 
   const snapshot = useMemo(
-    () => createCatalogSnapshot(catalog, selectedCellId),
-    [catalog, selectedCellId]
+    () => {
+      const result = createCatalogSnapshot(catalog, selectedCellId)
+      result.players = result.players.map(player => ({ ...player, previewProtection: activeProtections[player.id] || null }))
+      return result
+    },
+    [catalog, selectedCellId, activeProtections]
   )
   const onCellSelect = useCallback((id) => {
     setSelectedCellId(id)
@@ -93,6 +99,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
     setSelectedCellId(id)
   }
   const reset = () => {
+    setActiveProtections({})
     setLifeguardPreview(null)
     setCurrentPreview(null)
     setCatalog(createBoardCatalog())
@@ -101,6 +108,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
     setError(null)
   }
   const clear = () => {
+    setActiveProtections({})
     setLifeguardPreview(null)
     setCurrentPreview(null)
     setCatalog(createEmptyBoardCatalog())
@@ -164,6 +172,7 @@ export default function BoardCatalogPage({ animationStudio = false }) {
             jumpPreview={jumpPreview}
             currentPreview={currentPreview}
             changePreview={changePreview}
+            hangLoosePreview={hangLoosePreview}
             onCellSelect={onCellSelect}
             onUnavailable={setError}
             focusCellId={tool === 'Inspect' ? selectedCellId : null}
@@ -183,11 +192,12 @@ export default function BoardCatalogPage({ animationStudio = false }) {
                 <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
               </button>)}
             </div></div>
-            <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami', 'Amulet', 'Stone', 'Storm', 'Cyclone', 'Island', 'Energy x2', 'Lifeguard float', 'Jumping', 'Surf Current', 'Change'].includes(selectedCard) || (selectedCard === 'Stone' ? stoneCell === undefined : selectedCard === 'Storm' ? stormCell === undefined : selectedCard === 'Cyclone' ? cycloneCell === undefined : selectedCard === 'Island' ? islandCell === undefined : selectedCard === 'Jumping' ? jumpTarget === null : selectedCard === 'Surf Current' ? currentRoute.length === 0 || !!currentPreview : selectedCard === 'Change' ? !changePlan : !Number.isInteger(catalog.surfers[surferId]) || (selectedCard === 'Lifeguard float' && !catalog.fallen?.[surferId]))}
-              onClick={() => { if (selectedCard === 'Stone') { focusCell(Number(stoneCell)); setStonePreview({ cellId: Number(stoneCell) }) } else if (selectedCard === 'Storm') { focusCell(Number(stormCell)); setStormPreview({ cellId: Number(stormCell) }) } else if (selectedCard === 'Cyclone') { focusCell(Number(cycloneCell)); setCyclonePreview({ cellId: Number(cycloneCell) }) } else if (selectedCard === 'Island') { focusCell(Number(islandCell)); setIslandPreview({ cellId: Number(islandCell) }) } else if (selectedCard === 'Jumping') { focusCell(jumpTarget); setCatalog(current => jumpCatalogSurfer(current, surferId)); setJumpPreview({ playerId: surferId }) } else if (selectedCard === 'Surf Current') { focusCell(currentRoute[currentRoute.length - 1]); setCatalog(current => placeCatalogAsset(current, currentRoute[0], 'Surfer', surferId)); setCurrentPreview({ playerId: surferId, route: currentRoute }) } else if (selectedCard === 'Change') { focusCell(changePlan.origin); setCatalog(current => applyCatalogChange(current, changePlan)); setChangePreview(changePlan) } else { focusCell(catalog.surfers[surferId]); (selectedCard === 'Sunburn' ? setSunburnPreview : selectedCard === 'Amulet' ? setAmuletPreview : selectedCard === 'Energy x2' ? setEnergyPreview : selectedCard === 'Lifeguard float' ? setLifeguardPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) } }}>
+            <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami', 'Amulet', 'Stone', 'Storm', 'Cyclone', 'Island', 'Energy x2', 'Lifeguard float', 'Jumping', 'Surf Current', 'Change', 'Hang loose'].includes(selectedCard) || (selectedCard === 'Stone' ? stoneCell === undefined : selectedCard === 'Storm' ? stormCell === undefined : selectedCard === 'Cyclone' ? cycloneCell === undefined : selectedCard === 'Island' ? islandCell === undefined : selectedCard === 'Jumping' ? jumpTarget === null : selectedCard === 'Surf Current' ? currentRoute.length === 0 || !!currentPreview : selectedCard === 'Change' ? !changePlan : !Number.isInteger(catalog.surfers[surferId]) || (selectedCard === 'Lifeguard float' && !catalog.fallen?.[surferId]))}
+              onClick={() => { if (selectedCard === 'Stone') { focusCell(Number(stoneCell)); setStonePreview({ cellId: Number(stoneCell) }) } else if (selectedCard === 'Storm') { focusCell(Number(stormCell)); setStormPreview({ cellId: Number(stormCell) }) } else if (selectedCard === 'Cyclone') { focusCell(Number(cycloneCell)); setCyclonePreview({ cellId: Number(cycloneCell) }) } else if (selectedCard === 'Island') { focusCell(Number(islandCell)); setIslandPreview({ cellId: Number(islandCell) }) } else if (selectedCard === 'Jumping') { focusCell(jumpTarget); setCatalog(current => jumpCatalogSurfer(current, surferId)); setJumpPreview({ playerId: surferId }) } else if (selectedCard === 'Surf Current') { focusCell(currentRoute[currentRoute.length - 1]); setCatalog(current => placeCatalogAsset(current, currentRoute[0], 'Surfer', surferId)); setCurrentPreview({ playerId: surferId, route: currentRoute }) } else if (selectedCard === 'Change') { focusCell(changePlan.origin); setCatalog(current => applyCatalogChange(current, changePlan)); setChangePreview(changePlan) } else { focusCell(catalog.surfers[surferId]); if (selectedCard === 'Hang loose' || selectedCard === 'Amulet') setActiveProtections(current => ({ ...current, [surferId]: selectedCard })); (selectedCard === 'Hang loose' ? setHangLoosePreview : selectedCard === 'Sunburn' ? setSunburnPreview : selectedCard === 'Amulet' ? setAmuletPreview : selectedCard === 'Energy x2' ? setEnergyPreview : selectedCard === 'Lifeguard float' ? setLifeguardPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) } }}>
               ▶ Play
             </button>
-            <p aria-live="polite">{selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. The displayed amount is a preview example.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. The displayed amount is a preview example.' : selectedCard === 'Tsunami' ? 'Tsunami: up to −3 energy. The displayed amount is a preview example.' : selectedCard === 'Amulet' ? 'Amulet: protection against attacks and Change until your next turn. Visual activation preview.' : selectedCard === 'Stone' ? (stoneCell === undefined ? 'Place a Stone on the board to preview its arrival.' : 'Stone: placement preview. Entry costs 1 energy and removes the stone.') : selectedCard === 'Storm' ? (stormCell === undefined ? 'Place a Storm on the board to preview its arrival.' : 'Storm: placement preview. Entering costs 1 energy.') : selectedCard === 'Cyclone' ? (cycloneCell === undefined ? 'Place a Cyclone on the board to preview its arrival.' : 'Cyclone: formation preview. Entry redirects to a random free neighboring hex.') : selectedCard === 'Island' ? (islandCell === undefined ? 'Place an Island on the board to preview its arrival.' : 'Island: sand emerges and palms grow. Entry restores 2 energy.') : selectedCard === 'Energy x2' ? 'Energy x2: gain up to 2 energy (maximum 5). The displayed amount is a preview example.' : selectedCard === 'Lifeguard float' ? (catalog.fallen?.[surferId] ? 'Lifeguard float: recover with 3 energy. Visual preview.' : 'Use Fall off board below first to preview the rescue.') : selectedCard === 'Jumping' ? (jumpTarget === null ? 'Place a hazard next to a standing surfer to preview Jumping.' : 'Jumping: a wave launches the surfer onto the neighboring hazard without triggering it.') : selectedCard === 'Surf Current' ? (currentRoute.length ? 'Surf Current: preview up to two neighboring steps with a flowing wake.' : 'Place a standing surfer near an empty hex to preview Surf Current.') : selectedCard === 'Change' ? (changePlan ? 'Change: preview a nearby two-surfer position exchange.' : 'Place two standing surfers to preview Change.') : selectedCard + ': animation not available yet.'}</p>
+            {activeProtections[surferId] && <button type="button" onClick={() => setActiveProtections(current => { const next = { ...current }; delete next[surferId]; return next })}>Clear protection preview</button>}
+            <p aria-live="polite">{selectedCard === 'Hang loose' ? 'Hang Loose: shaka symbol and protective dome preview.' : selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. The displayed amount is a preview example.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. The displayed amount is a preview example.' : selectedCard === 'Tsunami' ? 'Tsunami: up to −3 energy. The displayed amount is a preview example.' : selectedCard === 'Amulet' ? 'Amulet: protection against attacks and Change until your next turn. Visual activation preview.' : selectedCard === 'Stone' ? (stoneCell === undefined ? 'Place a Stone on the board to preview its arrival.' : 'Stone: placement preview. Entry costs 1 energy and removes the stone.') : selectedCard === 'Storm' ? (stormCell === undefined ? 'Place a Storm on the board to preview its arrival.' : 'Storm: placement preview. Entering costs 1 energy.') : selectedCard === 'Cyclone' ? (cycloneCell === undefined ? 'Place a Cyclone on the board to preview its arrival.' : 'Cyclone: formation preview. Entry redirects to a random free neighboring hex.') : selectedCard === 'Island' ? (islandCell === undefined ? 'Place an Island on the board to preview its arrival.' : 'Island: sand emerges and palms grow. Entry restores 2 energy.') : selectedCard === 'Energy x2' ? 'Energy x2: gain up to 2 energy (maximum 5). The displayed amount is a preview example.' : selectedCard === 'Lifeguard float' ? (catalog.fallen?.[surferId] ? 'Lifeguard float: recover with 3 energy. Visual preview.' : 'Use Fall off board below first to preview the rescue.') : selectedCard === 'Jumping' ? (jumpTarget === null ? 'Place a hazard next to a standing surfer to preview Jumping.' : 'Jumping: a wave launches the surfer onto the neighboring hazard without triggering it.') : selectedCard === 'Surf Current' ? (currentRoute.length ? 'Surf Current: preview up to two neighboring steps with a flowing wake.' : 'Place a standing surfer near an empty hex to preview Surf Current.') : selectedCard === 'Change' ? (changePlan ? 'Change: preview a nearby two-surfer position exchange.' : 'Place two standing surfers to preview Change.') : selectedCard + ': animation not available yet.'}</p>
             <div className="board-catalog-divider" />
           </section>}
           <div className="board-catalog-panel-top">

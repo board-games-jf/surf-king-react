@@ -79,7 +79,7 @@ export function setupR1(ctx) {
         turn: 1, order, nextPlayer: order[0], completedInRound: 0,
         currentMove: 'use_card', moved: false, redirected: false, pendingSwap: null,
         winner: null, finishers: [], 
-        message: 'Round 1: no attacks.', atkDices: [], defDices: [],
+        message: 'Round 1: no attacks.', atkDices: [], defDices: [], dropResult: null, dropResultSequence: 0,
     }
     for (const id of [28, 29, 30, 31]) G.cells[id].obstacle = { ...CardShark }
     for (let i = 0; i < ctx.numPlayers; i++) {
@@ -101,6 +101,7 @@ export function beginR1Turn(G, ctx) {
     G.redirected = false
     G.atkDices = []
     G.defDices = []
+    G.dropResult = null
     G.message = G.turn === 1 ? 'Round 1: no attacks.' :
         p.energy === 0 ? 'Recover on your board.' : 'Play up to one card, attack while you have 2+ energy, then move.'
 }
@@ -129,20 +130,30 @@ function hurt(G, ctx, p, damage, attacker = null) {
     } else G.discardedCards.push(card)
 }
 function relocate(G, p, to) { p.cellPosition = to }
+function terrainDamage(G, ctx, p, amount, source) {
+    const before = p.energy
+    hurt(G, ctx, p, amount)
+    const loss = before - p.energy
+    if (loss > 0) G.terrainEnergyEvent = { id: (G.terrainEnergyEvent?.id || 0) + 1, playerId: p.position, amount: loss, source }
+}
 function arrive(G, ctx, p, from, to) {
     const tile = G.cells[to].obstacle
     switch (tile?.Name) {
-        case CardShark.Name: hurt(G, ctx, p, 2); break
+        case CardShark.Name: terrainDamage(G, ctx, p, 2, 'Shark'); break
         case CardStone.Name:
             G.discardedCards.push(tile)
             delete G.cells[to].obstacle
-            hurt(G, ctx, p, 1)
+            terrainDamage(G, ctx, p, 1, 'Stone')
             break
-        case CardStorm.Name: hurt(G, ctx, p, 1); break
-        case CardIsland.Name:
+        case CardStorm.Name: terrainDamage(G, ctx, p, 1, 'Storm'); break
+        case CardIsland.Name: {
+            const before = p.energy
             capEnergy(p, p.energy + 2)
+            G.terrainEnergyEvent = { id: (G.terrainEnergyEvent?.id || 0) + 1, playerId: p.position,
+                amount: p.energy - before, source: 'Island', direction: 'gain' }
             // Island is persistent terrain; every ordinary entry restores energy.
             break
+        }
         case CardCyclone.Name: {
             if (G.redirected) break
             const exits = freeNeighbors(G, to).filter(id => id !== from)
@@ -289,11 +300,16 @@ export function recoverR1(G, ctx) {
     G.currentMove = 'use_card'
     G.message = 'Recovered with 1 energy.'
 }
+function setCardVisualEvent(G, p, name, details = {}) {
+    G.cardVisualEvent = { id: (G.cardVisualEvent?.id || 0) + 1, playerId: p.position,
+        origin: p.cellPosition, name, ...details }
+}
 export function useR1Card(G, ctx, index, to, playerId) {
     if (!Number.isInteger(index) || !r1CardPlayable(G, ctx, index)) return INVALID_MOVE
     const p = actor(G, ctx)
     const name = p.cards[index].Name
     if (G.currentMove === 'recover') {
+        setCardVisualEvent(G, p, name, { amount: 3, discarded: true })
         spend(G, p, index)
         p.energy = 3
         p.fellOffTheBoard = -1
@@ -305,6 +321,11 @@ export function useR1Card(G, ctx, index, to, playerId) {
     if (r1PlayerCard(name) && !opponent) return INVALID_MOVE
     if ([...placementNames, ...attackNames, CardJumping.Name, CardChange.Name].includes(name) &&
         !r1CardTargets(G, ctx, index).includes(to)) return INVALID_MOVE
+    const amount = name === CardEnergyX2.Name ? Math.min(2, MAX_ENERGY - p.energy) :
+        opponent && attackNames.includes(name) ? Math.min(attackDamage[name], opponent.energy - 1) : 0
+    setCardVisualEvent(G, p, name, { to: Number.isInteger(to) ? to : null,
+        targetId: opponent?.position ?? null, targetOrigin: opponent?.cellPosition ?? null,
+        amount, discarded: !placementNames.includes(name) && name !== CardAmulet.Name && name !== CardHangLoose.Name })
     if (placementNames.includes(name)) {
         G.cells[to].obstacle = spend(G, p, index, 'board')
     } else if (name === CardAmulet.Name || name === CardHangLoose.Name) {
@@ -367,6 +388,8 @@ export function r1DropIn(G, ctx, to, diceCount, playerId) {
     // The attacker never risks their last energy; ties and initiation are free.
     if (attackerLoss) hurt(G, ctx, p, attackerLoss, q)
     if (defenderLoss) hurt(G, ctx, q, defenderLoss, p)
+    G.dropResultSequence = (G.dropResultSequence || 0) + 1
+    G.dropResult = { id: G.dropResultSequence, attackerId: p.position, defenderId: q.position, attackerLoss, defenderLoss }
     G.message = 'Drop In: Player ' + (p.position + 1) + ' loses ' + attackerLoss +
         ' energy; Player ' + (q.position + 1) + ' loses ' + defenderLoss + ' energy.' +
         (q.energy === 0 ? ' Player ' + (q.position + 1) + ' fell!' : '')
@@ -408,6 +431,7 @@ export function r1Maneuver(G, ctx, to) {
     const p = actor(G, ctx)
     const from = p.cellPosition
     const first = G.currentMove === 'current_first'
+    if (first || G.currentMove === 'current_second') setCardVisualEvent(G, p, 'Surf Current', { discarded: false })
     relocate(G, p, to)
     G.moved = true
     // Each chosen edge-step is a maneuver; never chain Cyclones during a step.

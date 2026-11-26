@@ -18,9 +18,9 @@ describe('3D obstacle geometry', () => {
 
     const bounds = new THREE.Box3().setFromObject(model.object)
     const size = bounds.getSize(new THREE.Vector3())
-    expect(size.x).toBeLessThan(1.6)
-    expect(size.y).toBeLessThan(1.6)
-    expect(size.z).toBeLessThan(1.6)
+    expect(size.x).toBeLessThan(type === 'Island' ? 2.2 : 1.6)
+    expect(size.y).toBeLessThan(type === 'Island' ? 2.2 : 1.6)
+    expect(size.z).toBeLessThan(type === 'Island' ? 2.2 : 1.6)
     expect(bounds.isEmpty()).toBe(false)
 
     expect(() => model.update(0, 1)).not.toThrow()

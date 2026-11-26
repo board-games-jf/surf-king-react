@@ -108,6 +108,8 @@ const Board = ({ G, ctx, moves }) => {
         setR1Selection(null)
     }
     const [viewMode, setViewMode] = useState('2d')
+    const [focusPlayerRequest, setFocusPlayerRequest] = useState(null)
+    const [discardOpen, setDiscardOpen] = useState(false)
     const [selectedCellId, setSelectedCellId] = useState(null)
     const [viewError, setViewError] = useState(null)
 
@@ -335,15 +337,22 @@ const Board = ({ G, ctx, moves }) => {
     const choosingTarget = placingObstacle || removingObstacle || selectPlayerTarget || selectTsunami
     return (
         <div className={isR1 ? "surf-match surf-match-r1" : "surf-match"}>
-            <div className="surf-map-toolbar" aria-label="Board view">
+            {!isR1 && <div className="surf-map-toolbar" aria-label="Board view">
                 <button type="button" aria-pressed={viewMode === '2d'} onClick={() => { setHoveredHex(null); setViewMode('2d') }}>2D</button>
                 <button type="button" aria-pressed={viewMode === '3d'} onClick={() => { setHoveredHex(null); setViewError(null); setViewMode('3d') }}>3D</button>
                 {viewError && <span role="alert">{viewError}</span>}
-            </div>
+            </div>}
+            {isR1 && viewMode === '2d' && <div className="surf-view-toggle-standalone">
+                <button type="button" aria-label="Switch to 3D view" onClick={() => { setHoveredHex(null); setViewError(null); setViewMode('3d') }}>3D</button>
+                {viewError && <span role="alert">{viewError}</span>}
+            </div>}
             <div className={'surf-map surf-map-' + viewMode}>
                 {viewMode === '3d' ? (
                     <Board3D
-                        snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, pinnedHexId), maneuverDestinations: r1Targets, targetHighlight } : createPublicMapSnapshot(G, ctx, selectedCellId)}
+                        viewToggle={isR1 ? <button type="button" className="surf-view-toggle" aria-label="Switch to 2D view" onClick={() => { setHoveredHex(null); setViewMode('2d') }}>2D</button> : null}
+                        focusPlayerRequest={focusPlayerRequest}
+                        snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, pinnedHexId), maneuverDestinations: r1Targets, targetHighlight, cardPiles: { deck: G.deck.length, discard: G.discardedCards.length, topDiscard: G.discardedCards[G.discardedCards.length - 1]?.Name || null, event: G.cardVisualEvent || null } } : createPublicMapSnapshot(G, ctx, selectedCellId)}
+                        onDiscardSelect={isR1 ? () => setDiscardOpen(value => !value) : undefined}
                         onCellHover={isR1 ? setHoveredHex : undefined}
                         onCellSelect={(cellId) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }) }}
                         onUnavailable={(message) => { setHoveredHex(null); setViewError(message); setViewMode('2d') }}
@@ -356,7 +365,7 @@ const Board = ({ G, ctx, moves }) => {
                 )}
             </div>
             {isR1 ? <R1Controls G={G} ctx={ctx} moves={moves} selection={r1Selection}
-                setSelection={setR1Selection} onTarget={onR1Target} targetHighlight={targetHighlight} onPreviewCard={previewCard} hexFeedback={hexFeedback} pinnedHex={pinnedHexId != null} onClearHex={clearHexInspection} /> : <section className="surf-hud" aria-label="Match controls">
+                setSelection={setR1Selection} onTarget={onR1Target} onFocusPlayer={id => { setFocusPlayerRequest({ playerId: id }); setViewMode('3d') }} worldPiles={viewMode === '3d'} discardOpen={discardOpen} onDiscardOpenChange={setDiscardOpen} targetHighlight={targetHighlight} onPreviewCard={previewCard} hexFeedback={hexFeedback} pinnedHex={pinnedHexId != null} onClearHex={clearHexInspection} /> : <section className="surf-hud" aria-label="Match controls">
                 <div className="surf-turn">
                     <strong aria-live="polite">{'Turn ' + G.turn + ' · Player ' + (Number(ctx.currentPlayer) + 1) + ' · ' + G.currentMove.replace(/_/g, ' ')}</strong>
                     {choosingTarget ? <span>Choose a hex</span> : (

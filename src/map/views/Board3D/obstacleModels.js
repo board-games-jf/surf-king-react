@@ -171,12 +171,12 @@ function islandModel(parent, helpers) {
   }
   const shoreFoam = [foamArc(sandGroup, helpers, .55, .25, 1.6),
     foamArc(sandGroup, helpers, .57, 3.25, 1.35)]
-  const palms = [[-.22, -.07, 1.02, -.20, -.35], [.17, .10, .76, .17, .60]].map(([x,z,height,lean,angle]) => {
+  const palms = [[-.27, -.16, 1.02, -.20, -.35], [.27, -.16, .76, .17, .60]].map(([x,z,height,lean,angle]) => {
     const tree = new THREE.Group()
     tree.name = 'island-palm'
     tree.position.set(x, .22, z)
     parent.add(tree)
-    palm(tree, helpers, 0, 0, height, lean, angle)
+    palm(tree, helpers, 0, 0, height * 1.15, lean, angle)
     return tree
   })
   // Find the nearest point on the island's elliptical shore for each palm.
@@ -213,7 +213,7 @@ function islandModel(parent, helpers) {
       const fall = THREE.MathUtils.clamp(t / .85, 0, 1)
       const roll = THREE.MathUtils.clamp((t - .85) / 1.3, 0, 1)
       const sink = THREE.MathUtils.smoothstep(t, 2.15, 2.8)
-      const startY = .22 + (index === 0 ? 1.02 : .76)
+      const startY = .22 + (index === 0 ? 1.02 : .76) * 1.15
       coconut.position.set(THREE.MathUtils.lerp(startX, endX, roll),
         .26 + (startY - .26) * (1 - fall * fall) - .1 * roll - .32 * sink,
         THREE.MathUtils.lerp(startZ, endZ, roll))

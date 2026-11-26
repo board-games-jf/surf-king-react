@@ -610,5 +610,35 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     }
     if (rescuing && handContact > 0) remountHands(handContact)
   }
-  return { display, get surfboard() { return reviewBoard }, get riderPivot() { return riderPivot }, setPose, setBoardStyle, setBoardMotion, animate, dispose }
+  let islandPose = null
+  const surfRootPosition = root.position.clone()
+  const setIslandMotion = weight => {
+    if (!weight) { root.position.copy(surfRootPosition); return }
+    if (!islandPose) {
+      setPose('standing')
+      display.updateMatrixWorld(true)
+      const handPosition = display.worldToLocal(bones.get('RightHand').getWorldPosition(new THREE.Vector3()))
+      islandPose = {
+        bones: [...bones.values()].map(bone => ({ bone, position: bone.position.clone(), quaternion: bone.quaternion.clone() })),
+        rootPosition: root.position.clone(),
+        boardPosition: handPosition.clone().add(new THREE.Vector3(-.12, -.18, 0)),
+        boardQuaternion: reviewBoard.quaternion.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2))
+      }
+      setPose('surf')
+    }
+    root.position.copy(surfRootPosition).lerp(islandPose.rootPosition, weight)
+    islandPose.bones.forEach(({ bone, position, quaternion }) => {
+      bone.position.lerp(position, weight)
+      bone.quaternion.slerp(quaternion, weight)
+    })
+    reviewBoard.position.lerp(islandPose.boardPosition, weight)
+    reviewBoard.quaternion.slerp(islandPose.boardQuaternion, weight)
+  }
+  if (initialPose === 'surf') {
+    display.scale.setScalar(1)
+    setIslandMotion(1)
+    setPose('surf')
+    display.scale.setScalar(scale)
+  }
+  return { display, get surfboard() { return reviewBoard }, get riderPivot() { return riderPivot }, get head() { return bones.get('Head') || bones.get('Neck') }, setPose, setBoardStyle, setBoardMotion, setIslandMotion, animate, dispose }
 }

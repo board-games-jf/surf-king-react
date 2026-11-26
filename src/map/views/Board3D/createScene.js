@@ -1,3 +1,6 @@
+import { createCardPiles } from './createCardPiles'
+import amuletIcon from '../../../assets/cards/r1/amulet-effect.png'
+import hangLooseIcon from '../../../assets/cards/r1/hangloose-effect-clean.png'
 import layoutManifest from '../../layout/board-layout.json'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -20,7 +23,7 @@ const colors = { sand:'#f4d49b', rock:'#a6aaa0', trunk:'#b5804f', green:'#4c9755
   cream:'#fff3cb', orange:'#ffbb41', coral:'#f27763', teal:'#38b4ae', blue:'#337a91',
   skin:'#c8824b', dark:'#294b46' }
 
-export function createScene(container,onCellSelect,onError, { previewFemaleAthlete = false, athleteBoardType = null, onCellHover } = {}) {
+export function createScene(container,onCellSelect,onError, { previewFemaleAthlete = false, athleteBoardType = null, onCellHover, onDiscardSelect } = {}) {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color('#c8e8e5')
   scene.fog = new THREE.Fog('#c8e8e5',42,105)
@@ -35,34 +38,35 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   renderer.domElement.setAttribute('aria-label','Interactive Surf King 3D board')
   Object.assign(renderer.domElement.style, { display: 'block', width: '100%', height: '100%' })
   container.appendChild(renderer.domElement)
-  // One scene-owned, camera-facing marker, independent of the surfer's roll.
-  const turnCanvas = document.createElement('canvas')
-  turnCanvas.width = 256
-  turnCanvas.height = 128
-  const turnContext = turnCanvas.getContext('2d')
-  turnContext.fillStyle = '#173d36'
-  turnContext.fillRect(24, 8, 208, 68)
-  turnContext.strokeStyle = '#ffcf53'
-  turnContext.lineWidth = 6
-  turnContext.strokeRect(24, 8, 208, 68)
-  turnContext.font = 'bold 44px sans-serif'
-  turnContext.textAlign = 'center'
-  turnContext.fillStyle = '#fff4c5'
-  turnContext.fillText('NOW', 128, 57)
-  turnContext.beginPath()
-  turnContext.moveTo(99, 76)
-  turnContext.lineTo(157, 76)
-  turnContext.lineTo(128, 117)
-  turnContext.closePath()
-  turnContext.fillStyle = '#ffcf53'
-  turnContext.fill()
-  const turnTexture = new THREE.CanvasTexture(turnCanvas)
-  turnTexture.colorSpace = THREE.SRGBColorSpace
-  const turnMarker = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: turnTexture, transparent: true, depthTest: false, depthWrite: false, toneMapped: false
-  }))
-  turnMarker.scale.set(1.6, .8, 1)
-  turnMarker.renderOrder = 1000
+  // A single tapered surfboard silhouette also points down at the active rider.
+  const markerShape = new THREE.Shape()
+  markerShape.moveTo(0, -.63)
+  markerShape.bezierCurveTo(-.04, -.51, -.18, -.31, -.19, -.06)
+  markerShape.bezierCurveTo(-.20, .21, -.17, .48, 0, .52)
+  markerShape.bezierCurveTo(.17, .48, .20, .21, .19, -.06)
+  markerShape.bezierCurveTo(.18, -.31, .04, -.51, 0, -.63)
+  const markerGeometry = new THREE.ExtrudeGeometry(markerShape, {
+    depth: .08, bevelEnabled: true, bevelThickness: .025, bevelSize: .018, bevelSegments: 3, curveSegments: 24
+  })
+  markerGeometry.translate(0, 0, -.04)
+  const markerEdge = new THREE.Mesh(markerGeometry, new THREE.MeshStandardMaterial({ color: '#f5c85d', metalness: .25, roughness: .38 }))
+  const markerFaceMaterial = new THREE.MeshStandardMaterial({ color: '#31c2b5', roughness: .35, side: THREE.DoubleSide })
+  const markerFaceGeometry = new THREE.ShapeGeometry(markerShape, 24)
+  const stringerMaterial = new THREE.MeshStandardMaterial({ color: '#fff7df', roughness: .4 })
+  const stringerGeometry = new THREE.BoxGeometry(.012, .62, .008)
+  for (const z of [-.067, .067]) {
+    const face = new THREE.Mesh(markerFaceGeometry, markerFaceMaterial)
+    face.position.z = z
+    face.scale.set(.76, .84, 1)
+    markerEdge.add(face)
+    const stringer = new THREE.Mesh(stringerGeometry, stringerMaterial)
+    stringer.position.set(0, .06, z < 0 ? z - .005 : z + .005)
+    markerEdge.add(stringer)
+  }
+  const turnMarker = new THREE.Group()
+  turnMarker.name = 'active-surfer-marker'
+  turnMarker.scale.setScalar(.7)
+  turnMarker.add(markerEdge)
   turnMarker.visible = false
   scene.add(turnMarker)
   // Presentation-only Sunburn preview, owned and disposed by the scene.
@@ -102,7 +106,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   flare.position.y = .2
   const sparks = Array.from({ length: 8 }, (_, i) => {
     const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTexture, color: 0xffa52e, transparent: true, depthWrite: false, toneMapped: false }))
-    spark.scale.set(.28, .28, 1)
+    spark.scale.set(.12, .12, 1)
     sunburn.add(spark)
     return spark
   })
@@ -177,31 +181,41 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   waveImpact.visible = false
   scene.add(waveImpact)
   let bigWavePreview = null
-  function playBigWave(playerId, tsunami = false) {
+  function playBigWave(playerId, tsunami = false, amount = tsunami ? 3 : 2) {
     const actor = actors.get(String(playerId))
     if (!actor || !actor.g.visible) return
     bigWavePreview = { playerId: String(playerId), tsunami, started: performance.now() }
-    showEnergyLoss(playerId, tsunami ? 3 : 2, tsunami ? 1.5 : .9)
+    if (amount > 0) showEnergyLoss(playerId, amount, tsunami ? 1.5 : .9)
   }
   // Amulet activation preview: a golden charm summons a protective aqua bubble.
   const amuletEffect = new THREE.Group()
-  const barrier = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 20), new THREE.MeshBasicMaterial({ color: 0x60dcf2, transparent: true, opacity: .15, depthWrite: false, side: THREE.DoubleSide }))
+  const barrier = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 28), new THREE.ShaderMaterial({
+    uniforms: { fade: { value: 0 } },
+    vertexShader: `varying vec3 vNormal; varying vec3 vView;
+      void main() { vec4 world = modelMatrix * vec4(position, 1.0);
+        vNormal = normalize(mat3(modelMatrix) * normal); vView = cameraPosition - world.xyz;
+        gl_Position = projectionMatrix * viewMatrix * world; }`,
+    fragmentShader: `uniform float fade; varying vec3 vNormal; varying vec3 vView;
+      void main() { float edge = pow(1.0 - abs(dot(normalize(vNormal), normalize(vView))), 2.5);
+        gl_FragColor = vec4(mix(vec3(0.12, 0.72, 0.82), vec3(0.72, 1.0, 0.96), edge), fade * (0.035 + edge * 0.48)); }`,
+    transparent: true, depthWrite: false, side: THREE.FrontSide
+  }))
   barrier.position.y = .92
   barrier.scale.set(1.05, 1.2, 1.05)
   const halo = new THREE.Mesh(new THREE.TorusGeometry(1.03, .045, 8, 64), new THREE.MeshBasicMaterial({ color: 0x9cffff, transparent: true, depthWrite: false }))
   halo.rotation.x = Math.PI / 2
   halo.position.y = .22
-  const charm = new THREE.Group()
-  const charmRing = new THREE.Mesh(new THREE.TorusGeometry(.25, .055, 10, 32), new THREE.MeshBasicMaterial({ color: 0xffc65a, transparent: true, depthWrite: false }))
-  const charmCore = new THREE.Mesh(new THREE.SphereGeometry(.14, 16, 12), new THREE.MeshBasicMaterial({ color: 0x6cf4ef, transparent: true, depthWrite: false }))
-  charm.add(charmRing, charmCore)
-  charm.position.y = 2.5
-  const amuletSparks = Array.from({ length: 10 }, () => {
-    const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTexture, color: 0x95fff4, transparent: true, depthWrite: false, toneMapped: false }))
-    spark.scale.set(.28, .28, 1)
-    amuletEffect.add(spark)
-    return spark
+  const shieldRings = [0, 1, 2].map(() => {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1, .025, 8, 64), new THREE.MeshBasicMaterial({ color: 0x9efff5, transparent: true, depthWrite: false, toneMapped: false }))
+    ring.rotation.x = Math.PI / 2
+    amuletEffect.add(ring)
+    return ring
   })
+  const amuletTexture = new THREE.TextureLoader().load(amuletIcon)
+  amuletTexture.colorSpace = THREE.SRGBColorSpace
+  const charm = new THREE.Sprite(new THREE.SpriteMaterial({ map: amuletTexture, transparent: true, alphaTest: .2, depthWrite: false, toneMapped: false }))
+  charm.scale.set(.8, .8, 1)
+  charm.position.y = 2.5
   amuletEffect.add(barrier, halo, charm)
   amuletEffect.visible = false
   scene.add(amuletEffect)
@@ -209,7 +223,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   function playAmulet(playerId) {
     const actor = actors.get(String(playerId))
     if (!actor || !actor.g.visible) return
-    amuletPreview = { playerId: String(playerId), started: performance.now() }
+    const started = performance.now()
+    actor.protectionVisibleAfter = started + 4000
+    amuletPreview = { playerId: String(playerId), started }
   }
   const stoneSplash = new THREE.Group()
   const stoneRing = new THREE.Mesh(new THREE.RingGeometry(.4, .52, 48), new THREE.MeshBasicMaterial({ color: 0xd8ffff, transparent: true, side: THREE.DoubleSide, depthWrite: false }))
@@ -316,10 +332,15 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   energyEffect.visible = false
   scene.add(energyEffect)
   let energyPreview = null
-  function playEnergy(playerId) {
+  function playEnergy(playerId, amount = 2, delay = 0) {
+    energyContext.clearRect(0, 0, 256, 128)
+    energyContext.strokeStyle = '#87500c'; energyContext.strokeText('+' + amount, 128, 64)
+    energyContext.fillStyle = '#fff4a3'; energyContext.fillText('+' + amount, 128, 64)
+    energyTexture.needsUpdate = true
     const actor = actors.get(String(playerId))
     if (!actor || !actor.g.visible) return
-    energyPreview = { playerId: String(playerId), started: performance.now() }
+    energyEffect.visible = false
+    energyPreview = { playerId: String(playerId), started: performance.now(), delay }
   }
   const lossCanvas = document.createElement('canvas')
   lossCanvas.width = 256
@@ -331,6 +352,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   lossText.visible = false
   scene.add(lossText)
   let lossPreview = null
+  let terrainEventSeen = null, hasSnapshot = false
+  let cardEventSeen = null, hasCardSnapshot = false
   function showEnergyLoss(playerId, amount, delay) {
     const context = lossCanvas.getContext('2d')
     context.clearRect(0, 0, 256, 128)
@@ -428,14 +451,40 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (!actor || !actor.g.visible) return
     currentPreview = { playerId: String(playerId), started: performance.now() }
   }
-  const changeEffects = [0, 1].map(i => {
-    const ring = new THREE.Mesh(new THREE.CircleGeometry(R * .82, 6), new THREE.MeshBasicMaterial({ color: i ? 0xffd7a4 : 0xb8fff5, transparent: true, depthWrite: false, side: THREE.DoubleSide }))
-    ring.rotation.x = -Math.PI / 2
+  const hangLooseHalo = new THREE.Mesh(halo.geometry, halo.material.clone())
+  hangLooseHalo.material.color.set(0xdfbcff)
+  hangLooseHalo.rotation.x = Math.PI / 2
+  hangLooseHalo.visible = false
+  scene.add(hangLooseHalo)
+  const hangLooseRings = shieldRings.map(source => {
+    const ring = new THREE.Mesh(source.geometry, source.material.clone())
+    ring.material.color.set(0xdfbcff)
+    ring.rotation.x = Math.PI / 2
     ring.visible = false
     scene.add(ring)
     return ring
   })
-  let changePreview = null
+  const hangLooseBarrierMaterial = barrier.material.clone()
+  hangLooseBarrierMaterial.fragmentShader = hangLooseBarrierMaterial.fragmentShader
+    .replace('vec3(0.12, 0.72, 0.82)', 'vec3(0.55, 0.35, 0.86)')
+    .replace('vec3(0.72, 1.0, 0.96)', 'vec3(0.93, 0.78, 1.0)')
+  const hangLooseBarrier = new THREE.Mesh(barrier.geometry, hangLooseBarrierMaterial)
+  hangLooseBarrier.visible = false
+  scene.add(hangLooseBarrier)
+  const hangLooseTexture = new THREE.TextureLoader().load(hangLooseIcon)
+  hangLooseTexture.colorSpace = THREE.SRGBColorSpace
+  const hangLooseSymbol = new THREE.Sprite(new THREE.SpriteMaterial({ map: hangLooseTexture, transparent: true, alphaTest: .35, depthTest: false, depthWrite: false, toneMapped: false }))
+  hangLooseSymbol.visible = false
+  hangLooseSymbol.renderOrder = 1000
+  scene.add(hangLooseSymbol)
+  let hangLoosePreview = null
+  function playHangLoose(playerId) {
+    const actor = actors.get(String(playerId))
+    if (!actor?.g.visible) return
+    const started = performance.now()
+    actor.protectionVisibleAfter = started + 2000
+    hangLoosePreview = { playerId: String(playerId), started }
+  }
   function playChange(playerId, targetId, targetCell) {
     const first = actors.get(String(playerId)), second = actors.get(String(targetId))
     const staged = BOARD_LAYOUT[targetCell]
@@ -449,7 +498,6 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     second.endHeading = shortestHeading(second.heading, Math.atan2(-second.dz, second.dx) - second.boardYaw)
     second.t = 0
     first.previewChange = second.previewChange = true
-    changePreview = { playerId: String(playerId), targetId: String(targetId), origins: [first.from.clone(), second.from.clone()], started: performance.now() }
   }
   let turnMarkerPlayerId = null
   const controls = new OrbitControls(camera,renderer.domElement)
@@ -555,7 +603,17 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   const targetHighlights = createTargetHighlights(BOARD_LAYOUT, shapeGeo, outlineGeo)
   scene.add(targetHighlights.group)
   function positionRing(ring,id){const cell=Number.isInteger(id)?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
+  const cardPiles = createCardPiles()
+  scene.add(cardPiles.group)
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2()
+  function pickDiscard(event) {
+    if (!cardPiles.group.visible) return false
+    const box = renderer.domElement.getBoundingClientRect()
+    if (!box.width || !box.height) return false
+    pointer.set((event.clientX - box.left) / box.width * 2 - 1, -(event.clientY - box.top) / box.height * 2 + 1)
+    raycaster.setFromCamera(pointer, camera)
+    return raycaster.intersectObjects(cardPiles.hitTargets, false).length > 0
+  }
   function pick(event){const box=renderer.domElement.getBoundingClientRect();if(!box.width||!box.height)return null;pointer.set((event.clientX-box.left)/box.width*2-1,-(event.clientY-box.top)/box.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets,false)[0]?.object.userData.cellId??null}
   let start = null
   const pressedPointers = new Set()
@@ -570,7 +628,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (start && e.pointerId === start.id && Math.hypot(e.clientX - start.x, e.clientY - start.y) >= 6) start = null
     const id = pressedPointers.size ? null : pick(e)
     setHover(id)
-    renderer.domElement.style.cursor = id === null ? 'grab' : 'pointer'
+    renderer.domElement.style.cursor = id !== null || (!pressedPointers.size && pickDiscard(e)) ? 'pointer' : 'grab'
   }
   function down(e) {
     pressedPointers.add(e.pointerId)
@@ -586,6 +644,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     const isTap = start?.id === e.pointerId && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6
     cancel(e)
     if (isTap) {
+      if (pickDiscard(e)) { onDiscardSelect?.(); return }
       const id = pick(e)
       if (id !== null) onCellSelect(id)
     }
@@ -650,10 +709,18 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     badge.scale.set(1.28,.32,1)
     badge.renderOrder = 998
     scene.add(badge)
+    const protection = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, alphaTest: .35, depthTest: false, depthWrite: false, toneMapped: false }))
+    protection.visible = false
+    protection.renderOrder = 999
+    scene.add(protection)
+    const protection2 = new THREE.Sprite(protection.material.clone())
+    protection2.visible = false
+    protection2.renderOrder = 999
+    scene.add(protection2)
     const actor = {
-      badge, badgeCanvas, badgeKey: null,
+      protection, protection2, protectionVisibleAfter: 0, badge, badgeCanvas, badgeKey: null,
       g: group, legacy: model, avatar: null, id,
-      cellId: null, from: null, to: null, t: 1,
+      cellId: null, from: null, to: null, t: 1, onIsland: false, islandWeight: 0,
       anchor: new THREE.Vector3(), heading: 0, startHeading: 0, endHeading: 0,
       boardYaw: model.group.rotation.y + Math.PI / 2,
       rollAxis: new THREE.Vector3(Math.cos(model.group.rotation.y + Math.PI / 2),0,-Math.sin(model.group.rotation.y + Math.PI / 2)),
@@ -672,6 +739,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     scene.add(group)
     const position = BOARD_LAYOUT[cell.id]
     group.position.set(position.x, .1, position.z)
+    if (cell.obstacleType === 'Island') group.scale.set(1.35, 1, 1.35)
 
     const model = createObstacleModel(cell.obstacleType, modelHelpers)
     group.add(model.object)
@@ -706,12 +774,16 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     actor.legacy.group.traverse(node => { if (node.geometry) node.geometry.dispose() })
     scene.remove(actor.g)
     scene.remove(actor.badge)
+    scene.remove(actor.protection)
+    scene.remove(actor.protection2)
+    actor.protection.material.dispose()
+    actor.protection2.material.dispose()
     actor.badge.material.map.dispose()
     actor.badge.material.dispose()
     delete renderer.domElement.dataset['surferMotion'+actor.id]
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
-  function update(snapshot){positionRing(selected,snapshot.selectedCellId);hexDepth.select(snapshot.selectedCellId)
+  function update(snapshot){cardPiles.update(snapshot.cardPiles);positionRing(selected,snapshot.selectedCellId);hexDepth.select(snapshot.selectedCellId)
     turnMarkerPlayerId = snapshot.turnMarkerPlayerId ?? null
     turnMarker.visible = false
     if (turnMarkerPlayerId === null) delete renderer.domElement.dataset.activeTurnPlayer
@@ -723,26 +795,47 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
       const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell
-      if(!cell){a.cellId=null;a.from=null;a.to=null;a.badge.visible=false;continue}
+      if(!cell){a.cellId=null;a.from=null;a.to=null;a.badge.visible=false;a.protection.visible=false;a.protection2.visible=false;continue}
       const occupants = snapshot.players.filter(other => other.cellId === p.cellId).sort((a,b) => Number(a.id)-Number(b.id))
       const shared = occupants.length > 1
       const slot = occupants.findIndex(other => other.id === p.id)
-      const offset = shared ? (slot === 0 ? -.56 : .56) : 0
+      const offset = shared ? (slot - (occupants.length - 1) / 2) * 1.24 : 0
       const target=new THREE.Vector3(cell.x+offset,.13,cell.z)
-      a.presentationScale = shared ? .74 : 1
-      a.g.scale.setScalar(a.presentationScale)
+      const protections = p.previewProtection ? [p.previewProtection] : (p.activeProtections || [])
+      ;[a.protection, a.protection2].forEach((marker, i) => {
+        const protection = protections[i]
+        marker.material.map = protection === 'Hang loose' ? hangLooseTexture : protection === 'Amulet' ? amuletTexture : null
+        marker.material.needsUpdate = true
+        marker.visible = !!marker.material.map && performance.now() >= a.protectionVisibleAfter
+        marker.scale.set(protection === 'Hang loose' ? .60 : .40, .40, 1)
+      })
       const blocked = snapshot.targetHighlight?.blocked?.find(item => String(item.playerId) === p.id)
       const legal = snapshot.targetHighlight?.playerIds?.includes(Number(p.id))
       const winner = snapshot.winnerPlayerId === p.id
-      a.badge.visible = shared || !!blocked || !!legal || winner || p.fallen
-      a.badge.scale.set(shared ? 1.35 : 1.9, shared ? .34 : .48, 1)
+      a.badge.visible = !!blocked || !!legal || winner
+      const playerIcon = (legal || blocked) && !winner
+      a.badge.scale.set(playerIcon ? 2 : shared ? 1.35 : 1.9, playerIcon ? .5 : shared ? .34 : .48, 1)
       const label = 'P' + (Number(p.id)+1) + (winner ? ' · WINNER' : legal ? ' · TARGET' :
-        blocked ? ' · ' + getTargetBlockStyle(blocked.code).shortLabel : p.fallen ? ' · Fallen' : '')
+        blocked ? ' · ' + (blocked.code === 'minimum' ? 'CARD BLOCKED' : getTargetBlockStyle(blocked.code).shortLabel) : '')
       const tint = winner ? '#ffcf53' : legal ? '#ff9882' : blocked ? getTargetBlockStyle(blocked.code).color : PLAYER_BOARD_COLORS[Number(p.id)]
-      const badgeKey = label + tint
+      const badgeKey = label + tint + (playerIcon ? 'player-icon' : '')
       if (a.badgeKey !== badgeKey) {
         const c = a.badgeCanvas.getContext('2d')
         c.clearRect(0,0,256,64)
+        if (playerIcon) {
+          c.beginPath()
+          c.arc(128, 32, 28, 0, Math.PI * 2)
+          c.fillStyle = PLAYER_BOARD_COLORS[Number(p.id)] || '#ffcf53'
+          c.fill()
+          c.strokeStyle = '#fff4c5'
+          c.lineWidth = 4
+          c.stroke()
+          c.fillStyle = '#173640'
+          c.font = 'bold 36px sans-serif'
+          c.textAlign = 'center'
+          c.textBaseline = 'middle'
+          c.fillText(String(Number(p.id) + 1), 128, 32)
+        } else {
         c.fillStyle = '#173640'
         c.fillRect(2,5,252,54)
         c.strokeStyle = tint || '#fff4c5'
@@ -753,6 +846,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         c.textAlign = 'center'
         c.textBaseline = 'middle'
         c.fillText(label,128,32,238)
+        }
         a.badge.material.map.needsUpdate = true
         a.badgeKey = badgeKey
       }
@@ -766,17 +860,47 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         a.startHeading=a.heading
         a.endHeading=shortestHeading(a.heading,Math.atan2(-a.dz,a.dx)-a.boardYaw)
       }
+      a.onIsland = snapshot.cells.find(item => item.id === p.cellId)?.obstacleType === 'Island'
       a.cellId=p.cellId
       a.slotOffset=offset
     }
+    const terrainEvent = snapshot.terrainEnergyEvent
+    if (hasSnapshot && terrainEvent && terrainEvent.id !== terrainEventSeen) {
+      const delay = reducedMotion.matches ? 0 : MOVE_SECONDS
+      if (terrainEvent.direction === 'gain') {
+        if (terrainEvent.amount > 0) playEnergy(terrainEvent.playerId, terrainEvent.amount, delay)
+      } else showEnergyLoss(terrainEvent.playerId, terrainEvent.amount, delay)
+    }
+    terrainEventSeen = terrainEvent?.id ?? null
+    hasSnapshot = true
     for(const [id,a] of actors)if(!live.has(id)){removeSurfer(a);actors.delete(id)}
     const keys=new Set()
     for(const c of snapshot.cells)if(c.obstacleType){const key=c.id+':'+c.obstacleType+':'+(c.remainingTurns??'');keys.add(key);if(!obstacles.has(key))obstacles.set(key,createObstacle(c))}
     for(const [key,g] of obstacles)if(!keys.has(key)){removeGroup(g);obstacles.delete(key)}
+    const cardEvent = snapshot.cardVisualEvent
+    if (hasCardSnapshot && cardEvent && cardEvent.id !== cardEventSeen) {
+      const { name, playerId, targetId, targetOrigin, to, amount } = cardEvent
+      if (name === 'Sunburn') playSunburn(targetId)
+      else if (name === 'Big wave' || name === 'Tsunami') playBigWave(targetId, name === 'Tsunami', amount)
+      else if (name === 'Energy x2') playEnergy(playerId, amount)
+      else if (name === 'Lifeguard float') playLifeguard(playerId)
+      else if (name === 'Amulet') playAmulet(playerId)
+      else if (name === 'Hang loose') playHangLoose(playerId)
+      else if (name === 'Stone') playStone(to)
+      else if (name === 'Storm') playStorm(to)
+      else if (name === 'Cyclone') playCyclone(to)
+      else if (name === 'Island') playIsland(to)
+      else if (name === 'Jumping') playJump(playerId)
+      else if (name === 'Surf Current' && !cardEvent.discarded) playSurfCurrent(playerId)
+      else if (name === 'Change') playChange(playerId, targetId, targetOrigin)
+    }
+    cardEventSeen = cardEvent?.id ?? null
+    hasCardSnapshot = true
   }
   let elapsed=0,last=performance.now(),raf=0,disposed=false
   function frame(now){if(disposed)return;const dt=Math.min((now-last)/1000,.1);last=now;elapsed+=dt
     animateScenery(elapsed)
+    cardPiles.animate(now, reducedMotion.matches, elapsed)
     const reduce = reducedMotion.matches
     for(const a of actors.values()){
       if(a.cellId===null) continue
@@ -788,30 +912,30 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         else if (a.previewJump && a.jumpDelay > 0) a.jumpDelay = Math.max(0, a.jumpDelay - dt)
         else a.t = Math.min(1, a.t + dt / (a.previewJump ? 1.45 : MOVE_SECONDS))
       }
+      const islandTarget = a.onIsland && a.t >= 1 && fall === 0 ? 1 : 0
+      a.islandWeight = reduce ? islandTarget : THREE.MathUtils.clamp(a.islandWeight + (islandTarget ? 1 : -1) * dt / .55, 0, 1)
       const carve=sampleCarve(a.t,phase,a.distance,a.fallMotion.remount ? 1 : fall,reduce)
       if(a.from&&a.to){
-        const teleporting = a.previewChange && !reduce
-        a.anchor.lerpVectors(a.from,a.to,teleporting ? (a.t < .5 ? 0 : 1) : carve.progress)
-        if(!teleporting && a.distance>1e-6){
-          a.anchor.x+=-a.dz/a.distance*carve.travel
-          a.anchor.z+=a.dx/a.distance*carve.travel
+        a.anchor.lerpVectors(a.from,a.to,carve.progress)
+        if(a.distance>1e-6){
+          const lateral = a.previewChange && !reduce ? R * .6 * Math.sin(Math.PI * carve.progress) ** 2 : carve.travel
+          a.anchor.x+=-a.dz/a.distance*lateral
+          a.anchor.z+=a.dx/a.distance*lateral
         }
         a.heading=a.startHeading+(a.endHeading-a.startHeading)*carve.progress
         if(a.t===1){a.anchor.copy(a.to);a.from=null;a.to=null}
       }
       const heading=a.heading+a.boardYaw
       a.g.position.copy(a.anchor)
-      a.g.position.x+=Math.sin(heading)*carve.idle
-      a.g.position.z+=Math.cos(heading)*carve.idle
-      a.g.position.x+=Math.cos(heading)*carve.idleForward
-      a.g.position.z-=Math.sin(heading)*carve.idleForward
+      a.g.position.x+=Math.sin(heading)*carve.idle*(1-a.islandWeight)
+      a.g.position.z+=Math.cos(heading)*carve.idle*(1-a.islandWeight)
+      a.g.position.x+=Math.cos(heading)*carve.idleForward*(1-a.islandWeight)
+      a.g.position.z-=Math.sin(heading)*carve.idleForward*(1-a.islandWeight)
       const jumpHeight = a.previewJump && !reduce ? 1.25 * Math.sin(Math.PI * a.t) ** 1.2 : 0
-      a.g.scale.setScalar(a.presentationScale || 1)
-      if (a.previewChange) a.g.visible = reduce || a.t < .4 || a.t > .6
       if (a.t >= 1) { a.previewJump = false; a.previewChange = false; a.g.visible = true }
-      a.g.position.y=.13+carve.lift+jumpHeight+(reduce?0:Math.sin(phase*1.6)*.012)
-      a.g.rotation.set(0,a.heading+carve.yaw,0)
-      const bank=carve.bank
+      a.g.position.y=.13+carve.lift+jumpHeight+a.islandWeight*.12+(reduce?0:Math.sin(phase*1.6)*.012*(1-a.islandWeight))
+      a.g.rotation.set(0,a.heading+carve.yaw*(1-a.islandWeight),0)
+      const bank=carve.bank*(1-a.islandWeight)
       // Roll around the board's own longitudinal axis, not a fixed world axis.
       a.g.rotateOnAxis(a.rollAxis,bank)
       if (a.previewJump && !reduce) {
@@ -824,7 +948,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         : sampleRiderMotion(fall,a.t,phase,reduce,bank)
       sample.waterOffset=sampleOceanHeight(a.g.position.x,a.g.position.z,elapsed)-a.g.position.y
       a.animate(elapsed,Number(a.id),bank)
-      if(a.avatar?.setBoardMotion) a.avatar.setBoardMotion(sample)
+      if(a.avatar?.setBoardMotion) {
+        a.avatar.setBoardMotion(sample)
+        a.avatar.setIslandMotion?.(a.islandWeight)
+      }
       else if(!a.avatar&&a.legacyBody){
         const immersion=sample.immersion
         a.legacyBody.position.set(.34*(sample.riderAside??immersion),.075+immersion*(sample.waterOffset/.65-.95),0)
@@ -834,10 +961,60 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         a.legacy.board.rotation.x=THREE.MathUtils.lerp(a.legacy.board.rotation.x,1.32,sample.boardRise)+sample.boardRoll
         a.legacy.board.rotation.z=bank*.05
       }
+      ;[a.protection, a.protection2].forEach((marker, i) => {
+        marker.visible = !!marker.material.map && a.g.visible && now >= a.protectionVisibleAfter
+        if (marker.visible) {
+          if (a.avatar?.head) {
+            a.avatar.head.getWorldPosition(marker.position)
+            marker.position.y += .58
+          } else {
+            marker.position.copy(a.g.position); marker.position.y += 1.72 - fall * .5
+          }
+          if (a.protection2.material.map) marker.position.x += i ? .30 : -.30
+        }
+      })
       a.g.userData.motionState=fall>0?(a.fallMotion.to===0?'remounting':fall>=1?'fallen':'falling'):(a.t<1?'moving':'riding')
       renderer.domElement.dataset['surferMotion'+a.id]=a.g.userData.motionState
       if(sample.remount!==undefined) renderer.domElement.dataset['surferRemount'+a.id]=sample.handContact>.9?'press':sample.remount>.7?'stand':'reach'
       else delete renderer.domElement.dataset['surferRemount'+a.id]
+    }
+    if (hangLoosePreview) {
+      const target = actors.get(hangLoosePreview.playerId)
+      const t = (now - hangLoosePreview.started) / 1000
+      if (!target || target.cellId === null || t >= 2) {
+        hangLooseBarrier.visible = false
+        hangLooseHalo.visible = false
+        hangLooseRings.forEach(ring => { ring.visible = false })
+        hangLooseSymbol.visible = false
+        hangLoosePreview = null
+      } else {
+        hangLooseBarrier.visible = true
+        hangLooseBarrier.position.copy(target.g.position)
+        hangLooseBarrier.position.y += .92
+        const appear = reduce ? 1 : THREE.MathUtils.smoothstep(t, .15, .9)
+        hangLooseBarrier.scale.set(1.05 * appear, 1.2 * appear, 1.05 * appear)
+        const fade = reduce ? 1 : Math.min(1, t / .2, (2 - t) / .35)
+        hangLooseBarrier.material.uniforms.fade.value = fade
+        hangLooseHalo.visible = true
+        hangLooseHalo.position.copy(target.g.position)
+        hangLooseHalo.position.y += .22
+        hangLooseHalo.scale.setScalar(reduce ? 1 : .75 + .25 * appear)
+        hangLooseHalo.material.opacity = .85 * fade
+        hangLooseRings.forEach((ring, i) => {
+          const phase = reduce ? .5 : ((t * .65 + i / 3) % 1)
+          ring.visible = true
+          ring.position.copy(target.g.position)
+          ring.position.y += .18 + phase * 1.7
+          ring.scale.setScalar(.35 + .65 * Math.sin(Math.PI * phase))
+          ring.material.opacity = fade * .6 * Math.sin(Math.PI * phase)
+        })
+        hangLooseSymbol.visible = true
+        hangLooseSymbol.position.set(target.anchor.x, 2.45, target.anchor.z)
+        const size = reduce ? 1.05 : 1.05 * (1 + .04 * Math.sin(t * 8))
+        hangLooseSymbol.scale.set(size * 1.5, size, 1)
+        hangLooseSymbol.material.rotation = reduce ? 0 : .22 * Math.sin(t * 10)
+        hangLooseSymbol.material.opacity = fade
+      }
     }
     if (sunburnPreview) {
       const target = actors.get(sunburnPreview.playerId)
@@ -926,17 +1103,19 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         const fade = Math.min(1, t / .4, (4 - t) / .55)
         const appear = reduce ? 1 : THREE.MathUtils.smoothstep(t, .15, .9)
         barrier.scale.set(1.05 * appear, 1.2 * appear, 1.05 * appear)
-        barrier.material.opacity = .14 * fade
+        barrier.material.uniforms.fade.value = fade
         halo.material.opacity = .85 * fade
         halo.scale.setScalar(reduce ? 1 : .75 + .25 * appear)
-        charm.rotation.y = reduce ? 0 : t * 2
+        charm.material.rotation = reduce ? 0 : .08 * Math.sin(t * 3)
         charm.position.y = 2.5 + (reduce ? 0 : .1 * Math.sin(t * 3))
-        charmRing.material.opacity = charmCore.material.opacity = fade
-        amuletSparks.forEach((spark, i) => {
-          const angle = i * Math.PI * 2 / amuletSparks.length + (reduce ? 0 : t * 1.4)
-          spark.position.set(Math.cos(angle) * 1.05, .35 + (i % 5) * .32, Math.sin(angle) * 1.05)
-          spark.material.opacity = fade * .8
+        charm.material.opacity = fade
+        shieldRings.forEach((ring, i) => {
+          const phase = reduce ? .5 : ((t * .65 + i / 3) % 1)
+          ring.position.y = .18 + phase * 1.7
+          ring.scale.setScalar(.35 + .65 * Math.sin(Math.PI * phase))
+          ring.material.opacity = fade * .6 * Math.sin(Math.PI * phase)
         })
+
       }
     }
     if (stonePreview) {
@@ -1016,11 +1195,11 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     }
     if (energyPreview) {
       const target = actors.get(energyPreview.playerId)
-      const t = (now - energyPreview.started) / 1000
+      const t = (now - energyPreview.started) / 1000 - energyPreview.delay
       if (!target || !target.g.visible || t >= 3) {
         energyEffect.visible = false
         energyPreview = null
-      } else {
+      } else if (t >= 0) {
         energyEffect.visible = true
         energyEffect.position.copy(target.g.position)
         const fade = Math.min(1, t / .3, (3 - t) / .55)
@@ -1121,28 +1300,13 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         })
       }
     }
-    if (changePreview) {
-      const t = (now - changePreview.started) / 1000
-      const pair = [actors.get(changePreview.playerId), actors.get(changePreview.targetId)]
-      if (pair.some(actor => !actor || actor.cellId === null) || t >= 1.6) {
-        changeEffects.forEach(ring => { ring.visible = false })
-        changePreview = null
-      } else {
-        const fade = Math.min(1, t / .2, (1.6 - t) / .4)
-        pair.forEach((actor, i) => {
-          const ring = changeEffects[i]
-          ring.visible = true
-          ring.position.copy(changePreview.origins[i])
-          ring.position.y = .22
-          ring.material.opacity = fade * .24
-        })
-      }
-    }
     const activeActor = actors.get(turnMarkerPlayerId)
     turnMarker.visible = !!activeActor && activeActor.g.visible
     if (turnMarker.visible) {
       turnMarker.position.copy(activeActor.g.position)
-      turnMarker.position.y += 2.1
+      turnMarker.position.y += 2.7 + (reduce ? 0 : .06 * Math.sin(elapsed * 1.7))
+      turnMarker.rotation.y = reduce ? 0 : elapsed * 1.1
+      markerFaceMaterial.color.set(PLAYER_BOARD_COLORS[Number(turnMarkerPlayerId)] || colors.teal)
     }
     for(const g of obstacles.values())g.userData.animate?.(elapsed, reduce)
     if (islandPreview && (now - islandPreview.started) < 3800) {
@@ -1198,6 +1362,13 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     offset.radius = THREE.MathUtils.clamp(12, controls.minDistance, controls.maxDistance)
     moveCamera(offset, new THREE.Vector3(cell.x, 0, cell.z))
   }
+  function focusPlayer(id) {
+    const actor = actors.get(String(id))
+    if (!actor || actor.cellId === null) return
+    const offset = cameraTransition?.offset.clone() ?? cameraOffset()
+    offset.radius = THREE.MathUtils.clamp(12, controls.minDistance, controls.maxDistance)
+    moveCamera(offset, new THREE.Vector3(actor.g.position.x, 0, actor.g.position.z))
+  }
   function orbit(azimuth, inclination) {
     const offset = cameraTransition?.offset.clone() ?? cameraOffset()
     offset.theta += azimuth
@@ -1206,5 +1377,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,playEnergy,playLifeguard,playJump,playSurfCurrent,playChange,toggleIds(visible){cellLabels.visible=visible},dispose(){disposed=true;cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,focusPlayer,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,playEnergy,playLifeguard,playJump,playSurfCurrent,playChange,playHangLoose,toggleIds(visible){cellLabels.visible=visible;cardPiles.toggleLabels(visible)},dispose(){disposed=true;cardPiles.dispose();cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }
