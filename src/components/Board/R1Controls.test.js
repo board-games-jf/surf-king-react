@@ -49,6 +49,9 @@ test('attack stays visible, explains blocked states and selects a named two-edge
     expect(setSelection).toHaveBeenCalledWith({ kind: 'drop', diceCount: 1 })
     rerender(<R1Controls {...props} selection={{ kind: 'drop', diceCount: 1 }} />)
     expect(screen.getByRole('button', { name: /Focus camera on Player 2/ })).toHaveAttribute('data-attack-target', 'true')
+    expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close attack selection' }))
+    expect(setSelection).toHaveBeenLastCalledWith(null)
     fireEvent.click(screen.getByRole('button', { name: 'Attack Player 2' }))
     expect(onTarget).toHaveBeenCalledWith(14, 1)
     G.currentMove = 'maneuver'

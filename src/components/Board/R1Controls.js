@@ -295,7 +295,8 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     </div>
                     {(selectedCard || inspection?.pinned) && <button type="button" className="r1-inspection-close" aria-label={selectedCard ? "Deselect card" : "Close card information"} onClick={() => { inspectCard(null); if (selectedCard) setSelection(null) }}>×</button>}
                 </div>}
-                <div className="r1-hud-context r1-glass">
+                <div className="r1-hud-context r1-glass" data-attack-open={selection?.kind === 'drop' || undefined}>
+                    {selection?.kind === 'drop' && <button type="button" className="r1-attack-close" aria-label="Close attack selection" onClick={() => { inspectCard(null); setSelection(null) }}>×</button>}
                     {swapCard && <span>Position conquered. Use one remaining non-movement card or end turn.</span>}
                     {G.currentMove === 'recover' && <div className="r1-action-row">
                         <button type="button" className="r1-recover-button" onClick={() => { setSelection(null); moves.recover() }}>Recover free (1 energy)</button>
@@ -347,7 +348,6 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         onClick={() => { inspectCard(null); setSelection({ kind: 'drop', diceCount: maxAttackDice }) }}>
                         <span className="r1-board-action-icon"><FeedbackIcon kind="dropIn"/></span> {G.atkDices.length > 0 && !dropReason ? 'Attack again' : 'Drop In'}
                     </button>
-                    {selection?.kind === 'drop' && <button type="button" className="r1-cancel-button" onClick={() => { inspectCard(null); setSelection(null) }}>Cancel</button>}
                     {!swapChoice && G.currentMove !== 'recover' && <button type="button" className="r1-move-button" disabled={!canPass || !!selection}
                         onClick={() => { inspectCard(null); moves.pass() }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span> {moveLabel}</button>}
                     <span id="r1-drop-status" role="status" className={dropReason ? "r1-drop-reason" : "r1-sr-only"}>{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>

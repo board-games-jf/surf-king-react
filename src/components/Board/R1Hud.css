@@ -219,6 +219,8 @@
     scrollbar-width: thin;
 }
 .r1-hud-context:empty { display: none; }
+.r1-hud-context[data-attack-open="true"] { position: relative; padding-right: 40px; }
+.r1-floating-hud .r1-attack-close { position: absolute; top: 5px; right: 5px; width: 28px; height: 28px; padding: 0; border: 0; background: transparent; font-size: 20px; line-height: 1; }
 .r1-card-detail { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 9px; max-width: 520px; }
 .r1-card-detail strong { color: var(--hud-gold); }
 .r1-card-detail > span { color: var(--hud-mute); }
