@@ -297,17 +297,8 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     </div>
                     {(selectedCard || inspection?.pinned) && <button type="button" className="r1-inspection-close" aria-label={selectedCard ? "Deselect card" : "Close card information"} onClick={() => { inspectCard(null); if (selectedCard) setSelection(null) }}>×</button>}
                 </div>}
-                <div className="r1-hud-context r1-glass" data-turn-progress={showTurnSteps || undefined} data-attack-open={selection?.kind === 'drop' || undefined}>
+                <div className="r1-hud-context r1-glass" data-attack-open={selection?.kind === 'drop' || undefined}>
                     {selection?.kind === 'drop' && <button type="button" className="r1-attack-close" aria-label="Close attack selection" onClick={() => { inspectCard(null); setSelection(null) }}>×</button>}
-                    {showTurnSteps && <div className="r1-turn-steps" aria-label="Turn progress">
-                        {G.currentMove === 'current_second' ? <strong>Surf Current · choose a second hex or finish</strong> : <>
-                            <strong>Before moving</strong>
-                            <span className="r1-turn-option" data-available={cardAvailable} title={cardAvailable ? 'Card available' : 'Card unavailable'}>Card <span aria-hidden="true">{cardAvailable ? '✓' : '—'}</span><span className="r1-sr-only">{cardAvailable ? ' available' : ' unavailable'}</span></span>
-                            <span className="r1-turn-option" data-available={!dropReason} title={!dropReason ? 'Drop In available' : 'Drop In unavailable'}>Drop In <span aria-hidden="true">{!dropReason ? '✓' : '—'}</span><span className="r1-sr-only">{!dropReason ? ' available' : ' unavailable'}</span></span>
-                            <span aria-hidden="true">→</span>
-                            <strong>{G.currentMove === 'current_first' ? 'Surf Current · first step' : 'Move · ends turn'}</strong>
-                        </>}
-                    </div>}
                     {swapCard && <span>Position conquered. Use one remaining non-movement card or end turn.</span>}
                     {G.currentMove === 'recover' && <div className="r1-action-row">
                         <button type="button" className="r1-recover-button" onClick={() => { setSelection(null); moves.recover() }}>Recover free (1 energy)</button>
@@ -366,7 +357,19 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         aria-label={moveLabel} aria-description={G.currentMove === 'use_card' ? 'Choose a destination; moving ends your turn.' : undefined}
                         onClick={() => { inspectCard(null); moves.pass() }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span><span className="r1-move-label">{moveLabel}{G.currentMove === 'use_card' && <small>ends turn</small>}</span></button>}
                 </div>
-                <span id="r1-drop-status" role="status" className={dropReason ? "r1-action-reason" : "r1-sr-only"}>{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
+                {showTurnSteps && <div className="r1-turn-progress r1-glass">
+                    <div className="r1-turn-steps" aria-label="Turn progress">
+                        {G.currentMove === 'current_second' ? <strong>Surf Current · choose a second hex or finish</strong> : <>
+                            <strong>Before moving</strong>
+                            <span className="r1-turn-option" data-available={cardAvailable} title={cardAvailable ? 'Card available' : 'Card unavailable'}>Card <span aria-hidden="true">{cardAvailable ? '✓' : '—'}</span><span className="r1-sr-only">{cardAvailable ? ' available' : ' unavailable'}</span></span>
+                            <span className="r1-turn-option" data-available={!dropReason} title={!dropReason ? 'Drop In available' : 'Drop In unavailable'}>Drop In <span aria-hidden="true">{!dropReason ? '✓' : '—'}</span><span className="r1-sr-only">{!dropReason ? ' available' : ' unavailable'}</span></span>
+                            <span aria-hidden="true">→</span>
+                            <strong>{G.currentMove === 'current_first' ? 'Surf Current · first step' : 'Move · ends turn'}</strong>
+                        </>}
+                    </div>
+                    {dropReason && <span className="r1-turn-reason" aria-hidden="true">{dropReason}</span>}
+                </div>}
+                <span id="r1-drop-status" role="status" className="r1-sr-only">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
             </div>}
         </section>
     )
