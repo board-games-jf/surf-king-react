@@ -40,6 +40,10 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
     const stroke = new THREE.LineBasicMaterial({
         transparent: true, opacity: 1, depthWrite: false, toneMapped: false,
     })
+    const attackFill = new THREE.MeshBasicMaterial({ color: getTargetHighlightStyle('attack').color,
+        transparent: true, opacity: .36, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })
+    const attackStroke = new THREE.LineBasicMaterial({ color: getTargetHighlightStyle('attack').color,
+        transparent: true, opacity: 1, depthWrite: false, toneMapped: false })
     const blockedMaterials = new Map()
     function materials(code) {
         const style = getTargetBlockStyle(code)
@@ -73,7 +77,17 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
         icon.scale.set(.65, .65, 1)
         icon.renderOrder = 999
         icon.visible = false
-        marker.add(surface, outline, icon)
+        const attack = new THREE.Group()
+        const attackSurface = new THREE.Mesh(shapeGeometry, attackFill)
+        attackSurface.rotation.x = -Math.PI / 2
+        attackSurface.position.y = .012
+        attackSurface.renderOrder = 4
+        const attackOutline = new THREE.LineLoop(outlineGeometry, attackStroke)
+        attackOutline.position.y = .017
+        attackOutline.renderOrder = 5
+        attack.add(attackSurface, attackOutline)
+        attack.visible = false
+        marker.add(surface, outline, icon, attack)
         group.add(marker)
         return [cell.id, marker]
     }))
@@ -88,6 +102,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
         update(highlight, useIndividualLabels = false) {
             const style = getTargetHighlightStyle(highlight?.kind)
             const ids = new Set(style ? highlight.cellIds : [])
+            const attackIds = new Set(highlight?.attackCellIds || [])
             const blocked = new Map((highlight?.blocked || []).map(item => [item.id, item.code]))
             const labeledCells = new Set((highlight?.blocked || []).filter(item => item.playerId != null).map(item => item.id))
             if (style) {
@@ -99,8 +114,13 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
             markers.forEach((marker, id) => {
                 const valid = ids.has(id)
                 const code = blocked.get(id)
-                const [surface, outline, icon] = marker.children
-                marker.visible = valid || !!code
+                const [surface, outline, icon, attack] = marker.children
+                const attackable = attackIds.has(id)
+                marker.visible = valid || !!code || attackable
+                surface.visible = valid || !!code
+                outline.visible = valid || !!code
+                attack.visible = attackable
+                attack.scale.setScalar(valid ? .84 : 1)
                 marker.userData.blocked = code
                 if (!valid && code) {
                     const m = materials(code)

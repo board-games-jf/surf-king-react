@@ -6,7 +6,7 @@
 
 ## Contextual board actions (#54)
 
-- Ordinary movement and Drop In are initiated from the selected hex; the persistent move/attack buttons and ordinary movement target panel have been removed. Drop In retains the selected opponent while the player chooses dice and confirms; keyboard shortcuts remain available on focus. Special finish/continue controls remain when necessary. A validated atomic quick maneuver preserves normal turn resolution. Local 2D movement and contextual Drop In were exercised; mobile and updated 3D interaction still require review.
+- Ordinary movement and Drop In are initiated from the selected hex; the persistent move/attack buttons and ordinary movement target panel have been removed. Drop In retains the selected opponent while the player chooses dice and confirms; keyboard shortcuts remain available on focus. Legal movement and attack destinations are highlighted simultaneously, with separate nested outlines when both actions apply; card previews retain priority. Special finish/continue controls remain when necessary. A validated atomic quick maneuver preserves normal turn resolution. Local 2D movement, contextual Drop In and 3D overlap highlighting were exercised; mobile review remains pending.
 
 ## Local animation review studio (#50)
 
