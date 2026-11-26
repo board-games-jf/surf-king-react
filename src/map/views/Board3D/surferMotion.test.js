@@ -1,4 +1,4 @@
-import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, shortestHeading, FALL_SECONDS, REMOUNT_SECONDS } from './surferMotion'
+import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, sampleIslandFall, chooseIslandSlot, shortestHeading, FALL_SECONDS, REMOUNT_SECONDS } from './surferMotion'
 
 test('a loaded fallen player starts in water without replaying a fall', () => {
   expect(createFallMotion(true).value).toBe(1)
@@ -133,4 +133,24 @@ test('remount turns toward the near rail before loading the hands', () => {
   expect(press.immersion).toBeGreaterThan(.98)
   expect(sampleRemount(.95).faceBoard).toBeLessThan(.01)
   expect(sampleRemount(1)).toMatchObject({ faceBoard: 0, riderAside: 0, handContact: 0 })
+})
+
+
+test('island recovery stands the surfer before lifting the board', () => {
+  expect(sampleIslandFall(1)).toEqual({ sitting: 1, board: 1 })
+  expect(sampleIslandFall(0)).toEqual({ sitting: 0, board: 0 })
+  const halfway = sampleIslandFall(.5)
+  expect(halfway).toEqual({ sitting: 0, board: 1 })
+  expect(sampleIslandFall(.3).sitting).toBe(0)
+  expect(sampleIslandFall(.7).board).toBe(1)
+})
+
+
+test('an island occupant keeps their place when another arrives or leaves', () => {
+  const first = chooseIslandSlot(null, [])
+  const second = chooseIslandSlot(null, [first])
+  expect(first).not.toBe(second)
+  expect(chooseIslandSlot(first, [second])).toBe(first)
+  expect(chooseIslandSlot(second, [])).toBe(second)
+  expect(chooseIslandSlot(null, [second])).toBe(first)
 })

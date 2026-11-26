@@ -2,6 +2,8 @@
 
 ## Local animation review studio (#50)
 
+- Latest island and finish follow-up: 84 focused tests passed and the strict production build passed. Studio review covered the seated pose, recovery and a second surfer entering the island; full match and mobile review remain pending.
+
 - Local validation: 426 tests passed, two skipped; strict production build passed. PR #51 overlaps with draft PR #52 and requires reconciliation. Mobile and complete match visual review remain pending. GitHub rejected workflow changes because the credential lacks `workflow` scope, so PR #51 CI remains skipped. The local Husky bootstrap is missing; commits used a temporary hook override.
 
 - Local preview includes perspective-styled card piles with the latest discarded face and a reshuffle transition, actual terrain energy-loss feedback from PR #52, compact camera controls, and equal-height hand cards; the 3D view places interactive card piles on a gently floating, partially submerged raft beside the course with readable labels beside the piles, while the 2D view retains perspective-styled overlays. The raft has layered rounded card edges, raised faces to avoid depth flicker, rounded side labels controlled by the map-number toggle, count-proportional card layers and face-up card-to-discard motion. This is a local reconciliation, not a merge into main. Manual mobile and in-game obstacle feedback review remain pending.
@@ -16,7 +18,7 @@
 
 - Card inspection keeps the effect and next action while compact colored, numbered target buttons and matching 3D target markers identify opponents. Selected attack cards place player choices within the card details; the close control deselects the card while unavailable actions stay visible and disabled, and the hand count and visibility control share the action toolbar; mobile and in-game visual review remain pending.
 
-- The proposed seated fallen pose on Island is not implemented.
+- On Island, a fallen rigged surfer sits on a partly embedded board and stands before lifting it on recovery. Island slots remain stable when another surfer arrives or leaves; complete match, fallback-model and detailed animation review remain pending.
 
 - The catalog preserves obstacles when positioning surfers and supports two occupants per cell. Shared-hex and beach occupants retain full surfer size and are spaced across their cell; hands-on visual review remains pending.
 

@@ -225,6 +225,7 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
     }
 
     if (pose !== 'surf') {
+      let seatLegLength = 0
       // A modest weight shift, solving both knees against their original ankles.
       // Skip the shift on a different rig if either target cannot be reached.
       if (pose === 'relaxed') {
@@ -256,7 +257,25 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
           })
         }
       }
-      // Stand on the same board with arms lowered from the reference T-pose.
+      if (pose === 'seated') {
+        const legLength = Math.min(...sides.map(side =>
+          point(side + 'UpLeg').distanceTo(point(side + 'Leg')) +
+          point(side + 'Leg').distanceTo(point(side + 'Foot'))))
+        seatLegLength = legLength
+        const hips = bones.get('Hips')
+        hips.position.copy(hips.parent.worldToLocal(point('Hips').addScaledVector(up, -legLength * .9)))
+        root.updateMatrixWorld(true)
+        sides.forEach(side => {
+          const hip = point(side + 'UpLeg')
+          const upper = hip.distanceTo(point(side + 'Leg'))
+          const lower = point(side + 'Leg').distanceTo(point(side + 'Foot'))
+          const kneeTarget = hip.clone().addScaledVector(forward, upper * .95).addScaledVector(up, upper * .12)
+          aimBone(side + 'UpLeg', side + 'Leg', kneeTarget)
+          const footTarget = point(side + 'Leg').addScaledVector(forward, lower * .95).addScaledVector(up, -lower * .3)
+          aimBone(side + 'Leg', side + 'Foot', footTarget)
+        })
+      }
+      // Arms stay relaxed beside the body in both island poses.
       sides.forEach((side, i) => {
         const shoulder = point(side + 'Arm')
         const upper = shoulder.distanceTo(point(side + 'ForeArm'))
@@ -274,9 +293,17 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
       const ankleCenter = point('LeftFoot').add(point('RightFoot')).multiplyScalar(.5)
       reviewBoard.rotation.y = Math.atan2(-lateral.z, lateral.x)
       reviewBoard.position.set(ankleCenter.x, deckY - BOARD_CENTER_DECK, ankleCenter.z)
+      if (pose === 'seated') {
+        const seat = point('Hips')
+        reviewBoard.position.set(seat.x, deckY + .12 - BOARD_CENTER_DECK, seat.z)
+      }
       const bounds = new THREE.Box3().setFromObject(root, true)
       root.position.y += deckY - bounds.min.y
       root.updateMatrixWorld(true)
+      if (pose === 'seated') {
+        root.position.y += (deckY + .12 + seatLegLength * .19) - point('Hips').y
+        root.updateMatrixWorld(true)
+      }
       return
     }
 
@@ -612,27 +639,36 @@ export function createAthleteSurferArt(root, { color = '#19c8c2', scale = 1, ini
   }
   let islandPose = null
   const surfRootPosition = root.position.clone()
-  const setIslandMotion = weight => {
+  const setIslandMotion = (weight, seated = 0, boardSeated = seated) => {
     if (!weight) { root.position.copy(surfRootPosition); return }
     if (!islandPose) {
+      const captureIsland = () => ({
+        bones: [...bones.values()].map(bone => ({ bone, position: bone.position.clone(), quaternion: bone.quaternion.clone() })),
+        rootPosition: root.position.clone(),
+        boardPosition: reviewBoard.position.clone(),
+        boardQuaternion: reviewBoard.quaternion.clone(),
+      })
       setPose('standing')
       display.updateMatrixWorld(true)
       const handPosition = display.worldToLocal(bones.get('RightHand').getWorldPosition(new THREE.Vector3()))
-      islandPose = {
-        bones: [...bones.values()].map(bone => ({ bone, position: bone.position.clone(), quaternion: bone.quaternion.clone() })),
-        rootPosition: root.position.clone(),
-        boardPosition: handPosition.clone().add(new THREE.Vector3(-.12, -.18, 0)),
-        boardQuaternion: reviewBoard.quaternion.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2))
-      }
+      const standing = captureIsland()
+      standing.boardPosition.copy(handPosition).add(new THREE.Vector3(-.12, -.18, 0))
+      standing.boardQuaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2))
+      setPose('seated')
+      const sitting = captureIsland()
+      islandPose = { standing, sitting }
       setPose('surf')
     }
-    root.position.copy(surfRootPosition).lerp(islandPose.rootPosition, weight)
-    islandPose.bones.forEach(({ bone, position, quaternion }) => {
-      bone.position.lerp(position, weight)
-      bone.quaternion.slerp(quaternion, weight)
+    const sit = THREE.MathUtils.clamp(seated, 0, 1)
+    const boardSit = THREE.MathUtils.clamp(boardSeated, 0, 1)
+    const { standing, sitting } = islandPose
+    root.position.copy(surfRootPosition).lerp(standing.rootPosition, weight).lerp(sitting.rootPosition, weight * sit)
+    standing.bones.forEach(({ bone, position, quaternion }, i) => {
+      bone.position.lerp(position, weight).lerp(sitting.bones[i].position, weight * sit)
+      bone.quaternion.slerp(quaternion, weight).slerp(sitting.bones[i].quaternion, weight * sit)
     })
-    reviewBoard.position.lerp(islandPose.boardPosition, weight)
-    reviewBoard.quaternion.slerp(islandPose.boardQuaternion, weight)
+    reviewBoard.position.lerp(standing.boardPosition, weight).lerp(sitting.boardPosition, weight * boardSit)
+    reviewBoard.quaternion.slerp(standing.boardQuaternion, weight).slerp(sitting.boardQuaternion, weight * boardSit)
   }
   if (initialPose === 'surf') {
     display.scale.setScalar(1)

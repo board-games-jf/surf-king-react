@@ -15,7 +15,7 @@ import { createHexDepth } from './hexDepth'
 import { createTargetHighlights } from './createTargetHighlights'
 import { getTargetBlockStyle } from '../../contract/targetHighlight'
 import { createBoardViewportResize } from './resizeBoardViewport'
-import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, shortestHeading, MOVE_SECONDS } from './surferMotion'
+import { createFallMotion, targetFallMotion, stepFallMotion, sampleRiderMotion, sampleRemount, sampleCarve, sampleIslandFall, chooseIslandSlot, shortestHeading, MOVE_SECONDS } from './surferMotion'
 
 // This renderer receives public state and never validates moves or changes rules.
 const R = layoutManifest.hexRadius
@@ -556,6 +556,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   const fillMaterial = new THREE.MeshBasicMaterial({
     color: '#b4f2df', transparent: true, opacity: .15, depthWrite: false, side: THREE.DoubleSide
   })
+  const finishFillMaterial = new THREE.MeshBasicMaterial({
+    color: '#ffd574', transparent: true, opacity: .22, depthWrite: false, side: THREE.DoubleSide
+  })
+  const finishEdgeMaterial = new THREE.LineBasicMaterial({ color: '#ffdb80', transparent: true, opacity: .95, depthTest: false })
   const cellLabels = new THREE.Group()
   const cellLabelGeometry = new THREE.PlaneGeometry(.84, .525)
   scene.add(cellLabels)
@@ -574,6 +578,20 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     const edge = new THREE.LineLoop(outlineGeo, lines)
     edge.position.set(cell.x, .187, cell.z)
     scene.add(edge)
+    if (cell.id >= 49) {
+      const finishFill = new THREE.Mesh(shapeGeo, finishFillMaterial)
+      finishFill.rotation.x = -Math.PI / 2
+      finishFill.position.set(cell.x, .19, cell.z)
+      finishFill.scale.setScalar(.96)
+      scene.add(finishFill)
+      for (const scale of [.96, .88]) {
+        const finishEdge = new THREE.LineLoop(outlineGeo, finishEdgeMaterial)
+        finishEdge.position.set(cell.x, .205, cell.z)
+        finishEdge.scale.setScalar(scale)
+        finishEdge.renderOrder = 2
+        scene.add(finishEdge)
+      }
+    }
 
     const canvas = document.createElement('canvas')
     canvas.width = 128
@@ -583,13 +601,24 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     context.arc(42, 40, 36, Math.PI / 2, Math.PI * 1.5)
     context.arc(86, 40, 36, -Math.PI / 2, Math.PI / 2)
     context.closePath()
-    context.fillStyle = 'rgba(17, 84, 78, .78)'
+    context.fillStyle = cell.id >= 49 ? 'rgba(17, 61, 57, .94)' : 'rgba(17, 84, 78, .78)'
     context.fill()
-    context.font = cell.id >= 49 ? 'bold 28px sans-serif' : 'bold 46px sans-serif'
+    if (cell.id >= 49) {
+      context.strokeStyle = '#ffda7b'
+      context.lineWidth = 4
+      context.stroke()
+      context.fillStyle = '#ffda7b'
+      context.fillRect(17, 24, 3, 34)
+      for (let row = 0; row < 2; row++) for (let column = 0; column < 3; column++) {
+        context.fillStyle = (row + column) % 2 ? '#16433d' : '#ffedb6'
+        context.fillRect(20 + column * 5, 25 + row * 6, 5, 6)
+      }
+    }
+    context.font = cell.id >= 49 ? 'bold 25px sans-serif' : 'bold 46px sans-serif'
     context.fillStyle = '#fff'
     context.textAlign = 'center'
     context.textBaseline = 'middle'
-    context.fillText(cell.id >= 49 ? 'FINISH' : String(cell.id + 1), 64, 41, 114)
+    context.fillText(cell.id >= 49 ? 'FINISH' : String(cell.id + 1), cell.id >= 49 ? 78 : 64, 41, cell.id >= 49 ? 78 : 114)
     const texture = new THREE.CanvasTexture(canvas)
     texture.colorSpace = THREE.SRGBColorSpace
     const label = new THREE.Mesh(cellLabelGeometry, new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, side: THREE.DoubleSide }))
@@ -720,7 +749,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     const actor = {
       protection, protection2, protectionVisibleAfter: 0, badge, badgeCanvas, badgeKey: null,
       g: group, legacy: model, avatar: null, id,
-      cellId: null, from: null, to: null, t: 1, onIsland: false, islandWeight: 0,
+      cellId: null, from: null, to: null, t: 1, onIsland: false, islandWeight: 0, islandSlot: null,
       anchor: new THREE.Vector3(), heading: 0, startHeading: 0, endHeading: 0,
       boardYaw: model.group.rotation.y + Math.PI / 2,
       rollAxis: new THREE.Vector3(Math.cos(model.group.rotation.y + Math.PI / 2),0,-Math.sin(model.group.rotation.y + Math.PI / 2)),
@@ -799,8 +828,21 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       const occupants = snapshot.players.filter(other => other.cellId === p.cellId).sort((a,b) => Number(a.id)-Number(b.id))
       const shared = occupants.length > 1
       const slot = occupants.findIndex(other => other.id === p.id)
-      const offset = shared ? (slot - (occupants.length - 1) / 2) * 1.24 : 0
-      const target=new THREE.Vector3(cell.x+offset,.13,cell.z)
+      const onIsland = snapshot.cells.find(item => item.id === p.cellId)?.obstacleType === 'Island'
+      let offset
+      if (onIsland) {
+        const occupiedSlots = occupants.filter(other => other.id !== p.id)
+          .map(other => actors.get(other.id))
+          .filter(other => other && other.cellId === p.cellId && other.onIsland && Number.isFinite(other.islandSlot))
+          .map(other => other.islandSlot)
+        const previousSlot = a.onIsland && a.cellId === p.cellId ? a.islandSlot : null
+        a.islandSlot = chooseIslandSlot(previousSlot, occupiedSlots)
+        offset = a.islandSlot
+      } else {
+        a.islandSlot = null
+        offset = shared ? (slot - (occupants.length - 1) / 2) * 1.24 : 0
+      }
+      const target=new THREE.Vector3(cell.x+offset+(onIsland && offset === 0 ? .2 : 0),.13,cell.z+(onIsland ? .3 : 0))
       const protections = p.previewProtection ? [p.previewProtection] : (p.activeProtections || [])
       ;[a.protection, a.protection2].forEach((marker, i) => {
         const protection = protections[i]
@@ -860,7 +902,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         a.startHeading=a.heading
         a.endHeading=shortestHeading(a.heading,Math.atan2(-a.dz,a.dx)-a.boardYaw)
       }
-      a.onIsland = snapshot.cells.find(item => item.id === p.cellId)?.obstacleType === 'Island'
+      a.onIsland = onIsland
       a.cellId=p.cellId
       a.slotOffset=offset
     }
@@ -912,7 +954,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
         else if (a.previewJump && a.jumpDelay > 0) a.jumpDelay = Math.max(0, a.jumpDelay - dt)
         else a.t = Math.min(1, a.t + dt / (a.previewJump ? 1.45 : MOVE_SECONDS))
       }
-      const islandTarget = a.onIsland && a.t >= 1 && fall === 0 ? 1 : 0
+      const islandTarget = a.onIsland && a.t >= 1 ? 1 : 0
       a.islandWeight = reduce ? islandTarget : THREE.MathUtils.clamp(a.islandWeight + (islandTarget ? 1 : -1) * dt / .55, 0, 1)
       const carve=sampleCarve(a.t,phase,a.distance,a.fallMotion.remount ? 1 : fall,reduce)
       if(a.from&&a.to){
@@ -949,8 +991,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       sample.waterOffset=sampleOceanHeight(a.g.position.x,a.g.position.z,elapsed)-a.g.position.y
       a.animate(elapsed,Number(a.id),bank)
       if(a.avatar?.setBoardMotion) {
-        a.avatar.setBoardMotion(sample)
-        a.avatar.setIslandMotion?.(a.islandWeight)
+        a.avatar.setBoardMotion(a.onIsland && a.t >= 1 ? { fall: 0, travelBank: 0 } : sample)
+        const islandFall = sampleIslandFall(fall)
+        a.avatar.setIslandMotion?.(a.islandWeight, islandFall.sitting, islandFall.board)
       }
       else if(!a.avatar&&a.legacyBody){
         const immersion=sample.immersion
