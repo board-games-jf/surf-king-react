@@ -229,6 +229,9 @@
 .r1-action-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .r1-dice-button > span { font-size: 18px; line-height: 1; vertical-align: middle; }
 .r1-floating-hud .r1-target-legend { color: #d9f5ec; font-size: .92em; }
+.r1-turn-guide { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 7px; color: #cde7df; font-size: .9em; }
+.r1-turn-guide small { color: #a9c9c5; font-size: .85em; }
+.r1-turn-guide strong { color: #b1f2d4; }
 .r1-floating-hud .r1-targets { flex-wrap: nowrap; overflow-x: auto; margin: 0; padding: 2px 1px; scrollbar-width: thin; }
 .r1-floating-hud .r1-targets button { flex: 0 0 auto; color: var(--hud-ink); background: #214e58; border-color: var(--hud-edge); padding: 4px 8px; }
 .r1-floating-hud .r1-targets button.r1-target-hex { display: grid; place-items: center; width: 36px; min-width: 36px; height: 36px; padding: 2px; border: 0; background: transparent; }

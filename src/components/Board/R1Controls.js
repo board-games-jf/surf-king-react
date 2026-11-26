@@ -311,7 +311,10 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             </button>)}
                         <span className="r1-sr-only">Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
                     </div>}
-                    {!detailCard && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
+                    {!detailCard && !selection && G.currentMove === 'use_card' && <div className="r1-turn-guide" aria-label="Optional: use a card and/or Drop In, then move to end your turn">
+                        <span>Card · Drop In <small>optional</small></span><span aria-hidden="true">→</span><strong>Move to end turn</strong>
+                    </div>}
+                    {!detailCard && !(G.currentMove === 'use_card' && !selection) && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
                         <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
                         {highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
                     </div>}
