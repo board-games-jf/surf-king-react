@@ -242,8 +242,10 @@
 .r1-dice-option-face i:nth-child(3) { grid-area: 3 / 3; }
 .r1-dice-option-risk { color: #ffd3ba; white-space: nowrap; font-size: .8em; font-weight: 700; }
 .r1-floating-hud .r1-target-legend { color: #d9f5ec; font-size: .92em; }
-.r1-turn-steps { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 5px 7px; color: #b8d6d8; font-size: clamp(11px, 1vw, 13px); line-height: 1.25; }
+.r1-turn-steps { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 11px; color: #b8d6d8; font-size: clamp(12px, 1.25vw, 14px); line-height: 1.25; }
 .r1-turn-steps strong { color: #ffe0a1; }
+.r1-turn-caption { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; white-space: nowrap; }
+.r1-turn-caption small { color: #9fc0bf; font-size: .9em; }
 .r1-turn-option { padding: 3px 6px; border-radius: 6px; background: #ffffff0c; white-space: nowrap; }
 .r1-turn-option[data-available="true"] { background: #286c5866; color: #b1f2d4; }
 .r1-floating-hud .r1-targets { flex-wrap: nowrap; overflow-x: auto; margin: 0; padding: 2px 1px; scrollbar-width: thin; }
@@ -669,7 +671,7 @@
 .r1-floating-hud .r1-card-detail .r1-targets button.r1-target-player { width: 32px; height: 32px; min-width: 32px; }
 .r1-hud-dock > .r1-action-bar { gap: 5px; padding: 4px 6px; }
 .r1-hud-dock > .r1-action-bar { gap: 6px; padding: 5px 7px; align-items: center; }
-.r1-hand-count { color: var(--hud-gold); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.r1-hand-count { color: var(--hud-gold); font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .r1-floating-hud .r1-action-bar .r1-drop-button, .r1-floating-hud .r1-action-bar .r1-move-button { min-height: 42px; }
 .r1-move-label { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1.1; white-space: nowrap; }
 .r1-move-label small { margin-top: 2px; color: #d0f1df; font-size: .72em; font-weight: 600; }
@@ -681,21 +683,17 @@
     color: #f0fbf5; font-size: .85em;
 }
 .r1-floating-hud .r1-turn-steps .r1-hand-toggle {
-    display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 88px; min-width: 88px; min-height: 36px;
-    padding: 3px; border-radius: 10px; background: linear-gradient(135deg, #285e67, #174650); border-color: #80b7b5; color: #f0fbf5;
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 104px; min-width: 104px; min-height: 40px;
+    padding: 4px; border-radius: 10px; background: #24515a; border-color: #80b7b5; color: #f0fbf5;
 }
 .r1-turn-drop {
-    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-    box-sizing: border-box; min-height: 36px; padding: 3px 7px 3px 3px; border: 1px solid #80b7b5; border-radius: 10px;
-    background: linear-gradient(135deg, #285e67, #174650); color: #f0fbf5; font-weight: 650; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 5px; color: #91afaf; font-weight: 650; white-space: nowrap;
 }
-.r1-turn-drop[data-available="true"] { box-shadow: inset 0 0 0 1px #9ce2bf; }
-.r1-turn-drop .r1-hand-toggle-icon > .r1-feedback-icon { width: 18px; height: 18px; }
-.r1-turn-card[data-available="true"] .r1-hand-toggle { box-shadow: inset 0 0 0 1px #9ce2bf; }
+.r1-turn-drop[data-available="true"] { color: #f0fbf5; }
+.r1-turn-availability { display: inline-grid; place-items: center; box-sizing: border-box; width: 16px; height: 16px; flex: 0 0 16px; border: 1.5px solid #819fa1; border-radius: 50%; color: #819fa1; }
+.r1-turn-availability[data-available="true"] { border-color: #83d7a5; background: #83d7a5; color: #174650; }
+.r1-turn-availability svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
 .r1-hand-toggle-icon { position: relative; display: grid; place-items: center; width: 29px; height: 29px; flex: 0 0 29px; border-radius: 9px; background: #ffffff20; }
-.r1-hand-availability { position: absolute; right: -4px; bottom: -3px; display: grid; place-items: center; width: 13px; height: 13px; border-radius: 50%; background: #526c70; color: #e0efea; font-size: 10px; font-weight: 900; line-height: 1; }
-.r1-hand-availability[data-available="true"] { background: #48a87c; color: #fff; }
-.r1-hand-toggle-icon .r1-hand-availability .r1-feedback-icon { width: 10px; height: 10px; stroke-width: 2.5; }
 .r1-hand-toggle-icon svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .r1-hand-toggle-chevron { width: 14px; height: 14px; flex: 0 0 14px; fill: none; stroke: #a9d7d2; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 

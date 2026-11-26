@@ -56,6 +56,12 @@ function EnergyMeter({ energy, lost = 0 }) {
     </div>
 }
 
+function TurnAvailability({ available }) {
+    return <span className="r1-turn-availability" data-available={available} aria-hidden="true">
+        {available ? <FeedbackIcon kind="check"/> : <svg viewBox="0 0 24 24"><path d="m8 8 8 8m0-8-8 8"/></svg>}
+    </span>
+}
+
 export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight, onPreviewCard = () => {}, hexFeedback = null, pinnedHex = false, onClearHex = () => {}, worldPiles = false, discardOpen: externalDiscardOpen, onDiscardOpenChange, onFocusPlayer = () => {} }) {
     const player = G.players[ctx.currentPlayer]
     const roundOrder = getR1RoundOrder(G, ctx)
@@ -150,7 +156,8 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
         canPass ? 'End turn' : 'Choose a hex'
     const showFinishControl = !swapChoice && (swapCard || G.currentMove === 'current_second' || (G.currentMove === 'maneuver' && !targets.length) || noMoveAvailable)
     const handToggle = <button type="button" className="r1-hand-toggle" onClick={() => { inspectCard(null); setHandHidden(value => !value) }} aria-expanded={!handHidden} aria-label={handHidden ? 'Show cards' : 'Hide cards'} aria-describedby="r1-hand-count-description" title={handHidden ? 'Show cards' : 'Hide cards'}>
-        <span className="r1-hand-toggle-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="4" width="12" height="16" rx="2"/><path d="M5 7H4v12a2 2 0 0 0 2 2h10"/></svg>{showTurnSteps && <span className="r1-hand-availability" data-available={cardAvailable}>{cardAvailable ? <FeedbackIcon kind="check"/> : '—'}</span>}</span>
+        {showTurnSteps && <TurnAvailability available={cardAvailable}/>}
+        <span className="r1-hand-toggle-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="4" width="12" height="16" rx="2"/><path d="M5 7H4v12a2 2 0 0 0 2 2h10"/></svg></span>
         <span className="r1-hand-count" aria-hidden="true">{hand.cards.length}/5</span>
         <span id="r1-hand-count-description" className="r1-sr-only">{hand.cards.length} of 5 cards in hand{showTurnSteps ? (cardAvailable ? '; card available' : '; card unavailable') : ''}</span>
         <svg className="r1-hand-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d={handHidden ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'}/></svg>
@@ -366,14 +373,14 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 {showTurnSteps && <div className="r1-turn-progress r1-glass">
                     <div className="r1-turn-steps" aria-label="Turn progress">
                         {G.currentMove === 'current_second' ? <>{handCard}<strong>Surf Current · choose a second hex or finish</strong></> : <>
-                            <strong>Before moving</strong>
+                            <span className="r1-turn-caption"><strong>Before moving</strong><small>Optional</small></span>
                             {handCard}
                             <span className="r1-turn-drop" data-available={!dropReason} title={!dropReason ? 'Drop In available' : 'Drop In unavailable'}>
-                                <span className="r1-hand-toggle-icon" aria-hidden="true"><FeedbackIcon kind="dropIn"/><span className="r1-hand-availability" data-available={!dropReason}>{!dropReason ? <FeedbackIcon kind="check"/> : '—'}</span></span>
+                                <TurnAvailability available={!dropReason}/>
                                 <span>Drop In</span><span className="r1-sr-only">{!dropReason ? ' available' : ' unavailable'}</span>
                             </span>
                             <span aria-hidden="true">→</span>
-                            <strong>{G.currentMove === 'current_first' ? 'Surf Current · first step' : 'Move · ends turn'}</strong>
+                            {G.currentMove === 'current_first' ? <strong>Surf Current · first step</strong> : <span className="r1-turn-caption"><strong>Move</strong><small>Ends turn</small></span>}
                         </>}
                     </div>
                     {dropReason && <span className="r1-turn-reason" aria-hidden="true">{dropReason}</span>}

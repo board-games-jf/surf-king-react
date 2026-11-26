@@ -58,7 +58,7 @@ test('keyboard attack shortcut selects a legal opponent and explains blocked sta
     expect(screen.getByRole('button', { name: 'Attack Player 2' })).toBeEnabled()
     expect(screen.getByTitle('Card unavailable')).toBeInTheDocument()
     expect(screen.getByTitle('Drop In available')).toBeInTheDocument()
-    expect(screen.getByText('Move · ends turn')).toBeInTheDocument()
+    expect(screen.getByText('Ends turn')).toBeInTheDocument()
     G.players[0].energy = 1
     rerender(<R1Controls {...props} />)
     expect(screen.queryByRole('button', { name: 'Attack Player 2' })).not.toBeInTheDocument()
