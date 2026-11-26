@@ -655,7 +655,7 @@
 }
 .r1-hand-toggle-icon { display: grid; place-items: center; width: 29px; height: 29px; flex: 0 0 29px; border-radius: 9px; background: #ffffff20; }
 .r1-hand-toggle-icon svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.r1-hand-toggle-chevron { color: #a9d7d2; font-size: 16px; line-height: 1; }
+.r1-hand-toggle-chevron { width: 14px; height: 14px; flex: 0 0 14px; fill: none; stroke: #a9d7d2; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 .r1-card-detail[data-closable="true"] { padding-right: 38px; }
 .r1-floating-hud .r1-card-detail .r1-inspection-close {
