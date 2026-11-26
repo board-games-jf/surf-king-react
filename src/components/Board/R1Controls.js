@@ -342,9 +342,9 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 </div>}
                 </div>
                 <div className="r1-action-bar r1-glass">
-                    <span className="r1-hand-count">Hand <strong>{hand.cards.length}/5</strong></span>
-                    <button type="button" className="r1-hand-toggle" onClick={() => { inspectCard(null); setHandHidden(value => !value) }} aria-expanded={!handHidden} aria-label={handHidden ? 'Show cards' : 'Hide cards'} title={handHidden ? 'Show cards' : 'Hide cards'}>
+                    <button type="button" className="r1-hand-toggle" onClick={() => { inspectCard(null); setHandHidden(value => !value) }} aria-expanded={!handHidden} aria-label={handHidden ? 'Show cards' : 'Hide cards'} aria-description={hand.cards.length + ' of 5 cards in hand'} title={handHidden ? 'Show cards' : 'Hide cards'}>
                         <span className="r1-hand-toggle-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="4" width="12" height="16" rx="2"/><path d="M5 7H4v12a2 2 0 0 0 2 2h10"/></svg></span>
+                        <span className="r1-hand-count" aria-hidden="true">{hand.cards.length}/5</span>
                         <svg className="r1-hand-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d={handHidden ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'}/></svg>
                     </button>
                     <button type="button" className="r1-drop-button" disabled={!!dropReason || !!selectedCard}
