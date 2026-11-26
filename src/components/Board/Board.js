@@ -5,7 +5,7 @@ import Board3D from '../../map/views/Board3D/Board3D'
 import R1Controls from './R1Controls'
 import { getR1HexFeedback } from './r1HexFeedback'
 import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
-import { r1Occupants } from '../../game/r1/SurfKingR1'
+import { r1Occupants, r1MoveTargets, r1DropPlayerTargets, r1MaxAttackDice } from '../../game/r1/SurfKingR1'
 import { PLAYER_BOARD_COLORS } from '../../constants/playerBoardColors'
 import { getTargetHighlightStyle, getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import { createPublicMapSnapshot } from '../../map/contract/createPublicMapSnapshot'
@@ -78,6 +78,8 @@ const Board = ({ G, ctx, moves }) => {
     const targetHighlight = isR1 ? getR1TargetHighlight(G, ctx, r1Selection, previewId) : null
     const [hoveredHex, setHoveredHex] = useState(null)
     const [clickedHex, setClickedHex] = useState(null)
+    const [boardAction, setBoardAction] = useState(null)
+    const boardPointer = useRef(null)
     const inspectionScope = ctx.currentPlayer + ':' + G.turn + ':' + G.currentMove + ':' +
         (r1Selection?.kind || '') + ':' + (r1Selection?.index ?? '')
     const pinnedHexId = clickedHex?.scope === inspectionScope ? clickedHex.id : null
@@ -207,7 +209,21 @@ const Board = ({ G, ctx, moves }) => {
     }
 
     const onHexClickedHandle = (cell) => {
-        if (isR1) { onR1Target(cell.position); return }
+        if (isR1) {
+            if (!r1Selection && ['use_card', 'maneuver'].includes(G.currentMove)) {
+                const state = G.currentMove === 'use_card' ? { ...G, currentMove: 'maneuver' } : G
+                const canMove = r1MoveTargets(state, ctx).includes(cell.position)
+                const targets = r1DropPlayerTargets(G, ctx).filter(id => G.players[id].cellPosition === cell.position)
+                if ((canMove || targets.length) && boardPointer.current) {
+                    setBoardAction({ id: cell.position, canMove, targets, ...boardPointer.current, scope: inspectionScope })
+                    setClickedHex(null)
+                    return
+                }
+            }
+            setBoardAction(null)
+            onR1Target(cell.position)
+            return
+        }
         if (placingObstacle != null) {
             moves.useCard(placingObstacle.cardPos, [cell.position])
             setPlacingObstacle(null)
@@ -346,7 +362,12 @@ const Board = ({ G, ctx, moves }) => {
                 <button type="button" aria-label="Switch to 3D view" onClick={() => { setHoveredHex(null); setViewError(null); setViewMode('3d') }}>3D</button>
                 {viewError && <span role="alert">{viewError}</span>}
             </div>}
-            <div className={'surf-map surf-map-' + viewMode}>
+            <div className={'surf-map surf-map-' + viewMode} onPointerDownCapture={event => {
+                if (event.target.closest('.r1-board-action')) return
+                const rect = event.currentTarget.getBoundingClientRect()
+                boardPointer.current = { x: Math.max(60, Math.min(rect.width - 60, event.clientX - rect.left)), y: Math.max(45, Math.min(rect.height - 45, event.clientY - rect.top)) }
+                setBoardAction(null)
+            }}>
                 {viewMode === '3d' ? (
                     <Board3D
                         viewToggle={isR1 ? <button type="button" className="surf-view-toggle" aria-label="Switch to 2D view" onClick={() => { setHoveredHex(null); setViewMode('2d') }}>2D</button> : null}
@@ -363,6 +384,11 @@ const Board = ({ G, ctx, moves }) => {
                         onHexClick={(cell) => { setSelectedCellId(cell.position); onHexClickedHandle(cell) }}
                     />
                 )}
+                {isR1 && boardAction?.scope === inspectionScope && !r1Selection && <div className="r1-board-action" style={{ left: boardAction.x, top: boardAction.y }}>
+                    {boardAction.canMove && <button type="button" onClick={() => { moves.quickManeuver(boardAction.id); setBoardAction(null) }}><span className="r1-board-action-icon" aria-hidden="true">➜</span> Move</button>}
+                    {boardAction.targets.map(id => <button type="button" className="r1-board-action-attack" key={id} onClick={() => { moves.dropIn(boardAction.id, r1MaxAttackDice(G.players[ctx.currentPlayer].energy), id); setBoardAction(null) }}><span className="r1-board-action-icon" aria-hidden="true">⚔</span> {boardAction.targets.length > 1 ? 'Drop In ' + (id + 1) : 'Drop In'}</button>)}
+                    <button type="button" className="r1-board-action-close" aria-label="Close board actions" onClick={() => setBoardAction(null)}>×</button>
+                </div>}
             </div>
             {isR1 ? <R1Controls G={G} ctx={ctx} moves={moves} selection={r1Selection}
                 setSelection={setR1Selection} onTarget={onR1Target} onFocusPlayer={id => { setFocusPlayerRequest({ playerId: id }); setViewMode('3d') }} worldPiles={viewMode === '3d'} discardOpen={discardOpen} onDiscardOpenChange={setDiscardOpen} targetHighlight={targetHighlight} onPreviewCard={previewCard} hexFeedback={hexFeedback} pinnedHex={pinnedHexId != null} onClearHex={clearHexInspection} /> : <section className="surf-hud" aria-label="Match controls">

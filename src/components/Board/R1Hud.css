@@ -103,6 +103,21 @@
     scrollbar-color: #60919a transparent;
 }
 .r1-floating-hud .r1-player-badge:first-child { margin-left: auto; }
+.r1-board-action {
+    position: absolute; z-index: 5; display: flex; align-items: center; gap: 5px;
+    transform: translate(-50%, -115%); padding: 5px;
+    border: 1px solid #a4dcda; border-radius: 18px;
+    background: #0c303a; box-shadow: 0 5px 16px #09252f80;
+}
+.r1-board-action button {
+    display: inline-flex; align-items: center; gap: 7px; min-height: 40px;
+    border: 1px solid #9ce2bf; border-radius: 13px; padding: 4px 12px 4px 5px;
+    background: linear-gradient(135deg, #25866d, #155844); color: #fff; font-weight: 800; white-space: nowrap;
+}
+.r1-board-action-icon { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; background: #ffffff2b; font-size: 18px; line-height: 1; }
+.r1-board-action button:focus-visible { outline: 3px solid #ffe0a1; }
+.r1-board-action .r1-board-action-attack { background: linear-gradient(135deg, #d16a52, #a63631); border-color: #ffc2a1; }
+.r1-board-action .r1-board-action-close { justify-content: center; min-width: 36px; padding: 5px 8px; background: transparent; border-color: transparent; font-size: 20px; line-height: 1; }
 .r1-floating-hud .r1-player-badge {
     flex: 0 0 auto;
     min-width: 95px;
@@ -809,18 +824,22 @@
 
 /* On spacious screens, keep player shortcuts at the left edge of the board. */
 @media (min-width: 801px) and (min-height: 521px) {
+    .r1-hud-brand { width: 176px; box-sizing: border-box; }
     .r1-floating-hud .r1-round-order {
         top: max(85px, calc(env(safe-area-inset-top) + 78px));
         left: max(var(--hud-inset), env(safe-area-inset-left));
         right: auto;
         bottom: max(24px, env(safe-area-inset-bottom));
+        width: 176px;
+        box-sizing: border-box;
         flex-direction: column;
         align-items: flex-start;
         overflow-x: hidden;
         overflow-y: auto;
-        padding: 2px 4px 19px 2px;
+        padding: 2px 0 19px;
     }
     .r1-floating-hud .r1-player-badge:first-child { margin-left: 0; }
+    .r1-floating-hud button.r1-player-badge { width: 100%; box-sizing: border-box; }
     .r1-floating-hud .r1-player-badge:not([data-current="true"]) { align-self: flex-start; }
     .r1-floating-hud button.r1-player-badge[data-current="true"] { margin-bottom: 16px; }
     .r1-floating-hud .r1-card-piles { left: auto; right: max(var(--hud-inset), env(safe-area-inset-right)); }

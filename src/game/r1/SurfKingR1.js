@@ -442,6 +442,13 @@ export function r1Maneuver(G, ctx, to) {
         G.message = 'Surf Current: choose a second step or finish.'
     } else endR1Turn(G, ctx)
 }
+export function r1QuickManeuver(G, ctx, to) {
+    if (G.currentMove === 'use_card') {
+        if (!r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx).includes(to)) return INVALID_MOVE
+        G.currentMove = 'maneuver'
+    }
+    return r1Maneuver(G, ctx, to)
+}
 export function passR1(G, ctx) {
     if (G.currentMove === 'swap_card') { G.currentMove = 'turn_end'; endR1Turn(G, ctx); return }
     if (G.currentMove === 'use_card') { G.currentMove = 'maneuver'; return }
@@ -456,7 +463,7 @@ export const SurfKingR1 = {
     setup: setupR1,
     moves: {
         recover: recoverR1, useCard: useR1Card, dropIn: r1DropIn, resolveSwap: r1ResolveSwap,
-        maneuver: r1Maneuver, pass: passR1,
+        maneuver: r1Maneuver, quickManeuver: r1QuickManeuver, pass: passR1,
     },
     turn: {
         order: { first: G => G.order[0], next: G => G.nextPlayer },

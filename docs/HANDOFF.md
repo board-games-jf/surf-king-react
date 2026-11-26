@@ -2,7 +2,11 @@
 
 ## Board side layout (#53)
 
-- The player shortcuts form a scrollable column on the left on spacious screens; the 3D card raft and 2D card piles are on the right. Compact screens retain their previous HUD layout. Desktop 3D visual review and the card-pile tests passed; mobile visual review remains pending. The proposed hex-local movement confirmation is separate and not implemented in this change.
+- The player shortcuts form a scrollable column on the left on spacious screens; the 3D card raft and 2D card piles are on the right. Compact screens retain their previous HUD layout. Desktop 3D visual review and the card-pile tests passed; mobile visual review remains pending.
+
+## Contextual board actions (#54)
+
+- In the optional-card or maneuver phase, selecting an eligible hex offers a nearby movement confirmation. Eligible opponents on that hex also offer Drop In, using the existing target and dice limits. A validated atomic quick maneuver preserves the normal movement and turn resolution. Local desktop 2D and 3D movement was exercised; contextual Drop In and mobile interaction still require manual review.
 
 ## Local animation review studio (#50)
 

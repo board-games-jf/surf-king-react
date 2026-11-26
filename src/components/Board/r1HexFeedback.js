@@ -67,7 +67,7 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
     } else if (full) action = 'Hex full.'
     else if (G.currentMove === 'use_card' && r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx).includes(id)) {
         status = 'preview'
-        action = 'Select Move first to enter this hex.'
+        action = 'Select this hex to move.'
     } else if (G.currentMove === 'swap_card') action = 'Movement already used; play a card or end turn.'
     else action = 'This hex is not available for movement now.'
     const blocks = highlight?.blocked?.filter(item => item.id === id) || []

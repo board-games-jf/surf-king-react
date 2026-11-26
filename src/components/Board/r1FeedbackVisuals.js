@@ -82,7 +82,7 @@ export function compactHexAction(info) {
     if (action.startsWith('Click to use')) return 'Attack here'
     if (action === 'Click to move here.') return 'Move here'
     if (action === 'Click to jump here.') return 'Jump here'
-    if (action.startsWith('Select Move first')) return 'Select Move'
+    if (action.startsWith('Select this hex to move')) return 'Move here'
     if (action.startsWith('Select Drop In')) return 'Select Drop In'
     if (action === 'Outside placement range.') return 'Out of range'
     if (action === 'This hex is not available for movement now.') return 'Not reachable'
