@@ -944,6 +944,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     animateScenery(elapsed)
     cardPiles.animate(now, reducedMotion.matches, elapsed)
     const reduce = reducedMotion.matches
+    targetHighlights.animate(elapsed, reduce)
     for(const a of actors.values()){
       if(a.cellId===null) continue
       const phase=elapsed+Number(a.id)*.71

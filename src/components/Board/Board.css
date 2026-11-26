@@ -31,6 +31,14 @@
     height: 96%;
 }
 
+.surf-match-r1 [data-target-highlight="move"],
+.surf-match-r1 [data-target-highlight="attack"] { animation: r1-target-pulse 2.6s ease-in-out infinite; }
+@keyframes r1-target-pulse { 0%, 100% { fill-opacity: .22; } 50% { fill-opacity: .42; } }
+@media (prefers-reduced-motion: reduce) {
+    .surf-match-r1 [data-target-highlight="move"],
+    .surf-match-r1 [data-target-highlight="attack"] { animation: none; }
+}
+
 .surf-map-toolbar, .surf-map-controls {
     position: absolute;
     z-index: 1;

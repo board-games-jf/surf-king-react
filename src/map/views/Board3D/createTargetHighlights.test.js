@@ -84,6 +84,12 @@ test('shows attack and movement together and clears both overlays', () => {
     expect(attackOnly.visible).toBe(true)
     expect(attackOnly.children[0].visible).toBe(false)
     expect(attackOnly.children[3].visible).toBe(true)
+    const attackMaterial = both.children[3].children[0].material
+    markers.animate(0, false)
+    const movingOpacity = attackMaterial.opacity
+    markers.animate(0, true)
+    expect(attackMaterial.opacity).toBeLessThan(movingOpacity)
+    expect(both.children[0].material.opacity).toBe(.24)
     markers.update(undefined)
     expect(both.visible).toBe(false)
     expect(attackOnly.visible).toBe(false)

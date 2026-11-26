@@ -44,6 +44,8 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
         transparent: true, opacity: .36, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })
     const attackStroke = new THREE.LineBasicMaterial({ color: getTargetHighlightStyle('attack').color,
         transparent: true, opacity: 1, depthWrite: false, toneMapped: false })
+    let pulseMain = false
+    let baseOpacity = .32
     const blockedMaterials = new Map()
     function materials(code) {
         const style = getTargetBlockStyle(code)
@@ -101,6 +103,8 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
         group,
         update(highlight, useIndividualLabels = false) {
             const style = getTargetHighlightStyle(highlight?.kind)
+            pulseMain = highlight?.kind === 'move' || highlight?.kind === 'attack'
+            baseOpacity = highlight?.preview ? .24 : .32
             const ids = new Set(style ? highlight.cellIds : [])
             const attackIds = new Set(highlight?.attackCellIds || [])
             const blocked = new Map((highlight?.blocked || []).map(item => [item.id, item.code]))
@@ -108,7 +112,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
             if (style) {
                 fill.color.set(style.color)
                 stroke.color.set(style.color)
-                fill.opacity = highlight.preview ? .24 : .32
+                fill.opacity = baseOpacity
                 stroke.opacity = highlight.preview ? .9 : 1
             }
             markers.forEach((marker, id) => {
@@ -135,6 +139,12 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                     if (code) icon.material = materials(code).icon
                 }
             })
+        },
+        animate(elapsed, reduced) {
+            const pulse = reduced ? 0 : (1 + Math.sin(elapsed * 2.4)) / 2
+            if (pulseMain) fill.opacity = Math.min(.5, baseOpacity + .12 * pulse)
+            attackFill.opacity = .36 + .1 * pulse
+            attackStroke.opacity = reduced ? 1 : .8 + .2 * pulse
         },
     }
 }
