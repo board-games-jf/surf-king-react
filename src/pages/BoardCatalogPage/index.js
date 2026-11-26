@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { BOARD_TYPES } from '../../map/views/Board3D/surferStyle'
 import { normalizeLocalPlayerId } from '../../map/views/Board3D/localSurferProfiles'
@@ -12,12 +12,34 @@ import {
   placeCatalogAsset,
   setCatalogSurferFallen,
   nearbyCatalogCell,
+  catalogJumpTarget,
+  jumpCatalogSurfer,
+  catalogCurrentRoute,
+  catalogChangePlan,
+  applyCatalogChange,
 } from './catalogState'
+import { cardArt, cardTone } from '../../components/Board/r1CardArt'
+import '../../components/Board/R1Hud.css'
 import './BoardCatalogPage.css'
 
 const SURFER_COLORS = ['Orange', 'Coral', 'Teal', 'Blue', 'Yellow', 'Purple', 'Green']
 
-export default function BoardCatalogPage() {
+export default function BoardCatalogPage({ animationStudio = false }) {
+  const [selectedCard, setSelectedCard] = useState('Sunburn')
+  const [sunburnPreview, setSunburnPreview] = useState(null)
+  const [bigWavePreview, setBigWavePreview] = useState(null)
+  const [amuletPreview, setAmuletPreview] = useState(null)
+  const [stonePreview, setStonePreview] = useState(null)
+  const [stormPreview, setStormPreview] = useState(null)
+  const [cyclonePreview, setCyclonePreview] = useState(null)
+  const [islandPreview, setIslandPreview] = useState(null)
+  const [energyPreview, setEnergyPreview] = useState(null)
+  const [lifeguardPreview, setLifeguardPreview] = useState(null)
+  const [jumpPreview, setJumpPreview] = useState(null)
+  const [currentPreview, setCurrentPreview] = useState(null)
+  const [changePreview, setChangePreview] = useState(null)
+  const [hangLoosePreview, setHangLoosePreview] = useState(null)
+  const [activeProtections, setActiveProtections] = useState({})
   const location = useLocation()
   const selectedProfilePlayer = normalizeLocalPlayerId(location.state?.athletePlayerId)
   const requestedType = location.state?.athleteBoardType
@@ -34,9 +56,38 @@ export default function BoardCatalogPage() {
       : null)
   const [error, setError] = useState(null)
 
+  useEffect(() => {
+    if (!lifeguardPreview) return
+    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 150 : 2700
+    const timer = window.setTimeout(() => {
+      setCatalog(current => setCatalogSurferFallen(current, lifeguardPreview.playerId, false))
+    }, delay)
+    return () => window.clearTimeout(timer)
+  }, [lifeguardPreview])
+
+  useEffect(() => {
+    if (!currentPreview) return
+    const { playerId, route } = currentPreview
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const step = window.setTimeout(() => {
+      if (route.length < 2) return
+      setCatalog(current => {
+        const destination = route[1]
+        if (current.surfers[playerId] !== route[0] || current.fallen?.[playerId] || current.obstacles[destination] || Object.values(current.surfers).includes(destination)) return current
+        return placeCatalogAsset(current, destination, 'Surfer', playerId)
+      })
+    }, reduced ? 150 : 1100)
+    const finish = window.setTimeout(() => setCurrentPreview(null), reduced ? 400 : 2500)
+    return () => { window.clearTimeout(step); window.clearTimeout(finish) }
+  }, [currentPreview])
+
   const snapshot = useMemo(
-    () => createCatalogSnapshot(catalog, selectedCellId),
-    [catalog, selectedCellId]
+    () => {
+      const result = createCatalogSnapshot(catalog, selectedCellId)
+      result.players = result.players.map(player => ({ ...player, previewProtection: activeProtections[player.id] || null }))
+      return result
+    },
+    [catalog, selectedCellId, activeProtections]
   )
   const onCellSelect = useCallback((id) => {
     setSelectedCellId(id)
@@ -48,17 +99,30 @@ export default function BoardCatalogPage() {
     setSelectedCellId(id)
   }
   const reset = () => {
+    setActiveProtections({})
+    setLifeguardPreview(null)
+    setCurrentPreview(null)
     setCatalog(createBoardCatalog())
     setTool('Inspect')
     setSelectedCellId(null)
     setError(null)
   }
   const clear = () => {
+    setActiveProtections({})
+    setLifeguardPreview(null)
+    setCurrentPreview(null)
     setCatalog(createEmptyBoardCatalog())
     setTool('Inspect')
     setSelectedCellId(null)
   }
 
+  const stoneCell = Object.keys(catalog.obstacles).find(id => catalog.obstacles[id] === 'Stone')
+  const stormCell = Object.keys(catalog.obstacles).find(id => catalog.obstacles[id] === 'Storm')
+  const cycloneCell = Object.keys(catalog.obstacles).find(id => catalog.obstacles[id] === 'Cyclone')
+  const islandCell = Object.keys(catalog.obstacles).find(id => catalog.obstacles[id] === 'Island')
+  const changePlan = catalogChangePlan(catalog, surferId)
+  const currentRoute = catalogCurrentRoute(catalog, surferId)
+  const jumpTarget = catalogJumpTarget(catalog, surferId)
   const nearby = nearbyCatalogCell(catalog, surferId)
   const previewGlide = () => {
     if (nearby === null) return
@@ -80,7 +144,7 @@ export default function BoardCatalogPage() {
       <header className="board-catalog-header">
         <div>
           <Link to="/">← Home</Link>
-          <h1>Surf King · 3D board catalog</h1>
+          <h1>{animationStudio ? 'Surf King · Animation studio' : 'Surf King · 3D board catalog'}</h1>
           <p>Preview the actual game board and models. This is a design sandbox, not a match.</p>
         </div>
         <div className="board-catalog-header-links">
@@ -96,6 +160,19 @@ export default function BoardCatalogPage() {
             previewFemaleAthlete
             athleteBoardType={athleteBoardType}
             snapshot={snapshot}
+            sunburnPreview={sunburnPreview}
+            bigWavePreview={bigWavePreview}
+            amuletPreview={amuletPreview}
+            stonePreview={stonePreview}
+            stormPreview={stormPreview}
+            cyclonePreview={cyclonePreview}
+            islandPreview={islandPreview}
+            energyPreview={energyPreview}
+            lifeguardPreview={lifeguardPreview}
+            jumpPreview={jumpPreview}
+            currentPreview={currentPreview}
+            changePreview={changePreview}
+            hangLoosePreview={hangLoosePreview}
             onCellSelect={onCellSelect}
             onUnavailable={setError}
             focusCellId={tool === 'Inspect' ? selectedCellId : null}
@@ -104,6 +181,25 @@ export default function BoardCatalogPage() {
         </section>
 
         <aside className="board-catalog-panel" aria-label="Catalog controls">
+          {animationStudio && <section>
+            <h2>Card interaction preview</h2>
+            <p>Hover, focus or select each card to replay the existing hand transition. Select a card and a surfer below, then press Play. Other card effects are not implemented yet.</p>
+            <div className="r1-floating-hud animation-studio-cards"><div className="r1-hand">
+              {Object.keys(cardArt).map(name => <button key={name} type="button"
+                data-card-tone={cardTone[name]} aria-pressed={selectedCard === name}
+                style={{ '--r1-fan-angle': '0deg' }}
+                onClick={() => setSelectedCard(name)}>
+                <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
+              </button>)}
+            </div></div>
+            <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami', 'Amulet', 'Stone', 'Storm', 'Cyclone', 'Island', 'Energy x2', 'Lifeguard float', 'Jumping', 'Surf Current', 'Change', 'Hang loose'].includes(selectedCard) || (selectedCard === 'Stone' ? stoneCell === undefined : selectedCard === 'Storm' ? stormCell === undefined : selectedCard === 'Cyclone' ? cycloneCell === undefined : selectedCard === 'Island' ? islandCell === undefined : selectedCard === 'Jumping' ? jumpTarget === null : selectedCard === 'Surf Current' ? currentRoute.length === 0 || !!currentPreview : selectedCard === 'Change' ? !changePlan : !Number.isInteger(catalog.surfers[surferId]) || (selectedCard === 'Lifeguard float' && !catalog.fallen?.[surferId]))}
+              onClick={() => { if (selectedCard === 'Stone') { focusCell(Number(stoneCell)); setStonePreview({ cellId: Number(stoneCell) }) } else if (selectedCard === 'Storm') { focusCell(Number(stormCell)); setStormPreview({ cellId: Number(stormCell) }) } else if (selectedCard === 'Cyclone') { focusCell(Number(cycloneCell)); setCyclonePreview({ cellId: Number(cycloneCell) }) } else if (selectedCard === 'Island') { focusCell(Number(islandCell)); setIslandPreview({ cellId: Number(islandCell) }) } else if (selectedCard === 'Jumping') { focusCell(jumpTarget); setCatalog(current => jumpCatalogSurfer(current, surferId)); setJumpPreview({ playerId: surferId }) } else if (selectedCard === 'Surf Current') { focusCell(currentRoute[currentRoute.length - 1]); setCatalog(current => placeCatalogAsset(current, currentRoute[0], 'Surfer', surferId)); setCurrentPreview({ playerId: surferId, route: currentRoute }) } else if (selectedCard === 'Change') { focusCell(changePlan.origin); setCatalog(current => applyCatalogChange(current, changePlan)); setChangePreview(changePlan) } else { focusCell(catalog.surfers[surferId]); if (selectedCard === 'Hang loose' || selectedCard === 'Amulet') setActiveProtections(current => ({ ...current, [surferId]: selectedCard })); (selectedCard === 'Hang loose' ? setHangLoosePreview : selectedCard === 'Sunburn' ? setSunburnPreview : selectedCard === 'Amulet' ? setAmuletPreview : selectedCard === 'Energy x2' ? setEnergyPreview : selectedCard === 'Lifeguard float' ? setLifeguardPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) } }}>
+              ▶ Play
+            </button>
+            {activeProtections[surferId] && <button type="button" onClick={() => setActiveProtections(current => { const next = { ...current }; delete next[surferId]; return next })}>Clear protection preview</button>}
+            <p aria-live="polite">{selectedCard === 'Hang loose' ? 'Hang Loose: shaka symbol and protective dome preview.' : selectedCard === 'Sunburn' ? 'Sunburn: −1 energy. The displayed amount is a preview example.' : selectedCard === 'Big wave' ? 'Big wave: up to −2 energy. The displayed amount is a preview example.' : selectedCard === 'Tsunami' ? 'Tsunami: up to −3 energy. The displayed amount is a preview example.' : selectedCard === 'Amulet' ? 'Amulet: protection against attacks and Change until your next turn. Visual activation preview.' : selectedCard === 'Stone' ? (stoneCell === undefined ? 'Place a Stone on the board to preview its arrival.' : 'Stone: placement preview. Entry costs 1 energy and removes the stone.') : selectedCard === 'Storm' ? (stormCell === undefined ? 'Place a Storm on the board to preview its arrival.' : 'Storm: placement preview. Entering costs 1 energy.') : selectedCard === 'Cyclone' ? (cycloneCell === undefined ? 'Place a Cyclone on the board to preview its arrival.' : 'Cyclone: formation preview. Entry redirects to a random free neighboring hex.') : selectedCard === 'Island' ? (islandCell === undefined ? 'Place an Island on the board to preview its arrival.' : 'Island: sand emerges and palms grow. Entry restores 2 energy.') : selectedCard === 'Energy x2' ? 'Energy x2: gain up to 2 energy (maximum 5). The displayed amount is a preview example.' : selectedCard === 'Lifeguard float' ? (catalog.fallen?.[surferId] ? 'Lifeguard float: recover with 3 energy. Visual preview.' : 'Use Fall off board below first to preview the rescue.') : selectedCard === 'Jumping' ? (jumpTarget === null ? 'Place a hazard next to a standing surfer to preview Jumping.' : 'Jumping: a wave launches the surfer onto the neighboring hazard without triggering it.') : selectedCard === 'Surf Current' ? (currentRoute.length ? 'Surf Current: preview up to two neighboring steps with a flowing wake.' : 'Place a standing surfer near an empty hex to preview Surf Current.') : selectedCard === 'Change' ? (changePlan ? 'Change: preview a nearby two-surfer position exchange.' : 'Place two standing surfers to preview Change.') : selectedCard + ': animation not available yet.'}</p>
+            <div className="board-catalog-divider" />
+          </section>}
           <div className="board-catalog-panel-top">
             <h2>Place &amp; inspect</h2>
             <p>Choose a tool, then tap a hex. Inspect mode zooms to its contents.</p>
@@ -125,6 +221,7 @@ export default function BoardCatalogPage() {
           </div>
           <fieldset className="board-catalog-actions">
             <legend>Surfer animation preview</legend>
+            <p>Idle carving runs continuously. Select a surfer below, then replay movement, fall and recovery.</p>
             <button type="button" disabled={!Number.isInteger(catalog.surfers[surferId]) || !!catalog.fallen?.[surferId]} onClick={() => previewMotion(true)}>Fall off board</button>
             <button type="button" disabled={!catalog.fallen?.[surferId]} onClick={() => previewMotion(false)}>Get back on board</button>
             <button type="button" disabled={nearby === null} onClick={previewGlide}>Glide to nearby hex</button>

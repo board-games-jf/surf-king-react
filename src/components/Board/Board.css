@@ -43,6 +43,7 @@
     box-shadow: 0 2px 10px #173d3633;
 }
 
+.surf-camera-controls { display: contents; }
 .surf-map-toolbar { left: 8px; }
 .surf-map-controls { right: 8px; }
 .surf-orbit-controls { top: 54px; }

@@ -8,6 +8,11 @@ import {
   placeCatalogAsset,
   setCatalogSurferFallen,
   nearbyCatalogCell,
+  catalogJumpTarget,
+  jumpCatalogSurfer,
+  catalogCurrentRoute,
+  catalogChangePlan,
+  applyCatalogChange,
 } from './catalogState'
 
 describe('interactive board catalog fixtures', () => {
@@ -39,17 +44,19 @@ describe('interactive board catalog fixtures', () => {
     expect(updated.surfers).toEqual(original.surfers)
   })
 
-  test('moving a surfer clears conflicting objects and avoids duplicate surfers', () => {
-    const original = createBoardCatalog()
+  test.each(OBSTACLE_TYPES)('moving a surfer onto %s keeps the obstacle visible', type => {
+    const original = placeCatalogAsset(createEmptyBoardCatalog(), 8, type)
     const moved = placeCatalogAsset(original, 8, 'Surfer', '0')
-    expect(moved.obstacles[8]).toBeUndefined()
-    expect(moved.surfers['0']).toBe(8)
-    expect(Object.values(moved.surfers)).not.toContain(1)
-    expect(createCatalogSnapshot(moved).players).toHaveLength(2)
+    expect(moved.obstacles[8]).toBe(type)
+    expect(createCatalogSnapshot(moved).cells[8].obstacleType).toBe(type)
+    expect(createCatalogSnapshot(moved).players).toEqual([{ id: '0', cellId: 8, fallen: false }])
+  })
 
-    const replaced = placeCatalogAsset(moved, 8, 'Surfer', '1')
-    expect(replaced.surfers).toEqual({ '1': 8 })
-    expect(original.surfers).toEqual({ '0': 1, '1': 51 })
+  test('keeps two surfers on one cell and rejects a third', () => {
+    const first = placeCatalogAsset(createEmptyBoardCatalog(), 8, 'Surfer', '0')
+    const shared = placeCatalogAsset(first, 8, 'Surfer', '1')
+    expect(shared.surfers).toEqual({ '0': 8, '1': 8 })
+    expect(placeCatalogAsset(shared, 8, 'Surfer', '2')).toBe(shared)
   })
 
   test('placing an obstacle over a surfer removes the surfer from the catalog only', () => {
@@ -97,4 +104,50 @@ test('glide preview picks a nearby vacant cell and never moves a fallen surfer a
   expect(catalog.obstacles[next]).toBeUndefined()
   expect(nearbyCatalogCell(setCatalogSurferFallen(catalog, '0', true), '0')).toBeNull()
   expect(nearbyCatalogCell(catalog, '9')).toBeNull()
+})
+
+test('jump preview lands on an adjacent hazard without removing it or moving another surfer', () => {
+  const initial = createBoardCatalog()
+  expect(catalogJumpTarget(initial, '0')).toBe(8)
+  const landed = jumpCatalogSurfer(initial, '0')
+  expect(landed.surfers['0']).toBe(8)
+  expect(landed.surfers['1']).toBe(initial.surfers['1'])
+  expect(landed.obstacles[8]).toBe('Shark')
+  expect(initial.surfers['0']).toBe(1)
+  expect(catalogJumpTarget(setCatalogSurferFallen(initial, '0', true), '0')).toBeNull()
+  expect(catalogJumpTarget(createEmptyBoardCatalog(), '0')).toBeNull()
+})
+
+test('Surf Current preview finds up to two distinct neighboring empty cells without changing the catalog', () => {
+  const catalog = createBoardCatalog()
+  const original = JSON.stringify(catalog)
+  const route = catalogCurrentRoute(catalog, '0')
+  expect(route).toHaveLength(2)
+  expect(new Set([catalog.surfers['0'], ...route]).size).toBe(3)
+  let from = BOARD_LAYOUT[catalog.surfers['0']]
+  for (const id of route) {
+    const cell = BOARD_LAYOUT[id]
+    expect(Math.hypot(cell.x - from.x, cell.z - from.z)).toBeCloseTo(2.295, 2)
+    expect(catalog.obstacles[id]).toBeUndefined()
+    expect(Object.values(catalog.surfers)).not.toContain(id)
+    expect(cell.z).toBeLessThan(from.z)
+    from = cell
+  }
+  expect(JSON.stringify(catalog)).toBe(original)
+  expect(catalogCurrentRoute(setCatalogSurferFallen(catalog, '0', true), '0')).toEqual([])
+})
+
+test('Change preview stages a nearby partner and swaps positions without changing hazards', () => {
+  const catalog = createBoardCatalog()
+  const plan = catalogChangePlan(catalog, '0')
+  expect(plan.targetId).toBe('1')
+  expect(plan.origin).toBe(catalog.surfers['0'])
+  expect(catalog.obstacles[plan.targetCell]).toBeUndefined()
+  const swapped = applyCatalogChange(catalog, plan)
+  expect(swapped.surfers['0']).toBe(plan.targetCell)
+  expect(swapped.surfers['1']).toBe(plan.origin)
+  expect(swapped.obstacles).toEqual(catalog.obstacles)
+  expect(catalog.surfers['1']).toBe(51)
+  expect(catalogChangePlan(setCatalogSurferFallen(catalog, '1', true), '0')).toBeNull()
+  expect(catalogChangePlan(createEmptyBoardCatalog(), '0')).toBeNull()
 })

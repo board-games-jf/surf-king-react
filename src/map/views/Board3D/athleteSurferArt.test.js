@@ -359,3 +359,54 @@ test.each([0, Math.PI / 2, Math.PI])('remount faces the board rather than the ca
   material.dispose()
   geometry.dispose()
 })
+
+test('island pose raises the board and restores the surfing pose on departure', () => {
+  const { root, material, geometry } = makeAthleteRig()
+  const art = createAthleteSurferArt(root, { scale: .6 })
+  art.setBoardMotion({ fall: 0, travelBank: 0 })
+  const ridingBoard = art.surfboard.quaternion.clone()
+  art.setIslandMotion(1)
+  expect(art.surfboard.quaternion.angleTo(ridingBoard)).toBeGreaterThan(.8)
+  const islandBoard = art.surfboard.position.clone()
+  art.setBoardMotion({ fall: 0, travelBank: 0 })
+  art.setIslandMotion(1)
+  expect(art.surfboard.position.distanceTo(islandBoard)).toBeLessThan(1e-6)
+  art.setBoardMotion({ fall: 0, travelBank: 0 })
+  art.setIslandMotion(0)
+  expect(art.surfboard.quaternion.angleTo(ridingBoard)).toBeLessThan(1e-6)
+  art.dispose()
+  geometry.dispose()
+  material.dispose()
+})
+
+
+test('a fallen island surfer sits lower with the board flat and returns to standing', () => {
+  const { root, material, geometry } = makeAthleteRig()
+  const art = createAthleteSurferArt(root, { scale: .6 })
+  const apply = fall => {
+    art.setBoardMotion({ fall: 0, travelBank: 0 })
+    art.setIslandMotion(1, fall)
+    art.display.updateMatrixWorld(true)
+  }
+  apply(0)
+  const standingHead = art.head.getWorldPosition(new THREE.Vector3()).y
+  const standingBoard = art.surfboard.quaternion.clone()
+  apply(1)
+  const seatedHead = art.head.getWorldPosition(new THREE.Vector3()).y
+  const hips = art.display.worldToLocal(root.getObjectByName('Hips').getWorldPosition(new THREE.Vector3()))
+  const boardDeckY = art.surfboard.position.y + .167 * 1.28
+  expect(hips.y - boardDeckY).toBeGreaterThan(.12)
+  expect(Math.hypot(hips.x - art.surfboard.position.x, hips.z - art.surfboard.position.z)).toBeLessThan(.01)
+  expect(seatedHead).toBeLessThan(standingHead - .2)
+  expect(art.surfboard.quaternion.angleTo(standingBoard)).toBeGreaterThan(.8)
+  const boardY = art.surfboard.position.y
+  expect(boardY).toBeGreaterThan(0)
+  apply(1)
+  expect(art.surfboard.position.y).toBeCloseTo(boardY)
+  apply(0)
+  expect(art.head.getWorldPosition(new THREE.Vector3()).y).toBeCloseTo(standingHead)
+  expect(art.surfboard.quaternion.angleTo(standingBoard)).toBeLessThan(1e-6)
+  art.dispose()
+  geometry.dispose()
+  material.dispose()
+})

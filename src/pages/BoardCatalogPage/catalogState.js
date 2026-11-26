@@ -1,4 +1,5 @@
 import { BOARD_LAYOUT } from '../../map/layout/boardLayout'
+import layoutManifest from '../../map/layout/board-layout.json'
 
 export const CATALOG_TOOLS = Object.freeze(['Inspect', 'Shark', 'Stone', 'Island', 'Storm', 'Cyclone', 'Surfer', 'Erase'])
 export const OBSTACLE_TYPES = Object.freeze(['Shark', 'Stone', 'Island', 'Storm', 'Cyclone'])
@@ -29,15 +30,20 @@ export function placeCatalogAsset(catalog, cellId, tool, surferId = '0') {
 
   const obstacles = { ...catalog.obstacles }
   const surfers = { ...catalog.surfers }
-  delete obstacles[cellId]
-  for (const id of Object.keys(surfers)) {
-    if (surfers[id] === cellId) delete surfers[id]
+  if (tool === 'Surfer') {
+    if (!/^[0-6]$/.test(String(surferId))) return catalog
+    const occupants = Object.entries(surfers).filter(([id, position]) => id !== String(surferId) && position === cellId)
+    if (occupants.length >= 2) return catalog
+  } else {
+    delete obstacles[cellId]
+    for (const id of Object.keys(surfers)) {
+      if (surfers[id] === cellId) delete surfers[id]
+    }
   }
 
   if (OBSTACLE_TYPES.includes(tool)) {
     obstacles[cellId] = tool
   } else if (tool === 'Surfer') {
-    if (!/^[0-6]$/.test(String(surferId))) return catalog
     surfers[String(surferId)] = cellId
   }
   const fallen = Object.fromEntries(Object.entries(catalog.fallen || {}).filter(([id]) => id in surfers))
@@ -82,4 +88,64 @@ export function nearbyCatalogCell(catalog, id) {
     if (d < distance) { distance = d; best = cell.id }
   }
   return best
+}
+
+// Isolated preview: land on a neighboring hazard without removing it.
+export function catalogJumpTarget(catalog, id) {
+  const origin = BOARD_LAYOUT[catalog.surfers[id]]
+  if (!origin || catalog.fallen?.[id]) return null
+  const occupied = new Set(Object.entries(catalog.surfers).filter(([other]) => other !== String(id)).map(([, cell]) => cell))
+  const spacing = Math.sqrt(3) * layoutManifest.hexRadius
+  const target = Object.keys(catalog.obstacles).map(Number).find(cellId => {
+    const cell = BOARD_LAYOUT[cellId]
+    return cell && !occupied.has(cellId) && Math.abs(Math.hypot(cell.x - origin.x, cell.z - origin.z) - spacing) < .005
+  })
+  return target === undefined ? null : target
+}
+
+export function jumpCatalogSurfer(catalog, id) {
+  const target = catalogJumpTarget(catalog, id)
+  return target === null ? catalog : { ...catalog, surfers: { ...catalog.surfers, [id]: target } }
+}
+
+// Illustrative two-step route through neighboring empty cells, isolated from a match.
+export function catalogCurrentRoute(catalog, id) {
+  const start = catalog.surfers[id]
+  if (!BOARD_LAYOUT[start] || catalog.fallen?.[id]) return []
+  const occupied = new Set([...Object.values(catalog.surfers), ...Object.keys(catalog.obstacles).map(Number)])
+  const spacing = Math.sqrt(3) * layoutManifest.hexRadius
+  const route = []
+  let from = start
+  for (let step = 0; step < 2; step++) {
+    const origin = BOARD_LAYOUT[from]
+    const next = BOARD_LAYOUT.filter(cell => !occupied.has(cell.id) &&
+      Math.abs(Math.hypot(cell.x - origin.x, cell.z - origin.z) - spacing) < .005)
+      .sort((a, b) => a.z - b.z || a.id - b.id)[0]
+    if (!next) break
+    route.push(next.id)
+    occupied.add(next.id)
+    from = next.id
+  }
+  return route
+}
+
+// Prepare a nearby partner for an isolated position-exchange preview.
+export function catalogChangePlan(catalog, id) {
+  const origin = catalog.surfers[id]
+  if (!BOARD_LAYOUT[origin] || catalog.fallen?.[id]) return null
+  const targetId = Object.keys(catalog.surfers).find(other => other !== String(id) && !catalog.fallen?.[other])
+  if (targetId === undefined) return null
+  const source = BOARD_LAYOUT[origin], partner = BOARD_LAYOUT[catalog.surfers[targetId]]
+  const spacing = Math.sqrt(3) * layoutManifest.hexRadius
+  const adjacent = Math.abs(Math.hypot(partner.x - source.x, partner.z - source.z) - spacing) < .005
+  const used = new Set([...Object.values(catalog.surfers), ...Object.keys(catalog.obstacles).map(Number)])
+  const nearby = BOARD_LAYOUT.find(cell => !used.has(cell.id) &&
+    Math.abs(Math.hypot(cell.x - source.x, cell.z - source.z) - spacing) < .005)
+  const targetCell = adjacent ? partner.id : nearby?.id
+  return targetCell === undefined ? null : { playerId: String(id), targetId, origin, targetCell }
+}
+
+export function applyCatalogChange(catalog, plan) {
+  if (!plan || catalog.surfers[plan.playerId] !== plan.origin || !(plan.targetId in catalog.surfers) || catalog.fallen?.[plan.playerId] || catalog.fallen?.[plan.targetId]) return catalog
+  return { ...catalog, surfers: { ...catalog.surfers, [plan.playerId]: plan.targetCell, [plan.targetId]: plan.origin } }
 }

@@ -84,6 +84,7 @@ describe('R1 rules', () => {
         passR1(G, ctx)
         r1Maneuver(G, ctx, 25)
         expect(G.players[0].energy).toBe(1)
+        expect(G.terrainEnergyEvent).toEqual({ id: 1, playerId: 0, amount: 1, source: 'Stone' })
         expect(G.cells[25].obstacle).toBeUndefined()
         expect(G.discardedCards).toContain(stone)
         assertConserved(G)
@@ -150,6 +151,7 @@ describe('R1 rules', () => {
         expect(G.players[0].cellPosition).toBe(to)
         expect(G.players[0].energy).toBe(2)
         expect(G.cells[to].obstacle).toBe(obstacle)
+        expect(G.terrainEnergyEvent).toBeUndefined()
         expect(ctx.events.endTurn).toHaveBeenCalledTimes(1)
         assertConserved(G)
     })
@@ -372,6 +374,7 @@ describe('R1 rules', () => {
         r1DropIn(G, ctx, 4)
         expect(G.players[0].energy).toBe(3)
         expect(G.players[1].energy).toBe(2)
+        expect(G.dropResult).toMatchObject({ attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 0 })
         const rolls = [1, 5, 6, 2, 4, 5]
         ctx.random.D6 = () => rolls.shift()
         r1DropIn(G, ctx, 4, 1)
@@ -757,6 +760,119 @@ test('boardgame.io ends the actual match on the first beach arrival', () => {
         expect(G.finishers).toEqual([first])
         expect(ctx.gameover).toEqual({ winner: first })
         expect(ctx.currentPlayer).toBe(String(first))
+    } finally {
+        client.stop()
+    }
+})
+
+test('an empty deck shuffles the discard on the next draw without touching cards on the board', () => {
+    const { G, ctx } = fixture()
+    const stone = G.deck.splice(G.deck.findIndex(card => card.Name === 'Stone'), 1)[0]
+    G.cells[25].obstacle = stone
+    G.discardedCards = G.deck.splice(0)
+    const discardedCount = G.discardedCards.length
+    const shuffle = jest.spyOn(ctx.random, 'Shuffle')
+    G.currentMove = 'maneuver'
+    const target = r1MoveTargets(G, ctx).find(id => !G.cells[id].obstacle && id < 49)
+    expect(target).toBeDefined()
+    const handSize = G.players[0].cards.length
+    r1Maneuver(G, ctx, target)
+    expect(shuffle).toHaveBeenCalledTimes(1)
+    expect(G.discardedCards).toHaveLength(0)
+    expect(G.deck).toHaveLength(discardedCount - 1)
+    expect(G.players[0].cards).toHaveLength(handSize + 1)
+    expect(G.cells[25].obstacle).toBe(stone)
+    assertConserved(G)
+})
+
+
+test('terrain feedback reports actual loss when a shark causes a fall', () => {
+    const { G, ctx } = fixture()
+    relocate(G, 0, 21)
+    G.players[0].energy = 1
+    passR1(G, ctx)
+    r1Maneuver(G, ctx, 28)
+    expect(G.players[0].energy).toBe(0)
+    expect(G.terrainEnergyEvent).toEqual({ id: 1, playerId: 0, amount: 1, source: 'Shark' })
+})
+
+
+test('storm entry records the energy lost without removing the storm', () => {
+    const { G, ctx } = fixture()
+    relocate(G, 0, 21)
+    place(G, 'Storm', 25)
+    passR1(G, ctx)
+    r1Maneuver(G, ctx, 25)
+    expect(G.terrainEnergyEvent).toEqual({ id: 1, playerId: 0, amount: 1, source: 'Storm' })
+    expect(G.cells[25].obstacle.Name).toBe('Storm')
+})
+
+test('card presentation events report the real capped gain and the discarded card', () => {
+    const { G, ctx } = fixture()
+    G.players[0].energy = 4
+    const index = grant(G, 0, 'Energy x2')
+    useR1Card(G, ctx, index)
+    expect(G.players[0].energy).toBe(5)
+    expect(G.cardVisualEvent).toMatchObject({ id: 1, playerId: 0, name: 'Energy x2', amount: 1, discarded: true })
+    expect(G.discardedCards.at(-1).Name).toBe('Energy x2')
+})
+
+test('a placed obstacle and an active protection do not animate as discarded cards', () => {
+    const first = fixture()
+    relocate(first.G, 0, 21)
+    useR1Card(first.G, first.ctx, grant(first.G, 0, 'Stone'), 25)
+    expect(first.G.cardVisualEvent).toMatchObject({ name: 'Stone', to: 25, discarded: false })
+    expect(first.G.cells[25].obstacle.Name).toBe('Stone')
+    const second = fixture()
+    useR1Card(second.G, second.ctx, grant(second.G, 0, 'Hang loose'))
+    expect(second.G.cardVisualEvent).toMatchObject({ name: 'Hang loose', discarded: false })
+    expect(second.G.players[0].activeCard[0].Name).toBe('Hang loose')
+})
+
+test('attack presentation reports the actual capped damage and targeted player', () => {
+    const { G, ctx } = fixture()
+    G.turn = 2
+    relocate(G, 0, 21)
+    relocate(G, 1, 25)
+    G.players[1].energy = 2
+    const index = grant(G, 0, 'Big wave')
+    useR1Card(G, ctx, index, 25, 1)
+    expect(G.players[1].energy).toBe(1)
+    expect(G.cardVisualEvent).toMatchObject({ name: 'Big wave', playerId: 0, targetId: 1, amount: 1, discarded: true })
+})
+
+test.each([[2, 2, 4], [4, 1, 5], [5, 0, 5]])('Island entry at %s energy reports the actual gain %s', (before, gain, after) => {
+    const { G, ctx } = fixture()
+    relocate(G, 0, 21)
+    place(G, 'Island', 25)
+    G.players[0].energy = before
+    passR1(G, ctx)
+    r1Maneuver(G, ctx, 25)
+    expect(G.players[0].energy).toBe(after)
+    expect(G.terrainEnergyEvent).toEqual({ id: 1, playerId: 0, amount: gain, source: 'Island', direction: 'gain' })
+    expect(G.cells[25].obstacle.Name).toBe('Island')
+})
+
+test('the boardgame.io client retains the Island gain event after the turn advances', () => {
+    const game = { ...SurfKingR1, seed: 'R1-island-gain-test', setup: ctx => {
+        const G = setupR1(ctx)
+        const first = G.order[0]
+        G.players[first].cellPosition = 21
+        G.players[first].energy = 2
+        const index = grant(G, first, 'Island')
+        G.cells[25].obstacle = G.players[first].cards.splice(index, 1)[0]
+        return G
+    } }
+    const client = Client({ game, numPlayers: 2 })
+    client.start()
+    try {
+        const first = client.getState().G.order[0]
+        client.moves.pass()
+        client.moves.maneuver(25)
+        const { G, ctx } = client.getState()
+        expect(ctx.currentPlayer).not.toBe(String(first))
+        expect(G.players[first].energy).toBe(4)
+        expect(G.terrainEnergyEvent).toEqual({ id: 1, playerId: first, amount: 2, source: 'Island', direction: 'gain' })
     } finally {
         client.stop()
     }

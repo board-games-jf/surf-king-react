@@ -18,9 +18,9 @@ describe('3D obstacle geometry', () => {
 
     const bounds = new THREE.Box3().setFromObject(model.object)
     const size = bounds.getSize(new THREE.Vector3())
-    expect(size.x).toBeLessThan(1.6)
-    expect(size.y).toBeLessThan(1.6)
-    expect(size.z).toBeLessThan(1.6)
+    expect(size.x).toBeLessThan(type === 'Island' ? 2.2 : 1.6)
+    expect(size.y).toBeLessThan(type === 'Island' ? 2.2 : 1.6)
+    expect(size.z).toBeLessThan(type === 'Island' ? 2.2 : 1.6)
     expect(bounds.isEmpty()).toBe(false)
 
     expect(() => model.update(0, 1)).not.toThrow()
@@ -50,7 +50,7 @@ describe('3D obstacle geometry', () => {
 describe('card silhouette and environmental motion', () => {
   const make = type => createObstacleModel(type, createScenePrimitives(new THREE.Scene()))
 
-  test('the Stone uses two mint-colored pointed crags, not round gray rocks', () => {
+  test('the Stone uses two pointed sandstone crags', () => {
     const model = make('Stone')
     const crags = []
     model.object.traverse(node => {
@@ -61,6 +61,42 @@ describe('card silhouette and environmental motion', () => {
       expect(crag.geometry.type).toBe('BufferGeometry')
       expect(crag.geometry.attributes.color).toBeDefined()
     })
+  })
+
+  test('Island palms sway and coconuts fall toward water, respecting reduced motion', () => {
+    const model = make('Island')
+    const palms = []
+    model.object.traverse(node => { if (node.name === 'island-palm') palms.push(node) })
+    const coconut = model.object.getObjectByName('island-falling-coconut')
+    model.update(.2, 0, false)
+    const firstY = coconut.position.y
+    const firstAngle = palms[0].rotation.z
+    expect(coconut.visible).toBe(true)
+    const initialX = coconut.position.x
+    const initialZ = coconut.position.z
+    model.update(.85, 0, false)
+    expect(coconut.position.y).toBeCloseTo(.26)
+    expect(coconut.position.x).toBeCloseTo(initialX)
+    model.update(1.8, 0, false)
+    expect(coconut.position.y).toBeLessThan(firstY)
+    expect(coconut.position.x).not.toBe(initialX)
+    expect(palms[0].rotation.z).not.toBe(firstAngle)
+    model.update(2.7, 0, false)
+    expect(coconut.position.y).toBeLessThan(0)
+    expect((coconut.position.x / .58) ** 2 + (coconut.position.z / .49) ** 2).toBeCloseTo(1, 4)
+    let nearest = null, best = Infinity
+    for (let i = 0; i < 128; i++) {
+      const angle = i * Math.PI * 2 / 128
+      const x = .58 * Math.cos(angle), z = .49 * Math.sin(angle)
+      const distance = Math.hypot(x - initialX, z - initialZ)
+      if (distance < best) { best = distance; nearest = { x, z } }
+    }
+    const shoreAngle = Math.atan2(nearest.z - initialZ, nearest.x - initialX)
+    const rollAngle = Math.atan2(coconut.position.z - initialZ, coconut.position.x - initialX)
+    expect(Math.cos(rollAngle - shoreAngle)).toBeGreaterThan(.999)
+    model.update(1.4, 0, true)
+    expect(coconut.visible).toBe(false)
+    expect(palms[0].rotation.z).toBe(0)
   })
 
   test('the Island has orange sand and two recognizable palm crowns', () => {

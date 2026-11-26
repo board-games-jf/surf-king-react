@@ -82,3 +82,17 @@ test('shared R1 cells retain both distinct public player identities', () => {
     const snapshot = createPublicMapSnapshot(G, { currentPlayer: '0' })
     expect(snapshot.players).toEqual([{ id: '0', cellId: 7, fallen: false }, { id: '1', cellId: 7, fallen: true }])
 })
+
+test('R1 map exposes each active public protection for individual markers', () => {
+    const G = { ...game(), ruleset: 'R1', currentMove: 'use_card', winner: null }
+    G.players[0].activeCard = [{ Name: 'Hang loose' }, { Name: 'Amulet' }]
+    const snapshot = createPublicMapSnapshot(G, { currentPlayer: '0' })
+    expect(snapshot.players[0].activeProtections).toEqual(['Hang loose', 'Amulet'])
+    expect(snapshot.players[1].activeProtections).toBeUndefined()
+})
+
+test('R1 map receives the actual Island energy gain event', () => {
+    const G = { ...game(), ruleset: 'R1', currentMove: 'use_card', winner: null,
+        terrainEnergyEvent: { id: 7, playerId: 1, amount: 1, source: 'Island', direction: 'gain' } }
+    expect(createPublicMapSnapshot(G, { currentPlayer: '0' }).terrainEnergyEvent).toEqual(G.terrainEnergyEvent)
+})

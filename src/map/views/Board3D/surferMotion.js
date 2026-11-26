@@ -33,6 +33,18 @@ export function stepFallMotion(motion, dt, reducedMotion = false) {
   return { ...motion, elapsed, value, remount: motion.remount && elapsed < motion.duration }
 }
 
+// Keep an existing island position when another surfer enters or leaves.
+export function chooseIslandSlot(previous, occupied) {
+  if (Number.isFinite(previous)) return previous
+  return [0, .68, -.68].find(slot => !occupied.some(value => Math.abs(value - slot) < .01)) ?? 0
+}
+
+// On sand the board settles first; recovery reverses the same path without jumps.
+export function sampleIslandFall(fall) {
+  const f = clamp01(fall)
+  return { sitting: ease((f - .5) / .5), board: ease(f / .5) }
+}
+
 export function sampleRiderMotion(fall, travel = 0, time = 0, reducedMotion = false, bank = 0) {
   const f = clamp01(fall)
   const riding = 1 - f

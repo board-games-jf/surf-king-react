@@ -26,11 +26,14 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
         })),
         players: Object.values(G.players || {}).map((player) => ({
             id: String(player.position),
+            ...(G.ruleset === 'R1' && (player.activeCard || []).some(card => card.Name === 'Amulet' || card.Name === 'Hang loose') ? { activeProtections: player.activeCard.filter(card => card.Name === 'Amulet' || card.Name === 'Hang loose').map(card => card.Name) } : {}),
             fallen: Number.isInteger(player.fellOffTheBoard) && player.fellOffTheBoard >= 0 && player.fellOffTheBoard <= G.turn,
             cellId: Number.isInteger(player.cellPosition) && player.cellPosition >= 0 && player.cellPosition < 53
                 ? player.cellPosition : null,
         })),
         ...(G.ruleset === 'R1' ? { turnMarkerPlayerId: G.winner == null ? String(ctx.currentPlayer) : null, ...(G.winner != null ? { winnerPlayerId: String(G.winner) } : {}) } : {}),
+        ...(G.ruleset === 'R1' && G.terrainEnergyEvent ? { terrainEnergyEvent: G.terrainEnergyEvent } : {}),
+        ...(G.ruleset === 'R1' && G.cardVisualEvent ? { cardVisualEvent: G.cardVisualEvent } : {}),
         turn: G.turn,
         activePlayerId: ctx?.currentPlayer == null ? null : String(ctx.currentPlayer),
         selectedCellId: Number.isInteger(selectedCellId) && selectedCellId >= 0 && selectedCellId < 53
