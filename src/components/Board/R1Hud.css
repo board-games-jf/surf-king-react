@@ -648,8 +648,8 @@
 .r1-hand-count strong { color: var(--hud-gold); }
 .r1-floating-hud .r1-action-bar > .r1-hand-toggle { padding-inline: 9px; font-size: .8em; }
 .r1-floating-hud .r1-action-bar > .r1-hand-toggle {
-    display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
-    padding: 4px 9px 4px 5px; border-radius: 13px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 59px; min-width: 59px; min-height: 40px;
+    padding: 4px; border-radius: 13px;
     background: linear-gradient(135deg, #285e67, #174650); border-color: #80b7b5;
     color: #f0fbf5; font-size: .85em;
 }
