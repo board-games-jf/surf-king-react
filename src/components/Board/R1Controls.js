@@ -200,10 +200,9 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                                 <span className="r1-player-energy-bolts">{Array.from({ length: 5 }, (_, i) => <span key={i} data-filled={i < p.energy} />)}</span>
                                 {p.energy}/5
                             </span>
+                            {state && <span className="r1-player-compact-state" aria-hidden="true" title={state}><FeedbackIcon kind={state === 'Protected' || state === 'Drop In shield' ? 'shield' : state === 'Winner' || state === 'Finished' ? 'flag' : 'warning'}/></span>}
                             {status === 'next' && <span className="r1-player-waiting" aria-hidden="true" title="Up next"/>}
                             {status === 'played' && <span className="r1-player-played" aria-hidden="true" title="Played"><FeedbackIcon kind="check"/></span>}
-                            {status === 'now' && <span className="r1-player-turn-tab" aria-hidden="true">Your turn</span>}
-                            {state && <span className="r1-player-compact-state" aria-hidden="true" title={state}><FeedbackIcon kind={state === 'Protected' || state === 'Drop In shield' ? 'shield' : state === 'Winner' || state === 'Finished' ? 'flag' : 'warning'}/></span>}
                         </button>
                     )
                 })}

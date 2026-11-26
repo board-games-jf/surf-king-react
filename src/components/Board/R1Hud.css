@@ -669,23 +669,16 @@
 }
 .r1-floating-hud .r1-player-badge:not([data-current="true"]) { align-self: center; }
 
-.r1-floating-hud .r1-round-order { padding-bottom: 19px; }
 .r1-floating-hud button.r1-player-badge[data-current="true"] {
-    position: relative; border-bottom: 0; border-radius: 12px 12px 0 0;
-    box-shadow: 0 3px 12px #072c3540;
-}
-.r1-player-turn-tab {
-    position: absolute; top: 100%; left: -1px; right: -1px; text-align: center;
-    padding: 1px 8px 2px; border: 1px solid var(--hud-gold); border-top: 0;
-    border-radius: 0 0 7px 7px; background: #173e49; color: #ffe0a1;
-    font-size: 10px; font-weight: 800; line-height: 1.1; white-space: nowrap;
-    pointer-events: none;
+    position: relative; border: 1px solid var(--hud-gold); border-radius: 12px;
+    box-shadow: 0 0 0 1px #ffe0a155, 0 3px 12px #072c3540;
 }
 
 .r1-player-played {
     display: inline-flex; align-items: center; justify-content: center;
     width: 18px; height: 18px; border-radius: 50%; color: #c6ffe0; background: #286c58;
 }
+.r1-player-played, .r1-player-waiting { margin-left: auto; }
 .r1-player-played .r1-feedback-icon { width: 12px; height: 12px; flex-basis: 12px; }
 
 .r1-player-waiting {
@@ -847,16 +840,15 @@
     }
     .r1-floating-hud .r1-player-badge:first-child { margin-left: 0; }
     .r1-floating-hud button.r1-player-badge { width: 100%; box-sizing: border-box; }
+    .r1-floating-hud .r1-player-compact-energy { font-size: .95em; }
+    .r1-floating-hud .r1-player-energy-bolts { gap: 2px; }
+    .r1-floating-hud .r1-player-energy-bolts > span { width: 9px; height: 15px; }
     .r1-floating-hud .r1-player-badge:not([data-current="true"]) { align-self: flex-start; }
     .r1-floating-hud button.r1-player-badge[data-current="true"] {
         border: 1px solid var(--hud-gold);
         border-left: 4px solid #ffd477;
         border-radius: 12px;
         box-shadow: 0 0 0 1px #ffe0a155, 0 3px 12px #072c3540;
-    }
-    .r1-round-order .r1-player-turn-tab {
-        position: static; margin-left: auto; padding: 2px 4px;
-        border: 0; background: transparent; font-size: 10px;
     }
     .r1-floating-hud .r1-card-piles { left: auto; right: max(var(--hud-inset), env(safe-area-inset-right)); }
     .r1-discard-list { left: auto; right: 0; }
