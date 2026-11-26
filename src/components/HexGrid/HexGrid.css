@@ -1,0 +1,14 @@
+/* Visual-only interaction layers: never intercept board picking. */
+.hex-hover-glow { opacity: 0; transition: opacity 150ms ease-in-out; }
+[data-hex-hover="true"] > .hex-hover-glow { opacity: 1; }
+.hex-selection-ripple { transform-origin: 0 0; animation: hex-water-ripple 1.8s linear infinite; }
+@keyframes hex-water-ripple {
+    from { transform: scale(.64); opacity: .28; }
+    to { transform: scale(1.13); opacity: 0; }
+}
+@media (hover: none) { .hex-hover-glow { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+    .hex-hover-glow { transition: none; }
+    .hex-selection-ripple { animation: none; opacity: .18; transform: scale(.75); }
+    .hex-selection-ripple + .hex-selection-ripple { transform: scale(1); opacity: .1; }
+}

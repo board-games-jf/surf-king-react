@@ -1,4 +1,4 @@
-import { getMixedTargetBorderPaths } from './targetHighlight'
+import { getMixedTargetBorderPaths, getHexHoverColors, stepHexHover } from './targetHighlight'
 
 test.each([.5, 1, 3])('mixed perimeter at radius %s covers six edges without overlap', radius => {
     const [first, second] = getMixedTargetBorderPaths(radius)
@@ -12,4 +12,17 @@ test.each([.5, 1, 3])('mixed perimeter at radius %s covers six edges without ove
         path.forEach(p => expect(Math.hypot(...p)).toBeCloseTo(radius))
         path.slice(1).forEach((p, i) => expect(Math.hypot(p[0] - path[i][0], p[1] - path[i][1])).toBeCloseTo(radius))
     }
+})
+
+test('hover takes 150 ms in either direction and honors reduced motion', () => {
+    const half = stepHexHover(0, true, .075, false)
+    expect(half).toBeCloseTo(.5)
+    expect(stepHexHover(half, true, .075, false)).toBe(1)
+    expect(stepHexHover(1, false, .15, false)).toBe(0)
+    expect(stepHexHover(0, true, 0, true)).toBe(1)
+    expect(stepHexHover(1, false, 0, true)).toBe(0)
+    expect(getHexHoverColors('green', 'red')).toEqual(['green', 'red'])
+    expect(getHexHoverColors(null, 'red')).toEqual(['red', 'red'])
+    expect(getHexHoverColors(null, null, 'gray')).toEqual(['gray', 'gray'])
+    expect(getHexHoverColors()).toEqual(['#f8ffff', '#f8ffff'])
 })

@@ -100,3 +100,21 @@ test('mixed actions use two unfilled segments on a single perimeter', () => {
     expect(attack.getAttribute('points').split(' ').at(-1)).toBe(move.getAttribute('points').split(' ')[0])
     expect(mixed).toHaveAttribute('pointer-events', 'none')
 })
+
+test('hover and selection are separate from mixed semantic paths and do not intercept clicks', () => {
+    const props = { onHexClick: jest.fn(), onHexHover: jest.fn(), renderCell: () => null,
+        cellProps: id => id === 7 ? { highlight: { kind: 'move', color: '#9bf4d4' }, attackHighlight: { color: '#ff9882' } } : {} }
+    const { container, rerender } = render(<HexGrid {...props} hoveredCellId={7} selectedCellId={7}/>)
+    const cell = container.querySelector('[data-cell-id="7"]').parentElement
+    expect(cell).toHaveAttribute('data-hex-hover', 'true')
+    expect(cell.querySelector('[data-hex-selection]')).toHaveAttribute('pointer-events', 'none')
+    expect(cell.querySelector('.hex-hover-glow')).toHaveAttribute('pointer-events', 'none')
+    expect(cell.querySelectorAll('[data-target-highlight]')).toHaveLength(2)
+    rerender(<HexGrid {...props} hoveredCellId={8} selectedCellId={7}/>)
+    expect(cell).not.toHaveAttribute('data-hex-hover')
+    expect(cell.querySelector('[data-hex-selection]')).toBeInTheDocument()
+    rerender(<HexGrid {...props} hoveredCellId={null} selectedCellId={null}/>)
+    expect(cell.querySelector('[data-hex-selection]')).not.toBeInTheDocument()
+    expect(cell.querySelectorAll('[data-target-highlight]')).toHaveLength(2)
+    expect(props.onHexClick).not.toHaveBeenCalled()
+})

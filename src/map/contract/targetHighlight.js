@@ -39,3 +39,20 @@ export function getMixedTargetBorderPaths(radius) {
     ])
     return [vertices.slice(0, 4), [...vertices.slice(3), vertices[0]]]
 }
+
+export const HEX_HOVER_SECONDS = .15
+export const HEX_HOVER_COLOR = '#f8ffff'
+export const HEX_SELECTION_COLOR = '#ffda57'
+
+// Semantic colors survive interaction; an unavailable/idle cell uses a neutral
+// hover outline unless a specific blocked state already has its own color.
+export function getHexHoverColors(primary, secondary, blocked) {
+    const first = primary || secondary || blocked || HEX_HOVER_COLOR
+    return [first, secondary || first]
+}
+
+export function stepHexHover(progress, active, dt, reduced) {
+    if (reduced) return active ? 1 : 0
+    const next = progress + (active ? 1 : -1) * Math.max(0, dt) / HEX_HOVER_SECONDS
+    return next < 1e-9 ? 0 : next > 1 - 1e-9 ? 1 : next
+}

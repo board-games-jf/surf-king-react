@@ -1,8 +1,9 @@
 import React, { useId } from 'react'
 import { BOARD_LAYOUT } from '../../map/layout/boardLayout'
 import manifest from '../../map/layout/board-layout.json'
-import { TARGET_BLOCK_SYMBOL_PATHS, getMixedTargetBorderPaths } from '../../map/contract/targetHighlight'
+import { TARGET_BLOCK_SYMBOL_PATHS, getMixedTargetBorderPaths, getHexHoverColors, HEX_SELECTION_COLOR } from '../../map/contract/targetHighlight'
 import { seaColor } from '../../constants/Colors'
+import './HexGrid.css'
 
 const radius = manifest.hexRadius
 const halfHeight = Math.sqrt(3) * radius / 2
@@ -14,7 +15,7 @@ const mixedBorderPaths = getMixedTargetBorderPaths(radius).map(path => path.map(
 const halfWidth = Math.max(...BOARD_LAYOUT.map(({ x }) => Math.abs(x))) + radius + .06
 const halfDepth = Math.max(...BOARD_LAYOUT.map(({ z }) => Math.abs(z))) + halfHeight + .06
 
-const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellId, getRef }) => {
+const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellId, hoveredCellId, selectedCellId, getRef }) => {
     const gridId = useId()
 
     return (
@@ -23,9 +24,11 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                 const { backgroundImage, style, highlight, attackHighlight, blocked } = cellProps(id)
                 const patternId = `${gridId}-cell-${id}`
                 const mixed = !!(highlight && attackHighlight)
+                const hoverColors = getHexHoverColors(highlight?.color, attackHighlight?.color, blocked?.color)
+                const selected = selectedCellId === id
 
                 return (
-                    <g key={id} transform={`translate(${x} ${z})`}>
+                    <g key={id} transform={`translate(${x} ${z})`} data-hex-hover={hoveredCellId === id ? 'true' : undefined}>
                         {backgroundImage && (
                             <defs>
                                 <pattern id={patternId} width="1" height="1" patternContentUnits="objectBoundingBox">
@@ -69,6 +72,17 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                         {blocked && <polygon points={points} transform={mixed ? "scale(.81)" : "scale(.91)"} fill={blocked.color}
                             fillOpacity=".07" stroke={blocked.color} strokeOpacity=".85" strokeWidth=".075"
                             strokeDasharray=".14 .10" pointerEvents="none" data-target-blocked={blocked.code}/>}
+                        {selected && <g pointerEvents="none" data-hex-selection="true">
+                            {[0, 1].map(i => <circle key={i} cx="0" cy="0" r={radius * .75} fill="none" stroke="#d8fff2" strokeWidth=".025" className="hex-selection-ripple" style={{ animationDelay: i ? '-.9s' : '0s' }}/>)}
+                            <polygon points={points} fill="none" stroke={HEX_SELECTION_COLOR} strokeWidth=".19" strokeOpacity=".22"/>
+                            <polygon points={points} fill="none" stroke={HEX_SELECTION_COLOR} strokeWidth=".065"/>
+                        </g>}
+                        {onHexHover && <g className="hex-hover-glow" transform={highlight || attackHighlight || blocked ? 'scale(.91)' : 'scale(.97)'} pointerEvents="none">
+                            {hoverColors.map((color, index) => <React.Fragment key={index}>
+                                <polyline points={mixedBorderPaths[index]} fill="none" stroke={color} strokeWidth=".20" strokeOpacity=".5" strokeLinejoin="round"/>
+                                <polyline points={mixedBorderPaths[index]} fill="none" stroke={color} strokeWidth=".075" strokeLinejoin="round"/>
+                            </React.Fragment>)}
+                        </g>}
                         <svg x={-radius} y={-halfHeight} width={2 * radius} height={2 * halfHeight}
                             viewBox="0 0 400 340" style={{ pointerEvents: 'none' }}>
                             {renderCell(id)}

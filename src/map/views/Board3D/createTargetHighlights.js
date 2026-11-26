@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import layoutManifest from '../../layout/board-layout.json'
-import { getTargetHighlightStyle, getTargetBlockStyle, TARGET_BLOCK_SYMBOL_PATHS, getMixedTargetBorderPaths } from '../../contract/targetHighlight'
+import { getTargetHighlightStyle, getTargetBlockStyle, TARGET_BLOCK_SYMBOL_PATHS, getMixedTargetBorderPaths, getHexHoverColors, stepHexHover, HEX_SELECTION_COLOR } from '../../contract/targetHighlight'
 
 // Small, shared, camera-facing icon texture, independent of DOM/canvas support.
 function createBlockTexture(symbol, color) {
@@ -112,6 +112,55 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
         color: getTargetHighlightStyle('attack').color, side: THREE.DoubleSide, transparent: true,
         depthWrite: false, toneMapped: false })]
     const mixedGlow = mixedCore.map(material => { const glow = material.clone(); glow.opacity = .22; return glow })
+    const interactionGroup = new THREE.Group()
+    interactionGroup.name = 'hex-interaction-effects'
+    const hover = new THREE.Group()
+    hover.name = 'hex-hover-glow'
+    hover.visible = false
+    const hoverMaterials = mixedCore.map(material => material.clone())
+    const hoverGlowMaterials = mixedGlow.map(material => material.clone())
+    mixedPaths.forEach((_, i) => {
+        const glow = new THREE.Mesh(mixedGlowGeometries[i], hoverGlowMaterials[i])
+        glow.renderOrder = 7
+        const core = new THREE.Mesh(mixedCoreGeometries[i], hoverMaterials[i])
+        core.position.y = .008
+        core.renderOrder = 8
+        hover.add(glow, core)
+    })
+    interactionGroup.add(hover)
+    const halo = new THREE.Group()
+    halo.name = 'hex-selection-halo'
+    halo.visible = false
+    const haloMaterial = new THREE.MeshBasicMaterial({ color: HEX_SELECTION_COLOR, transparent: true,
+        opacity: .96, side: THREE.DoubleSide, depthWrite: false, toneMapped: false })
+    const haloGlow = haloMaterial.clone()
+    haloGlow.opacity = .22
+    mixedPaths.forEach((_, i) => {
+        const glow = new THREE.Mesh(mixedGlowGeometries[i], haloGlow)
+        glow.renderOrder = 6
+        const core = new THREE.Mesh(mixedCoreGeometries[i], haloMaterial)
+        core.position.y = .008
+        core.renderOrder = 7
+        halo.add(glow, core)
+    })
+    interactionGroup.add(halo)
+    const ripples = new THREE.Group()
+    ripples.name = 'hex-selection-ripples'
+    ripples.visible = false
+    const rippleGeometry = new THREE.RingGeometry(.96, 1, 48)
+    for (let i = 0; i < 2; i++) {
+        const ripple = new THREE.Mesh(rippleGeometry, new THREE.MeshBasicMaterial({
+            color: '#d8fff2', transparent: true, opacity: 0, depthWrite: false,
+            side: THREE.DoubleSide, toneMapped: false,
+        }))
+        ripple.rotation.x = -Math.PI / 2
+        ripple.renderOrder = 2
+        ripples.add(ripple)
+    }
+    interactionGroup.add(ripples)
+    const cellById = new Map(cells.map(cell => [cell.id, cell]))
+    let requestedHover = null, shownHover = null, hoverProgress = 0
+    let selectedId = null, selectedElapsed = 0
     let lastElapsed = null
     const blockedMaterials = new Map()
     function materials(code) {
@@ -189,6 +238,14 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
     if (group.children.length) group.children[0].add(resources)
     return {
         group,
+        interactionGroup,
+        setHover(id) { requestedHover = cellById.has(id) ? id : null },
+        setSelection(id) {
+            const next = cellById.has(id) ? id : null
+            if (next !== selectedId) selectedElapsed = 0
+            selectedId = next
+            halo.visible = ripples.visible = next !== null
+        },
         update(highlight, useIndividualLabels = false, occupiedCells = new Set()) {
             const style = getTargetHighlightStyle(highlight?.kind)
             const baseOpacity = highlight?.preview ? .24 : .32
@@ -214,12 +271,9 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 const active = valid || !!code || attackable
                 marker.userData.active = active
                 marker.userData.occupied = occupiedCells.has(id)
+                marker.userData.hoverColors = getHexHoverColors(valid ? style?.color : null,
+                    attackable ? getTargetHighlightStyle('attack').color : null, code ? getTargetBlockStyle(code).color : null)
                 if (!active) {
-                    if (marker.userData.mixed) {
-                        marker.visible = false
-                        mixed.visible = false
-                        marker.userData.progress = 0
-                    }
                     return
                 }
                 const isMixed = valid && attackable
@@ -262,7 +316,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 const eased = progress * progress * (3 - 2 * progress)
                 // Keep the plate near the water when a surfer occupies the hex,
                 // so the rider and board remain in front of the translucent surface.
-                const lift = marker.userData.mixed ? 0 : (marker.userData.occupied ? .02 : .26) * eased +
+                const lift = (marker.userData.occupied ? .02 : marker.userData.mixed ? .14 : .26) * eased +
                     (reduced ? 0 : (marker.userData.occupied ? .004 : .025) * eased * Math.sin(elapsed * 1.8))
                 marker.position.y = .15 + lift
                 const reflection = marker.children[4]
@@ -270,6 +324,40 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 reflection.scale.setScalar(.7 + .3 * eased)
                 reflection.visible = !marker.userData.mixed && progress > 0
             })
+            if (requestedHover !== null && requestedHover !== shownHover) {
+                shownHover = requestedHover
+                hoverProgress = 0
+            }
+            hoverProgress = stepHexHover(hoverProgress, requestedHover !== null, dt, reduced)
+            hover.visible = shownHover !== null && hoverProgress > 0
+            if (hover.visible) {
+                const cell = cellById.get(shownHover)
+                const marker = markers.get(shownHover)
+                const active = marker.userData.active
+                const colors = marker.userData.hoverColors || getHexHoverColors()
+                hover.position.set(cell.x, Math.max(.215, active ? marker.position.y + .025 : .215), cell.z)
+                hover.scale.set(active ? .91 : .97, 1, active ? .91 : .97)
+                colors.forEach((color, i) => {
+                    hoverMaterials[i].color.set(color)
+                    hoverMaterials[i].opacity = hoverProgress
+                    hoverGlowMaterials[i].color.set(color)
+                    hoverGlowMaterials[i].opacity = .56 * hoverProgress
+                })
+            }
+            if (selectedId !== null) {
+                const cell = cellById.get(selectedId)
+                const marker = markers.get(selectedId)
+                halo.position.set(cell.x, Math.max(.235, marker.userData.active ? marker.position.y + .025 : .235), cell.z)
+                halo.scale.set(1.015, 1, 1.015)
+                ripples.position.set(cell.x, .21, cell.z)
+                if (!reduced) selectedElapsed += dt
+                ripples.children.forEach((ripple, i) => {
+                    const phase = reduced ? .25 + i * .4 : (selectedElapsed / 1.8 + i * .5) % 1
+                    const size = layoutManifest.hexRadius * (.48 + phase * .37)
+                    ripple.scale.setScalar(size)
+                    ripple.material.opacity = .28 * (1 - phase)
+                })
+            }
         },
     }
 }
