@@ -52,7 +52,7 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                                 data-target-preview={highlight.preview ? 'true' : 'false'} />
                         )}
                         {attackHighlight && <polygon points={points} transform={highlight ? 'scale(.76)' : 'scale(.91)'}
-                            fill={attackHighlight.color} fillOpacity=".36" stroke={attackHighlight.color} strokeOpacity="1"
+                            fill={attackHighlight.color} fillOpacity={highlight ? .18 : .36} stroke={attackHighlight.color} strokeOpacity="1"
                             strokeWidth=".10" pointerEvents="none" data-target-highlight="attack"/>}
                         {blocked && <polygon points={points} transform="scale(.91)" fill={blocked.color}
                             fillOpacity=".07" stroke={blocked.color} strokeOpacity=".85" strokeWidth=".075"

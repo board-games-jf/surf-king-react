@@ -71,6 +71,8 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
     })
     const attackFill = new THREE.MeshPhysicalMaterial({ color: getTargetHighlightStyle('attack').color,
         transparent: true, opacity: .36, depthWrite: false, roughness: .24, metalness: .08, clearcoat: .65, side: THREE.DoubleSide, toneMapped: false })
+    const attackOverlayFill = attackFill.clone()
+    attackOverlayFill.opacity = .18
     const attackStroke = new THREE.LineBasicMaterial({ color: getTargetHighlightStyle('attack').color,
         transparent: true, opacity: 1, depthWrite: false, toneMapped: false })
     const sideGeometry = createPlateSides(outlineGeometry)
@@ -141,6 +143,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
     // Dispose unused variants through scene traversal without adding marker children.
     const resources = new THREE.Group()
     resources.visible = false
+    resources.add(new THREE.Mesh(shapeGeometry, attackOverlayFill))
     icons.forEach(m => resources.add(new THREE.Mesh(shapeGeometry, m.fill),
         new THREE.LineLoop(outlineGeometry, m.stroke), new THREE.Sprite(m.icon)))
     if (group.children.length) group.children[0].add(resources)
@@ -174,6 +177,8 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 surface.visible = valid || !!code
                 outline.visible = valid || !!code
                 attack.visible = attackable
+                attack.children[0].material = valid ? attackOverlayFill : attackFill
+                attack.position.y = valid ? (marker.userData.occupied ? .035 : .09) : 0
                 reflection.material = attackable && !valid ? attackReflectionMaterial : reflectionMaterial
                 sides.material = attackable && !valid ? attackSideMaterial : sideMaterial
                 sides.visible = valid || attackable
