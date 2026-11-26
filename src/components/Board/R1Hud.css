@@ -645,6 +645,15 @@
 .r1-hand-count { padding-left: 5px; color: var(--hud-mute); font-size: .8em; white-space: nowrap; }
 .r1-hand-count strong { color: var(--hud-gold); }
 .r1-floating-hud .r1-action-bar > .r1-hand-toggle { padding-inline: 9px; font-size: .8em; }
+.r1-floating-hud .r1-action-bar > .r1-hand-toggle {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
+    padding: 4px 9px 4px 5px; border-radius: 13px;
+    background: linear-gradient(135deg, #285e67, #174650); border-color: #80b7b5;
+    color: #f0fbf5; font-size: .85em;
+}
+.r1-hand-toggle-icon { display: grid; place-items: center; width: 29px; height: 29px; flex: 0 0 29px; border-radius: 9px; background: #ffffff20; }
+.r1-hand-toggle-icon svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.r1-hand-toggle-chevron { color: #a9d7d2; font-size: 16px; line-height: 1; }
 
 .r1-card-detail[data-closable="true"] { padding-right: 38px; }
 .r1-floating-hud .r1-card-detail .r1-inspection-close {
