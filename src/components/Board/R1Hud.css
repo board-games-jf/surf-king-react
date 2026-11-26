@@ -679,7 +679,9 @@
     display: inline-flex; align-items: center; justify-content: center;
     width: 18px; height: 18px; border-radius: 50%; color: #c6ffe0; background: #286c58;
 }
-.r1-player-played, .r1-player-waiting { margin-left: auto; }
+.r1-player-played, .r1-player-waiting, .r1-player-turn-board { margin-left: auto; }
+.r1-player-turn-board { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; flex: 0 0 27px; background: #ffd477; clip-path: polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%); }
+.r1-player-turn-board svg { width: 21px; height: 15px; fill: #fff4c5; stroke: #805929; stroke-width: 1.2; stroke-linecap: round; }
 .r1-player-played .r1-feedback-icon { width: 12px; height: 12px; flex-basis: 12px; }
 
 .r1-player-waiting {
@@ -840,8 +842,8 @@
         padding: 2px 0 19px;
     }
     .r1-floating-hud .r1-player-badge:first-child { margin-left: 0; }
-    .r1-floating-hud button.r1-player-badge { width: 100%; box-sizing: border-box; }
-    .r1-floating-hud .r1-player-compact-energy { font-size: .95em; }
+    .r1-floating-hud button.r1-player-badge { width: 100%; box-sizing: border-box; gap: 8px; padding-left: 9px; padding-right: 9px; }
+    .r1-floating-hud .r1-player-compact-energy { flex: 1; justify-content: center; font-size: .95em; }
     .r1-floating-hud .r1-player-energy-bolts { gap: 2px; }
     .r1-floating-hud .r1-player-energy-bolts > span { width: 9px; height: 15px; }
     .r1-floating-hud .r1-player-badge:not([data-current="true"]) { align-self: flex-start; }

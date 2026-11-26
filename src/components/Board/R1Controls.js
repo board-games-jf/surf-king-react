@@ -203,6 +203,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             {state && <span className="r1-player-compact-state" aria-hidden="true" title={state}><FeedbackIcon kind={state === 'Protected' || state === 'Drop In shield' ? 'shield' : state === 'Winner' || state === 'Finished' ? 'flag' : 'warning'}/></span>}
                             {status === 'next' && <span className="r1-player-waiting" aria-hidden="true" title="Up next"/>}
                             {status === 'played' && <span className="r1-player-played" aria-hidden="true" title="Played"><FeedbackIcon kind="check"/></span>}
+                            {status === 'now' && <span className="r1-player-turn-board" aria-hidden="true"><svg viewBox="0 0 28 16"><path d="M2 8C4 3 13 2 21 3c3 .3 5 2 5 5s-2 4.7-5 5C13 14 4 13 2 8Z"/><path d="M5 8h17"/></svg></span>}
                         </button>
                     )
                 })}
