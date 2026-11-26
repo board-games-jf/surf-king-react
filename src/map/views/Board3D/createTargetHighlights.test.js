@@ -119,3 +119,37 @@ test('mixed actions share a flat two-color perimeter, preserve the center and cl
     geometries.forEach(g => g.dispose())
     materials.forEach(material => { material.map?.dispose(); material.dispose() })
 })
+
+test('single-action floating feedback still animates and clears with reduced motion', () => {
+    const geometry = new THREE.BufferGeometry()
+    const markers = createTargetHighlights(BOARD_LAYOUT, geometry, geometry)
+    const [move, attack] = markers.group.children
+    markers.update({ kind: 'move', cellIds: [0], preview: true, attackCellIds: [1] })
+    expect(attack.children[3].visible).toBe(true)
+    markers.animate(0, false)
+    const start = move.position.y
+    markers.animate(.1, false)
+    expect(move.position.y).toBeGreaterThan(start)
+    const reflectionHeight = move.position.y + move.children[4].position.y
+    markers.animate(.2, false)
+    expect(move.position.y + move.children[4].position.y).toBeCloseTo(reflectionHeight)
+    const risenHeight = move.position.y
+    markers.update(undefined)
+    expect(move.visible).toBe(true)
+    markers.animate(.3, false)
+    expect(move.position.y).toBeLessThan(risenHeight)
+    markers.animate(.4, false)
+    markers.animate(.5, false)
+    expect(move.visible).toBe(false)
+    expect(attack.visible).toBe(false)
+    markers.update({ kind: 'move', cellIds: [0], preview: true }, true, new Set([0]))
+    markers.animate(.6, true)
+    expect(move.position.y).toBeCloseTo(.17)
+    markers.update(undefined)
+    markers.animate(.7, true)
+    expect(move.visible).toBe(false)
+    const geometries = new Set(), materials = new Set()
+    markers.group.traverse(child => { if (child.geometry) geometries.add(child.geometry); if (child.material) materials.add(child.material) })
+    geometries.forEach(g => g.dispose())
+    materials.forEach(material => { material.map?.dispose(); material.dispose() })
+})
