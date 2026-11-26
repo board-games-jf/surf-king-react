@@ -655,7 +655,12 @@
 .r1-hud-dock > .r1-action-bar { width: min(400px, 100%); max-width: 100%; }
 .r1-hud-dock > .r1-dock-scroll { min-width: min(400px, 100%); }
 .r1-hud-context[data-turn-progress="true"] { width: min(400px, 100%); }
-.r1-action-reason { color: #bcd9da; font-size: .77em; line-height: 1.2; text-align: center; max-width: min(400px, 100%); }
+.r1-floating-hud #r1-drop-status.r1-action-reason {
+    flex: 0 0 auto; max-width: min(400px, 100%); box-sizing: border-box;
+    padding: 4px 10px; border: 1px solid #8bbdb780; border-radius: 9px;
+    background: #0c303af2; color: #e5f4ec; font-size: 12px; font-weight: 650;
+    line-height: 1.25; text-align: center;
+}
 .r1-floating-hud .r1-action-bar > button { min-width: 0; padding: 6px 13px; }
 .r1-floating-hud #r1-drop-status.r1-drop-reason { flex-basis: 100%; max-width: 30ch; }
 
