@@ -9,7 +9,7 @@ test('draws all 53 cells at the shared board coordinates and forwards the origin
         <HexGrid cellProps={() => ({})} renderCell={() => null} onHexClick={onHexClick} />
     )
 
-    const cells = container.querySelectorAll('g')
+    const cells = container.querySelectorAll('svg > g')
     expect(cells).toHaveLength(53)
     BOARD_LAYOUT.forEach(({ id, x, z }) => {
         expect(cells[id].getAttribute('transform')).toBe(`translate(${x} ${z})`)
@@ -35,6 +35,19 @@ test('draws noninteractive inset highlights without changing original cell click
     })} />)
     expect(container.querySelectorAll('[data-target-highlight="move"]')).toHaveLength(0)
     expect(container.querySelectorAll('[data-target-highlight="attack"]')).toHaveLength(1)
+})
+
+test('renders moving water inside highlighted hexes behind the surfer', () => {
+    const { container } = render(<HexGrid onHexClick={jest.fn()}
+        cellProps={id => id === 7 ? { highlight: { kind: 'move', color: '#9bf4d4' }, attackHighlight: { color: '#ff9882' } } : {}}
+        renderCell={id => id === 7 ? <circle data-surfer="true" r="10"/> : null} />)
+    const flow = container.querySelectorAll('[data-target-flow="true"]')
+    const surfer = container.querySelector('[data-surfer="true"]')
+    expect(flow).toHaveLength(2)
+    flow.forEach(layer => {
+        expect(layer).toHaveAttribute('pointer-events', 'none')
+        expect(layer.compareDocumentPosition(surfer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
 })
 
 test('hover and leave forward exact IDs independently of clicks', () => {

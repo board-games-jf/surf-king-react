@@ -658,7 +658,7 @@
 .r1-hud-dock > .r1-action-bar { width: min(400px, 100%); max-width: 100%; }
 .r1-hud-dock > .r1-action-bar:has(> .r1-hand-toggle:only-child) { width: max-content; }
 .r1-hud-dock > .r1-dock-scroll { min-width: min(400px, 100%); }
-.r1-turn-progress { width: min(400px, 100%); box-sizing: border-box; padding: 5px 8px; text-align: center; }
+.r1-turn-progress { width: min(460px, 100%); box-sizing: border-box; padding: 5px 8px; text-align: center; pointer-events: auto; }
 .r1-turn-reason { display: block; margin-top: 3px; color: #d6eae5; font-size: 12px; line-height: 1.25; }
 .r1-floating-hud .r1-action-bar > button { min-width: 0; padding: 6px 13px; }
 .r1-floating-hud #r1-drop-status.r1-drop-reason { flex-basis: 100%; max-width: 30ch; }
@@ -680,7 +680,22 @@
     background: linear-gradient(135deg, #285e67, #174650); border-color: #80b7b5;
     color: #f0fbf5; font-size: .85em;
 }
-.r1-hand-toggle-icon { display: grid; place-items: center; width: 29px; height: 29px; flex: 0 0 29px; border-radius: 9px; background: #ffffff20; }
+.r1-floating-hud .r1-turn-steps .r1-hand-toggle {
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 88px; min-width: 88px; min-height: 36px;
+    padding: 3px; border-radius: 10px; background: linear-gradient(135deg, #285e67, #174650); border-color: #80b7b5; color: #f0fbf5;
+}
+.r1-turn-drop {
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    box-sizing: border-box; min-height: 36px; padding: 3px 7px 3px 3px; border: 1px solid #80b7b5; border-radius: 10px;
+    background: linear-gradient(135deg, #285e67, #174650); color: #f0fbf5; font-weight: 650; white-space: nowrap;
+}
+.r1-turn-drop[data-available="true"] { box-shadow: inset 0 0 0 1px #9ce2bf; }
+.r1-turn-drop .r1-hand-toggle-icon > .r1-feedback-icon { width: 18px; height: 18px; }
+.r1-turn-card[data-available="true"] .r1-hand-toggle { box-shadow: inset 0 0 0 1px #9ce2bf; }
+.r1-hand-toggle-icon { position: relative; display: grid; place-items: center; width: 29px; height: 29px; flex: 0 0 29px; border-radius: 9px; background: #ffffff20; }
+.r1-hand-availability { position: absolute; right: -4px; bottom: -3px; display: grid; place-items: center; width: 13px; height: 13px; border-radius: 50%; background: #526c70; color: #e0efea; font-size: 10px; font-weight: 900; line-height: 1; }
+.r1-hand-availability[data-available="true"] { background: #48a87c; color: #fff; }
+.r1-hand-toggle-icon .r1-hand-availability .r1-feedback-icon { width: 10px; height: 10px; stroke-width: 2.5; }
 .r1-hand-toggle-icon svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .r1-hand-toggle-chevron { width: 14px; height: 14px; flex: 0 0 14px; fill: none; stroke: #a9d7d2; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 

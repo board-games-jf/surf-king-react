@@ -31,12 +31,10 @@
     height: 96%;
 }
 
-.surf-match-r1 [data-target-highlight="move"],
-.surf-match-r1 [data-target-highlight="attack"] { animation: r1-target-pulse 2.6s ease-in-out infinite; }
-@keyframes r1-target-pulse { 0%, 100% { fill-opacity: .22; } 50% { fill-opacity: .42; } }
+.surf-match-r1 .r1-target-flow-lines { animation: r1-target-flow 2.8s linear infinite; }
+@keyframes r1-target-flow { from { transform: translateY(0); } to { transform: translateY(.8px); } }
 @media (prefers-reduced-motion: reduce) {
-    .surf-match-r1 [data-target-highlight="move"],
-    .surf-match-r1 [data-target-highlight="attack"] { animation: none; }
+    .surf-match-r1 .r1-target-flow-lines { animation: none; }
 }
 
 .surf-map-toolbar, .surf-map-controls {

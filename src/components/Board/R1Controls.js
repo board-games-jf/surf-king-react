@@ -148,6 +148,14 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const moveLabel = G.currentMove === 'use_card' ? 'Continue' :
         G.currentMove === 'current_second' ? 'Finish movement' :
         canPass ? 'End turn' : 'Choose a hex'
+    const showFinishControl = !swapChoice && (swapCard || G.currentMove === 'current_second' || (G.currentMove === 'maneuver' && !targets.length) || noMoveAvailable)
+    const handToggle = <button type="button" className="r1-hand-toggle" onClick={() => { inspectCard(null); setHandHidden(value => !value) }} aria-expanded={!handHidden} aria-label={handHidden ? 'Show cards' : 'Hide cards'} aria-describedby="r1-hand-count-description" title={handHidden ? 'Show cards' : 'Hide cards'}>
+        <span className="r1-hand-toggle-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="4" width="12" height="16" rx="2"/><path d="M5 7H4v12a2 2 0 0 0 2 2h10"/></svg>{showTurnSteps && <span className="r1-hand-availability" data-available={cardAvailable}>{cardAvailable ? <FeedbackIcon kind="check"/> : '—'}</span>}</span>
+        <span className="r1-hand-count" aria-hidden="true">{hand.cards.length}/5</span>
+        <span id="r1-hand-count-description" className="r1-sr-only">{hand.cards.length} of 5 cards in hand{showTurnSteps ? (cardAvailable ? '; card available' : '; card unavailable') : ''}</span>
+        <svg className="r1-hand-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d={handHidden ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'}/></svg>
+    </button>
+    const handCard = <span className="r1-turn-card" data-available={cardAvailable} title={cardAvailable ? 'Card available' : 'Card unavailable'}>{handToggle}</span>
 
     const singleAmuletBlock = hexFeedback?.occupants?.length === 1 &&
         hexFeedback.occupants[0].blocked === 'Amulet' && hexFeedback.action === 'This opponent is protected.'
@@ -350,22 +358,20 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     {!hand.cards.length && <span className="r1-empty-hand r1-glass">No cards in hand</span>}
                 </div>}
                 </div>
-                <div className="r1-action-bar r1-glass">
-                    <button type="button" className="r1-hand-toggle" onClick={() => { inspectCard(null); setHandHidden(value => !value) }} aria-expanded={!handHidden} aria-label={handHidden ? 'Show cards' : 'Hide cards'} aria-describedby="r1-hand-count-description" title={handHidden ? 'Show cards' : 'Hide cards'}>
-                        <span className="r1-hand-toggle-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="4" width="12" height="16" rx="2"/><path d="M5 7H4v12a2 2 0 0 0 2 2h10"/></svg></span>
-                        <span className="r1-hand-count" aria-hidden="true">{hand.cards.length}/5</span>
-                        <span id="r1-hand-count-description" className="r1-sr-only">{hand.cards.length} of 5 cards in hand</span>
-                        <svg className="r1-hand-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d={handHidden ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'}/></svg>
-                    </button>
-                    {!swapChoice && (swapCard || G.currentMove === 'current_second' || (G.currentMove === 'maneuver' && !targets.length) || noMoveAvailable) && <button type="button" className="r1-move-button" disabled={!canPass || !!selection}
+                {(!showTurnSteps || showFinishControl) && <div className="r1-action-bar r1-glass">
+                    {!showTurnSteps && handToggle}
+                    {showFinishControl && <button type="button" className="r1-move-button" disabled={!canPass || !!selection}
                         aria-label={moveLabel} onClick={() => { inspectCard(null); moves.pass() }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span><span className="r1-move-label">{moveLabel}</span></button>}
-                </div>
+                </div>}
                 {showTurnSteps && <div className="r1-turn-progress r1-glass">
                     <div className="r1-turn-steps" aria-label="Turn progress">
-                        {G.currentMove === 'current_second' ? <strong>Surf Current · choose a second hex or finish</strong> : <>
+                        {G.currentMove === 'current_second' ? <>{handCard}<strong>Surf Current · choose a second hex or finish</strong></> : <>
                             <strong>Before moving</strong>
-                            <span className="r1-turn-option" data-available={cardAvailable} title={cardAvailable ? 'Card available' : 'Card unavailable'}>Card <span aria-hidden="true">{cardAvailable ? '✓' : '—'}</span><span className="r1-sr-only">{cardAvailable ? ' available' : ' unavailable'}</span></span>
-                            <span className="r1-turn-option" data-available={!dropReason} title={!dropReason ? 'Drop In available' : 'Drop In unavailable'}>Drop In <span aria-hidden="true">{!dropReason ? '✓' : '—'}</span><span className="r1-sr-only">{!dropReason ? ' available' : ' unavailable'}</span></span>
+                            {handCard}
+                            <span className="r1-turn-drop" data-available={!dropReason} title={!dropReason ? 'Drop In available' : 'Drop In unavailable'}>
+                                <span className="r1-hand-toggle-icon" aria-hidden="true"><FeedbackIcon kind="dropIn"/><span className="r1-hand-availability" data-available={!dropReason}>{!dropReason ? <FeedbackIcon kind="check"/> : '—'}</span></span>
+                                <span>Drop In</span><span className="r1-sr-only">{!dropReason ? ' available' : ' unavailable'}</span>
+                            </span>
                             <span aria-hidden="true">→</span>
                             <strong>{G.currentMove === 'current_first' ? 'Surf Current · first step' : 'Move · ends turn'}</strong>
                         </>}

@@ -28,6 +28,28 @@ function createBlockTexture(symbol, color) {
     return texture
 }
 
+// Repeating translucent streaks stay clipped to each hex by its geometry.
+function createFlowTexture() {
+    const size = 128
+    const pixels = new Uint8Array(size * size * 4)
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+        const phase = y / size * Math.PI * 2
+        let alpha = 0
+        for (const [center, offset] of [[16, 0], [43, 1.7], [76, 3.2], [105, 4.8]]) {
+            const drift = Math.sin(phase + offset) * 2
+            const distance = Math.abs(x - center - drift)
+            const length = Math.pow(Math.max(0, Math.sin(phase + offset)), 2)
+            alpha = Math.max(alpha, Math.max(0, 1 - distance / 2.5) * length * 160)
+        }
+        pixels.set([255, 255, 255, Math.round(alpha)], (y * size + x) * 4)
+    }
+    const texture = new THREE.DataTexture(pixels, size, size)
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+    texture.magFilter = texture.minFilter = THREE.LinearFilter
+    texture.needsUpdate = true
+    return texture
+}
+
 // Presentation-only pool, sized to the complete board rather than movement's
 // six neighbors. Shared geometry/materials are disposed by the scene.
 export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
@@ -44,8 +66,11 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
         transparent: true, opacity: .36, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })
     const attackStroke = new THREE.LineBasicMaterial({ color: getTargetHighlightStyle('attack').color,
         transparent: true, opacity: 1, depthWrite: false, toneMapped: false })
-    let pulseMain = false
-    let baseOpacity = .32
+    const flowTexture = createFlowTexture()
+    const flowMaterial = new THREE.MeshBasicMaterial({ map: flowTexture, transparent: true, opacity: .8,
+        depthTest: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })
+    const attackFlowMaterial = new THREE.MeshBasicMaterial({ map: flowTexture, color: getTargetHighlightStyle('attack').color,
+        transparent: true, opacity: .8, depthTest: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })
     const blockedMaterials = new Map()
     function materials(code) {
         const style = getTargetBlockStyle(code)
@@ -87,9 +112,18 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
         const attackOutline = new THREE.LineLoop(outlineGeometry, attackStroke)
         attackOutline.position.y = .017
         attackOutline.renderOrder = 5
-        attack.add(attackSurface, attackOutline)
+        const attackFlow = new THREE.Mesh(shapeGeometry, attackFlowMaterial)
+        attackFlow.rotation.x = -Math.PI / 2
+        attackFlow.position.y = .015
+        attackFlow.renderOrder = 4
+        attack.add(attackSurface, attackOutline, attackFlow)
         attack.visible = false
-        marker.add(surface, outline, icon, attack)
+        const flow = new THREE.Mesh(shapeGeometry, flowMaterial)
+        flow.rotation.x = -Math.PI / 2
+        flow.position.y = .008
+        flow.renderOrder = 3
+        flow.visible = false
+        marker.add(surface, outline, icon, attack, flow)
         group.add(marker)
         return [cell.id, marker]
     }))
@@ -103,14 +137,15 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
         group,
         update(highlight, useIndividualLabels = false) {
             const style = getTargetHighlightStyle(highlight?.kind)
-            pulseMain = highlight?.kind === 'move' || highlight?.kind === 'attack'
-            baseOpacity = highlight?.preview ? .24 : .32
+            const flowMain = highlight?.kind === 'move' || highlight?.kind === 'attack'
+            const baseOpacity = highlight?.preview ? .24 : .32
             const ids = new Set(style ? highlight.cellIds : [])
             const attackIds = new Set(highlight?.attackCellIds || [])
             const blocked = new Map((highlight?.blocked || []).map(item => [item.id, item.code]))
             const labeledCells = new Set((highlight?.blocked || []).filter(item => item.playerId != null).map(item => item.id))
             if (style) {
                 fill.color.set(style.color)
+                flowMaterial.color.set(style.color)
                 stroke.color.set(style.color)
                 fill.opacity = baseOpacity
                 stroke.opacity = highlight.preview ? .9 : 1
@@ -118,12 +153,13 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
             markers.forEach((marker, id) => {
                 const valid = ids.has(id)
                 const code = blocked.get(id)
-                const [surface, outline, icon, attack] = marker.children
+                const [surface, outline, icon, attack, flow] = marker.children
                 const attackable = attackIds.has(id)
                 marker.visible = valid || !!code || attackable
                 surface.visible = valid || !!code
                 outline.visible = valid || !!code
                 attack.visible = attackable
+                flow.visible = valid && flowMain
                 attack.scale.setScalar(valid ? .84 : 1)
                 marker.userData.blocked = code
                 if (!valid && code) {
@@ -141,10 +177,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
             })
         },
         animate(elapsed, reduced) {
-            const pulse = reduced ? 0 : (1 + Math.sin(elapsed * 2.4)) / 2
-            if (pulseMain) fill.opacity = Math.min(.5, baseOpacity + .12 * pulse)
-            attackFill.opacity = .36 + .1 * pulse
-            attackStroke.opacity = reduced ? 1 : .8 + .2 * pulse
+            flowTexture.offset.y = reduced ? 0 : -(elapsed * .18) % 1
         },
     }
 }
