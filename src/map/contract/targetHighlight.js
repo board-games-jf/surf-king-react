@@ -30,3 +30,12 @@ export const TARGET_BLOCK_SYMBOL_PATHS = {
     one: [[[.35,.35],[.5,.21],[.5,.78]],[[.32,.78],[.68,.78]]],
     cross: [[[.28,.28],[.72,.72]],[[.72,.28],[.28,.72]]],
 }
+
+// Two contiguous, non-overlapping halves of the same hex perimeter. Both
+// renderers use the same vertex order; the final vertex closes the perimeter.
+export function getMixedTargetBorderPaths(radius) {
+    const vertices = Array.from({ length: 6 }, (_, i) => [
+        Math.cos(i * Math.PI / 3) * radius, Math.sin(i * Math.PI / 3) * radius,
+    ])
+    return [vertices.slice(0, 4), [...vertices.slice(3), vertices[0]]]
+}

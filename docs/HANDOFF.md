@@ -1,12 +1,16 @@
 # Project Handoff
 
+## Layered hex interaction (#57)
+
+- First slice branches from draft PR #56 (`6edf5ec9`), which depends on #55. Mixed movement/Drop In targets now share a flat two-color perimeter with local glow and no central fill in both views; pooled Three.js ribbon meshes reuse shared geometry and materials. Single-action visuals, existing selection, card priority and game dispatch remain unchanged. Added contract, SVG and Three.js regression fixtures; full Jest, build and visual validation are pending. Next: independent hover/selection and terrain/occupancy semantics, then shared action/cost indicators and inspector confirmation. No merge or deployment authorized.
+
 ## Board side layout (#53)
 
 - The player shortcuts form a scrollable column on the left on spacious screens; the 3D card raft and 2D card piles are on the right. Compact screens retain their previous HUD layout. Desktop 3D visual review and the card-pile tests passed; mobile visual review remains pending.
 
 ## Contextual board actions (#54)
 
-- Ordinary movement and Drop In are initiated from the selected hex; the persistent move/attack buttons and ordinary movement target panel have been removed. Drop In retains the selected opponent while the player chooses dice and confirms; keyboard shortcuts remain available on focus. Legal movement and attack destinations are highlighted simultaneously, with nested colors when both actions apply. In 3D, translucent plates rise and float above a diffuse water reflection, returning to the surface when deactivated; occupied plates remain close to the water beneath the surfer, and reduced motion resolves immediately. The 2D view retains static highlights, and card previews retain priority. The hand toggle and action availability share the turn summary. Special finish/continue controls remain when necessary. A validated atomic quick maneuver preserves normal turn resolution. Local 2D movement, contextual Drop In and 3D overlap highlighting were exercised; mobile review remains pending.
+- Ordinary movement and Drop In are initiated from the selected hex; the persistent move/attack buttons and ordinary movement target panel have been removed. Drop In retains the selected opponent while the player chooses dice and confirms; keyboard shortcuts remain available on focus. Legal movement and attack destinations are highlighted simultaneously, with nested colors in PR #56 when both actions apply (replaced by split perimeter in #57). In 3D, translucent plates rise and float above a diffuse water reflection, returning to the surface when deactivated; occupied plates remain close to the water beneath the surfer, and reduced motion resolves immediately. The 2D view retains static highlights, and card previews retain priority. The hand toggle and action availability share the turn summary. Special finish/continue controls remain when necessary. A validated atomic quick maneuver preserves normal turn resolution. Local 2D movement, contextual Drop In and 3D overlap highlighting were exercised; mobile review remains pending.
 
 ## Local animation review studio (#50)
 

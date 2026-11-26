@@ -78,6 +78,7 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-046 | Accepted | R1 ends immediately on first arrival at a beach hex (49–52); energy and round completion do not determine victory. Use readable individual target-restriction labels and identify the finish and winner. | Owner requested first-arrival victory and clearer map feedback on 2026-11-24. R1 remains a playtest trial. | [#48](https://github.com/board-games-jf/surf-king-react/issues/48) |
 | SK-DEC-047 | Accepted | Shared-hex inspection shows the terrain effect and all public occupants simultaneously, with separate identities, energy, active defenses, fall/finish state and individual target eligibility/reasons. No private hand contents or changes to legal click behavior. | Owner requested information for every element in an occupied hex. | [#48](https://github.com/board-games-jf/surf-king-react/issues/48) |
+| SK-DEC-048 | Accepted | Build a layered hex interaction system with independent interaction and semantic states, segmented borders for simultaneous options, localized glow, gold selection halo, water ripples, contextual action/cost indicators and explicit confirmation. Reuse existing rendering, inspection and authoritative rules; support touch and reduced motion. | Owner supplied the specification and visual reference and requested a PR #56 baseline on 2026-11-26. Implementation and visual acceptance are incremental. | [#57](https://github.com/board-games-jf/surf-king-react/issues/57) |
 
 ## Safeguards
 

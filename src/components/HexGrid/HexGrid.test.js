@@ -85,3 +85,18 @@ test('individual opponent labels replace duplicate ambiguous cell glyphs', () =>
     expect(blocked).toBeInTheDocument()
     expect(blocked.parentElement.querySelector('svg[aria-label="1 energy · Drop In only"]')).not.toBeInTheDocument()
 })
+
+test('mixed actions use two unfilled segments on a single perimeter', () => {
+    const { container } = render(<HexGrid onHexClick={jest.fn()} renderCell={() => null}
+        cellProps={id => id === 7 ? { highlight: { kind: 'move', color: '#9bf4d4' }, attackHighlight: { color: '#ff9882' } } : {}} />)
+    const mixed = container.querySelector('[data-mixed-target-border]')
+    const move = mixed.querySelector('[data-target-highlight="move"]')
+    const attack = mixed.querySelector('[data-target-highlight="attack"]')
+    expect(move.tagName.toLowerCase()).toBe('polyline')
+    expect(attack.tagName.toLowerCase()).toBe('polyline')
+    expect(move).toHaveAttribute('fill', 'none')
+    expect(attack).toHaveAttribute('fill', 'none')
+    expect(move.getAttribute('points').split(' ').at(-1)).toBe(attack.getAttribute('points').split(' ')[0])
+    expect(attack.getAttribute('points').split(' ').at(-1)).toBe(move.getAttribute('points').split(' ')[0])
+    expect(mixed).toHaveAttribute('pointer-events', 'none')
+})

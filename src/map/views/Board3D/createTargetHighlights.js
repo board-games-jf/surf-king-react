@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { getTargetHighlightStyle, getTargetBlockStyle, TARGET_BLOCK_SYMBOL_PATHS } from '../../contract/targetHighlight'
+import layoutManifest from '../../layout/board-layout.json'
+import { getTargetHighlightStyle, getTargetBlockStyle, TARGET_BLOCK_SYMBOL_PATHS, getMixedTargetBorderPaths } from '../../contract/targetHighlight'
 
 // Small, shared, camera-facing icon texture, independent of DOM/canvas support.
 function createBlockTexture(symbol, color) {
@@ -57,6 +58,25 @@ function createPlateSides(outlineGeometry) {
     return geometry
 }
 
+// A flat ribbon has a predictable world-space width (WebGL line widths do not).
+// The two halves meet exactly, with shared geometry/materials for every cell.
+function createBorderRibbon(path, halfWidth) {
+    const vertices = []
+    const edge = (p, offset) => {
+        const radius = Math.hypot(...p)
+        const scale = (radius + offset) / radius
+        return [p[0] * scale, 0, p[1] * scale]
+    }
+    for (let i = 0; i + 1 < path.length; i++) {
+        const a = edge(path[i], halfWidth), b = edge(path[i + 1], halfWidth)
+        const c = edge(path[i], -halfWidth), d = edge(path[i + 1], -halfWidth)
+        vertices.push(...a, ...b, ...c, ...c, ...b, ...d)
+    }
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+    return geometry
+}
+
 // Presentation-only pool, sized to the complete board rather than movement's
 // six neighbors. Shared geometry/materials are disposed by the scene.
 export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
@@ -84,6 +104,14 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
         opacity: .32, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })
     const attackReflectionMaterial = reflectionMaterial.clone()
     attackReflectionMaterial.color.set(getTargetHighlightStyle('attack').color)
+    const mixedPaths = getMixedTargetBorderPaths(layoutManifest.hexRadius)
+    const mixedCoreGeometries = mixedPaths.map(path => createBorderRibbon(path, .045))
+    const mixedGlowGeometries = mixedPaths.map(path => createBorderRibbon(path, .11))
+    const mixedCore = [new THREE.MeshBasicMaterial({ color: '#9bf4d4', side: THREE.DoubleSide,
+        transparent: true, depthWrite: false, toneMapped: false }), new THREE.MeshBasicMaterial({
+        color: getTargetHighlightStyle('attack').color, side: THREE.DoubleSide, transparent: true,
+        depthWrite: false, toneMapped: false })]
+    const mixedGlow = mixedCore.map(material => { const glow = material.clone(); glow.opacity = .22; return glow })
     let lastElapsed = null
     const blockedMaterials = new Map()
     function materials(code) {
@@ -136,7 +164,19 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
         reflection.renderOrder = 1
         const sides = new THREE.Mesh(sideGeometry, sideMaterial)
         sides.renderOrder = 2
-        marker.add(surface, outline, icon, attack, reflection, sides)
+        const mixed = new THREE.Group()
+        mixed.name = 'mixed-target-border'
+        mixed.visible = false
+        mixedPaths.forEach((_, i) => {
+            const glow = new THREE.Mesh(mixedGlowGeometries[i], mixedGlow[i])
+            glow.position.y = .005
+            glow.renderOrder = 2
+            const core = new THREE.Mesh(mixedCoreGeometries[i], mixedCore[i])
+            core.position.y = .01
+            core.renderOrder = 3
+            mixed.add(glow, core)
+        })
+        marker.add(surface, outline, icon, attack, reflection, sides, mixed)
         group.add(marker)
         return [cell.id, marker]
     }))
@@ -161,27 +201,40 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 stroke.color.set(style.color)
                 sideMaterial.color.set(style.color)
                 reflectionMaterial.color.set(style.color)
+                mixedCore[0].color.set(style.color)
+                mixedGlow[0].color.set(style.color)
                 fill.opacity = baseOpacity
                 stroke.opacity = highlight.preview ? .9 : 1
             }
             markers.forEach((marker, id) => {
                 const valid = ids.has(id)
                 const code = blocked.get(id)
-                const [surface, outline, icon, attack, reflection, sides] = marker.children
+                const [surface, outline, icon, attack, reflection, sides, mixed] = marker.children
                 const attackable = attackIds.has(id)
                 const active = valid || !!code || attackable
                 marker.userData.active = active
                 marker.userData.occupied = occupiedCells.has(id)
-                if (!active) return
+                if (!active) {
+                    if (marker.userData.mixed) {
+                        marker.visible = false
+                        mixed.visible = false
+                        marker.userData.progress = 0
+                    }
+                    return
+                }
+                const isMixed = valid && attackable
+                marker.userData.mixed = isMixed
                 marker.visible = true
-                surface.visible = valid || !!code
-                outline.visible = valid || !!code
-                attack.visible = attackable
+                mixed.visible = isMixed
+                surface.visible = !isMixed && (valid || !!code)
+                outline.visible = !isMixed && (valid || !!code)
+                attack.visible = attackable && !isMixed
                 attack.children[0].material = valid ? attackOverlayFill : attackFill
                 attack.position.y = valid ? (marker.userData.occupied ? .035 : .09) : 0
                 reflection.material = attackable && !valid ? attackReflectionMaterial : reflectionMaterial
                 sides.material = attackable && !valid ? attackSideMaterial : sideMaterial
-                sides.visible = valid || attackable
+                sides.visible = !isMixed && (valid || attackable)
+                reflection.visible = !isMixed
                 attack.scale.setScalar(valid ? .84 : 1)
                 marker.userData.blocked = code
                 if (!valid && code) {
@@ -209,13 +262,13 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 const eased = progress * progress * (3 - 2 * progress)
                 // Keep the plate near the water when a surfer occupies the hex,
                 // so the rider and board remain in front of the translucent surface.
-                const lift = (marker.userData.occupied ? .02 : .26) * eased +
+                const lift = marker.userData.mixed ? 0 : (marker.userData.occupied ? .02 : .26) * eased +
                     (reduced ? 0 : (marker.userData.occupied ? .004 : .025) * eased * Math.sin(elapsed * 1.8))
                 marker.position.y = .15 + lift
                 const reflection = marker.children[4]
                 reflection.position.y = .04 - lift
                 reflection.scale.setScalar(.7 + .3 * eased)
-                reflection.visible = progress > 0
+                reflection.visible = !marker.userData.mixed && progress > 0
             })
         },
     }
