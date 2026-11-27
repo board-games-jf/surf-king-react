@@ -137,7 +137,7 @@ async function main() {
     try {
         const desktop = await startMatch(browser, { width: 1440, height: 900 }, 2)
         await verifyStableViewport(desktop.page, 'desktop-2d')
-        await desktop.page.getByRole('button', { name: '3D', exact: true }).click()
+        await desktop.page.getByRole('button', { name: 'Switch to 3D view', exact: true }).click()
         const canvas = desktop.page.locator('canvas[aria-label="Interactive Surf King 3D board"]')
         await canvas.waitFor({ state: 'visible' })
         await canvas.evaluate(el => { el.dataset.hudValidation = 'same-canvas' })
