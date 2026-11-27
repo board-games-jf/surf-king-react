@@ -144,7 +144,7 @@ const Board = ({ G, ctx, moves }) => {
     const cellProps = (position) => {
         const cell = G.cells[position]
         const targetStyle = isR1 && (r1Targets.includes(position) || targetHighlight?.cellIds.includes(position) || targetHighlight?.attackCellIds?.includes(position)) ? { cursor: 'pointer' } : {}
-        const blocked = targetHighlight?.blocked?.find(item => item.id === position)
+        const blocked = targetHighlight?.blocked?.find(item => item.id === position && item.playerId == null)
         const highlight = targetHighlight?.cellIds.includes(position) ? {
             ...getTargetHighlightStyle(targetHighlight.kind), kind: targetHighlight.kind, preview: targetHighlight.preview,
         } : null
@@ -180,7 +180,11 @@ const Board = ({ G, ctx, moves }) => {
                         <text y="18" fontSize={54} fontWeight="bold" fill="#173d36" textAnchor="middle">P{p.position + 1}</text>
                         {current && <text y="-82" fontSize={34} fontWeight="bold" fill="#fff4c5" textAnchor="middle">NOW</text>}
                         <text y="94" fontSize={34} fontWeight="bold" fill="#fff4c5" stroke="#173d36" strokeWidth="2" textAnchor="middle">{p.energy}/5</text>
-                        {(G.winner === p.position || block || p.energy === 0) && <g aria-label={G.winner === p.position ? 'Winner' : block?.reason || (block ? getTargetBlockStyle(block.code).label : 'Fallen')}>
+                        {block && <g aria-label={block.reason || getTargetBlockStyle(block.code).label}>
+                            <circle cx="42" cy="-43" r="20" fill="#153640" stroke="#fff4c5" strokeWidth="4"/>
+                            <path d="M30 -31 54 -55" stroke="#ffc1ae" strokeWidth="5" strokeLinecap="round"/>
+                        </g>}
+                        {(G.winner === p.position || p.energy === 0) && <g aria-label={G.winner === p.position ? 'Winner' : 'Fallen'}>
                             <rect x="-82" y="105" width="164" height="34" rx="12" fill="#153640" stroke={G.winner === p.position ? '#ffcf53' : block ? getTargetBlockStyle(block.code).color : '#b0c5ce'} strokeWidth="3"/>
                             <text y="129" fontSize="23" fontWeight="bold" fill={G.winner === p.position ? '#ffcf53' : block ? getTargetBlockStyle(block.code).color : '#fff4c5'} textAnchor="middle">{G.winner === p.position ? 'WINNER' : block ? getTargetBlockStyle(block.code).shortLabel : 'Fallen'}</text>
                         </g>}

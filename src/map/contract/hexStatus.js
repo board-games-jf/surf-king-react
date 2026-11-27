@@ -25,10 +25,10 @@ export function getHexStatus({ id, terrain, count, capacity, energy, highlight }
     const effect = HEX_TERRAIN[terrain]
     const danger = !!effect?.hazard && !safeJump
     const full = count >= capacity
-    const rejected = (highlight?.blocked || []).some(item => item.id === id)
+    const rejected = (highlight?.blocked || []).some(item => item.id === id && item.playerId == null)
     return { id, terrain, count, capacity, full, danger, activeDanger: danger && move,
         lethal: danger && move && effect.damage >= energy,
-        blocked: !primary && !attack && (full || rejected),
+        blocked: !primary && !attack && rejected,
         entryDamage: danger && move ? effect.damage || 0 : 0 }
 }
 

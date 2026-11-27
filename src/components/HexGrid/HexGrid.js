@@ -102,13 +102,6 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                             {renderCell(id)}
                         </svg>
                         {status && <g pointerEvents="none" className="hex-status-badges">
-                            {status.count > 0 && <g transform={`translate(0 ${halfHeight * .76})`} data-hex-occupancy={status.count + '/' + status.capacity}
-                                aria-label={status.count + ' of ' + status.capacity + ' occupied'}>
-                                <rect x={-radius * .25} y={-radius * .12} width={radius * .5} height={radius * .24} rx={radius * .12}
-                                    fill="#153640" stroke={status.full ? HEX_STATUS_COLORS.full : HEX_STATUS_COLORS.occupied} strokeWidth=".025"/>
-                                <text y={radius * .067} fontSize={radius * .18} fill={status.full ? HEX_STATUS_COLORS.full : HEX_STATUS_COLORS.occupied}
-                                    fontWeight="bold" textAnchor="middle">{status.count}/{status.capacity}</text>
-                            </g>}
                             {status.danger && <g transform={`translate(${-radius * .55} ${-halfHeight * .45})`} aria-label={status.lethal ? 'Entry will cause a fall' : 'Terrain hazard'}>
                                 <svg x={-radius * .23} y={-radius * .23} width={radius * .46} height={radius * .46} viewBox="0 0 1 1" data-hazard-medallion={status.terrain || 'generic'}>
                                     <circle cx=".5" cy=".5" r=".48" fill="#ff6868" opacity=".22"/>

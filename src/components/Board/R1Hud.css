@@ -964,6 +964,9 @@
 }
 .r1-hex-inspector-body { padding-right: 23px; outline: none; }
 .r1-hex-inspector .r1-inspection-heading strong { font-size: 18px; }
+.r1-hex-capacity { display: inline-flex; gap: 4px; vertical-align: middle; }
+.r1-hex-capacity i { width: 8px; height: 8px; border: 1px solid #b6d8db; border-radius: 50%; box-sizing: border-box; }
+.r1-hex-capacity i[data-occupied="true"] { background: #ffd477; border-color: #ffd477; }
 .r1-hex-inspector .r1-hex-terrain { align-items: center; }
 .r1-hex-inspector .r1-board-action-close { position: absolute; right: 5px; top: 5px; }
 .r1-hex-inspector-options { display: grid; gap: 6px; padding-top: 9px; border-top: 1px solid #b7eceb36; min-width: 0; }

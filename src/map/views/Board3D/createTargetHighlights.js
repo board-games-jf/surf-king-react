@@ -310,7 +310,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 entry.shade.visible = entry.lock.visible = !!state?.blocked
                 entry.danger.visible = entry.warning.visible = !!state?.danger
                 entry.warning.material = terrainBadges[state?.terrain] || dangerBadge
-                entry.occupancy.visible = !!state?.count
+                entry.occupancy.visible = false
                 entry.occupancy.material = state?.full ? twoBadge : oneBadge
                 entry.ripple.visible = false
             })
@@ -327,7 +327,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
             const baseOpacity = highlight?.preview ? .24 : .32
             const ids = new Set(style ? highlight.cellIds : [])
             const attackIds = new Set(highlight?.attackCellIds || [])
-            const blocked = new Map((highlight?.blocked || []).map(item => [item.id, item.code]))
+            const blocked = new Map((highlight?.blocked || []).filter(item => item.playerId == null).map(item => [item.id, item.code]))
             const labeledCells = new Set((highlight?.blocked || []).filter(item => item.playerId != null).map(item => item.id))
             if (style) {
                 fill.color.set(style.color)

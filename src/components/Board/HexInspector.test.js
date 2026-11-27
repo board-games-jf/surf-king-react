@@ -7,7 +7,7 @@ test('selecting an option is read-only until explicitly confirmed; Escape closes
         options: [{ key: 'move', kind: 'move', label: 'Move', cost: 'Free', detail: 'End turn after movement' }],
         blocks: [], placement: { left: 8, top: 8, width: 300, maxHeight: 400, side: 'right' }, onConfirm: confirm, onClose: close }
     render(<HexInspector {...props}/>)
-    expect(screen.getByText('0/2 surfers')).toBeInTheDocument()
+    expect(screen.getByLabelText('0 of 2 spaces occupied')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Confirm move' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /Move.*Free/ }))
     expect(confirm).not.toHaveBeenCalled()

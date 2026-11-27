@@ -893,6 +893,19 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
           c.textAlign = 'center'
           c.textBaseline = 'middle'
           c.fillText(String(Number(p.id) + 1), 128, 32)
+          if (blocked && !legal) {
+            c.beginPath()
+            c.arc(149, 13, 11, 0, Math.PI * 2)
+            c.fillStyle = '#153640'
+            c.fill()
+            c.strokeStyle = '#ffc1ae'
+            c.lineWidth = 3
+            c.stroke()
+            c.beginPath()
+            c.moveTo(142, 20)
+            c.lineTo(156, 6)
+            c.stroke()
+          }
         } else {
         c.fillStyle = '#173640'
         c.fillRect(2,5,252,54)

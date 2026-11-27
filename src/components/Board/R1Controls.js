@@ -71,7 +71,9 @@ export function HexInspectionBody({ hexFeedback, expanded = false }) {
     return (
         <div className="r1-inspection-body r1-hex-elements">
                     <div className="r1-inspection-heading"><strong>Hex {hexFeedback.id + 1}</strong>
-                        {<span className="r1-hex-number">{hexFeedback.occupants?.length || 0}/{HEX_CAPACITY} surfers{hexFeedback.full ? ' · Full' : ''}</span>}
+                        <span className="r1-hex-number" aria-label={(hexFeedback.occupants?.length || 0) + ' of ' + HEX_CAPACITY + ' spaces occupied'}>
+                            <span className="r1-hex-capacity" aria-hidden="true">{Array.from({ length: HEX_CAPACITY }, (_, i) => <i key={i} data-occupied={i < (hexFeedback.occupants?.length || 0)}/>)}</span>{hexFeedback.full ? ' Full' : ''}
+                        </span>
                     </div>
                     <div className="r1-hex-terrain">
                         {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt=""/> :
