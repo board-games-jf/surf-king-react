@@ -2,6 +2,18 @@ import { setupR1, r1MoveTargets, r1CardTargets, r1DropTargets, createR1Deck } fr
 import { getR1CardFeedback } from './r1CardFeedback'
 import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
 
+test('shows legal Drop In targets alongside movement without overriding card previews', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[1].cellPosition = 4
+    const highlight = getR1TargetHighlight(G, ctx, null)
+    expect(highlight.cellIds).toEqual(r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx))
+    expect(highlight.attackCellIds).toEqual(r1DropTargets(G, ctx))
+    expect(highlight.playerIds).toBeUndefined()
+    G.turn = 1
+    expect(getR1TargetHighlight(G, ctx, null).attackCellIds).toBeUndefined()
+})
 function fixture() {
     const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
     const G = setupR1(ctx)

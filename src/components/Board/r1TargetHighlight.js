@@ -40,6 +40,10 @@ export function getR1TargetHighlight(G, ctx, selection, previewCardId = null) {
     }
     if (selection?.kind === 'drop') return withBlocks({ kind, cellIds, preview },
         r1AttackTargetBlocks(G, ctx, DROP_IN_RANGE, cellIds, 'drop', r1DropPlayerTargets(G, ctx)), r1DropPlayerTargets(G, ctx))
+    if (!selection && ['use_card', 'maneuver', 'current_first'].includes(G.currentMove)) {
+        const attackPlayerIds = r1DropPlayerTargets(G, ctx)
+        if (attackPlayerIds.length) return { kind, cellIds, preview, attackCellIds: r1DropTargets(G, ctx) }
+    }
     return { kind, cellIds, preview }
 }
 

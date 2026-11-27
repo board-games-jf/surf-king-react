@@ -630,7 +630,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   const hovered=ring('#f8ffff'),selected=ring('#ffda57')
   const maneuverRings = Array.from({ length: 6 }, () => ring('#ffda57'))
   const targetHighlights = createTargetHighlights(BOARD_LAYOUT, shapeGeo, outlineGeo)
-  scene.add(targetHighlights.group)
+  scene.add(targetHighlights.group, targetHighlights.interactionGroup, targetHighlights.statusGroup)
+  let layeredInteraction = false
   function positionRing(ring,id){const cell=Number.isInteger(id)?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
   const cardPiles = createCardPiles()
   scene.add(cardPiles.group)
@@ -650,12 +651,13 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   function setHover(id) {
     if (id === hoverId) return
     hoverId = id
-    positionRing(hovered, id)
+    positionRing(hovered, layeredInteraction ? null : id)
+    targetHighlights.setHover(layeredInteraction ? id : null)
     onCellHover?.(id)
   }
   function move(e) {
     if (start && e.pointerId === start.id && Math.hypot(e.clientX - start.x, e.clientY - start.y) >= 6) start = null
-    const id = pressedPointers.size ? null : pick(e)
+    const id = pressedPointers.size || e.pointerType === 'touch' ? null : pick(e)
     setHover(id)
     renderer.domElement.style.cursor = id !== null || (!pressedPointers.size && pickDiscard(e)) ? 'pointer' : 'grab'
   }
@@ -812,7 +814,11 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     delete renderer.domElement.dataset['surferMotion'+actor.id]
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
-  function update(snapshot){cardPiles.update(snapshot.cardPiles);positionRing(selected,snapshot.selectedCellId);hexDepth.select(snapshot.selectedCellId)
+  function update(snapshot){cardPiles.update(snapshot.cardPiles);layeredInteraction = !!snapshot.targetHighlight;
+    positionRing(selected, layeredInteraction ? null : snapshot.selectedCellId);hexDepth.select(layeredInteraction ? null : snapshot.selectedCellId)
+    positionRing(hovered, layeredInteraction ? null : hoverId)
+    targetHighlights.setHover(layeredInteraction ? hoverId : null)
+    targetHighlights.setSelection(layeredInteraction ? snapshot.selectedCellId : null)
     turnMarkerPlayerId = snapshot.turnMarkerPlayerId ?? null
     turnMarker.visible = false
     if (turnMarkerPlayerId === null) delete renderer.domElement.dataset.activeTurnPlayer
@@ -820,7 +826,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     maneuverRings.forEach((marker, index) => {
       positionRing(marker, snapshot.targetHighlight ? null : snapshot.maneuverDestinations?.[index])
     })
-    targetHighlights.update(snapshot.targetHighlight, true)
+    targetHighlights.update(snapshot.targetHighlight, true, new Set(snapshot.players.map(player => player.cellId).filter(id => id !== null)))
+    targetHighlights.setStatuses(snapshot.hexStatuses)
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
       const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell
@@ -944,6 +951,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     animateScenery(elapsed)
     cardPiles.animate(now, reducedMotion.matches, elapsed)
     const reduce = reducedMotion.matches
+    targetHighlights.animate(elapsed, reduce)
     for(const a of actors.values()){
       if(a.cellId===null) continue
       const phase=elapsed+Number(a.id)*.71

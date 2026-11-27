@@ -11,7 +11,7 @@ test('hex inspection is read-only and distinguishes movement preview from a lega
     const { G, ctx } = fixture()
     const id = r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx)[0]
     const before = JSON.stringify(G)
-    expect(getR1HexFeedback(G, ctx, id, null)).toMatchObject({ status: 'preview', action: 'Select Move first to enter this hex.' })
+    expect(getR1HexFeedback(G, ctx, id, null)).toMatchObject({ status: 'preview', action: 'Select this hex to move.' })
     expect(JSON.stringify(G)).toBe(before)
     G.currentMove = 'maneuver'
     expect(getR1HexFeedback(G, ctx, id, null)).toMatchObject({ status: 'ready', action: 'Click to move here.' })
