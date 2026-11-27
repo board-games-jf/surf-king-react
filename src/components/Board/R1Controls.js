@@ -99,6 +99,8 @@ export function HexInspectionBody({ hexFeedback, expanded = false }) {
 
 export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight, onPreviewCard = () => {}, hexFeedback = null, pinnedHex = false, onClearHex = () => {}, worldPiles = false, discardOpen: externalDiscardOpen, onDiscardOpenChange, onFocusPlayer = () => {} }) {
     const player = G.players[ctx.currentPlayer]
+    const describe = name => G.boardSize && name === 'Tsunami' ? 'Opponent within 2 hexes loses up to 3 energy (minimum 1 remaining).' :
+        G.boardSize && name === 'Cyclone' ? 'Place within 3 hexes; entry redirects to a random free neighboring hex.' : descriptions[name]
     const roundOrder = getR1RoundOrder(G, ctx)
     const roundProgress = getRoundHudProgress(roundOrder)
     const hand = player
@@ -217,7 +219,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
         <section className="r1-floating-hud" aria-label="R1 match controls">
             <header className="r1-hud-brand r1-glass" aria-label="Round status">
                 <div className="r1-round-heading"><span className="r1-brand-wave" aria-hidden="true"><FeedbackIcon kind="wave"/></span>
-                    <span>ROUND</span><strong>{String(G.turn).padStart(2, '0')}</strong></div>
+                    <span>{G.format ? G.format + ' · ROUND' : 'ROUND'}</span><strong>{String(G.turn).padStart(2, '0')}</strong></div>
                 <div className="r1-round-progress-label"><span>Turn order</span><strong>{roundProgress.current}/{roundProgress.total}</strong></div>
                 <div className="r1-round-segments" role="progressbar" aria-label="Completed turns this round" aria-valuemin={0}
                     aria-valuemax={roundProgress.total} aria-valuenow={roundProgress.completed}>
@@ -284,7 +286,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             </div>
             {(winner || showDice || (G.message && !G.message.startsWith('Drop In:') && !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) && /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) &&
                 <div className={"r1-match-event r1-glass" + (showDice ? " r1-dice-event" : "")} aria-live="polite">
-                    {winner ? <><FeedbackIcon kind="flag"/><strong>Player {winner.position + 1} wins!</strong><span>First to the beach.</span></> : !(G.dropResult && G.message?.startsWith('Drop In:')) && <span>{G.message}</span>}
+                    {winner ? <><FeedbackIcon kind="flag"/><strong>Player {winner.position + 1} wins!</strong><span>{G.winnerReason === 'dominion' ? 'Last surfer standing.' : 'First to the beach.'}</span></> : !(G.dropResult && G.message?.startsWith('Drop In:')) && <span>{G.message}</span>}
                 {showDice && <button type="button" className="r1-dice-close" aria-label="Close dice result" onClick={() => setDismissedDice(diceKey)}>×</button>}
                 {showDice && <div className="r1-dice-results" aria-label="Drop In dice results">
                     {G.dropResult && <div className="r1-dice-sides">
@@ -329,7 +331,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             <span className="r1-card-availability" data-playable={feedback.playable} role="img" aria-label={feedback.playable ? 'Available' : 'Unavailable'}><FeedbackIcon kind={feedback.playable ? 'active' : 'lock'}/></span>
 
                         </div>
-                        <p className="r1-card-description">{descriptions[detailCard.Name]}</p>
+                        <p className="r1-card-description">{describe(detailCard.Name)}</p>
                         {feedback.reason && <span className="r1-blocked-reason"><FeedbackIcon kind="blocked"/>{feedback.reason}</span>}
                         {feedback.playable && <div className="r1-card-guidance">
 
@@ -386,7 +388,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             onClick={() => playCard(index)}>
                             <img src={cardArt[card.Name]} alt="" className="r1-card-art" draggable="false" />
                             <strong>{card.Name}</strong>
-                            <span className="r1-sr-only">{descriptions[card.Name]} {reason}</span>
+                            <span className="r1-sr-only">{describe(card.Name)} {reason}</span>
                         </button>
                     })}
                     {!hand.cards.length && <span className="r1-empty-hand r1-glass">No cards in hand</span>}
