@@ -41,21 +41,21 @@ export function getR1HexDropBlocks(G, ctx, id) {
 // Placement uses the map viewport, never the page coordinates. On compact
 // screens prefer the larger vertical gap; a bounded bottom sheet is fallback.
 export function placeHexInspector(width, height, x, y) {
-    const margin = 8, gap = 42
+    const margin = 8, gap = 72
     const panelWidth = Math.max(0, Math.min(326, width - 2 * margin))
     const maxHeight = Math.max(0, Math.min(460, height - 2 * margin))
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
     x = clamp(x, 0, width); y = clamp(y, 0, height)
     if (width - x - gap - margin >= panelWidth || x - gap - margin >= panelWidth) {
         const right = width - x - gap - margin >= panelWidth
-        return { left: right ? x + gap : x - gap - panelWidth, top: clamp(y - 76, margin, height - maxHeight - margin), width: panelWidth, maxHeight, side: right ? 'right' : 'left' }
+        return { left: right ? x + gap : x - gap - panelWidth, top: clamp(y - 76, margin, height - maxHeight - margin), width: panelWidth, maxHeight, side: right ? 'right' : 'left', anchorX: x, anchorY: y }
     }
     const above = y - gap - margin, below = height - y - gap - margin
     const available = Math.max(above, below)
     const left = clamp(x - panelWidth / 2, margin, width - panelWidth - margin)
     if (available >= 132) {
         const h = Math.min(maxHeight, available)
-        return { left, top: below >= above ? y + gap : y - gap - h, width: panelWidth, maxHeight: h, side: below >= above ? 'below' : 'above' }
+        return { left, top: below >= above ? y + gap : y - gap - h, width: panelWidth, maxHeight: h, side: below >= above ? 'below' : 'above', anchorX: x, anchorY: y }
     }
     const h = Math.min(maxHeight, Math.max(0, height * .62))
     return { left, top: Math.max(margin, height - h - margin), width: panelWidth, maxHeight: h, side: 'sheet' }

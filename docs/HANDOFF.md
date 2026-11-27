@@ -2,6 +2,7 @@
 
 ## Mobile board and HUD (#64)
 
+- Follow-up compacts the turn rail on desktop and mobile, replaces the Drop In symbol with a surfer, and offsets the hex inspector with a connector to the selected point. Focused inspector, action and HUD tests passed (30 tests); production build passed. Browser/device visual review of the latest changes is pending.
 - Mobile player energy now includes a lightning cue, the turn panel is more compact, and the Drop In glyph uses a surfboard and wave. The horizontal player row remains unchanged. The board fill is above the maximum animated ocean height to prevent intersection; the reported flicker still needs device verification. Focused HUD and viewport tests passed (28 tests); production build passed. Mobile visual validation remains open.
 
 ## Round and action HUD clarity (#60)

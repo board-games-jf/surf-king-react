@@ -11,7 +11,7 @@ export function FeedbackIcon({ kind }) {
         energy: <path d="M13 2 4 14h7l-1 8 10-13h-7z" fill="currentColor" stroke="none"/>,
         range: <><path d="m12 2 9 5v10l-9 5-9-5V7z"/><circle cx="12" cy="12" r="3"/></>,
         move: <><path d="M3 12h17m-6-6 6 6-6 6"/></>,
-        dropIn: <><path d="M3 19c3-2 5-2 8 0s5 2 10-1"/><path d="M7 15c1-5 4-9 9-12 1 6-2 11-7 13z"/><path d="m9 14 5-7"/></>,
+        dropIn: <><path d="M2 19c3-2 6-2 9 0s6 2 11-1"/><path d="M6 16c2 2 8 2 12-1"/><circle cx="13" cy="5" r="1.5"/><path d="m13 7-2 4-3 1m3-1 3 1 3-2m-3 2-2 3m-1-4-2 4"/></>,
         shield: <path d="m12 3 8 3v6c0 5-4 8-8 10-4-2-8-5-8-10V6z"/>,
         swirl: <path d="M21 8c-2-5-12-5-15 0-4 6 5 12 10 7 4-4-3-7-5-3m-8 5c3 5 12 5 16 0"/>,
         check: <path d="m5 12 4 4L19 6"/>,

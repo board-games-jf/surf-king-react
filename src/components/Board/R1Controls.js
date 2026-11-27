@@ -61,7 +61,7 @@ function EnergyMeter({ energy, lost = 0 }) {
 
 function RailStateIcon({ state, kind }) {
     return <span className="r1-rail-state-icon" data-state={state} aria-hidden="true">
-        <FeedbackIcon kind={state === 'used' ? 'check' : state === 'unavailable' ? 'lock' : kind}/>
+        <FeedbackIcon kind={state === 'used' ? 'check' : state === 'unavailable' && kind !== 'dropIn' ? 'lock' : kind}/>
     </span>
 }
 

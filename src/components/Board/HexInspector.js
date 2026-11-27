@@ -7,9 +7,13 @@ export default function HexInspector({ info, options, blocks, placement, onConfi
     const [chosenKey, setChosenKey] = useState(null)
     const heading = useRef(null)
     const selected = options.find(option => option.key === chosenKey)
-    const { side, ...style } = placement
+    const { side, anchorX, anchorY, ...style } = placement
     useEffect(() => { heading.current?.focus() }, [])
-    return <section className="r1-board-action r1-hex-inspector" style={style} data-side={side}
+    return <>{side !== 'sheet' && <svg className="r1-hex-inspector-link" aria-hidden="true">
+        <line x1={anchorX} y1={anchorY} x2={side === 'right' ? style.left : side === 'left' ? style.left + style.width : Math.max(style.left + 20, Math.min(style.left + style.width - 20, anchorX))} y2={side === 'below' ? style.top : style.top + 36}/>
+        <circle cx={anchorX} cy={anchorY} r="3"/>
+    </svg>}
+    <section className="r1-board-action r1-hex-inspector" style={style} data-side={side}
         aria-label="Hex information" onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); onClose() } }}>
         <div ref={heading} tabIndex={-1} className="r1-hex-inspector-body">
             <HexInspectionBody hexFeedback={info} expanded/>
@@ -30,5 +34,5 @@ export default function HexInspector({ info, options, blocks, placement, onConfi
         {selected && <button type="button" className="r1-hex-confirm" onClick={() => onConfirm(selected.key)}>
             <FeedbackIcon kind={selected.kind === 'drop' ? 'dropIn' : 'move'}/>{selected.kind === 'drop' ? 'Choose dice' : 'Confirm move'}
         </button>}
-    </section>
+    </section></>
 }

@@ -950,6 +950,9 @@
 .r1-dice-pair[data-result="unpaired"] .r1-dice-versus { visibility: hidden; }
 
 /* Selected-hex inspector: bounded, side-anchored marine glass. */
+.r1-hex-inspector-link { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 11; }
+.r1-hex-inspector-link line { stroke: #ffe0a1; stroke-width: 1.5; opacity: .9; }
+.r1-hex-inspector-link circle { fill: #ffe0a1; }
 .r1-board-action.r1-hex-inspector {
     --hud-gold: #ffd27c; --hud-mute: #b6d8db; --hud-ink: #edfafa;
     display: grid; align-content: start; gap: 10px; box-sizing: border-box;
@@ -1082,6 +1085,14 @@
 .r1-dice-option-loss { font-size: 10px; color: #f0d8ba; }
 .r1-floating-hud .r1-drop-confirm { background: #ffd477; color: #10313a; border-color: #ffe0a1; width: 100%; }
 .r1-rail-arrow { text-align: center; color: #83b7bb; line-height: 1; }
+.r1-turn-progress { width: min(370px, 100%); }
+.r1-turn-steps { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 7px; align-items: center; }
+.r1-rail-heading { grid-column: 1 / -1; }
+.r1-rail-heading small, .r1-rail-arrow { display: none; }
+.r1-rail-move { height: 100%; box-sizing: border-box; }
+.r1-rail-move small { display: none; }
+.r1-rail-copy small { display: none; }
+.r1-turn-reason { font-size: 10px; }
 .r1-floating-hud .r1-hand button { --card-width: clamp(84px, 10vw, 132px); flex: 0 0 var(--card-width); width: var(--card-width); height: auto; aspect-ratio: 5 / 7; min-height: 0; align-self: flex-start; overflow: hidden; }
 .r1-floating-hud .r1-hand button .r1-card-art { height: 0; min-height: 0; flex: 1 1 0; width: 100%; object-fit: contain; margin: 0 0 3px; }
 .r1-floating-hud .r1-hand button strong { flex: 0 0 2.8em; height: 2.8em; }
