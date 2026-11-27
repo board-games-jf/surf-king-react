@@ -8,6 +8,7 @@ import {
 import { HexBadge, HexEffects, FeedbackIcon, terrainArt, compactHexAction } from './r1FeedbackVisuals'
 import { getR1CardFeedback } from './r1CardFeedback'
 import DropInAdvantage from './DropInAdvantage'
+import PanelHeader from './PanelHeader'
 import { getDropInAdvantage } from './r1DropInOdds'
 import { getR1RoundOrder } from './r1RoundOrder'
 import { getCardRailState, getRoundHudProgress, TURN_STATUS_LABELS, CARD_RAIL_LABELS } from './r1HudState'
@@ -351,14 +352,17 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     </div>
                     {(selectedCard || inspection?.pinned) && <button type="button" className="r1-inspection-close" aria-label={selectedCard ? "Deselect card" : "Close card information"} onClick={() => { inspectCard(null); if (selectedCard) setSelection(null) }}>×</button>}
                 </div>}
-                <div className="r1-hud-context r1-glass" data-attack-open={selection?.kind === 'drop' || undefined}>
-                    {selection?.kind === 'drop' && <button type="button" className="r1-attack-close" aria-label="Close attack selection" onClick={() => { inspectCard(null); setSelection(null) }}>×</button>}
+                <div className="r1-hud-context r1-glass" data-attack-open={selection?.kind === 'drop' || undefined} data-attack-selected={!!selectedDefender || undefined}>
+                    {selection?.kind === 'drop' && !selectedDefender && <button type="button" className="r1-attack-close" aria-label="Close attack selection" onClick={() => { inspectCard(null); setSelection(null) }}>×</button>}
                     {swapCard && <span>Position conquered. Use one remaining non-movement card or end turn.</span>}
                     {G.currentMove === 'recover' && <div className="r1-action-row">
                         <button type="button" className="r1-recover-button" onClick={() => { setSelection(null); moves.recover() }}>Recover free (1 energy)</button>
                         <span>Or use Lifeguard Float.</span>
                     </div>}
                     {selection?.kind === 'drop' && !dropReason && selectedDefender && <div className="r1-attack-dice" role="group" aria-label="Attack dice">
+                        <PanelHeader title="Choose dice" backLabel="Choose opponent" closeLabel="Close attack selection"
+                            onBack={() => setSelection({ kind: 'drop', diceCount: selection.diceCount })}
+                            onClose={() => { inspectCard(null); setSelection(null) }}/>
                         <div className="r1-dice-options">
                         {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map(count => {
                             const odds = selectedDefender ? getDropInAdvantage(player.energy, selectedDefender.energy, count) : null
@@ -367,11 +371,12 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                                 <span className="r1-dice-option-faces" aria-hidden="true">{Array.from({ length: count }, (_, i) => <span className="r1-dice-option-face" key={i}/>)}</span>
                                 <span>{count === 1 ? '1 die' : count + ' dice'}</span>
                                 <DropInAdvantage odds={odds}/>
-                                <span className="r1-dice-option-loss" aria-hidden="true">Up to ⚡−{odds?.maxLoss ?? count}</span>
+                                <span className="r1-dice-option-loss" aria-hidden="true">You: up to −{odds?.maxLoss ?? count} ⚡</span>
                                 <span className="r1-sr-only" id={'r1-dice-loss-' + count}>{odds ? odds.tone + ' · ' : ''}Maximum own energy loss: {odds?.maxLoss ?? count}</span>
                             </button>
                         })}
                         </div>
+                        <small className="r1-odds-assumption">Chance if you keep attacking.</small>
                         {selection.targetPlayerId !== undefined && <button type="button" className="r1-drop-button r1-drop-confirm" aria-label={'Confirm Drop In · Player ' + (selection.targetPlayerId + 1)} onClick={() => onTarget(selection.targetCell, selection.targetPlayerId)}>Confirm Drop In</button>}
                         <span className="r1-sr-only">Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
                     </div>}
@@ -380,7 +385,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             <PlayerIcon playerId={selection.targetPlayerId} variant="r1-legend-player-avatar"/>
                             <span className="r1-sr-only">Player {selection.targetPlayerId + 1} </span>selected · choose dice.
                         </> : <><span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
-                            {choosingDropTarget ? 'Choose an opponent · up to ' + maxAttackDice + (maxAttackDice === 1 ? ' die' : ' dice') : highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}</>}
+                            {choosingDropTarget ? 'Repeated attacks · up to ' + maxAttackDice + (maxAttackDice === 1 ? ' die' : ' dice') : highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}</>}
                     </div>}
                     {selection?.targetPlayerId === undefined && (!selectedCard || (!attacking && !inspectingOther)) && (selection || !['use_card', 'maneuver'].includes(G.currentMove)) && targetButtons}
                 </div>

@@ -163,6 +163,8 @@ test('a map-selected opponent remains selected when choosing dice', () => {
     render(<R1Controls G={G} ctx={ctx} moves={{}} selection={selection} setSelection={setSelection} onTarget={onTarget} />)
     fireEvent.click(screen.getByRole('button', { name: '2 dice' }))
     expect(setSelection).toHaveBeenCalledWith({ ...selection, diceCount: 2 })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose opponent' }))
+    expect(setSelection).toHaveBeenCalledWith({ kind: 'drop', diceCount: 1 })
     fireEvent.click(screen.getByRole('button', { name: 'Confirm Drop In · Player 2' }))
     expect(onTarget).toHaveBeenCalledWith(4, 1)
 })
@@ -581,7 +583,11 @@ test('dice chooser shows target-specific qualitative advantage for each legal ch
     G.players[1].energy = 1
     rerender(<R1Controls {...props}/>)
     expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('Favorable')
-    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('Up to ⚡−1')
+    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('You: up to −1 ⚡')
+    G.players[1].energy = 5
+    rerender(<R1Controls {...props}/>)
+    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('Unfavorable')
+    expect(screen.getByRole('button', { name: '2 dice' })).not.toHaveTextContent('%')
     G.players[0].energy = 2
     rerender(<R1Controls {...props}/>)
     expect(screen.queryByRole('button', { name: '2 dice' })).toBeNull()
