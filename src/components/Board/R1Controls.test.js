@@ -121,7 +121,7 @@ test('a map-selected opponent remains selected when choosing dice', () => {
     render(<R1Controls G={G} ctx={ctx} moves={{}} selection={selection} setSelection={setSelection} onTarget={onTarget} />)
     fireEvent.click(screen.getByRole('button', { name: '2 dice' }))
     expect(setSelection).toHaveBeenCalledWith({ ...selection, diceCount: 2 })
-    fireEvent.click(screen.getByRole('button', { name: 'Drop In · 2' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm Drop In · Player 2' }))
     expect(onTarget).toHaveBeenCalledWith(4, 1)
 })
 
@@ -519,4 +519,24 @@ test('card rail distinguishes availability from confirmed use; repeat Drop In is
     G.turn = 3
     rerender(<R1Controls {...props}/>)
     expect(screen.getByTitle('Card unavailable')).toHaveAttribute('data-state', 'unavailable')
+})
+
+test('dice chooser shows target-specific qualitative advantage for each legal choice', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].energy = 3
+    G.players[1].cellPosition = 14
+    G.players[1].energy = 2
+    const props = { G, ctx, moves: {}, selection: { kind: 'drop', diceCount: 1, targetCell: 14, targetPlayerId: 1 }, setSelection: jest.fn(), onTarget: jest.fn() }
+    const { rerender } = render(<R1Controls {...props}/>)
+    expect(screen.getByRole('button', { name: '1 die' })).toHaveTextContent('Unfavorable')
+    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('Balanced')
+    G.players[1].energy = 1
+    rerender(<R1Controls {...props}/>)
+    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('Favorable')
+    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('Up to ⚡−1')
+    G.players[0].energy = 2
+    rerender(<R1Controls {...props}/>)
+    expect(screen.queryByRole('button', { name: '2 dice' })).toBeNull()
 })

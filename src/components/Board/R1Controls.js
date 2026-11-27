@@ -7,6 +7,8 @@ import {
 } from '../../game/r1/SurfKingR1'
 import { HexBadge, HexEffects, FeedbackIcon, terrainArt, compactHexAction } from './r1FeedbackVisuals'
 import { getR1CardFeedback } from './r1CardFeedback'
+import DropInAdvantage from './DropInAdvantage'
+import { getDropInAdvantage } from './r1DropInOdds'
 import { getR1RoundOrder } from './r1RoundOrder'
 import { getCardRailState, getRoundHudProgress, TURN_STATUS_LABELS, CARD_RAIL_LABELS } from './r1HudState'
 import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
@@ -69,7 +71,7 @@ export function HexInspectionBody({ hexFeedback, expanded = false }) {
     return (
         <div className="r1-inspection-body r1-hex-elements">
                     <div className="r1-inspection-heading"><strong>Hex {hexFeedback.id + 1}</strong>
-                        {(expanded || hexFeedback.occupants?.length > 0) && <span className="r1-hex-number">{hexFeedback.occupants?.length || 0}/{HEX_CAPACITY} surfers{hexFeedback.full ? ' · Full' : ''}</span>}
+                        {<span className="r1-hex-number">{hexFeedback.occupants?.length || 0}/{HEX_CAPACITY} surfers{hexFeedback.full ? ' · Full' : ''}</span>}
                     </div>
                     <div className="r1-hex-terrain">
                         {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt=""/> :
@@ -77,7 +79,7 @@ export function HexInspectionBody({ hexFeedback, expanded = false }) {
                         <div className="r1-hex-element-body">
                             <strong>{hexFeedback.title}</strong>
                             <HexEffects info={hexFeedback}/>
-                            {(expanded || hexFeedback.occupants?.length > 0) && <span className="r1-hex-entry">{hexFeedback.entry}</span>}
+                            {hexFeedback.entry && <span className="r1-hex-entry">{hexFeedback.entry}</span>}
                         </div>
                     </div>
                     {hexFeedback.occupants?.map(p => <div key={p.position} className="r1-hex-occupant" role="group" aria-label={'Player ' + (p.position + 1) + ' details'}>
@@ -89,7 +91,7 @@ export function HexInspectionBody({ hexFeedback, expanded = false }) {
                             {p.blocked && !singleAmuletBlock && !(hexFeedback.occupants.length === 1 && p.blocked.includes(compactHexAction(hexFeedback))) && <span className="r1-hex-player-status" title={p.blocked}><FeedbackIcon kind="blocked"/>{p.blocked}</span>}
                         </div>
                     </div>)}
-                    {!expanded && <span className="r1-hex-action"><FeedbackIcon kind={hexFeedback.status === 'ready' ? 'active' : hexFeedback.status === 'preview' ? 'move' : 'blocked'}/>{singleAmuletBlock ? 'Amulet · Protected' : compactHexAction(hexFeedback)}</span>}
+                    {!expanded && <span className="r1-hex-action"><FeedbackIcon kind={hexFeedback.status === 'ready' ? 'active' : hexFeedback.status === 'preview' ? 'move' : 'lock'}/>{singleAmuletBlock ? 'Amulet · Protected' : compactHexAction(hexFeedback)}</span>}
                     <span className="r1-sr-only">{hexFeedback.entry} {hexFeedback.occupantText} {hexFeedback.action} {hexFeedback.risk}</span>
                 </div>
     )
@@ -107,6 +109,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const dropTargets = r1DropPlayerTargets(G, ctx)
     const dropReason = r1AttackUnavailableReason(G, ctx, DROP_IN_RANGE, dropTargets)
     const maxAttackDice = r1MaxAttackDice(player.energy)
+    const selectedDefender = selection?.kind === 'drop' && selection.targetPlayerId !== undefined ? G.players[selection.targetPlayerId] : null
     const selectedCard = selection?.kind === 'card' ? hand.cards[selection.index] : null
     const attacking = selection?.kind === 'drop' || r1PlayerCard(selectedCard?.Name)
     const swapChoice = G.currentMove === 'swap_choice' && G.pendingSwap
@@ -274,7 +277,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             </div>
             <div className="r1-top-feedback" data-pinned={pinnedHex}>
             {terrainNotice && <div className="r1-match-feedback r1-glass r1-terrain-loss" data-gain={terrainNotice.direction === 'gain'} role="status" aria-label={terrainNotice.direction === 'gain' ? 'Terrain energy gain' : 'Terrain energy loss'}>Player {terrainNotice.playerId + 1} · {terrainNotice.source} · {terrainNotice.direction === 'gain' ? (terrainNotice.amount ? '+' + terrainNotice.amount + ' energy' : 'Energy full (5/5)') : '−' + terrainNotice.amount + ' energy'}</div>}
-            {hexFeedback && <div className="r1-match-feedback r1-glass r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
+            {hexFeedback && <div className="r1-match-feedback r1-glass r1-hex-feedback r1-hex-information" aria-label="Hex information" data-status={hexFeedback.status}>
                 <HexInspectionBody hexFeedback={hexFeedback}/>
                 {pinnedHex && <button type="button" className="r1-inspection-close" aria-label="Close hex information" onClick={onClearHex}>×</button>}
             </div>}
@@ -347,17 +350,21 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         <span>Or use Lifeguard Float.</span>
                     </div>}
                     {selection?.kind === 'drop' && !dropReason && <div className="r1-attack-dice" role="group" aria-label="Attack dice">
-                        <strong>How many dice?</strong>
+                        <strong>Choose your dice{selectedDefender ? ' · Player ' + (selectedDefender.position + 1) : ''}</strong>
                         <div className="r1-dice-options">
-                        {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map(count =>
-                            <button type="button" className="r1-dice-button" key={count} aria-label={count === 1 ? '1 die' : count + ' dice'} aria-describedby={'r1-dice-risk-' + count} aria-pressed={selection.diceCount === count}
+                        {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map(count => {
+                            const odds = selectedDefender ? getDropInAdvantage(player.energy, selectedDefender.energy, count) : null
+                            return <button type="button" className="r1-dice-button" key={count} aria-label={count === 1 ? '1 die' : count + ' dice'} aria-describedby={'r1-dice-loss-' + count} aria-pressed={selection.diceCount === count} data-advantage={odds?.tone}
                                 onClick={() => setSelection({ ...selection, diceCount: count })}>
                                 <span className="r1-dice-option-faces" aria-hidden="true">{Array.from({ length: count }, (_, i) => <span className="r1-dice-option-face" key={i}><i/><i/><i/></span>)}</span>
-                                <span className="r1-dice-option-risk" aria-hidden="true">up to ⚡−{count}</span>
-                                <span className="r1-sr-only" id={'r1-dice-risk-' + count}>Risk up to {count} energy</span>
-                            </button>)}
+                                <span>{count === 1 ? '1 die' : count + ' dice'}</span>
+                                <DropInAdvantage odds={odds}/>
+                                <span className="r1-dice-option-loss" aria-hidden="true">Up to ⚡−{odds?.maxLoss ?? count}</span>
+                                <span className="r1-sr-only" id={'r1-dice-loss-' + count}>{odds ? odds.tone + ' · ' : ''}Maximum own energy loss: {odds?.maxLoss ?? count}</span>
+                            </button>
+                        })}
                         </div>
-                        {selection.targetPlayerId !== undefined && <button type="button" className="r1-drop-button" onClick={() => onTarget(selection.targetCell, selection.targetPlayerId)}>Drop In · {selection.targetPlayerId + 1}</button>}
+                        {selection.targetPlayerId !== undefined && <button type="button" className="r1-drop-button r1-drop-confirm" aria-label={'Confirm Drop In · Player ' + (selection.targetPlayerId + 1)} onClick={() => onTarget(selection.targetCell, selection.targetPlayerId)}>Confirm Drop In</button>}
                         <span className="r1-sr-only">Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
                     </div>}
                     {!detailCard && (selection || !['use_card', 'maneuver'].includes(G.currentMove)) && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
@@ -401,6 +408,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                                     <span className="r1-rail-copy"><strong>Drop In</strong><small>{dropReason ? 'Unavailable' : 'Available'}</small></span>
                                 </span>
                             </div>
+                            <span className="r1-rail-arrow" aria-hidden="true">↓</span>
                             <span className="r1-rail-move">
                                 <FeedbackIcon kind="move"/><strong>{G.currentMove === 'current_first' ? 'Surf Current · first step' : 'Move'}</strong>
                                 <small>{G.currentMove === 'current_first' ? 'Select a hex' : 'Ends turn'}</small>
@@ -409,7 +417,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     </div>
                     {dropReason && <span className="r1-turn-reason" aria-hidden="true">{dropReason}</span>}
                 </div>}
-                <span id="r1-drop-status" role="status" className="r1-sr-only">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
+                <span id="r1-drop-status" role="status" className="r1-sr-only">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, maximum energy loss ' + maxAttackDice + ' energy')}</span>
             </div>}
         </section>
     )

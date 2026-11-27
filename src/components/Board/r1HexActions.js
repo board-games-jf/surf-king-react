@@ -1,4 +1,5 @@
 import { r1MoveTargets, r1DropPlayerTargets, r1AttackTargetBlocks, r1MaxAttackDice, DROP_IN_RANGE } from '../../game/r1/SurfKingR1'
+import { getDropInAdvantage } from './r1DropInOdds'
 import { HEX_TERRAIN } from '../../map/contract/hexStatus'
 import { getTargetBlockStyle } from '../../map/contract/targetHighlight'
 
@@ -15,7 +16,7 @@ export function getR1HexActions(G, ctx, id) {
         const damage = effect?.damage || 0
         const risk = damage >= actor.energy && damage > 0 ? 'Entering will cause a fall.' : effect?.hazard ? effect.text : null
         options.push({ key: 'move', kind: 'move', label: 'Move',
-            cost: damage ? '−' + damage + ' energy' : terrain === 'Island' ? '+' + Math.min(2, 5 - actor.energy) + ' energy' : '0 energy',
+            cost: damage ? '−' + damage + ' energy' : terrain === 'Island' ? (actor.energy === 5 ? 'Energy full' : '+' + Math.min(2, 5 - actor.energy) + ' energy') : 'Free',
             detail: risk || (G.currentMove === 'current_first' ? 'First Surf Current step · second step if available' : 'End turn after movement'),
             risky: !!effect?.hazard, lethal: damage >= actor.energy && damage > 0 })
     }
@@ -23,8 +24,9 @@ export function getR1HexActions(G, ctx, id) {
     const maxDice = r1MaxAttackDice(actor.energy)
     for (const playerId of targets.filter(pid => G.players[pid].cellPosition === id)) {
         options.push({ key: 'drop-' + playerId, kind: 'drop', playerId,
-            label: 'Drop In · Player ' + (playerId + 1), cost: 'Risk 0–' + maxDice + ' energy',
-            detail: 'No initiation cost · choose dice next', risky: true })
+            label: 'Drop In · Player ' + (playerId + 1),
+            odds: getDropInAdvantage(actor.energy, G.players[playerId].energy, maxDice),
+            detail: 'Choose dice next', risky: false })
     }
     return options
 }

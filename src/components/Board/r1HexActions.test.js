@@ -15,7 +15,7 @@ test('ordinary move and Drop In are separate and full hex retains attack', () =>
     G.cells[target].obstacle = { Name: 'Shark' }
     const options = getR1HexActions(G, ctx, target)
     expect(options.find(o => o.kind === 'move')).toMatchObject({ cost: '−2 energy', risky: true })
-    expect(options.find(o => o.kind === 'drop')).toMatchObject({ playerId: 1, cost: 'Risk 0–2 energy' })
+    expect(options.find(o => o.kind === 'drop')).toMatchObject({ playerId: 1, odds: { dice: 2, defenseDice: 2, tone: 'balanced' } })
     G.players[2].cellPosition = target
     expect(getR1HexActions(G, ctx, target).map(o => o.kind)).toEqual(['drop', 'drop'])
 })
@@ -29,4 +29,12 @@ test('inspector placement is bounded on desktop, compact and short viewports', (
             expect(p.top+p.maxHeight).toBeLessThanOrEqual(height)
         }
     }
+})
+
+test('free water movement has no zero energy cost label', () => {
+    const G = setupR1(ctx)
+    G.players[0].cellPosition = 7
+    const target = r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx)[0]
+    delete G.cells[target].obstacle
+    expect(getR1HexActions(G, ctx, target).find(o => o.kind === 'move').cost).toBe('Free')
 })

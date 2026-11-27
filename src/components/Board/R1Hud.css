@@ -1051,3 +1051,36 @@
     .r1-rail-options { flex: 1 1 225px; }
     .r1-rail-move { flex: 0 1 auto; }
 }
+
+/* Shared marine-glass information and compact non-numeric combat advantage. */
+.r1-match-feedback.r1-hex-information { padding: 12px; border: 1px solid #76b8bd; border-radius: 17px; background: linear-gradient(145deg, #084b55f7, #052d37fa); box-shadow: 0 10px 28px #03273185; }
+.r1-hex-information .r1-inspection-heading strong { color: #ffd27c; font-size: 18px; }
+.r1-hex-information .r1-hex-terrain { align-items: center; }
+.r1-hex-information .r1-hex-action { border-top: 1px solid #b7eceb36; padding-top: 7px; }
+.r1-hex-information .r1-inspection-body { width: 100%; }
+.r1-hex-option[data-advantage="favorable"], .r1-dice-button[data-advantage="favorable"], .r1-combat-advantage[data-advantage="favorable"] { --combat-color: #83d7a5; --combat-bg: #205447; }
+.r1-hex-option[data-advantage="balanced"], .r1-dice-button[data-advantage="balanced"], .r1-combat-advantage[data-advantage="balanced"] { --combat-color: #ffd477; --combat-bg: #454637; }
+.r1-hex-option[data-advantage="unfavorable"], .r1-dice-button[data-advantage="unfavorable"], .r1-combat-advantage[data-advantage="unfavorable"] { --combat-color: #ff9185; --combat-bg: #492d35; }
+.r1-hex-inspector .r1-hex-option[data-advantage], .r1-floating-hud .r1-dice-options .r1-dice-button[data-advantage] { color: var(--combat-color); border-color: var(--combat-color); background: var(--combat-bg); }
+.r1-hex-inspector .r1-hex-option[aria-pressed="true"], .r1-floating-hud .r1-dice-options .r1-dice-button[aria-pressed="true"] { border-color: #ffd27c; box-shadow: inset 0 0 0 1px #ffd27c; }
+.r1-combat-advantage { display: grid; gap: 4px; width: 90px; max-width: 100%; color: var(--combat-color); font-size: 10px; font-weight: 750; }
+.r1-combat-caption { display: flex; align-items: center; justify-content: center; gap: 3px; white-space: nowrap; }
+.r1-combat-caption .r1-feedback-icon { width: 12px; height: 12px; flex-basis: 12px; }
+.r1-combat-track { position: relative; display: flex; gap: 2px; margin: 0 4px; height: 5px; }
+.r1-combat-track i { flex: 1; border-radius: 4px; opacity: .3; }
+.r1-combat-track i[data-zone="unfavorable"] { background: #ff9185; }
+.r1-combat-track i[data-zone="balanced"] { background: #ffd477; }
+.r1-combat-track i[data-zone="favorable"] { background: #83d7a5; }
+.r1-combat-advantage[data-advantage="unfavorable"] i[data-zone="unfavorable"], .r1-combat-advantage[data-advantage="balanced"] i[data-zone="balanced"], .r1-combat-advantage[data-advantage="favorable"] i[data-zone="favorable"] { opacity: 1; }
+.r1-combat-marker { position: absolute; left: var(--combat-marker); top: 50%; width: 10px; height: 10px; box-sizing: border-box; transform: translate(-50%,-50%); border: 1.5px solid #fff1db; border-radius: 50%; background: var(--combat-color); transition: left 150ms ease, background 150ms ease; }
+.r1-floating-hud .r1-dice-options .r1-dice-button { display: grid; justify-items: center; min-width: 105px; padding: 7px; gap: 5px; }
+.r1-dice-option-loss { font-size: 10px; color: #f0d8ba; }
+.r1-floating-hud .r1-drop-confirm { background: #ffd477; color: #10313a; border-color: #ffe0a1; width: 100%; }
+.r1-rail-arrow { text-align: center; color: #83b7bb; line-height: 1; }
+.r1-floating-hud .r1-hand button { --card-width: clamp(84px, 10vw, 132px); flex: 0 0 var(--card-width); width: var(--card-width); height: auto; aspect-ratio: 5 / 7; min-height: 0; align-self: flex-start; overflow: hidden; }
+.r1-floating-hud .r1-hand button .r1-card-art { height: 0; min-height: 0; flex: 1 1 0; width: 100%; object-fit: contain; margin: 0 0 3px; }
+.r1-floating-hud .r1-hand button strong { flex: 0 0 2.8em; height: 2.8em; }
+@media (max-width: 520px) { .r1-floating-hud .r1-hand button { --card-width: clamp(76px, 23vw, 110px); } }
+@media (max-height: 520px) { .r1-floating-hud .r1-hand button { --card-width: clamp(62px, 18dvh, 88px); } }
+@media (max-height: 520px) and (orientation: landscape) { .r1-turn-steps { display: grid; } .r1-rail-heading { display: flex; } .r1-rail-arrow { display: none; } .r1-turn-progress { padding: 4px 7px; } .r1-rail-options .r1-hand-toggle, .r1-rail-options .r1-turn-drop { min-height: 34px; } }
+@media (prefers-reduced-motion: reduce) { .r1-combat-marker { transition: none; } }
