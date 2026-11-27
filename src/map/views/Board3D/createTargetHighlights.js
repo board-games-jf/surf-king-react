@@ -316,7 +316,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 const eased = progress * progress * (3 - 2 * progress)
                 // Keep the plate near the water when a surfer occupies the hex,
                 // so the rider and board remain in front of the translucent surface.
-                const lift = (marker.userData.occupied ? .02 : marker.userData.mixed ? .14 : .26) * eased +
+                const lift = (marker.userData.occupied ? .02 : .26) * eased +
                     (reduced ? 0 : (marker.userData.occupied ? .004 : .025) * eased * Math.sin(elapsed * 1.8))
                 marker.position.y = .15 + lift
                 const reflection = marker.children[4]
