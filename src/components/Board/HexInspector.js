@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { HexInspectionBody } from './R1Controls'
+import DropInAdvantage from './DropInAdvantage'
 import { FeedbackIcon } from './r1FeedbackVisuals'
 
 export default function HexInspector({ info, options, blocks, placement, onConfirm, onClose }) {
@@ -18,10 +19,11 @@ export default function HexInspector({ info, options, blocks, placement, onConfi
             <strong>{options.length ? 'Available actions' : 'No available actions'}</strong>
             {!options.length && <span className="r1-hex-inspector-reason">{info.action}</span>}
             {options.map(option => <button type="button" key={option.key} aria-pressed={selected?.key === option.key}
-                className="r1-hex-option" data-risk={option.risky} onClick={() => setChosenKey(option.key)}>
-                <span className="r1-hex-option-icon"><FeedbackIcon kind={option.risky ? 'warning' : 'check'}/></span>
+                className="r1-hex-option" data-risk={option.risky} data-advantage={option.odds?.tone} onClick={() => setChosenKey(option.key)}>
+                <span className="r1-hex-option-icon"><FeedbackIcon kind={option.kind === 'drop' ? 'dropIn' : option.risky ? 'warning' : 'move'}/></span>
                 <span className="r1-hex-option-text"><strong>{option.label}</strong><small>{option.detail}</small></span>
-                <span className="r1-hex-option-cost"><FeedbackIcon kind="energy"/>{option.cost}</span>
+                {option.kind === 'drop' ? <DropInAdvantage odds={option.odds}/> :
+                    <span className="r1-hex-option-cost">{option.cost !== 'Free' && option.cost !== 'Energy full' && <FeedbackIcon kind="energy"/>}{option.cost}</span>}
             </button>)}
             {blocks.map(block => <span className="r1-hex-inspector-reason" key={block.playerId}><FeedbackIcon kind="blocked"/>Player {block.playerId + 1} · {block.reason}</span>)}
         </div>

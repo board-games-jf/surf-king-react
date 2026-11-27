@@ -1,7 +1,7 @@
 name: R1 local pilot validation
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/60-hud-state-clarity']
     types: [opened, synchronize, reopened]
 permissions:
   contents: read
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   test:
-    if: startsWith(github.head_ref, 'feat/42-r1-') || github.head_ref == 'feat/44-r1-card-art' || github.head_ref == 'feat/40-local-player-appearance' || github.head_ref == 'fix/48-first-arrival-board-feedback' || github.head_ref == 'feat/60-hud-state-clarity'
+    if: startsWith(github.head_ref, 'feat/42-r1-') || github.head_ref == 'feat/44-r1-card-art' || github.head_ref == 'feat/40-local-player-appearance' || github.head_ref == 'fix/48-first-arrival-board-feedback' || github.head_ref == 'feat/60-hud-state-clarity' || github.head_ref == 'feat/62-visual-combat-feedback'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

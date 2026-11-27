@@ -218,3 +218,6 @@ The first slice extends the existing target-highlight contract with shared perim
 
 
 Round HUD clarity (#60, SK-DEC-049): `getR1RoundOrder` preserves the engine order; `r1HudState` derives completed/current slots and card rail state. `cardVisualEvent` includes round and turn slot metadata so only actual card use displays a completion check. Existing card art, legality queries and dispatch are unchanged. Responsive player shortcuts retain camera focus; the gold movement row is guidance, not a new action button.
+
+
+Visual feedback refinement (#62): `r1DropInOdds` enumerates all four legal sorted-d6 matchup tables once, then derives a qualitative net-energy advantage and maximum matched-pair loss from actual energy and selected dice. `DropInAdvantage` is reused by the contextual inspector and existing dice chooser. It is advisory, not part of engine legality. The hex status descriptor carries terrain identity and shared normalized medallion paths are used in SVG and Three.js; the existing status overlays remain presentation-only.

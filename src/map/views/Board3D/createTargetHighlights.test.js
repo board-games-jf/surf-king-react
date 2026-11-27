@@ -218,7 +218,7 @@ test('pooled status layers keep danger, occupancy, legal targets and locks indep
     const effects = createTargetHighlights(BOARD_LAYOUT, geometry, geometry)
     const [first, second] = effects.statusGroup.children
     effects.update({ kind: 'move', cellIds: [0] })
-    effects.setStatuses([{ id: 0, count: 1, danger: true, activeDanger: true }, { id: 1, count: 2, full: true, blocked: true }])
+    effects.setStatuses([{ id: 0, count: 1, danger: true, activeDanger: true, terrain: 'Shark' }, { id: 1, count: 2, full: true, blocked: true }])
     effects.animate(0, true)
     expect(first.visible).toBe(true)
     expect(first.children[0].visible).toBe(false)
