@@ -24,12 +24,12 @@ export const R1_INVENTORY = [
 const ADJ = layout.cells.map(c => layout.cells.filter(d => d.id !== c.id &&
     Math.abs(Math.hypot(c.x - d.x, c.z - d.z) - Math.sqrt(3) * layout.hexRadius) < 0.005
 ).map(d => d.id))
-const DIST = ADJ.map((_, start) => {
-    const distances = Array(ADJ.length).fill(Infinity)
+const graphDistances = adjacency => adjacency.map((_, start) => {
+    const distances = Array(adjacency.length).fill(Infinity)
     const queue = [start]
     distances[start] = 0
     for (let i = 0; i < queue.length; i++) {
-        ADJ[queue[i]].forEach(to => {
+        adjacency[queue[i]].forEach(to => {
             if (distances[to] !== Infinity) return
             distances[to] = distances[queue[i]] + 1
             queue.push(to)
@@ -37,21 +37,33 @@ const DIST = ADJ.map((_, start) => {
     }
     return distances
 })
+const DIST = graphDistances(ADJ)
+const adaptiveGraphs = Object.fromEntries([23, 37, 53].map(size => {
+    const cut = size === 23 ? 2 : size === 37 ? 4 : 6
+    const ids = layout.cells.filter(c => Math.abs(c.x) <= cut).map(c => c.id)
+    const active = new Set(ids)
+    const adjacency = ADJ.map((neighbors, id) => active.has(id) ? neighbors.filter(to => active.has(to)) : [])
+    return [size, { ids, adjacency, distances: graphDistances(adjacency) }]
+}))
+const graphFor = G => adaptiveGraphs[G.boardSize] || { adjacency: ADJ, distances: DIST }
+const distance = (G, from, to) => graphFor(G).distances[from][to]
 export const isBeach = id => Number.isInteger(id) && id >= 49 && id <= 52
 const choose = (ctx, values) => values[Math.floor(ctx.random.Number() * values.length)]
 const actor = (G, ctx) => G.players[ctx.currentPlayer]
 const shielded = p => p.activeCard.some(c => c.Name === CardAmulet.Name)
 const hangLoose = p => p.activeCard.some(c => c.Name === CardHangLoose.Name)
 export const r1Occupants = (G, id) => Object.values(G.players).filter(p => p.cellPosition === id)
-const freeNeighbors = (G, from) => (ADJ[from] || []).filter(to => r1Occupants(G, to).length < HEX_CAPACITY)
+const freeNeighbors = (G, from) => (graphFor(G).adjacency[from] || []).filter(to => r1Occupants(G, to).length < HEX_CAPACITY)
 export const r1PlayerCard = name => name === CardChange.Name || Boolean(R1_ATTACK_RANGE[name])
 // Player positions are the only authoritative R1 occupancy representation.
 const playerCells = (G, ids) => [...new Set(ids.map(id => G.players[id].cellPosition))]
-export const r1Neighbors = from => (ADJ[from] || []).slice()
+export const r1Neighbors = (from, G = {}) => (graphFor(G).adjacency[from] || []).slice()
 const alive = p => p.energy > 0 && !isBeach(p.cellPosition)
 const capEnergy = (p, value) => { p.energy = Math.min(MAX_ENERGY, value) }
 export const R1_PLACEMENT_RANGE = { Stone: 3, Storm: 2, Cyclone: 2, Island: 2 }
 export const R1_ATTACK_RANGE = { 'Big wave': 2, Sunburn: 3, Tsunami: 1 }
+export const r1AttackRange = (G, name) => G.boardSize && name === 'Tsunami' ? 2 : R1_ATTACK_RANGE[name]
+export const r1PlacementRange = (G, name) => G.boardSize && name === 'Cyclone' ? 3 : R1_PLACEMENT_RANGE[name]
 const attackDamage = { 'Big wave': 2, Sunburn: 1, Tsunami: 3 }
 const placementNames = Object.keys(R1_PLACEMENT_RANGE)
 const attackNames = Object.keys(R1_ATTACK_RANGE)
@@ -71,23 +83,42 @@ function draw(G, ctx, p) {
     if (G.deck.length) receiveCard(G, ctx, p, G.deck.pop())
 }
 export function setupR1(ctx) {
-    const starts = ctx.random.Shuffle([0, 1, 2, 3, 4, 5, 6])
+    return setupMatch(ctx, false)
+}
+export function setupAdaptiveR1(ctx) {
+    return setupMatch(ctx, true)
+}
+function setupMatch(ctx, adaptive) {
+    const n = ctx.numPlayers
+    const size = n <= 3 ? 23 : n <= 5 ? 37 : 53
+    const shuffled = ctx.random.Shuffle([0, 1, 2, 3, 4, 5, 6])
+    const candidates = n === 2 ? [1, 2] : n === 3 ? [1, 2, 5] :
+        n === 4 ? (!adaptive || ctx.random.Number() < .5 ? [1, 2, 4, 5] : [1, 2, 5, 6]) :
+        n === 5 ? [1, 2, 4, 5, 6] : n === 6 ? [0, 1, 2, 3, 4, 6] : [0, 1, 2, 3, 4, 5, 6]
+    const starts = adaptive ? shuffled.filter(id => candidates.includes(id)) : shuffled
     const order = ctx.random.Shuffle(Array.from({ length: ctx.numPlayers }, (_, id) => id))
     const G = {
         ruleset: R1, cells: layout.cells.map(c => ({ position: c.id })),
+        ...(adaptive ? { boardSize: size, activeCellIds: adaptiveGraphs[size].ids.slice(),
+            format: n === 2 ? 'Duel' : n <= 5 ? 'Competition' : 'Dominion', winnerReason: null } : {}),
         players: {}, deck: ctx.random.Shuffle(createR1Deck()), discardedCards: [],
         turn: 1, order, nextPlayer: order[0], completedInRound: 0,
         currentMove: 'use_card', moved: false, redirected: false, pendingSwap: null,
         winner: null, finishers: [], 
         message: 'Round 1: no attacks.', atkDices: [], defDices: [], dropResult: null, dropResultSequence: 0,
     }
-    for (const id of [28, 29, 30, 31]) G.cells[id].obstacle = { ...CardShark }
+    for (const id of (adaptive ? (n <= 3 ? [22, 23] : n <= 5 ? [29, 30] : [35, 36, 37, 38]) : [28, 29, 30, 31])) G.cells[id].obstacle = { ...CardShark }
     for (let i = 0; i < ctx.numPlayers; i++) {
         const p = { position: i, cellPosition: starts[i], energy: 2, cards: [],
             activeCard: [], fellOffTheBoard: -1 }
         G.players[i] = p
         draw(G, ctx, p)
         draw(G, ctx, p)
+    }
+    if (adaptive) for (let slot = Math.ceil(n / 2); slot < n; slot++) {
+        const p = G.players[order[slot]]
+        if (n !== 3) p.energy++
+        if (n !== 4) draw(G, ctx, p)
     }
     return G
 }
@@ -168,6 +199,17 @@ function arrive(G, ctx, p, from, to) {
         default: break
     }
 }
+function finishDominion(G) {
+    if (G.format !== 'Dominion' || G.winner !== null) return false
+    const standing = Object.values(G.players).filter(p => p.energy > 0)
+    if (standing.length !== 1) return false
+    G.winner = standing[0].position
+    G.winnerReason = 'dominion'
+    G.pendingSwap = null
+    G.currentMove = 'finished'
+    G.message = 'Player ' + (G.winner + 1) + ' is the last surfer standing!'
+    return true
+}
 function endR1Turn(G, ctx) {
     const p = actor(G, ctx)
     if (G.moved && p.energy > 0) draw(G, ctx, p)
@@ -175,10 +217,12 @@ function endR1Turn(G, ctx) {
     if (isBeach(p.cellPosition)) {
         G.finishers.push(p.position)
         G.winner = p.position
+        if (G.boardSize) G.winnerReason = 'beach'
         G.currentMove = 'finished'
         G.message = 'Player ' + (p.position + 1) + ' reached the beach first!'
         return
     }
+    if (G.moved && p.energy === 0 && finishDominion(G)) return
     if (G.completedInRound === ctx.numPlayers) {
         G.turn++
         G.completedInRound = 0
@@ -202,11 +246,11 @@ export function r1CardPlayerTargets(G, ctx, index) {
     const name = p?.cards[index]?.Name
     if (!p || G.winner != null || !alive(p) || G.turn <= 1 || !['use_card', 'swap_card'].includes(G.currentMove)) return []
     const change = name === CardChange.Name
-    const range = change ? CHANGE_RANGE : R1_ATTACK_RANGE[name]
+    const range = change ? CHANGE_RANGE : r1AttackRange(G, name)
     if (!range || (change && (G.currentMove !== 'use_card' || G.moved))) return []
     return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
         !shielded(q) && (change ? q.cellPosition !== p.cellPosition : q.energy > 1) &&
-        DIST[p.cellPosition][q.cellPosition] <= range).map(q => q.position)
+        distance(G, p.cellPosition, q.cellPosition) <= range).map(q => q.position)
 }
 export function r1CardTargets(G, ctx, index) {
     const p = actor(G, ctx)
@@ -215,7 +259,7 @@ export function r1CardTargets(G, ctx, index) {
     if (G.currentMove === 'swap_card' && name === CardJumping.Name) return []
     const from = p.cellPosition
     if (placementNames.includes(name)) return G.cells.filter(c => c.position >= 7 && c.position < 49 &&
-        !r1Occupants(G, c.position).length && !c.obstacle && DIST[from][c.position] <= R1_PLACEMENT_RANGE[name]).map(c => c.position)
+        !r1Occupants(G, c.position).length && !c.obstacle && distance(G, from, c.position) <= r1PlacementRange(G, name)).map(c => c.position)
     if (name === CardJumping.Name) return freeNeighbors(G, from).filter(to => !!G.cells[to].obstacle)
     return playerCells(G, r1CardPlayerTargets(G, ctx, index))
 }
@@ -223,7 +267,7 @@ export function r1DropPlayerTargets(G, ctx) {
     const p = actor(G, ctx)
     if (!p || G.winner != null || !alive(p) || p.energy < DROP_IN_MIN_ENERGY || !dropInPhase(G) || G.turn === 1) return []
     return Object.values(G.players).filter(q => q.position !== p.position && alive(q) &&
-        !shielded(q) && !hangLoose(q) && DIST[p.cellPosition][q.cellPosition] <= DROP_IN_RANGE).map(q => q.position)
+        !shielded(q) && !hangLoose(q) && distance(G, p.cellPosition, q.cellPosition) <= DROP_IN_RANGE).map(q => q.position)
 }
 export function r1DropTargets(G, ctx) {
     return playerCells(G, r1DropPlayerTargets(G, ctx))
@@ -246,7 +290,7 @@ export function r1AttackTargetBlocks(G, ctx, range, targets, kind = 'card', play
     return Object.values(G.players).filter(q => q.position !== p.position && !legal.has(q.position))
         .map(q => {
             const code = isBeach(q.cellPosition) ? 'finished' : q.energy === 0 ? 'fallen' :
-                DIST[p.cellPosition][q.cellPosition] > range ? 'range' :
+                distance(G, p.cellPosition, q.cellPosition) > range ? 'range' :
                 phaseReason ? 'phase' : shielded(q) ? 'protected' :
                 kind === 'drop' && hangLoose(q) ? 'hangloose' :
                 kind === 'change' && q.cellPosition === p.cellPosition ? 'samecell' :
@@ -269,7 +313,7 @@ export function r1AttackUnavailableReason(G, ctx, range, targets, kind = 'drop')
     if (kind === 'change' && (G.currentMove !== 'use_card' || G.moved)) return 'Movement already used.'
     if (targets.length) return null
     const nearby = Object.values(G.players).filter(q => q.position !== p.position &&
-        DIST[p.cellPosition][q.cellPosition] <= range)
+        distance(G, p.cellPosition, q.cellPosition) <= range)
     if (!nearby.length) return 'No opponent within ' + range + ' hexes.'
     if (nearby.every(q => !alive(q))) return 'Nearby opponents are fallen or finished.'
     if (kind === 'card' && nearby.some(q => alive(q) && !shielded(q) && q.energy === 1)) {
@@ -282,7 +326,7 @@ export function r1AttackUnavailableReason(G, ctx, range, targets, kind = 'drop')
 export function r1CardPlayable(G, ctx, index) {
     const p = actor(G, ctx)
     const name = p?.cards[index]?.Name
-    if (!name) return false
+    if (!name || G.winner != null) return false
     if (G.currentMove === 'recover') return name === CardLifeGuardFloat.Name && p.energy === 0
     if (!['use_card', 'swap_card'].includes(G.currentMove) || !alive(p)) return false
     if (G.currentMove === 'swap_card' && [CardJumping.Name, CardSurfCurrent.Name, CardChange.Name].includes(name)) return false
@@ -294,7 +338,7 @@ export function r1CardPlayable(G, ctx, index) {
 }
 export function recoverR1(G, ctx) {
     const p = actor(G, ctx)
-    if (G.currentMove !== 'recover' || p.energy !== 0) return INVALID_MOVE
+    if (G.winner != null || G.currentMove !== 'recover' || p.energy !== 0) return INVALID_MOVE
     p.energy = 1
     p.fellOffTheBoard = -1
     G.currentMove = 'use_card'
@@ -393,6 +437,7 @@ export function r1DropIn(G, ctx, to, diceCount, playerId) {
     G.message = 'Drop In: Player ' + (p.position + 1) + ' loses ' + attackerLoss +
         ' energy; Player ' + (q.position + 1) + ' loses ' + defenderLoss + ' energy.' +
         (q.energy === 0 ? ' Player ' + (q.position + 1) + ' fell!' : '')
+    if (q.energy === 0 && finishDominion(G)) return
     if (q.energy === 0 && q.cellPosition !== p.cellPosition) {
         G.pendingSwap = { targetPlayerId: q.position, resumeMove: G.currentMove }
         G.currentMove = 'swap_choice'
@@ -450,6 +495,7 @@ export function r1QuickManeuver(G, ctx, to) {
     return r1Maneuver(G, ctx, to)
 }
 export function passR1(G, ctx) {
+    if (G.winner != null) return INVALID_MOVE
     if (G.currentMove === 'swap_card') { G.currentMove = 'turn_end'; endR1Turn(G, ctx); return }
     if (G.currentMove === 'use_card') { G.currentMove = 'maneuver'; return }
     if (G.currentMove === 'current_second' ||
@@ -471,3 +517,6 @@ export const SurfKingR1 = {
     },
     endIf: G => G.winner !== null ? { winner: G.winner } : undefined,
 }
+
+// Local experimental variant; the reference R1 game remains selectable.
+export const SurfKingR1Adaptive = { ...SurfKingR1, name: 'SurfKingR1Adaptive', setup: setupAdaptiveR1 }
