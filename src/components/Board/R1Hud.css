@@ -1083,7 +1083,8 @@
 .r1-hex-option[data-advantage="favorable"], .r1-dice-button[data-advantage="favorable"], .r1-combat-advantage[data-advantage="favorable"] { --combat-color: #83d7a5; --combat-bg: #205447; }
 .r1-hex-option[data-advantage="balanced"], .r1-dice-button[data-advantage="balanced"], .r1-combat-advantage[data-advantage="balanced"] { --combat-color: #ffd477; --combat-bg: #454637; }
 .r1-hex-option[data-advantage="unfavorable"], .r1-dice-button[data-advantage="unfavorable"], .r1-combat-advantage[data-advantage="unfavorable"] { --combat-color: #ff9185; --combat-bg: #492d35; }
-.r1-hex-inspector .r1-hex-option[data-advantage], .r1-floating-hud .r1-dice-options .r1-dice-button[data-advantage] { color: var(--combat-color); border-color: var(--combat-color); background: var(--combat-bg); }
+.r1-hex-inspector .r1-hex-option[data-advantage] { color: #e3f2ed; border-color: #56878a; background: #194954; }
+.r1-floating-hud .r1-dice-options .r1-dice-button[data-advantage] { color: var(--combat-color); border-color: var(--combat-color); background: var(--combat-bg); }
 .r1-hex-inspector .r1-hex-option[aria-pressed="true"], .r1-floating-hud .r1-dice-options .r1-dice-button[aria-pressed="true"] { border-color: #ffd27c; box-shadow: inset 0 0 0 1px #ffd27c; }
 .r1-combat-advantage { display: grid; gap: 4px; width: 90px; max-width: 100%; color: var(--combat-color); font-size: 10px; font-weight: 750; }
 .r1-combat-caption { display: flex; align-items: center; justify-content: center; gap: 3px; white-space: nowrap; }
