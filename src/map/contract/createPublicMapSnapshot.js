@@ -19,6 +19,7 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
         maneuverDestinations: G.ruleset === 'R1' ? r1MoveTargets(G, ctx) : G.cells.flatMap((_, id) =>
             G.cells[activeCellId] && canManeuver(G, ctx, activeCellId, id) ? [id] : []
         ),
+        ...(G.activeCellIds ? { activeCellIds: G.activeCellIds.slice() } : {}),
         cells: G.cells.map((cell, id) => ({
             id,
             obstacleType: cell?.obstacle?.Name || null,
