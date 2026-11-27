@@ -31,6 +31,7 @@ async function verifyStableViewport(page, name) {
     await page.locator('.r1-hand .r1-card-art').first().waitFor({ state: 'visible' })
     await page.waitForFunction(() => [...document.querySelectorAll('.r1-hand .r1-card-art')].every(img => img.complete && img.naturalWidth === 304 && img.naturalHeight === 304))
     assert.ok(await page.locator('.r1-hand button').evaluateAll(buttons => buttons.every(button => !!button.dataset.cardTone)), 'Each card must have a functional visual tone')
+    assert.ok(await page.locator('.r1-hand button').evaluateAll(buttons => buttons.every(button => Math.abs(button.offsetWidth / button.offsetHeight - 5/7) < .02)), 'Outer hand cards must be 5:7')
     await firstCard.hover()
     const detail = page.locator('.r1-card-detail')
     await detail.waitFor({ state: 'visible' })
