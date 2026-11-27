@@ -16,7 +16,7 @@ export function getR1HexActions(G, ctx, id) {
         const risk = damage >= actor.energy && damage > 0 ? 'Entering will cause a fall.' : effect?.hazard ? effect.text : null
         options.push({ key: 'move', kind: 'move', label: 'Move',
             cost: damage ? '−' + damage + ' energy' : terrain === 'Island' ? '+' + Math.min(2, 5 - actor.energy) + ' energy' : '0 energy',
-            detail: risk || (G.currentMove === 'current_first' ? 'First Surf Current step' : 'End turn after movement'),
+            detail: risk || (G.currentMove === 'current_first' ? 'First Surf Current step · second step if available' : 'End turn after movement'),
             risky: !!effect?.hazard, lethal: damage >= actor.energy && damage > 0 })
     }
     const targets = r1DropPlayerTargets(G, ctx)
