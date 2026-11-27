@@ -638,7 +638,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   const targetHighlights = createTargetHighlights(BOARD_LAYOUT, shapeGeo, outlineGeo)
   scene.add(targetHighlights.group, targetHighlights.interactionGroup, targetHighlights.statusGroup)
   let layeredInteraction = false
-  function positionRing(ring,id){const cell=Number.isInteger(id)?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
+  function positionRing(ring,id){const cell=Number.isInteger(id)&&(!activeCellIds||activeCellIds.has(id))?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
   const cardPiles = createCardPiles()
   scene.add(cardPiles.group)
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2()
@@ -825,7 +825,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     const active = id => !activeCellIds || activeCellIds.has(id)
     cellGroups.forEach((group, id) => { group.visible = active(id) })
     cellLabels.children.forEach(label => { label.visible = active(label.userData.cellId) })
-    hexDepth.group.visible = !activeCellIds || activeCellIds.size === BOARD_LAYOUT.length
+    hexDepth.setActiveCellIds(snapshot.activeCellIds)
     cardPiles.update(snapshot.cardPiles);layeredInteraction = !!snapshot.targetHighlight;
     positionRing(selected, layeredInteraction ? null : snapshot.selectedCellId);hexDepth.select(layeredInteraction ? null : snapshot.selectedCellId)
     positionRing(hovered, layeredInteraction ? null : hoverId)
@@ -1419,7 +1419,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     moveCamera(offset, cameraTransition?.target)
   }
   function focusCell(id) {
-    if (!Number.isInteger(id) || !BOARD_LAYOUT[id]) return
+    if (!Number.isInteger(id) || !BOARD_LAYOUT[id] || (activeCellIds && !activeCellIds.has(id))) return
     const cell = BOARD_LAYOUT[id]
     const offset = cameraTransition?.offset.clone() ?? cameraOffset()
     offset.radius = THREE.MathUtils.clamp(12, controls.minDistance, controls.maxDistance)
