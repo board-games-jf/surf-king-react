@@ -4,8 +4,10 @@ export function createHexDepth(cells, radius) {
   const group = new THREE.Group();
   group.name = 'optional-hex-depth';
   group.visible = false;
+  function buildSideGeometry(activeIds) {
   const edges = new Map();
   for (const cell of cells) {
+    if (activeIds && !activeIds.has(cell.id)) continue;
     for (let side = 0; side < 6; side++) {
       const endpoints = [side, side + 1].map(index => {
         const angle = index * Math.PI / 3;
@@ -22,7 +24,10 @@ export function createHexDepth(cells, radius) {
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-  const sides = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+  return geometry;
+  }
+  let maskKey = '';
+  const sides = new THREE.Mesh(buildSideGeometry(null), new THREE.MeshBasicMaterial({
     color: '#49cece', transparent: true, opacity: .26, depthWrite: false, side: THREE.DoubleSide
   }));
   group.add(sides);
@@ -40,6 +45,14 @@ export function createHexDepth(cells, radius) {
   group.add(selected);
   return {
     group,
+    setActiveCellIds(ids) {
+      const key = ids && ids.length !== cells.length ? ids.join(',') : '';
+      if (key === maskKey) return;
+      const geometry = buildSideGeometry(key ? new Set(ids) : null);
+      sides.geometry.dispose();
+      sides.geometry = geometry;
+      maskKey = key;
+    },
     select(cellId) {
       if (cellId === null) {
         selected.visible = false;
