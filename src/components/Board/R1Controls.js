@@ -290,7 +290,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                                 <PlayerIcon playerId={id}/><EnergyMeter energy={G.players[id]?.energy ?? 0} lost={loss}/>{loss > 0 ? <strong className="r1-dice-energy" data-loss="true" aria-hidden="true"><FeedbackIcon kind="energy"/>−{loss}</strong> : <span className="r1-dice-energy-placeholder" aria-hidden="true"/>}
                             </div>)}
                     </div>}
-                    <div className="r1-dice-pairs">
+                    <div className="r1-dice-pairs" key={diceKey}>
                         {Array.from({ length: Math.max(G.atkDices.length, G.defDices.length) }, (_, i) => {
                             const attack = G.atkDices[i], defense = G.defDices[i]
                             const result = attack == null || defense == null ? 'unpaired' : attack === defense ? 'tie' : attack > defense ? 'win' : 'loss'
@@ -357,7 +357,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             const odds = selectedDefender ? getDropInAdvantage(player.energy, selectedDefender.energy, count) : null
                             return <button type="button" className="r1-dice-button" key={count} aria-label={count === 1 ? '1 die' : count + ' dice'} aria-describedby={'r1-dice-loss-' + count} aria-pressed={selection.diceCount === count} data-advantage={odds?.tone}
                                 onClick={() => setSelection({ ...selection, diceCount: count })}>
-                                <span className="r1-dice-option-faces" aria-hidden="true">{Array.from({ length: count }, (_, i) => <span className="r1-dice-option-face" key={i}><i/><i/><i/></span>)}</span>
+                                <span className="r1-dice-option-faces" aria-hidden="true">{Array.from({ length: count }, (_, i) => <span className="r1-dice-option-face" key={i}/>)}</span>
                                 <span>{count === 1 ? '1 die' : count + ' dice'}</span>
                                 <DropInAdvantage odds={odds}/>
                                 <span className="r1-dice-option-loss" aria-hidden="true">Up to ⚡−{odds?.maxLoss ?? count}</span>

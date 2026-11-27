@@ -825,6 +825,11 @@
 }
 .r1-die-pip { display: block; width: 4px; height: 4px; border-radius: 50%; background: transparent; }
 .r1-die-pip[data-visible="true"] { background: #194650; }
+.r1-floating-hud .r1-dice-results .r1-die:not([data-empty="true"]) { position: relative; }
+.r1-floating-hud .r1-dice-results .r1-die:not([data-empty="true"]) .r1-die-pip { animation: r1-die-reveal 850ms steps(1, end) both; }
+.r1-floating-hud .r1-dice-results .r1-die:not([data-empty="true"])::after { content: ''; position: absolute; inset: 2px; border-radius: 5px; pointer-events: none; background-color: #f6edda; background-image: radial-gradient(circle, #194650 2px, transparent 2.5px), radial-gradient(circle, #194650 2px, transparent 2.5px), radial-gradient(circle, #194650 2px, transparent 2.5px); background-repeat: no-repeat; background-size: 8px 8px; animation: r1-die-roll 850ms steps(1, end) both; }
+@keyframes r1-die-reveal { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes r1-die-roll { 0%, 40% { opacity: 1; background-position: 20% 20%, 50% 50%, 80% 80%; } 20%, 60% { opacity: 1; background-position: 80% 20%, 200% 200%, 20% 80%; } 80% { opacity: 1; background-position: 200% 200%, 50% 50%, 200% 200%; } 100% { opacity: 0; } }
 .r1-floating-hud .r1-dice-results .r1-die[data-empty="true"] {
     display: grid; place-items: center; border: 1px dashed #9abdb7; background: transparent;
     box-shadow: none; color: #bcd9d5; font-size: 18px;
@@ -945,6 +950,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
     .r1-floating-hud .r1-dice-results .r1-energy-meter > span[data-lost="true"] { animation: none; }
+    .r1-floating-hud .r1-dice-results .r1-die:not([data-empty="true"]) .r1-die-pip { animation: none; }
+    .r1-floating-hud .r1-dice-results .r1-die:not([data-empty="true"])::after { display: none; }
 }
 /* An unpaired die keeps its player column without a visible empty box. */
 .r1-floating-hud .r1-dice-results .r1-die[data-empty="true"],

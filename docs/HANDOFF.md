@@ -2,6 +2,7 @@
 
 ## Mobile board and HUD (#64)
 
+- Dice selection shows one or two blank dice; each new dice result briefly animates changing faces before revealing the actual roll, with a static reduced-motion alternative. HUD tests passed (27) and production build passed. Visual review of the animation is pending.
 - The turn summary now has one card visibility control and a noninteractive hex-selection hint, with history shown only for actual card use or Drop In. The inspector retains movement's end-turn explanation. HUD tests passed (27) and the production build passed; desktop presentation checked in the live match, mobile visual review pending.
 - The dice result offers an Attack again shortcut for the same defender while the engine still considers that defender eligible. The shortcut retains dice selection and confirmation, and disappears when the attacker or target is no longer eligible. HUD regression suite passed (27 tests); visual match review remains pending.
 - Occupancy is shown as two slots in the inspector rather than floating fractions. Player-specific ineligibility is indicated on each player in 2D and 3D; a full hex or individually rejected player no longer implies a hex-wide lock. Mixed eligibility still uses engine-derived player targets. Focused tests passed (20); in-game visual review of a shared hex remains pending.
