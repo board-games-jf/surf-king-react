@@ -1,5 +1,9 @@
 # Project Handoff
 
+## Cumulative Drop In probability (#62)
+
+- `docs/DROP_IN_ACCUMULATED_PROBABILITY.md` documents an independently enumerated, conditional repeated-attack model and its 20 energy-pair results; 3 versus 5 is approximately 11.49% under maximum legal dice. It is not match-win probability and does not replace the current one-roll indicator. The embedded Python reference ran with exact rational arithmetic; game and UI tests were not run for this documentation-only change. Display changes require a separate decision.
+
 ## Round and action HUD clarity (#60)
 
 - Branch from integrated main `9a67d8c1`. Replace duplicate wordmark with round/order progress, player status labels and segmented energy; retain original card-back artwork. Optional-action rail uses distinct available, unavailable and confirmed-used semantics. Card event carries round and turn slot for truthful completion feedback; passing or repeated Drop In does not imply completion. Camera focus, target dispatch and rules remain unchanged. Responsive layout uses existing scrollable player column/row. 109 exact-source helper assertions passed in isolation; Jest fixtures added. Existing R1 validation workflow now includes this branch for tests, strict build and Chromium smoke review. CI run 45920378995: 453 tests passed (2 skipped), strict build passed; Chromium failed on obsolete `.r1-action-bar` locator after contextual movement replaced it. Updated smoke test to exercise the current turn rail and keyboard movement shortcut. Re-run pending; real browser acceptance remains open.
