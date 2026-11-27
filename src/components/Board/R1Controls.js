@@ -200,8 +200,16 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     </button>
     const handCard = <span className="r1-turn-card" data-available={cardAvailable} data-state={cardRailState} title={'Card ' + CARD_RAIL_LABELS[cardRailState].toLowerCase()}>{handToggle}</span>
 
-    const targetButtons = targets.length > 0 && <div className="r1-targets" aria-label={attacking ? "Legal target players" : "Legal target hexes"}>
-                        {attacking ? playerTargets.map(id => <button type="button" key={id}
+    const choosingDropTarget = selection?.kind === 'drop' && selection.targetPlayerId === undefined
+    const targetButtons = targets.length > 0 && <div className={choosingDropTarget ? 'r1-drop-target-list' : 'r1-targets'} aria-label={attacking ? "Legal target players" : "Legal target hexes"}>
+                        {attacking ? playerTargets.map(id => choosingDropTarget ? <button type="button" key={id} className="r1-drop-target-option"
+                            aria-label={'Attack Player ' + (id + 1)} aria-describedby={'r1-drop-target-' + id}
+                            onClick={() => onTarget(G.players[id].cellPosition, id)}>
+                            <PlayerIcon playerId={id} variant="r1-hex-player-avatar"/>
+                            <span className="r1-drop-target-hex"><small>Hex</small><HexBadge id={G.players[id].cellPosition}/></span>
+                            <DropInAdvantage odds={getDropInAdvantage(player.energy, G.players[id].energy, maxAttackDice)}/>
+                            <span id={'r1-drop-target-' + id} className="r1-sr-only">Hex {G.players[id].cellPosition + 1}; {getDropInAdvantage(player.energy, G.players[id].energy, maxAttackDice)?.tone} with {maxAttackDice} {maxAttackDice === 1 ? 'die' : 'dice'}</span>
+                        </button> : <button type="button" key={id}
                             aria-label={(selectedCard?.Name === 'Change' ? 'Swap with Player ' : 'Attack Player ') + (id + 1)}
                             className="r1-target-player" title={'Player ' + (id + 1)}
                             onClick={() => onTarget(G.players[id].cellPosition, id)}><PlayerIcon playerId={id} variant="r1-target-player-avatar"/></button>) :
@@ -372,7 +380,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             <PlayerIcon playerId={selection.targetPlayerId} variant="r1-legend-player-avatar"/>
                             <span className="r1-sr-only">Player {selection.targetPlayerId + 1} </span>selected · choose dice.
                         </> : <><span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
-                            {highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}</>}
+                            {choosingDropTarget ? 'Choose an opponent · up to ' + maxAttackDice + (maxAttackDice === 1 ? ' die' : ' dice') : highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}</>}
                     </div>}
                     {selection?.targetPlayerId === undefined && (!selectedCard || (!attacking && !inspectingOther)) && (selection || !['use_card', 'maneuver'].includes(G.currentMove)) && targetButtons}
                 </div>
@@ -415,6 +423,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                                 {cardRailState === 'used' && <span><FeedbackIcon kind="check"/>Card used</span>}
                                 {dropUsed && <span><FeedbackIcon kind="check"/>Drop In used</span>}
                             </span>}
+                            {dropReason && !selection && <span className="r1-drop-unavailable">{dropReason}</span>}
                         </div>
                     </div>
                 </div>}

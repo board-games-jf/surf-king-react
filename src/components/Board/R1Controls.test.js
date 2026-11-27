@@ -77,6 +77,7 @@ test('Drop In shortcut starts target selection without rolling and explains unav
     const { rerender } = render(<R1Controls {...props}/>)
     expect(screen.getByRole('button', { name: 'Drop In' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Drop In' })).toHaveAccessibleDescription(/round 2/i)
+    expect(screen.getByText('Attacks unlock in round 2.', { selector: '.r1-drop-unavailable' })).toBeInTheDocument()
     G.turn = 2
     G.players[1].cellPosition = 14
     rerender(<R1Controls {...props}/>)
@@ -86,7 +87,8 @@ test('Drop In shortcut starts target selection without rolling and explains unav
     rerender(<R1Controls {...props} selection={{ kind: 'drop', diceCount: 1 }}/>)
     expect(screen.getByText('Choose an opponent')).toBeInTheDocument()
     expect(screen.queryByRole('group', { name: 'Attack dice' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Attack Player 2' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Attack Player 2' })).toHaveAccessibleDescription(/Hex 15.*1 die/i)
+    expect(screen.getByRole('button', { name: 'Attack Player 2' }).querySelector('.r1-hex-badge')).toHaveTextContent('15')
 })
 
 test('dice chooser limits risk to energy minus one and shows each pair result', () => {

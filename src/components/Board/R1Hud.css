@@ -747,6 +747,11 @@
     width: 100%; height: 100%; font-size: 17px;
 }
 .r1-player-avatar.r1-legend-player-avatar { width: 20px; height: 20px; flex-basis: 20px; font-size: 12px; }
+.r1-drop-target-list { display: grid; gap: 5px; width: 100%; }
+.r1-floating-hud .r1-drop-target-option { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 7px; width: 100%; padding: 6px; color: #e3f2ed; background: #194954; border: 1px solid #56878a; border-radius: 10px; text-align: left; }
+.r1-drop-target-hex { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.r1-drop-target-hex small { font-size: 11px; }
+.r1-drop-unavailable { color: #b8d6d8; font-size: 10px; line-height: 1.2; max-width: 22ch; }
 
 /* Keep camera tools together at the board edge, clear of the player row. */
 .surf-match-r1 .surf-camera-controls {
