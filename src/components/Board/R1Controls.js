@@ -262,6 +262,13 @@ export default function R1Controls({
         G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
+    const [dismissedMessage, setDismissedMessage] = useState(null)
+    useEffect(() => {
+        if (!G.message) return
+        setDismissedMessage(null)
+        const timer = setTimeout(() => setDismissedMessage(G.message), 3500)
+        return () => clearTimeout(timer)
+    }, [G.message, G.turn])
     const [dismissedDice, setDismissedDice] = useState(null)
     const diceKey =
         G.dropResult?.id != null
@@ -712,6 +719,7 @@ export default function R1Controls({
             {(winner ||
                 showDice ||
                 (G.message &&
+                    G.message !== dismissedMessage &&
                     !G.message.startsWith('Drop In:') &&
                     !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) &&
                     /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) && (
@@ -723,6 +731,7 @@ export default function R1Controls({
                             <span>First to the beach.</span>
                         </>
                     ) : (
+                        G.message !== dismissedMessage &&
                         !(G.dropResult && G.message?.startsWith('Drop In:')) && <span>{G.message}</span>
                     )}
                     {showDice && (
@@ -992,6 +1001,33 @@ export default function R1Controls({
                                             setSelection(null)
                                         }}
                                     />
+                                    <div className="r1-target-legend r1-dice-target">
+                                        <PlayerIcon
+                                            playerId={selection.targetPlayerId}
+                                            variant="r1-legend-player-avatar"
+                                        />
+                                        <span
+                                            className="r1-drop-target-energy"
+                                            role="img"
+                                            aria-label={
+                                                'Player ' +
+                                                (selection.targetPlayerId + 1) +
+                                                ', ' +
+                                                selectedDefender.energy +
+                                                ' of 5 energy'
+                                            }
+                                        >
+                                            {Array.from({ length: 5 }, (_, i) => (
+                                                <span
+                                                    key={i}
+                                                    data-filled={i < selectedDefender.energy}
+                                                    aria-hidden="true"
+                                                >
+                                                    <FeedbackIcon kind="energy" />
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </div>
                                     <div className="r1-dice-options">
                                         {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map((count) => {
                                             const odds = selectedDefender
@@ -1043,6 +1079,7 @@ export default function R1Controls({
                                 </div>
                             )}
                             {!detailCard &&
+                                !(selection?.kind === 'drop' && selectedDefender && !dropReason) &&
                                 (selection || !['use_card', 'maneuver'].includes(G.currentMove)) &&
                                 highlight.cellIds.length > 0 &&
                                 highlightStyle && (

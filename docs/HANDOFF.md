@@ -1,5 +1,6 @@
 # Project Handoff
 
+-   Transient match messages dismiss after 3.5 seconds; dice results and victory feedback remain visible. HUD regression tests passed (30).
 -   Drop In dice selection returns to its actual entry point (hex inspector, opponent list, result, or board). Game panels now share the same close icon control. Focused HUD and inspector tests passed (31); shortcut return was checked in the live desktop match. Mobile visual review remains pending.
 
 ## Mobile board and HUD (#64)

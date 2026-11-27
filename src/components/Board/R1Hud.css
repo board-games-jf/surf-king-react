@@ -3608,3 +3608,7 @@
 .r1-board-action .r1-close-button:hover {
     background: #ffffff24;
 }
+
+.r1-dice-target {
+    flex-basis: 100%;
+}

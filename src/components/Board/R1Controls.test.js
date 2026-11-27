@@ -790,3 +790,24 @@ test('dice chooser shows target-specific qualitative advantage for each legal ch
     rerender(<R1Controls {...props} />)
     expect(screen.queryByRole('button', { name: '2 dice' })).toBeNull()
 })
+
+test('temporary match messages disappear while dice results remain open', () => {
+    jest.useFakeTimers()
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.message = 'Recovered with Lifeguard Float.'
+    const props = { G, ctx, moves: {}, selection: null, setSelection: () => {}, onTarget: () => {} }
+    const { rerender } = render(<R1Controls {...props} />)
+    expect(screen.getByText(G.message)).toBeInTheDocument()
+    act(() => jest.advanceTimersByTime(3500))
+    expect(screen.queryByText(G.message)).not.toBeInTheDocument()
+    G.message = 'Player 2 loses 1 energy.'
+    G.atkDices = [4]
+    G.defDices = [3]
+    rerender(<R1Controls {...props} />)
+    expect(screen.getByText(G.message)).toBeInTheDocument()
+    act(() => jest.advanceTimersByTime(3500))
+    expect(screen.queryByText(G.message)).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Drop In dice results')).toBeInTheDocument()
+    jest.useRealTimers()
+})
