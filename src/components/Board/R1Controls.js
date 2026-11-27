@@ -130,6 +130,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const diceKey = G.dropResult?.id != null ? 'roll:' + G.dropResult.id :
         ['legacy', G.turn, ctx.currentPlayer, G.atkDices.join(','), G.defDices.join(',')].join(':')
     const showDice = G.atkDices.length > 0 && dismissedDice !== diceKey
+    const repeatTarget = G.dropResult && Number(ctx.currentPlayer) === G.dropResult.attackerId && !selection && dropTargets.includes(G.dropResult.defenderId) ? G.dropResult.defenderId : null
     const [handHidden, setHandHidden] = useState(false)
     const [localDiscardOpen, setLocalDiscardOpen] = useState(false)
     const discardOpen = externalDiscardOpen ?? localDiscardOpen
@@ -308,6 +309,10 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             </div>
                         })}
                     </div>
+                    {repeatTarget != null && <button type="button" className="r1-repeat-drop" onClick={() => {
+                        setDismissedDice(diceKey)
+                        setSelection({ kind: 'drop', diceCount: maxAttackDice, targetCell: G.players[repeatTarget].cellPosition, targetPlayerId: repeatTarget })
+                    }}><FeedbackIcon kind="dropIn"/>Attack again</button>}
                 </div>}
                 </div>}
             {!winner && <div className="r1-hud-dock">

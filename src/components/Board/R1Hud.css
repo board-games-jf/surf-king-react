@@ -862,6 +862,7 @@
 
 /* Equal columns keep each player aligned with their dice and energy result. */
 .r1-floating-hud .r1-dice-results { width: min(210px, calc(100vw - 64px)); min-width: 0; }
+.r1-floating-hud .r1-dice-results .r1-repeat-drop { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 38px; border: 1px solid #ffb49e; border-radius: 9px; background: #a7433e; color: #fff4eb; font-weight: 750; cursor: pointer; }
 .r1-dice-sides, .r1-dice-pair {
     box-sizing: border-box; width: 100%; display: grid;
     grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr); gap: 0;

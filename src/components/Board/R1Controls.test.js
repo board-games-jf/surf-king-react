@@ -109,6 +109,28 @@ test('dice chooser limits risk to energy minus one and shows each pair result', 
     expect(screen.getByLabelText('Drop In dice results')).toBeInTheDocument()
 })
 
+test('dice result offers a repeat only while the same opponent remains eligible', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].energy = 3
+    G.players[1].cellPosition = 14
+    G.atkDices = [3]
+    G.defDices = [3]
+    G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 0 }
+    const setSelection = jest.fn()
+    const props = { G, ctx, moves: {}, selection: null, setSelection, onTarget: jest.fn() }
+    const { rerender } = render(<R1Controls {...props}/>)
+    G.players[0].energy = 1
+    rerender(<R1Controls {...props}/>)
+    expect(screen.queryByRole('button', { name: 'Attack again' })).not.toBeInTheDocument()
+    G.players[0].energy = 3
+    rerender(<R1Controls {...props}/>)
+    fireEvent.click(screen.getByRole('button', { name: 'Attack again' }))
+    expect(setSelection).toHaveBeenCalledWith({ kind: 'drop', diceCount: 2, targetCell: 14, targetPlayerId: 1 })
+    expect(screen.queryByLabelText('Drop In dice results')).not.toBeInTheDocument()
+})
+
 test('a map-selected opponent remains selected when choosing dice', () => {
     const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
     const G = setupR1(ctx)
@@ -301,7 +323,7 @@ test('shared hex panel shows terrain and both independent surfer details togethe
     const panel = within(screen.getByLabelText('Hex information'))
     expect(panel.getByText('Island')).toBeInTheDocument()
     expect(panel.getByText('+2 energy')).toBeInTheDocument()
-    expect(panel.getByText('2/2 surfers · Full')).toBeInTheDocument()
+    expect(panel.getByLabelText('2 of 2 spaces occupied')).toHaveTextContent('Full')
     const p2 = within(panel.getByRole('group', { name: 'Player 2 details' }))
     const p3 = within(panel.getByRole('group', { name: 'Player 3 details' }))
     expect(p2.getByRole('meter')).toHaveAttribute('aria-valuenow', '1')
