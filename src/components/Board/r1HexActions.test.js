@@ -31,6 +31,16 @@ test('inspector placement is bounded on desktop, compact and short viewports', (
     }
 })
 
+test('connector starts on the hex edge closest to the inspector', () => {
+    const hex = [{ x: 180, y: 180 }, { x: 220, y: 180 }, { x: 240, y: 200 }, { x: 220, y: 220 }, { x: 180, y: 220 }, { x: 160, y: 200 }]
+    const right = placeHexInspector(1200, 800, 180, 200, hex)
+    expect(right.side).toBe('right')
+    expect(right.anchorX).toBeGreaterThan(220)
+    const left = placeHexInspector(1200, 800, 1000, 200, hex.map(p => ({ x: p.x + 800, y: p.y })))
+    expect(left.side).toBe('left')
+    expect(left.anchorX).toBeLessThan(980)
+})
+
 test('free water movement has no zero energy cost label', () => {
     const G = setupR1(ctx)
     G.players[0].cellPosition = 7

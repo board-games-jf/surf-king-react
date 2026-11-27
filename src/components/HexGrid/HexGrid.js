@@ -47,7 +47,12 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                             data-inspected={inspectedCellId === id ? 'true' : undefined}
                             onMouseEnter={() => onHexHover?.(id)}
                             onMouseLeave={() => onHexHover?.(null)}
-                            onClick={() => onHexClick({ position: id })}
+                            onClick={(event) => {
+                                const polygon = event.currentTarget, matrix = polygon.getScreenCTM?.()
+                                const corners = matrix && polygon.points ? Array.from(polygon.points, point => ({ x: matrix.a * point.x + matrix.c * point.y + matrix.e, y: matrix.b * point.x + matrix.d * point.y + matrix.f })) : null
+                                if (corners) onHexClick({ position: id }, corners)
+                                else onHexClick({ position: id })
+                            }}
                         />
                         {status?.blocked && <polygon points={points} transform="scale(.96)" fill="#15313a"
                             fillOpacity=".48" pointerEvents="none" data-hex-blocked="true"/>}

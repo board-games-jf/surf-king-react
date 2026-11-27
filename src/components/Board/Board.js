@@ -228,13 +228,14 @@ const Board = ({ G, ctx, moves }) => {
         )
     }
 
-    const onHexClickedHandle = (cell) => {
+    const onHexClickedHandle = (cell, corners) => {
         if (isR1) {
             if (!r1Selection) {
                 const rect = mapRef.current?.getBoundingClientRect()
                 if (rect) {
                     const point = boardPointer.current || { x: rect.width / 2, y: rect.height / 2 }
-                    setBoardAction({ id: cell.position, placement: placeHexInspector(rect.width, rect.height, point.x, point.y), scope: inspectionScope })
+                    const polygon = corners?.map(p => ({ x: p.x - rect.left, y: p.y - rect.top }))
+                    setBoardAction({ id: cell.position, placement: placeHexInspector(rect.width, rect.height, point.x, point.y, polygon), scope: inspectionScope })
                     setClickedHex(null)
                     setHoveredHex(null)
                     boardPointer.current = null
@@ -404,14 +405,14 @@ const Board = ({ G, ctx, moves }) => {
                         snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, pinnedHexId), maneuverDestinations: r1Targets, targetHighlight, hexStatuses, cardPiles: { deck: G.deck.length, discard: G.discardedCards.length, topDiscard: G.discardedCards[G.discardedCards.length - 1]?.Name || null, event: G.cardVisualEvent || null } } : createPublicMapSnapshot(G, ctx, selectedCellId)}
                         onDiscardSelect={isR1 ? () => setDiscardOpen(value => !value) : undefined}
                         onCellHover={isR1 ? setHoveredHex : undefined}
-                        onCellSelect={(cellId) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }) }}
+                        onCellSelect={(cellId, corners) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }, corners) }}
                         onUnavailable={(message) => { setHoveredHex(null); setViewError(message); setViewMode('2d') }}
                     />
                 ) : (
                     <HexGrid cellProps={cellProps} renderCell={renderCell}
                         onHexHover={isR1 ? setHoveredHex : undefined} inspectedCellId={isR1 ? inspectedHexId : null}
                         hoveredCellId={isR1 ? hoveredHex : null} selectedCellId={isR1 ? pinnedHexId : null}
-                        onHexClick={(cell) => { setSelectedCellId(cell.position); onHexClickedHandle(cell) }}
+                        onHexClick={(cell, corners) => { setSelectedCellId(cell.position); onHexClickedHandle(cell, corners) }}
                     />
                 )}
                 {inspectorInfo && <HexInspector key={inspectionScope + ':' + contextualHexId} info={inspectorInfo}

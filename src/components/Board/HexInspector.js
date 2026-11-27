@@ -8,9 +8,15 @@ export default function HexInspector({ info, options, blocks, placement, onConfi
     const heading = useRef(null)
     const selected = options.find(option => option.key === chosenKey)
     const { side, anchorX, anchorY, ...style } = placement
+    const endX = side === 'right' ? style.left : side === 'left' ? style.left + style.width : Math.max(style.left + 20, Math.min(style.left + style.width - 20, anchorX))
+    const endY = side === 'below' ? style.top : style.top + 36
+    const horizontal = side === 'left' || side === 'right'
+    const curve = horizontal
+        ? `M ${anchorX} ${anchorY} C ${(anchorX + endX) / 2} ${anchorY}, ${(anchorX + endX) / 2} ${endY}, ${endX} ${endY}`
+        : `M ${anchorX} ${anchorY} C ${anchorX} ${(anchorY + endY) / 2}, ${endX} ${(anchorY + endY) / 2}, ${endX} ${endY}`
     useEffect(() => { heading.current?.focus() }, [])
     return <>{side !== 'sheet' && <svg className="r1-hex-inspector-link" aria-hidden="true">
-        <line x1={anchorX} y1={anchorY} x2={side === 'right' ? style.left : side === 'left' ? style.left + style.width : Math.max(style.left + 20, Math.min(style.left + style.width - 20, anchorX))} y2={side === 'below' ? style.top : style.top + 36}/>
+        <path d={curve}/>
         <circle cx={anchorX} cy={anchorY} r="3"/>
     </svg>}
     <section className="r1-board-action r1-hex-inspector" style={style} data-side={side}

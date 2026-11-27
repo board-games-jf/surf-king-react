@@ -951,7 +951,7 @@
 
 /* Selected-hex inspector: bounded, side-anchored marine glass. */
 .r1-hex-inspector-link { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 11; }
-.r1-hex-inspector-link line { stroke: #ffe0a1; stroke-width: 1.5; opacity: .9; }
+.r1-hex-inspector-link path { fill: none; stroke: #ffe0a1; stroke-width: 1.5; opacity: .9; }
 .r1-hex-inspector-link circle { fill: #ffe0a1; }
 .r1-board-action.r1-hex-inspector {
     --hud-gold: #ffd27c; --hud-mute: #b6d8db; --hud-ink: #edfafa;

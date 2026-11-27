@@ -678,7 +678,15 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     if (isTap) {
       if (pickDiscard(e)) { onDiscardSelect?.(); return }
       const id = pick(e)
-      if (id !== null) onCellSelect(id)
+      if (id !== null) {
+        const cell = BOARD_LAYOUT[id], box = renderer.domElement.getBoundingClientRect()
+        const corners = Array.from({ length: 6 }, (_, i) => {
+          const angle = i * Math.PI / 3
+          const point = new THREE.Vector3(cell.x + Math.cos(angle) * R, .19, cell.z + Math.sin(angle) * R).project(camera)
+          return { x: box.left + (point.x + 1) * box.width / 2, y: box.top + (1 - point.y) * box.height / 2 }
+        })
+        onCellSelect(id, corners)
+      }
     }
   }
   function leave(){setHover(null)}
