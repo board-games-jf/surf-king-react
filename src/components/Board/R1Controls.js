@@ -350,8 +350,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         <button type="button" className="r1-recover-button" onClick={() => { setSelection(null); moves.recover() }}>Recover free (1 energy)</button>
                         <span>Or use Lifeguard Float.</span>
                     </div>}
-                    {selection?.kind === 'drop' && !dropReason && <div className="r1-attack-dice" role="group" aria-label="Attack dice">
-                        {!selectedDefender && <strong>Choose your dice</strong>}
+                    {selection?.kind === 'drop' && !dropReason && selectedDefender && <div className="r1-attack-dice" role="group" aria-label="Attack dice">
                         <div className="r1-dice-options">
                         {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map(count => {
                             const odds = selectedDefender ? getDropInAdvantage(player.energy, selectedDefender.energy, count) : null
@@ -404,8 +403,14 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 {showTurnSteps && <div className="r1-turn-progress r1-glass">
                     <div className="r1-turn-summary" aria-label="Turn progress">
                         {handCard}
+                        <button type="button" className="r1-drop-shortcut" disabled={!!dropReason || (!!selection && selection.kind !== 'drop')}
+                            aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
+                            title={dropReason || (selection && selection.kind !== 'drop' ? 'Close the selected card first.' : 'Choose a Drop In opponent')}
+                            onClick={() => { inspectCard(null); setSelection(selection?.kind === 'drop' ? null : { kind: 'drop', diceCount: maxAttackDice }) }}>
+                            <FeedbackIcon kind="dropIn"/>Drop In
+                        </button>
                         <div className="r1-turn-guidance">
-                            {!selection && <span className="r1-select-hex">{G.currentMove === 'current_second' ? 'Select a second hex' : 'Select a hex'} <span aria-hidden="true">↗</span></span>}
+                            {(!selection || (selection.kind === 'drop' && selection.targetPlayerId === undefined)) && <span className="r1-select-hex">{selection?.kind === 'drop' ? 'Choose an opponent' : G.currentMove === 'current_second' ? 'Select a second hex' : 'Select a hex'} <span aria-hidden="true">↗</span></span>}
                             {(cardRailState === 'used' || dropUsed) && <span className="r1-turn-history">
                                 {cardRailState === 'used' && <span><FeedbackIcon kind="check"/>Card used</span>}
                                 {dropUsed && <span><FeedbackIcon kind="check"/>Drop In used</span>}

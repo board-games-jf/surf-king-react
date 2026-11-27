@@ -70,6 +70,25 @@ test('keyboard attack shortcut selects a legal opponent and explains blocked sta
     expect(screen.getByText('Attack before moving.', { selector: '#r1-drop-status' })).toBeInTheDocument()
 })
 
+test('Drop In shortcut starts target selection without rolling and explains unavailability', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx), setSelection = jest.fn(), onTarget = jest.fn()
+    const props = { G, ctx, moves: {}, selection: null, setSelection, onTarget }
+    const { rerender } = render(<R1Controls {...props}/>)
+    expect(screen.getByRole('button', { name: 'Drop In' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Drop In' })).toHaveAccessibleDescription(/round 2/i)
+    G.turn = 2
+    G.players[1].cellPosition = 14
+    rerender(<R1Controls {...props}/>)
+    fireEvent.click(screen.getByRole('button', { name: 'Drop In' }))
+    expect(setSelection).toHaveBeenCalledWith({ kind: 'drop', diceCount: 1 })
+    expect(onTarget).not.toHaveBeenCalled()
+    rerender(<R1Controls {...props} selection={{ kind: 'drop', diceCount: 1 }}/>)
+    expect(screen.getByText('Choose an opponent')).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Attack dice' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Attack Player 2' })).toBeInTheDocument()
+})
+
 test('dice chooser limits risk to energy minus one and shows each pair result', () => {
     const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
     const G = setupR1(ctx)
@@ -78,14 +97,14 @@ test('dice chooser limits risk to energy minus one and shows each pair result', 
     G.players[1].cellPosition = 14
     G.cells[14].player = { position: 1 }
     const setSelection = jest.fn()
-    const props = { G, ctx, moves: {}, setSelection, onTarget: jest.fn(), selection: { kind: 'drop', diceCount: 1 } }
+    const props = { G, ctx, moves: {}, setSelection, onTarget: jest.fn(), selection: { kind: 'drop', diceCount: 1, targetCell: 14, targetPlayerId: 1 } }
     const { rerender } = render(<R1Controls {...props} />)
     expect(screen.getByRole('button', { name: '1 die' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '2 dice' })).not.toBeInTheDocument()
     G.players[0].energy = 3
     rerender(<R1Controls {...props} />)
     fireEvent.click(screen.getByRole('button', { name: '2 dice' }))
-    expect(setSelection).toHaveBeenCalledWith({ kind: 'drop', diceCount: 2 })
+    expect(setSelection).toHaveBeenCalledWith({ ...props.selection, diceCount: 2 })
     G.atkDices = [6, 2]
     G.defDices = [5, 4]
     G.dropResult = { attackerId: 0, defenderId: 1, attackerLoss: 1, defenderLoss: 1 }
@@ -530,7 +549,7 @@ test('card rail distinguishes availability from confirmed use; repeat Drop In is
     const { rerender } = render(<R1Controls {...props}/>)
     expect(screen.getByTitle('Card available')).toHaveAttribute('data-state', 'available')
     expect(screen.getByText('Select a hex')).toBeInTheDocument()
-    expect(within(screen.getByLabelText('Turn progress')).queryByText('Drop In')).not.toBeInTheDocument()
+    expect(within(screen.getByLabelText('Turn progress')).getByRole('button', { name: 'Drop In' })).toBeEnabled()
     G.currentMove = 'maneuver'
     rerender(<R1Controls {...props}/>)
     expect(screen.getByTitle('Card unavailable')).toHaveAttribute('data-state', 'unavailable')

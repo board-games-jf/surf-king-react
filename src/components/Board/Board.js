@@ -118,6 +118,12 @@ const Board = ({ G, ctx, moves }) => {
             setClickedHex(previous => previous?.scope === inspectionScope && previous.id === id ? null : { id, scope: inspectionScope })
             return
         }
+        if (r1Selection?.kind === 'drop' && r1Selection.targetPlayerId === undefined && chosen !== undefined) {
+            setClickedHex(null)
+            setHoveredHex(null)
+            setR1Selection({ ...r1Selection, targetCell: id, targetPlayerId: chosen })
+            return
+        }
         setClickedHex(null)
         setHoveredHex(null)
         if (r1Selection?.kind === 'card') {

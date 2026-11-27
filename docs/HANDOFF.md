@@ -2,6 +2,7 @@
 
 ## Mobile board and HUD (#64)
 
+- The turn bar includes a functional Drop In shortcut, disabled with an accessible reason when unavailable. It starts opponent selection; choosing an eligible target opens dice selection without rolling, and confirmation remains explicit. Direct hex actions remain available. Focused engine, HUD and inspector tests passed (98), production build passed, and target selection was checked in the live desktop match; mobile review remains pending.
 - Drop In target choices and the selected-target legend reuse player circles with accessible names; redundant dice instructions were removed and the dice panel was narrowed. Selecting a hex displays its occupants' existing 3D identity markers. Focused HUD, inspector and snapshot tests passed (39); production build passed. Final mobile and shared-hex visual review remains pending.
 - Dice selection shows one or two blank dice; each new dice result briefly animates changing faces before revealing the actual roll, with a static reduced-motion alternative. HUD tests passed (27) and production build passed. Visual review of the animation is pending.
 - The turn summary now has one card visibility control and a noninteractive hex-selection hint, with history shown only for actual card use or Drop In. The inspector retains movement's end-turn explanation. HUD tests passed (27) and the production build passed; desktop presentation checked in the live match, mobile visual review pending.
