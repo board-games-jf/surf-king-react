@@ -14,7 +14,7 @@
 .surf-match-r1 .surf-map-2d {
     background: radial-gradient(ellipse at 50% 30%, #5dbbc2, #247e94 66%, #175468);
 }
-.surf-match-r1 .surf-map-2d > svg {
+.surf-match-r1 .surf-map-2d > .surf-hex-grid {
     width: 94%;
     height: 100%;
     max-height: calc(100% - 220px);
@@ -350,7 +350,7 @@
     .r1-floating-hud .r1-hand button[aria-pressed="true"] { transform: translateY(-3px); }
     .r1-hud-context { padding: 5px 8px; }
     .r1-floating-hud .r1-action-bar > button { min-height: 35px; min-width: 92px; padding: 6px 13px; }
-    .surf-match-r1 .surf-map-2d > svg { max-height: calc(100% - 330px); margin-top: 142px; }
+    .surf-match-r1 .surf-map-2d > .surf-hex-grid { max-height: calc(100% - 330px); margin-top: 142px; }
 }
 @media (max-height: 520px) and (orientation: landscape) {
     .r1-hud-dock { left: 50%; max-height: calc(100dvh - 78px - max(var(--hud-inset), env(safe-area-inset-bottom))); width: min(620px, 76%); gap: 2px; }
@@ -361,7 +361,7 @@
     .r1-match-feedback { top: 78px; max-width: 42%; left: 36%; }
     .surf-match-r1 .surf-map-controls { top: 83px; flex-direction: row; }
     .surf-match-r1 .surf-orbit-controls { top: 125px; }
-    .surf-match-r1 .surf-map-2d > svg { max-height: calc(100% - 130px); margin-top: 56px; }
+    .surf-match-r1 .surf-map-2d > .surf-hex-grid { max-height: calc(100% - 130px); margin-top: 56px; }
 }
 @media (prefers-reduced-motion: reduce) {
     .r1-floating-hud .r1-hand button { transition: none; }

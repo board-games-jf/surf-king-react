@@ -20,7 +20,7 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
     const gridId = useId()
 
     return (
-        <svg ref={getRef} viewBox={[-halfWidth, -halfDepth, 2 * halfWidth, 2 * halfDepth].join(' ')}>
+        <svg className="surf-hex-grid" ref={getRef} viewBox={[-halfWidth, -halfDepth, 2 * halfWidth, 2 * halfDepth].join(' ')}>
             {BOARD_LAYOUT.map(({ id, x, z }) => {
                 const { backgroundImage, style, highlight, attackHighlight, blocked, status } = cellProps(id)
                 const patternId = `${gridId}-cell-${id}`
