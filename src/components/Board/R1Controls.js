@@ -59,12 +59,6 @@ function EnergyMeter({ energy, lost = 0 }) {
     </div>
 }
 
-function RailStateIcon({ state, kind }) {
-    return <span className="r1-rail-state-icon" data-state={state} aria-hidden="true">
-        <FeedbackIcon kind={state === 'used' ? 'check' : state === 'unavailable' && kind !== 'dropIn' ? 'lock' : kind}/>
-    </span>
-}
-
 export function HexInspectionBody({ hexFeedback, expanded = false }) {
     const singleAmuletBlock = hexFeedback?.occupants?.length === 1 &&
         hexFeedback.occupants[0].blocked === 'Amulet' && hexFeedback.action === 'This opponent is protected.'
@@ -119,7 +113,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const showTurnSteps = ['use_card', 'maneuver', 'current_first', 'current_second'].includes(G.currentMove)
     const cardAvailable = ['use_card', 'swap_card', 'recover'].includes(G.currentMove) && hand.cards.some((_, index) => r1CardPlayable(G, ctx, index))
     const cardRailState = getCardRailState(G, ctx, cardAvailable)
-    const dropRailState = dropReason ? 'unavailable' : 'available'
+    const dropUsed = G.dropResult && String(G.dropResult.attackerId) === String(ctx.currentPlayer)
     const noMoveAvailable = G.currentMove === 'use_card' && !r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx).length
     const keyboardMoves = !selection && ['use_card', 'maneuver', 'current_first'].includes(G.currentMove) ?
         r1MoveTargets(G.currentMove === 'use_card' ? { ...G, currentMove: 'maneuver' } : G, ctx) : []
@@ -198,9 +192,8 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
         canPass ? 'End turn' : 'Choose a hex'
     const showFinishControl = !swapChoice && (swapCard || G.currentMove === 'current_second' || (G.currentMove === 'maneuver' && !targets.length) || noMoveAvailable)
     const handToggle = <button type="button" className="r1-hand-toggle" onClick={() => { inspectCard(null); setHandHidden(value => !value) }} aria-expanded={!handHidden} aria-label={handHidden ? 'Show cards' : 'Hide cards'} aria-describedby="r1-hand-count-description" title={handHidden ? 'Show cards' : 'Hide cards'}>
-        {showTurnSteps && <RailStateIcon state={cardRailState} kind="cards"/>}
-        {!showTurnSteps && <span className="r1-hand-toggle-icon" aria-hidden="true"><FeedbackIcon kind="cards"/></span>}
-        {showTurnSteps && <span className="r1-rail-copy"><strong>Cards</strong><small>{CARD_RAIL_LABELS[cardRailState]}</small></span>}
+        <span className="r1-hand-toggle-icon" aria-hidden="true"><FeedbackIcon kind="cards"/></span>
+        {showTurnSteps && <span className="r1-rail-copy"><strong>Cards</strong></span>}
         <span className="r1-hand-count" aria-hidden="true">{hand.cards.length}/5</span>
         <span id="r1-hand-count-description" className="r1-sr-only">{hand.cards.length} of 5 cards in hand{showTurnSteps ? ('; card ' + CARD_RAIL_LABELS[cardRailState].toLowerCase()) : ''}</span>
         <svg className="r1-hand-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d={handHidden ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'}/></svg>
@@ -406,24 +399,16 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         aria-label={moveLabel} onClick={() => { inspectCard(null); moves.pass() }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span><span className="r1-move-label">{moveLabel}</span></button>}
                 </div>}
                 {showTurnSteps && <div className="r1-turn-progress r1-glass">
-                    <div className="r1-turn-steps" aria-label="Turn progress">
-                        {G.currentMove === 'current_second' ? <>{handCard}<strong>Surf Current · choose a second hex or finish</strong></> : <>
-                            <span className="r1-rail-heading"><strong>Before moving</strong><small>Optional actions</small></span>
-                            <div className="r1-rail-options">
-                                {handCard}
-                                <span className="r1-turn-drop" data-available={!dropReason} data-state={dropRailState} title={!dropReason ? 'Drop In available' : 'Drop In unavailable'}>
-                                    <RailStateIcon state={dropRailState} kind="dropIn"/>
-                                    <span className="r1-rail-copy"><strong>Drop In</strong><small>{dropReason ? 'Unavailable' : 'Available'}</small></span>
-                                </span>
-                            </div>
-                            <span className="r1-rail-arrow" aria-hidden="true">↓</span>
-                            <span className="r1-rail-move">
-                                <FeedbackIcon kind="move"/><strong>{G.currentMove === 'current_first' ? 'Surf Current · first step' : 'Move'}</strong>
-                                <small>{G.currentMove === 'current_first' ? 'Select a hex' : 'Ends turn'}</small>
-                            </span>
-                        </>}
+                    <div className="r1-turn-summary" aria-label="Turn progress">
+                        {handCard}
+                        <div className="r1-turn-guidance">
+                            {!selection && <span className="r1-select-hex">{G.currentMove === 'current_second' ? 'Select a second hex' : 'Select a hex'} <span aria-hidden="true">↗</span></span>}
+                            {(cardRailState === 'used' || dropUsed) && <span className="r1-turn-history">
+                                {cardRailState === 'used' && <span><FeedbackIcon kind="check"/>Card used</span>}
+                                {dropUsed && <span><FeedbackIcon kind="check"/>Drop In used</span>}
+                            </span>}
+                        </div>
                     </div>
-                    {dropReason && <span className="r1-turn-reason" aria-hidden="true">{dropReason}</span>}
                 </div>}
                 <span id="r1-drop-status" role="status" className="r1-sr-only">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, maximum energy loss ' + maxAttackDice + ' energy')}</span>
             </div>}

@@ -2,6 +2,7 @@
 
 ## Mobile board and HUD (#64)
 
+- The turn summary now has one card visibility control and a noninteractive hex-selection hint, with history shown only for actual card use or Drop In. The inspector retains movement's end-turn explanation. HUD tests passed (27) and the production build passed; desktop presentation checked in the live match, mobile visual review pending.
 - The dice result offers an Attack again shortcut for the same defender while the engine still considers that defender eligible. The shortcut retains dice selection and confirmation, and disappears when the attacker or target is no longer eligible. HUD regression suite passed (27 tests); visual match review remains pending.
 - Occupancy is shown as two slots in the inspector rather than floating fractions. Player-specific ineligibility is indicated on each player in 2D and 3D; a full hex or individually rejected player no longer implies a hex-wide lock. Mixed eligibility still uses engine-derived player targets. Focused tests passed (20); in-game visual review of a shared hex remains pending.
 - Follow-up compacts the turn rail on desktop and mobile, replaces the Drop In symbol with a surfer, and offsets the hex inspector with a curved connector anchored to the nearest projected hex edge in 2D and 3D. Focused connector, inspector and hex grid tests passed (14 tests); production build passed. Browser/device visual review of the latest changes is pending.

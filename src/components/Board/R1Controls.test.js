@@ -57,8 +57,7 @@ test('keyboard attack shortcut selects a legal opponent and explains blocked sta
     rerender(<R1Controls {...props} />)
     expect(screen.getByRole('button', { name: 'Attack Player 2' })).toBeEnabled()
     expect(screen.getByTitle('Card unavailable')).toBeInTheDocument()
-    expect(screen.getByTitle('Drop In available')).toBeInTheDocument()
-    expect(screen.getByText('Ends turn')).toBeInTheDocument()
+    expect(screen.getByText('Select a hex')).toBeInTheDocument()
     G.players[0].energy = 1
     rerender(<R1Controls {...props} />)
     expect(screen.queryByRole('button', { name: 'Attack Player 2' })).not.toBeInTheDocument()
@@ -91,7 +90,7 @@ test('dice chooser limits risk to energy minus one and shows each pair result', 
     G.defDices = [5, 4]
     G.dropResult = { attackerId: 0, defenderId: 1, attackerLoss: 1, defenderLoss: 1 }
     rerender(<R1Controls {...props} />)
-    expect(screen.getByTitle('Drop In available')).toBeInTheDocument()
+    expect(screen.getByText('1 opponent(s) in range · Free attack, maximum energy loss 2 energy')).toBeInTheDocument()
     expect(within(screen.getByLabelText('Attacker, Player 1, 1 energy lost')).getByRole('meter')).toHaveAttribute('aria-valuenow', '3')
     expect(screen.getByLabelText('Attacker, Player 1, 1 energy lost').querySelectorAll('[data-lost="true"][data-filled]')).toHaveLength(1)
     expect(within(screen.getByLabelText('Defender, Player 2, 1 energy lost')).getByRole('meter')).toHaveAttribute('aria-valuenow', '2')
@@ -530,14 +529,18 @@ test('card rail distinguishes availability from confirmed use; repeat Drop In is
     const props = { G, ctx, moves: {}, selection: null, setSelection: () => {}, onTarget: () => {} }
     const { rerender } = render(<R1Controls {...props}/>)
     expect(screen.getByTitle('Card available')).toHaveAttribute('data-state', 'available')
-    expect(screen.getByTitle('Drop In available')).toHaveAttribute('data-state', 'available')
+    expect(screen.getByText('Select a hex')).toBeInTheDocument()
+    expect(within(screen.getByLabelText('Turn progress')).queryByText('Drop In')).not.toBeInTheDocument()
     G.currentMove = 'maneuver'
     rerender(<R1Controls {...props}/>)
     expect(screen.getByTitle('Card unavailable')).toHaveAttribute('data-state', 'unavailable')
     G.cardVisualEvent = { playerId: 0, round: 2, turnSlot: 0, name: 'Energy x2' }
     rerender(<R1Controls {...props}/>)
     expect(screen.getByTitle('Card used')).toHaveAttribute('data-state', 'used')
-    expect(screen.getByTitle('Drop In available')).toHaveAttribute('data-state', 'available')
+    expect(screen.getByText('Card used')).toBeInTheDocument()
+    G.dropResult = { attackerId: 0, defenderId: 1 }
+    rerender(<R1Controls {...props}/>)
+    expect(screen.getByText('Drop In used')).toBeInTheDocument()
     G.turn = 3
     rerender(<R1Controls {...props}/>)
     expect(screen.getByTitle('Card unavailable')).toHaveAttribute('data-state', 'unavailable')
