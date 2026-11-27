@@ -948,3 +948,33 @@
 /* An unpaired die keeps its player column without a visible empty box. */
 .r1-floating-hud .r1-dice-results .r1-die[data-empty="true"],
 .r1-dice-pair[data-result="unpaired"] .r1-dice-versus { visibility: hidden; }
+
+/* Selected-hex inspector: bounded, side-anchored marine glass. */
+.r1-board-action.r1-hex-inspector {
+    --hud-gold: #ffd27c; --hud-mute: #b6d8db; --hud-ink: #edfafa;
+    display: grid; align-content: start; gap: 10px; box-sizing: border-box;
+    transform: none; padding: 13px; border: 1px solid #76b8bd;
+    border-radius: 17px; background: linear-gradient(145deg, #084b55f7, #052d37fa);
+    color: #edfafa; font-size: 13px; overflow: auto; overscroll-behavior: contain;
+    box-shadow: 0 10px 28px #03273185; pointer-events: auto; z-index: 12;
+    scrollbar-width: thin; scrollbar-color: #60919a transparent;
+}
+.r1-hex-inspector-body { padding-right: 23px; outline: none; }
+.r1-hex-inspector .r1-inspection-heading strong { font-size: 18px; }
+.r1-hex-inspector .r1-hex-terrain { align-items: center; }
+.r1-hex-inspector .r1-board-action-close { position: absolute; right: 5px; top: 5px; }
+.r1-hex-inspector-options { display: grid; gap: 6px; padding-top: 9px; border-top: 1px solid #b7eceb36; min-width: 0; }
+.r1-hex-inspector .r1-hex-option {
+    display: grid; grid-template-columns: 24px minmax(0,1fr) auto; gap: 6px; align-items: center;
+    width: 100%; min-height: 42px; padding: 7px; white-space: normal; text-align: left;
+    border-radius: 12px; color: #a6f3cb; border-color: #64caa0; background: #123f3c;
+}
+.r1-hex-inspector .r1-hex-option[data-risk="true"] { color: #ffb0a3; border-color: #e47772; background: #492d35; }
+.r1-hex-inspector .r1-hex-option[aria-pressed="true"] { box-shadow: inset 0 0 0 1px #ffd27c; border-color: #ffd27c; }
+.r1-hex-option-icon { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #ffffff13; }
+.r1-hex-option-text { display: grid; gap: 3px; overflow-wrap: anywhere; }
+.r1-hex-option-text small { font-size: 10px; font-weight: 500; color: #d4e6e5; }
+.r1-hex-option-cost { display: flex; align-items: center; gap: 2px; color: #ffd27c; font-size: 10px; max-width: 83px; }
+.r1-hex-inspector-reason { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #c8dfe0; }
+.r1-hex-inspector .r1-hex-confirm { position: sticky; bottom: 0; justify-content: center; width: 100%; min-height: 40px; background: #ffd27c; border-color: #ffda8c; color: #10313a; font-size: 14px; }
+@media (max-width: 480px) { .r1-board-action.r1-hex-inspector { padding: 9px; gap: 7px; } }

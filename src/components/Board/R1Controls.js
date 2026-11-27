@@ -62,6 +62,38 @@ function TurnAvailability({ available }) {
     </span>
 }
 
+export function HexInspectionBody({ hexFeedback, expanded = false }) {
+    const singleAmuletBlock = hexFeedback?.occupants?.length === 1 &&
+        hexFeedback.occupants[0].blocked === 'Amulet' && hexFeedback.action === 'This opponent is protected.'
+    return (
+        <div className="r1-inspection-body r1-hex-elements">
+                    <div className="r1-inspection-heading"><strong>Hex {hexFeedback.id + 1}</strong>
+                        {(expanded || hexFeedback.occupants?.length > 0) && <span className="r1-hex-number">{hexFeedback.occupants?.length || 0}/{HEX_CAPACITY} surfers{hexFeedback.full ? ' · Full' : ''}</span>}
+                    </div>
+                    <div className="r1-hex-terrain">
+                        {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt=""/> :
+                            <span className="r1-inspection-symbol"><FeedbackIcon kind={hexFeedback.title === 'Beach' ? 'flag' : 'wave'}/></span>}
+                        <div className="r1-hex-element-body">
+                            <strong>{hexFeedback.title}</strong>
+                            <HexEffects info={hexFeedback}/>
+                            {(expanded || hexFeedback.occupants?.length > 0) && <span className="r1-hex-entry">{hexFeedback.entry}</span>}
+                        </div>
+                    </div>
+                    {hexFeedback.occupants?.map(p => <div key={p.position} className="r1-hex-occupant" role="group" aria-label={'Player ' + (p.position + 1) + ' details'}>
+                        <PlayerIcon playerId={p.position} variant="r1-hex-player-avatar"/>
+                        <div className="r1-hex-element-body">
+                            <div className="r1-hex-player-line"><EnergyMeter energy={p.energy}/></div>
+                            {p.states?.filter(state => !(singleAmuletBlock && state === 'Amulet · Protected')).map(state => <span key={state} className="r1-hex-player-status"><FeedbackIcon kind={state.includes('Protected') || state.includes('shield') ? 'shield' : state === 'Winner' || state === 'Finished' ? 'flag' : 'wave'}/>{state}</span>)}
+                            {p.eligible && !(hexFeedback.occupants.length === 1 && ['Attack here', 'Drop In'].includes(compactHexAction(hexFeedback))) && <span className="r1-hex-player-status" data-eligible="true"><FeedbackIcon kind="check"/>Eligible target</span>}
+                            {p.blocked && !singleAmuletBlock && !(hexFeedback.occupants.length === 1 && p.blocked.includes(compactHexAction(hexFeedback))) && <span className="r1-hex-player-status" title={p.blocked}><FeedbackIcon kind="blocked"/>{p.blocked}</span>}
+                        </div>
+                    </div>)}
+                    {!expanded && <span className="r1-hex-action"><FeedbackIcon kind={hexFeedback.status === 'ready' ? 'check' : hexFeedback.status === 'preview' ? 'move' : 'blocked'}/>{singleAmuletBlock ? 'Amulet · Protected' : compactHexAction(hexFeedback)}</span>}
+                    <span className="r1-sr-only">{hexFeedback.entry} {hexFeedback.occupantText} {hexFeedback.action} {hexFeedback.risk}</span>
+                </div>
+    )
+}
+
 export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight, onPreviewCard = () => {}, hexFeedback = null, pinnedHex = false, onClearHex = () => {}, worldPiles = false, discardOpen: externalDiscardOpen, onDiscardOpenChange, onFocusPlayer = () => {} }) {
     const player = G.players[ctx.currentPlayer]
     const roundOrder = getR1RoundOrder(G, ctx)
@@ -164,8 +196,6 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     </button>
     const handCard = <span className="r1-turn-card" data-available={cardAvailable} title={cardAvailable ? 'Card available' : 'Card unavailable'}>{handToggle}</span>
 
-    const singleAmuletBlock = hexFeedback?.occupants?.length === 1 &&
-        hexFeedback.occupants[0].blocked === 'Amulet' && hexFeedback.action === 'This opponent is protected.'
     const targetButtons = targets.length > 0 && <div className="r1-targets" aria-label={attacking ? "Legal target players" : "Legal target hexes"}>
                         {attacking ? playerTargets.map(id => <button type="button" key={id}
                             aria-label={(selectedCard?.Name === 'Change' ? 'Swap with Player ' : 'Attack Player ') + (id + 1)}
@@ -231,31 +261,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             <div className="r1-top-feedback" data-pinned={pinnedHex}>
             {terrainNotice && <div className="r1-match-feedback r1-glass r1-terrain-loss" data-gain={terrainNotice.direction === 'gain'} role="status" aria-label={terrainNotice.direction === 'gain' ? 'Terrain energy gain' : 'Terrain energy loss'}>Player {terrainNotice.playerId + 1} · {terrainNotice.source} · {terrainNotice.direction === 'gain' ? (terrainNotice.amount ? '+' + terrainNotice.amount + ' energy' : 'Energy full (5/5)') : '−' + terrainNotice.amount + ' energy'}</div>}
             {hexFeedback && <div className="r1-match-feedback r1-glass r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
-                <div className="r1-inspection-body r1-hex-elements">
-                    <div className="r1-inspection-heading"><strong>Hex {hexFeedback.id + 1}</strong>
-                        {hexFeedback.occupants?.length > 0 && <span className="r1-hex-number">{hexFeedback.occupants.length}/{HEX_CAPACITY} surfers{hexFeedback.full ? ' · Full' : ''}</span>}
-                    </div>
-                    <div className="r1-hex-terrain">
-                        {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt=""/> :
-                            <span className="r1-inspection-symbol"><FeedbackIcon kind={hexFeedback.title === 'Beach' ? 'flag' : 'wave'}/></span>}
-                        <div className="r1-hex-element-body">
-                            <strong>{hexFeedback.title}</strong>
-                            <HexEffects info={hexFeedback}/>
-                            {hexFeedback.occupants?.length > 0 && <span className="r1-hex-entry">{hexFeedback.entry}</span>}
-                        </div>
-                    </div>
-                    {hexFeedback.occupants?.map(p => <div key={p.position} className="r1-hex-occupant" role="group" aria-label={'Player ' + (p.position + 1) + ' details'}>
-                        <PlayerIcon playerId={p.position} variant="r1-hex-player-avatar"/>
-                        <div className="r1-hex-element-body">
-                            <div className="r1-hex-player-line"><EnergyMeter energy={p.energy}/></div>
-                            {p.states?.filter(state => !(singleAmuletBlock && state === 'Amulet · Protected')).map(state => <span key={state} className="r1-hex-player-status"><FeedbackIcon kind={state.includes('Protected') || state.includes('shield') ? 'shield' : state === 'Winner' || state === 'Finished' ? 'flag' : 'wave'}/>{state}</span>)}
-                            {p.eligible && !(hexFeedback.occupants.length === 1 && ['Attack here', 'Drop In'].includes(compactHexAction(hexFeedback))) && <span className="r1-hex-player-status" data-eligible="true"><FeedbackIcon kind="check"/>Eligible target</span>}
-                            {p.blocked && !singleAmuletBlock && !(hexFeedback.occupants.length === 1 && p.blocked.includes(compactHexAction(hexFeedback))) && <span className="r1-hex-player-status" title={p.blocked}><FeedbackIcon kind="blocked"/>{p.blocked}</span>}
-                        </div>
-                    </div>)}
-                    <span className="r1-hex-action"><FeedbackIcon kind={hexFeedback.status === 'ready' ? 'check' : hexFeedback.status === 'preview' ? 'move' : 'blocked'}/>{singleAmuletBlock ? 'Amulet · Protected' : compactHexAction(hexFeedback)}</span>
-                    <span className="r1-sr-only">{hexFeedback.entry} {hexFeedback.occupantText} {hexFeedback.action} {hexFeedback.risk}</span>
-                </div>
+                <HexInspectionBody hexFeedback={hexFeedback}/>
                 {pinnedHex && <button type="button" className="r1-inspection-close" aria-label="Close hex information" onClick={onClearHex}>×</button>}
             </div>}
             </div>
