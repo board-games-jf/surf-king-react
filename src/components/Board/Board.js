@@ -406,7 +406,7 @@ const Board = ({ G, ctx, moves }) => {
                     <Board3D
                         viewToggle={isR1 ? <button type="button" className="surf-view-toggle" aria-label="Switch to 2D view" onClick={() => { setHoveredHex(null); setViewMode('2d') }}>2D</button> : null}
                         focusPlayerRequest={focusPlayerRequest}
-                        snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, pinnedHexId), maneuverDestinations: r1Targets, targetHighlight, hexStatuses, cardPiles: { deck: G.deck.length, discard: G.discardedCards.length, topDiscard: G.discardedCards[G.discardedCards.length - 1]?.Name || null, event: G.cardVisualEvent || null } } : createPublicMapSnapshot(G, ctx, selectedCellId)}
+                        snapshot={isR1 ? { ...createPublicMapSnapshot(G, ctx, pinnedHexId), inspectedPlayerCellId: contextualHexId, maneuverDestinations: r1Targets, targetHighlight, hexStatuses, cardPiles: { deck: G.deck.length, discard: G.discardedCards.length, topDiscard: G.discardedCards[G.discardedCards.length - 1]?.Name || null, event: G.cardVisualEvent || null } } : createPublicMapSnapshot(G, ctx, selectedCellId)}
                         onDiscardSelect={isR1 ? () => setDiscardOpen(value => !value) : undefined}
                         onCellHover={isR1 ? setHoveredHex : undefined}
                         onCellSelect={(cellId, corners) => { setSelectedCellId(cellId); onHexClickedHandle({ position: cellId }, corners) }}

@@ -35,7 +35,7 @@ const descriptions = {
 
 export { r1SelectionTargets } from './r1TargetHighlight'
 
-function PlayerIcon({ playerId, variant = '' }) {
+export function PlayerIcon({ playerId, variant = '' }) {
     return <span className={'r1-player-avatar' + (variant ? ' ' + variant : '')} aria-hidden="true"
         style={{ '--r1-player-color': PLAYER_BOARD_COLORS[playerId % PLAYER_BOARD_COLORS.length] }}>{playerId + 1}</span>
 }
@@ -351,7 +351,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         <span>Or use Lifeguard Float.</span>
                     </div>}
                     {selection?.kind === 'drop' && !dropReason && <div className="r1-attack-dice" role="group" aria-label="Attack dice">
-                        <strong>Choose your dice{selectedDefender ? ' · Player ' + (selectedDefender.position + 1) : ''}</strong>
+                        {!selectedDefender && <strong>Choose your dice</strong>}
                         <div className="r1-dice-options">
                         {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map(count => {
                             const odds = selectedDefender ? getDropInAdvantage(player.energy, selectedDefender.energy, count) : null
@@ -369,8 +369,11 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                         <span className="r1-sr-only">Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
                     </div>}
                     {!detailCard && (selection || !['use_card', 'maneuver'].includes(G.currentMove)) && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
-                        <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
-                        {selection?.kind === 'drop' && selection.targetPlayerId !== undefined ? 'Player ' + (selection.targetPlayerId + 1) + ' selected · choose dice.' : highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
+                        {selection?.kind === 'drop' && selection.targetPlayerId !== undefined ? <>
+                            <PlayerIcon playerId={selection.targetPlayerId} variant="r1-legend-player-avatar"/>
+                            <span className="r1-sr-only">Player {selection.targetPlayerId + 1} </span>selected · choose dice.
+                        </> : <><span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
+                            {highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}</>}
                     </div>}
                     {selection?.targetPlayerId === undefined && (!selectedCard || (!attacking && !inspectingOther)) && (selection || !['use_card', 'maneuver'].includes(G.currentMove)) && targetButtons}
                 </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { HexInspectionBody } from './R1Controls'
+import { HexInspectionBody, PlayerIcon } from './R1Controls'
 import DropInAdvantage from './DropInAdvantage'
 import { FeedbackIcon } from './r1FeedbackVisuals'
 
@@ -28,10 +28,10 @@ export default function HexInspector({ info, options, blocks, placement, onConfi
         <div className="r1-hex-inspector-options" role="group" aria-label="Available actions">
             <strong>{options.length ? 'Available actions' : 'No available actions'}</strong>
             {!options.length && <span className="r1-hex-inspector-reason">{info.action}</span>}
-            {options.map(option => <button type="button" key={option.key} aria-pressed={selected?.key === option.key}
+            {options.map(option => <button type="button" key={option.key} aria-pressed={selected?.key === option.key} aria-label={option.kind === 'drop' ? [option.label, option.detail, option.odds?.tone].filter(Boolean).join(' · ') : undefined}
                 className="r1-hex-option" data-risk={option.risky} data-advantage={option.odds?.tone} onClick={() => setChosenKey(option.key)}>
-                <span className="r1-hex-option-icon"><FeedbackIcon kind={option.kind === 'drop' ? 'dropIn' : option.risky ? 'warning' : 'move'}/></span>
-                <span className="r1-hex-option-text"><strong>{option.label}</strong><small>{option.detail}</small></span>
+                {option.kind === 'drop' ? <PlayerIcon playerId={option.playerId} variant="r1-hex-player-avatar"/> : <span className="r1-hex-option-icon"><FeedbackIcon kind={option.risky ? 'warning' : 'move'}/></span>}
+                <span className="r1-hex-option-text"><strong>{option.kind === 'drop' ? 'Drop In' : option.label}</strong><small>{option.detail}</small></span>
                 {option.kind === 'drop' ? <DropInAdvantage odds={option.odds}/> :
                     <span className="r1-hex-option-cost">{option.cost !== 'Free' && option.cost !== 'Energy full' && <FeedbackIcon kind="energy"/>}{option.cost}</span>}
             </button>)}

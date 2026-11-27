@@ -2,6 +2,7 @@
 
 ## Mobile board and HUD (#64)
 
+- Drop In target choices and the selected-target legend reuse player circles with accessible names; redundant dice instructions were removed and the dice panel was narrowed. Selecting a hex displays its occupants' existing 3D identity markers. Focused HUD, inspector and snapshot tests passed (39); production build passed. Final mobile and shared-hex visual review remains pending.
 - Dice selection shows one or two blank dice; each new dice result briefly animates changing faces before revealing the actual roll, with a static reduced-motion alternative. HUD tests passed (27) and production build passed. Visual review of the animation is pending.
 - The turn summary now has one card visibility control and a noninteractive hex-selection hint, with history shown only for actual card use or Drop In. The inspector retains movement's end-turn explanation. HUD tests passed (27) and the production build passed; desktop presentation checked in the live match, mobile visual review pending.
 - The dice result offers an Attack again shortcut for the same defender while the engine still considers that defender eligible. The shortcut retains dice selection and confirmation, and disappears when the attacker or target is no longer eligible. HUD regression suite passed (27 tests); visual match review remains pending.

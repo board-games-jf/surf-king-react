@@ -869,9 +869,10 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       })
       const blocked = snapshot.targetHighlight?.blocked?.find(item => String(item.playerId) === p.id)
       const legal = snapshot.targetHighlight?.playerIds?.includes(Number(p.id))
+      const inspected = p.cellId != null && snapshot.inspectedPlayerCellId === p.cellId
       const winner = snapshot.winnerPlayerId === p.id
-      a.badge.visible = !!blocked || !!legal || winner
-      const playerIcon = (legal || blocked) && !winner
+      a.badge.visible = !!blocked || !!legal || inspected || winner
+      const playerIcon = (legal || blocked || inspected) && !winner
       a.badge.scale.set(playerIcon ? 2 : shared ? 1.35 : 1.9, playerIcon ? .5 : shared ? .34 : .48, 1)
       const label = 'P' + (Number(p.id)+1) + (winner ? ' · WINNER' : legal ? ' · TARGET' :
         blocked ? ' · ' + (blocked.code === 'minimum' ? 'CARD BLOCKED' : getTargetBlockStyle(blocked.code).shortLabel) : '')
