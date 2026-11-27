@@ -229,6 +229,7 @@ const Board = ({ G, ctx, moves }) => {
     }
 
     const onHexClickedHandle = (cell) => {
+        if (G.activeCellIds && !G.activeCellIds.includes(cell.position)) return
         if (isR1) {
             if (!r1Selection) {
                 const rect = mapRef.current?.getBoundingClientRect()
@@ -408,7 +409,7 @@ const Board = ({ G, ctx, moves }) => {
                         onUnavailable={(message) => { setHoveredHex(null); setViewError(message); setViewMode('2d') }}
                     />
                 ) : (
-                    <HexGrid cellProps={cellProps} renderCell={renderCell}
+                    <HexGrid cellProps={cellProps} renderCell={renderCell} activeCellIds={G.activeCellIds}
                         onHexHover={isR1 ? setHoveredHex : undefined} inspectedCellId={isR1 ? inspectedHexId : null}
                         hoveredCellId={isR1 ? hoveredHex : null} selectedCellId={isR1 ? pinnedHexId : null}
                         onHexClick={(cell) => { setSelectedCellId(cell.position); onHexClickedHandle(cell) }}
