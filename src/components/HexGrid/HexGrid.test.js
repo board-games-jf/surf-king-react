@@ -135,3 +135,14 @@ test('hazard, capacity and selection coexist with legal action highlights', () =
     expect(full.querySelector('[data-hex-occupancy="2/2"]')).toBeInTheDocument()
     expect(full.querySelector('[data-hex-blocked]')).toBeInTheDocument()
 })
+
+
+test('adaptive grid hides inactive hexes and forwards original IDs', () => {
+    const onHexClick = jest.fn()
+    const { container } = render(<HexGrid activeCellIds={[1, 2, 50, 51]}
+        cellProps={() => ({})} renderCell={() => null} onHexClick={onHexClick}/>)
+    expect(container.querySelectorAll('[data-cell-id]')).toHaveLength(4)
+    expect(container.querySelector('[data-cell-id="0"]')).toBeNull()
+    fireEvent.click(container.querySelector('[data-cell-id="50"]'))
+    expect(onHexClick).toHaveBeenCalledWith({ position: 50 })
+})
