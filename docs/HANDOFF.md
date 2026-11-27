@@ -1,5 +1,11 @@
 # Project Handoff
 
+## Adaptive R1 balance playtest (#66)
+
+- Branch `feat/66-adaptive-r1-playtest` adds a separate default local playtest alongside the reference R1 and original rules. Approved format masks 23/37/53 retain original cell IDs and active beach finishes; Dominion is immediate after a decisive fall for 6–7 players only. Candidate starts, sharks and initiative from R1.5–R1.7 are implemented for testing, not final approval. Cyclone range 3 and Tsunami range 2; inventory remains 64. Both views use the public active-cell mask. See SK-DEC-051/052 and #11 simulation comments.
+- 12,640 isolated seeded setup assertions and 12 exact-source regression scenarios (360 assertions with lightweight test doubles) passed. New Jest engine, public snapshot and SVG grid tests are committed; no actual Jest, build, boardgame.io client or desktop/mobile visual verification performed here (checkout fails DNS). Existing branch-filtered CI may skip this branch. Next: run full tests/build in dependency-enabled checkout, review both views and 2–7 player matches, then adjust balance. No merge or deploy authorized.
+
+
 ## Round and action HUD clarity (#60)
 
 - Branch from integrated main `9a67d8c1`. Replace duplicate wordmark with round/order progress, player status labels and segmented energy; retain original card-back artwork. Optional-action rail uses distinct available, unavailable and confirmed-used semantics. Card event carries round and turn slot for truthful completion feedback; passing or repeated Drop In does not imply completion. Camera focus, target dispatch and rules remain unchanged. Responsive layout uses existing scrollable player column/row. 109 exact-source helper assertions passed in isolation; Jest fixtures added. Existing R1 validation workflow now includes this branch for tests, strict build and Chromium smoke review. CI run 45920378995: 453 tests passed (2 skipped), strict build passed; Chromium failed on obsolete `.r1-action-bar` locator after contextual movement replaced it. Updated smoke test to exercise the current turn rail and keyboard movement shortcut. Re-run pending; real browser acceptance remains open.
