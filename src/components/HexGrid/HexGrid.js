@@ -2,7 +2,7 @@ import React, { useId } from 'react'
 import { BOARD_LAYOUT } from '../../map/layout/boardLayout'
 import manifest from '../../map/layout/board-layout.json'
 import { TARGET_BLOCK_SYMBOL_PATHS, getMixedTargetBorderPaths, getHexHoverColors, HEX_SELECTION_COLOR } from '../../map/contract/targetHighlight'
-import { HEX_STATUS_COLORS } from '../../map/contract/hexStatus'
+import { HEX_STATUS_COLORS, HEX_HAZARD_GLYPHS } from '../../map/contract/hexStatus'
 import { seaColor } from '../../constants/Colors'
 import './HexGrid.css'
 
@@ -105,8 +105,12 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                                     fontWeight="bold" textAnchor="middle">{status.count}/{status.capacity}</text>
                             </g>}
                             {status.danger && <g transform={`translate(${-radius * .55} ${-halfHeight * .45})`} aria-label={status.lethal ? 'Entry will cause a fall' : 'Terrain hazard'}>
-                                <path d={`M0 ${-radius * .18} L${radius * .18} ${radius * .14} H${-radius * .18} Z`} fill="#153640" stroke={HEX_STATUS_COLORS.danger} strokeWidth=".035"/>
-                                <text y={radius * .09} fontSize={radius * .22} fill={HEX_STATUS_COLORS.danger} fontWeight="bold" textAnchor="middle">!</text>
+                                <svg x={-radius * .23} y={-radius * .23} width={radius * .46} height={radius * .46} viewBox="0 0 1 1" data-hazard-medallion={status.terrain || 'generic'}>
+                                    <circle cx=".5" cy=".5" r=".48" fill="#ff6868" opacity=".22"/>
+                                    <circle cx=".5" cy=".5" r=".43" fill="#713a40" stroke="#ffc099" strokeWidth=".055"/>
+                                    {(HEX_HAZARD_GLYPHS[status.terrain] || TARGET_BLOCK_SYMBOL_PATHS.danger).map((path, index) =>
+                                        <polyline key={index} points={path.map(p => p.join(',')).join(' ')} fill="none" stroke="#ffd0ae" strokeWidth=".062" strokeLinecap="round" strokeLinejoin="round"/>)}
+                                </svg>
                             </g>}
                             {status.blocked && <g transform={`translate(0 ${-halfHeight * .72})`} aria-label={status.full ? 'Hex full' : 'No eligible action'}>
                                 <rect x="-.11" y="-.035" width=".22" height=".17" rx=".035" fill={HEX_STATUS_COLORS.blocked}/>

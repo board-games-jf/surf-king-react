@@ -121,11 +121,12 @@ test('hover and selection are separate from mixed semantic paths and do not inte
 
 test('hazard, capacity and selection coexist with legal action highlights', () => {
     const { container } = render(<HexGrid onHexClick={jest.fn()} renderCell={() => null} selectedCellId={7}
-        cellProps={id => id === 7 ? { highlight: { kind: 'move', color: '#9bf4d4' }, status: { count: 1, capacity: 2, danger: true, activeDanger: true } }
+        cellProps={id => id === 7 ? { highlight: { kind: 'move', color: '#9bf4d4' }, status: { count: 1, capacity: 2, danger: true, activeDanger: true, terrain: 'Shark' } }
             : id === 8 ? { status: { count: 2, capacity: 2, full: true, blocked: true } } : {}}/>)
     const cell = container.querySelector('[data-cell-id="7"]').parentElement
     expect(cell.querySelector('[data-hex-danger]')).toHaveAttribute('pointer-events', 'none')
     expect(cell.querySelector('.hex-danger-ripple')).toBeInTheDocument()
+    expect(cell.querySelector('[data-hazard-medallion="Shark"]')).toBeInTheDocument()
     expect(cell.querySelector('[data-hex-occupancy="1/2"]')).toBeInTheDocument()
     expect(cell.querySelector('[data-target-highlight="move"]')).toBeInTheDocument()
     expect(cell.querySelector('[data-hex-selection]')).toBeInTheDocument()

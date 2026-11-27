@@ -19,3 +19,7 @@ test('danger pulses locally with a static reduced-motion alternative', () => {
     expect(sampleHexDanger(1.8, false)).toEqual(sampleHexDanger(0, false))
     expect(sampleHexDanger(.2, true)).toEqual(sampleHexDanger(1.1, true))
 })
+
+test('terrain identity remains available for thematic danger medallions', () => {
+    for (const terrain of ['Shark','Stone','Storm','Cyclone']) expect(status({terrain})).toMatchObject({terrain,danger:true})
+})

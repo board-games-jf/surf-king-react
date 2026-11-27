@@ -1,14 +1,14 @@
 import * as THREE from 'three'
 import layoutManifest from '../../layout/board-layout.json'
-import { HEX_STATUS_COLORS, sampleHexDanger } from '../../contract/hexStatus'
+import { HEX_STATUS_COLORS, HEX_HAZARD_GLYPHS, sampleHexDanger } from '../../contract/hexStatus'
 import { getTargetHighlightStyle, getTargetBlockStyle, TARGET_BLOCK_SYMBOL_PATHS, getMixedTargetBorderPaths, getHexHoverColors, stepHexHover, HEX_SELECTION_COLOR } from '../../contract/targetHighlight'
 
 // Small, shared, camera-facing icon texture, independent of DOM/canvas support.
-function createBlockTexture(symbol, color) {
+function createBlockTexture(symbol, color, medallion = false) {
     const size = 64
     const pixels = new Uint8Array(size * size * 4)
     const rgb = color.slice(1).match(/../g).map(v => parseInt(v, 16))
-    const segments = TARGET_BLOCK_SYMBOL_PATHS[symbol].flatMap(path =>
+    const segments = (HEX_HAZARD_GLYPHS[symbol] || TARGET_BLOCK_SYMBOL_PATHS[symbol]).flatMap(path =>
         path.slice(1).map((point, i) => [path[i], point]))
     const distance = (x, y, [a, b]) => {
         const dx = b[0] - a[0], dy = b[1] - a[1]
@@ -19,8 +19,10 @@ function createBlockTexture(symbol, color) {
         const u = (x+.5)/size, v = 1-(y+.5)/size
         const radius = Math.hypot(u-.5,v-.5)
         if (radius > .48) continue
-        const ink = radius > .43 || segments.some(segment => distance(u,v,segment) < .045)
-        pixels.set([...(ink ? rgb : [21,54,64]), 255], (y*size+x)*4)
+        const glyph = segments.some(segment => distance(u,v,segment) < (medallion ? .035 : .045))
+        const ink = radius > .43 || glyph
+        const rgba = medallion ? (radius > .45 ? [255,104,104,70] : radius > .40 ? [255,192,153,255] : glyph ? [255,208,174,255] : [113,58,64,255]) : [...(ink ? rgb : [21,54,64]), 255]
+        pixels.set(rgba, (y*size+x)*4)
     }
     const texture = new THREE.DataTexture(pixels, size, size)
     texture.colorSpace = THREE.SRGBColorSpace
@@ -171,10 +173,11 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
     const shadeMaterial = statusMaterial('#15313a', .48)
     const hazardMaterial = statusMaterial(HEX_STATUS_COLORS.danger, .75)
     const hazardRippleMaterial = statusMaterial(HEX_STATUS_COLORS.danger, .16)
-    const statusSprite = (symbol, color) => new THREE.SpriteMaterial({
-        map: createBlockTexture(symbol, color), transparent: true, depthWrite: false, toneMapped: false,
+    const statusSprite = (symbol, color, medallion = false) => new THREE.SpriteMaterial({
+        map: createBlockTexture(symbol, color, medallion), transparent: true, depthWrite: false, toneMapped: false,
     })
-    const dangerBadge = statusSprite('danger', HEX_STATUS_COLORS.danger)
+    const dangerBadge = statusSprite('danger', HEX_STATUS_COLORS.danger, true)
+    const terrainBadges = Object.fromEntries(Object.keys(HEX_HAZARD_GLYPHS).map(terrain => [terrain, statusSprite(terrain, HEX_STATUS_COLORS.danger, true)]))
     const lockBadge = statusSprite('lock', HEX_STATUS_COLORS.blocked)
     const oneBadge = statusSprite('occupancyOne', HEX_STATUS_COLORS.occupied)
     const twoBadge = statusSprite('occupancyTwo', HEX_STATUS_COLORS.full)
@@ -216,7 +219,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
     // Keep the alternate shared occupancy texture reachable during scene disposal.
     const unusedStatusResources = new THREE.Group()
     unusedStatusResources.visible = false
-    unusedStatusResources.add(new THREE.Sprite(twoBadge))
+    unusedStatusResources.add(new THREE.Sprite(twoBadge), ...[dangerBadge, ...Object.values(terrainBadges)].map(material => new THREE.Sprite(material)))
     statusGroup.add(unusedStatusResources)
     let lastElapsed = null
     const blockedMaterials = new Map()
@@ -306,6 +309,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 entry.marker.visible = !!(state && (state.danger || state.blocked || state.count))
                 entry.shade.visible = entry.lock.visible = !!state?.blocked
                 entry.danger.visible = entry.warning.visible = !!state?.danger
+                entry.warning.material = terrainBadges[state?.terrain] || dangerBadge
                 entry.occupancy.visible = !!state?.count
                 entry.occupancy.material = state?.full ? twoBadge : oneBadge
                 entry.ripple.visible = false
