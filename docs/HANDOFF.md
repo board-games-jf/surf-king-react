@@ -1,5 +1,9 @@
 # Project Handoff
 
+## Mobile board and HUD (#64)
+
+- Mobile player energy now includes a lightning cue, the turn panel is more compact, and the Drop In glyph uses a surfboard and wave. The horizontal player row remains unchanged. Focused HUD and viewport tests passed (28 tests); production build passed. Mobile visual validation and investigation of reported camera-movement flicker remain open; the resize helper already avoids resizing unchanged viewports, and the flicker has not been reproduced or diagnosed.
+
 ## Round and action HUD clarity (#60)
 
 - Branch from integrated main `9a67d8c1`. Replace duplicate wordmark with round/order progress, player status labels and segmented energy; retain original card-back artwork. Optional-action rail uses distinct available, unavailable and confirmed-used semantics. Card event carries round and turn slot for truthful completion feedback; passing or repeated Drop In does not imply completion. Camera focus, target dispatch and rules remain unchanged. Responsive layout uses existing scrollable player column/row. 109 exact-source helper assertions passed in isolation; Jest fixtures added. Existing R1 validation workflow now includes this branch for tests, strict build and Chromium smoke review. CI run 45920378995: 453 tests passed (2 skipped), strict build passed; Chromium failed on obsolete `.r1-action-bar` locator after contextual movement replaced it. Updated smoke test to exercise the current turn rail and keyboard movement shortcut. Re-run pending; real browser acceptance remains open.

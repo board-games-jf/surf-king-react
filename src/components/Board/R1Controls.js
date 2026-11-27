@@ -267,6 +267,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                                 </span>
                             </span>
                             <span className="r1-player-compact-energy" aria-hidden="true">
+                                <FeedbackIcon kind="energy"/>
                                 <span className="r1-player-energy-segments">{Array.from({ length: 5 }, (_, i) => <span key={i} data-filled={i < p.energy} />)}</span>
                                 {p.energy}/5
                             </span>

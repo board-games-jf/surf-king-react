@@ -1043,7 +1043,12 @@
     .r1-floating-hud .r1-round-order { top: max(68px, calc(env(safe-area-inset-top) + 62px)); }
     .r1-floating-hud button.r1-player-badge, .r1-floating-hud button.r1-player-badge[data-current="true"] { min-height: 58px; padding: 5px 7px; }
     .r1-sidebar-player-heading .r1-player-avatar { width: 24px; height: 24px; flex-basis: 24px; }
-    .r1-turn-progress { padding: 5px 7px; }
+    .r1-turn-progress { width: min(310px, 100%); padding: 6px 8px; }
+    .r1-turn-steps { gap: 4px; }
+    .r1-rail-heading small, .r1-rail-arrow { display: none; }
+    .r1-rail-options .r1-hand-toggle, .r1-rail-options .r1-turn-drop { min-height: 38px; }
+    .r1-rail-move { padding: 4px 8px; }
+    .r1-turn-reason { font-size: 11px; }
 }
 @media (max-height: 520px) and (orientation: landscape) {
     .r1-turn-steps { display: flex; gap: 4px; flex-wrap: wrap; }
