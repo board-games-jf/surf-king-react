@@ -2,13 +2,7 @@ import { isBeach, r1DropTargets, r1MoveTargets, R1_ATTACK_RANGE, R1_PLACEMENT_RA
 import { getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
 
-const terrain = {
-    Shark: { text: 'Ordinary entry costs 2 energy.', damage: 2 },
-    Stone: { text: 'Ordinary entry costs 1 energy; Stone disappears.', damage: 1 },
-    Storm: { text: 'Ordinary entry costs 1 energy; Storm remains.', damage: 1 },
-    Cyclone: { text: 'Ordinary entry redirects to a random free neighbor, excluding the origin.' },
-    Island: { text: 'Ordinary entry restores 2 energy (max 5); Island remains.' },
-}
+import { HEX_TERRAIN as terrain } from '../../map/contract/hexStatus'
 
 // Read-only presentation. All executable target decisions come from the engine.
 export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {

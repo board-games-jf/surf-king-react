@@ -1,0 +1,26 @@
+/* Visual-only interaction layers: never intercept board picking. */
+.hex-hover-glow { opacity: 0; transition: opacity 150ms ease-in-out; }
+[data-hex-hover="true"] > .hex-hover-glow { opacity: 1; }
+.hex-selection-ripple { transform-origin: 0 0; animation: hex-water-ripple 1.8s linear infinite; }
+@keyframes hex-water-ripple {
+    from { transform: scale(.64); opacity: .28; }
+    to { transform: scale(1.13); opacity: 0; }
+}
+@media (hover: none) { .hex-hover-glow { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+    .hex-hover-glow { transition: none; }
+    .hex-selection-ripple { animation: none; opacity: .18; transform: scale(.75); }
+    .hex-selection-ripple + .hex-selection-ripple { transform: scale(1); opacity: .1; }
+}
+
+.hex-danger-outline { animation: hex-danger-pulse 1.8s ease-in-out infinite; }
+.hex-danger-ripple { transform-origin: 0 0; animation: hex-danger-ripple 1.8s linear infinite; }
+.hex-status-badges > g { animation: hex-status-enter 150ms ease-out both; }
+@keyframes hex-danger-pulse { 0%, 100% { opacity: .55; } 50% { opacity: .95; } }
+@keyframes hex-danger-ripple { from { transform: scale(.64); opacity: .3; } to { transform: scale(1.0933); opacity: 0; } }
+@keyframes hex-status-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    .hex-danger-outline { animation: none; opacity: .75; }
+    .hex-danger-ripple { animation: none; opacity: .16; transform: scale(.92); }
+    .hex-status-badges > g { animation: none; }
+}

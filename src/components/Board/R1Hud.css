@@ -483,7 +483,7 @@
 .r1-match-event .r1-dice-results { margin-top: 3px; }
 .r1-hud-context { max-height: none; overflow: visible; flex-shrink: 0; }
 .r1-floating-hud .r1-targets { max-width: min(75vw, 600px); overflow-y: hidden; }
-.surf-match-r1 .surf-map-2d polygon[data-inspected="true"] { stroke: #fff7dd; stroke-width: .085; }
+/* Hover and selected outlines are separate, noninteractive HexGrid layers. */
 @media (max-width: 520px) {
     .r1-top-feedback { top: max(135px, calc(env(safe-area-inset-top) + 129px)); left: 27%; max-width: 49%; }
     .r1-match-feedback.r1-hex-feedback { padding: 5px 6px; gap: 5px; }
