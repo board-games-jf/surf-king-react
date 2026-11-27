@@ -630,7 +630,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   const hovered=ring('#f8ffff'),selected=ring('#ffda57')
   const maneuverRings = Array.from({ length: 6 }, () => ring('#ffda57'))
   const targetHighlights = createTargetHighlights(BOARD_LAYOUT, shapeGeo, outlineGeo)
-  scene.add(targetHighlights.group, targetHighlights.interactionGroup)
+  scene.add(targetHighlights.group, targetHighlights.interactionGroup, targetHighlights.statusGroup)
   let layeredInteraction = false
   function positionRing(ring,id){const cell=Number.isInteger(id)?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
   const cardPiles = createCardPiles()
@@ -827,6 +827,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       positionRing(marker, snapshot.targetHighlight ? null : snapshot.maneuverDestinations?.[index])
     })
     targetHighlights.update(snapshot.targetHighlight, true, new Set(snapshot.players.map(player => player.cellId).filter(id => id !== null)))
+    targetHighlights.setStatuses(snapshot.hexStatuses)
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
       const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell

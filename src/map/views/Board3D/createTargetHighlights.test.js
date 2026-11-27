@@ -212,3 +212,27 @@ test('hover preserves both semantic colors, selection and reduced-motion behavio
     geometries.forEach(g => g.dispose())
     materials.forEach(m => { m.map?.dispose(); m.dispose() })
 })
+
+test('pooled status layers keep danger, occupancy, legal targets and locks independent', () => {
+    const geometry = new THREE.BufferGeometry()
+    const effects = createTargetHighlights(BOARD_LAYOUT, geometry, geometry)
+    const [first, second] = effects.statusGroup.children
+    effects.update({ kind: 'move', cellIds: [0] })
+    effects.setStatuses([{ id: 0, count: 1, danger: true, activeDanger: true }, { id: 1, count: 2, full: true, blocked: true }])
+    effects.animate(0, true)
+    expect(first.visible).toBe(true)
+    expect(first.children[0].visible).toBe(false)
+    expect(first.children[1].visible).toBe(true)
+    expect(first.children[2].visible).toBe(true)
+    expect(first.children[5].visible).toBe(true)
+    expect(effects.group.children[0].visible).toBe(true)
+    expect(second.children[0].visible).toBe(true)
+    expect(second.children[4].visible).toBe(true)
+    expect(second.children[5].material).not.toBe(first.children[5].material)
+    const scale = first.children[2].scale.x
+    effects.animate(.9, true)
+    expect(first.children[2].scale.x).toBe(scale)
+    effects.setStatuses([])
+    expect(first.visible).toBe(false)
+    expect(second.visible).toBe(false)
+})

@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import layoutManifest from '../../layout/board-layout.json'
+import { HEX_STATUS_COLORS, sampleHexDanger } from '../../contract/hexStatus'
 import { getTargetHighlightStyle, getTargetBlockStyle, TARGET_BLOCK_SYMBOL_PATHS, getMixedTargetBorderPaths, getHexHoverColors, stepHexHover, HEX_SELECTION_COLOR } from '../../contract/targetHighlight'
 
 // Small, shared, camera-facing icon texture, independent of DOM/canvas support.
@@ -161,6 +162,62 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
     const cellById = new Map(cells.map(cell => [cell.id, cell]))
     let requestedHover = null, shownHover = null, hoverProgress = 0
     let selectedId = null, selectedElapsed = 0
+    // Independent status layers; all geometry, materials and textures are pooled.
+    const statusGroup = new THREE.Group()
+    statusGroup.name = 'hex-status-effects'
+    const statusMaterial = (color, opacity) => new THREE.MeshBasicMaterial({
+        color, opacity, transparent: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false,
+    })
+    const shadeMaterial = statusMaterial('#15313a', .48)
+    const hazardMaterial = statusMaterial(HEX_STATUS_COLORS.danger, .75)
+    const hazardRippleMaterial = statusMaterial(HEX_STATUS_COLORS.danger, .16)
+    const statusSprite = (symbol, color) => new THREE.SpriteMaterial({
+        map: createBlockTexture(symbol, color), transparent: true, depthWrite: false, toneMapped: false,
+    })
+    const dangerBadge = statusSprite('danger', HEX_STATUS_COLORS.danger)
+    const lockBadge = statusSprite('lock', HEX_STATUS_COLORS.blocked)
+    const oneBadge = statusSprite('occupancyOne', HEX_STATUS_COLORS.occupied)
+    const twoBadge = statusSprite('occupancyTwo', HEX_STATUS_COLORS.full)
+    const statuses = new Map(cells.map(cell => {
+        const marker = new THREE.Group()
+        marker.position.set(cell.x, 0, cell.z)
+        const shade = new THREE.Mesh(shapeGeometry, shadeMaterial)
+        shade.rotation.x = -Math.PI / 2
+        shade.position.y = .20
+        shade.scale.setScalar(.96)
+        shade.renderOrder = 1
+        const danger = new THREE.Group()
+        danger.position.y = .215
+        danger.scale.set(.81, 1, .81)
+        mixedCoreGeometries.forEach(geometry => {
+            const edge = new THREE.Mesh(geometry, hazardMaterial)
+            edge.renderOrder = 4
+            danger.add(edge)
+        })
+        const ripple = new THREE.Mesh(rippleGeometry, hazardRippleMaterial)
+        ripple.rotation.x = -Math.PI / 2
+        ripple.position.y = .21
+        ripple.renderOrder = 2
+        function badge(material, x, z) {
+            const sprite = new THREE.Sprite(material)
+            sprite.position.set(x * layoutManifest.hexRadius, .38, z * layoutManifest.hexRadius)
+            sprite.scale.set(.48, .48, 1)
+            sprite.renderOrder = 12
+            return sprite
+        }
+        const warning = badge(dangerBadge, -.56, -.32)
+        const lock = badge(lockBadge, 0, -.70)
+        const occupancy = badge(oneBadge, 0, .69)
+        marker.add(shade, danger, ripple, warning, lock, occupancy)
+        marker.visible = false
+        statusGroup.add(marker)
+        return [cell.id, { marker, shade, danger, ripple, warning, lock, occupancy, state: null, progress: 0 }]
+    }))
+    // Keep the alternate shared occupancy texture reachable during scene disposal.
+    const unusedStatusResources = new THREE.Group()
+    unusedStatusResources.visible = false
+    unusedStatusResources.add(new THREE.Sprite(twoBadge))
+    statusGroup.add(unusedStatusResources)
     let lastElapsed = null
     const blockedMaterials = new Map()
     function materials(code) {
@@ -239,6 +296,21 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
     return {
         group,
         interactionGroup,
+        statusGroup,
+        setStatuses(states = []) {
+            const byId = new Map(states.map(state => [state.id, state]))
+            statuses.forEach((entry, id) => {
+                const state = byId.get(id)
+                if (entry.state?.count !== state?.count) entry.progress = 0
+                entry.state = state || null
+                entry.marker.visible = !!(state && (state.danger || state.blocked || state.count))
+                entry.shade.visible = entry.lock.visible = !!state?.blocked
+                entry.danger.visible = entry.warning.visible = !!state?.danger
+                entry.occupancy.visible = !!state?.count
+                entry.occupancy.material = state?.full ? twoBadge : oneBadge
+                entry.ripple.visible = false
+            })
+        },
         setHover(id) { requestedHover = cellById.has(id) ? id : null },
         setSelection(id) {
             const next = cellById.has(id) ? id : null
@@ -270,6 +342,7 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 const attackable = attackIds.has(id)
                 const active = valid || !!code || attackable
                 marker.userData.active = active
+                marker.userData.legal = valid || attackable
                 marker.userData.occupied = occupiedCells.has(id)
                 marker.userData.hoverColors = getHexHoverColors(valid ? style?.color : null,
                     attackable ? getTargetHighlightStyle('attack').color : null, code ? getTargetBlockStyle(code).color : null)
@@ -316,13 +389,24 @@ export function createTargetHighlights(cells, shapeGeometry, outlineGeometry) {
                 const eased = progress * progress * (3 - 2 * progress)
                 // Keep the plate near the water when a surfer occupies the hex,
                 // so the rider and board remain in front of the translucent surface.
-                const lift = (marker.userData.occupied ? .02 : .26) * eased +
-                    (reduced ? 0 : (marker.userData.occupied ? .004 : .025) * eased * Math.sin(elapsed * 1.8))
+                const lift = (marker.userData.blocked && !marker.userData.legal ? 0 : marker.userData.occupied ? .02 : .26) * eased +
+                    (reduced || (marker.userData.blocked && !marker.userData.legal) ? 0 : (marker.userData.occupied ? .004 : .025) * eased * Math.sin(elapsed * 1.8))
                 marker.position.y = .15 + lift
                 const reflection = marker.children[4]
                 reflection.position.y = .04 - lift
                 reflection.scale.setScalar(.7 + .3 * eased)
                 reflection.visible = !marker.userData.mixed && progress > 0
+            })
+            const hazard = sampleHexDanger(elapsed, reduced)
+            hazardMaterial.opacity = hazard.opacity
+            hazardRippleMaterial.opacity = hazard.rippleOpacity
+            statuses.forEach((entry, id) => {
+                if (!entry.marker.visible) return
+                entry.ripple.visible = !!entry.state.danger && (entry.state.activeDanger || id === requestedHover || id === selectedId)
+                entry.ripple.scale.setScalar(layoutManifest.hexRadius * hazard.scale)
+                entry.progress = stepHexHover(entry.progress, true, dt, reduced)
+                const size = .48 * (.8 + .2 * entry.progress)
+                entry.occupancy.scale.set(size, size, 1)
             })
             if (requestedHover !== null && requestedHover !== shownHover) {
                 shownHover = requestedHover

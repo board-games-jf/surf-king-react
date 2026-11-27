@@ -2,6 +2,7 @@ import React, { useId } from 'react'
 import { BOARD_LAYOUT } from '../../map/layout/boardLayout'
 import manifest from '../../map/layout/board-layout.json'
 import { TARGET_BLOCK_SYMBOL_PATHS, getMixedTargetBorderPaths, getHexHoverColors, HEX_SELECTION_COLOR } from '../../map/contract/targetHighlight'
+import { HEX_STATUS_COLORS } from '../../map/contract/hexStatus'
 import { seaColor } from '../../constants/Colors'
 import './HexGrid.css'
 
@@ -21,7 +22,7 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
     return (
         <svg ref={getRef} viewBox={[-halfWidth, -halfDepth, 2 * halfWidth, 2 * halfDepth].join(' ')}>
             {BOARD_LAYOUT.map(({ id, x, z }) => {
-                const { backgroundImage, style, highlight, attackHighlight, blocked } = cellProps(id)
+                const { backgroundImage, style, highlight, attackHighlight, blocked, status } = cellProps(id)
                 const patternId = `${gridId}-cell-${id}`
                 const mixed = !!(highlight && attackHighlight)
                 const hoverColors = getHexHoverColors(highlight?.color, attackHighlight?.color, blocked?.color)
@@ -48,6 +49,14 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                             onMouseLeave={() => onHexHover?.(null)}
                             onClick={() => onHexClick({ position: id })}
                         />
+                        {status?.blocked && <polygon points={points} transform="scale(.96)" fill="#15313a"
+                            fillOpacity=".48" pointerEvents="none" data-hex-blocked="true"/>}
+                        {status?.danger && <g pointerEvents="none" data-hex-danger="true">
+                            <polygon points={points} transform="scale(.81)" fill="none" stroke={HEX_STATUS_COLORS.danger}
+                                strokeWidth={status.lethal ? '.075' : '.045'} strokeDasharray=".14 .10" className="hex-danger-outline"/>
+                            {(status.activeDanger || selected || hoveredCellId === id) && <circle r={radius * .75} fill="none"
+                                stroke={HEX_STATUS_COLORS.danger} strokeWidth=".035" className="hex-danger-ripple"/>}
+                        </g>}
                         {highlight && !mixed && (
                             <polygon points={points} transform="scale(.91)"
                                 fill={highlight.color} fillOpacity={highlight.preview ? .24 : .32}
@@ -87,6 +96,23 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                             viewBox="0 0 400 340" style={{ pointerEvents: 'none' }}>
                             {renderCell(id)}
                         </svg>
+                        {status && <g pointerEvents="none" className="hex-status-badges">
+                            {status.count > 0 && <g transform={`translate(0 ${halfHeight * .76})`} data-hex-occupancy={status.count + '/' + status.capacity}
+                                aria-label={status.count + ' of ' + status.capacity + ' occupied'}>
+                                <rect x={-radius * .25} y={-radius * .12} width={radius * .5} height={radius * .24} rx={radius * .12}
+                                    fill="#153640" stroke={status.full ? HEX_STATUS_COLORS.full : HEX_STATUS_COLORS.occupied} strokeWidth=".025"/>
+                                <text y={radius * .067} fontSize={radius * .18} fill={status.full ? HEX_STATUS_COLORS.full : HEX_STATUS_COLORS.occupied}
+                                    fontWeight="bold" textAnchor="middle">{status.count}/{status.capacity}</text>
+                            </g>}
+                            {status.danger && <g transform={`translate(${-radius * .55} ${-halfHeight * .45})`} aria-label={status.lethal ? 'Entry will cause a fall' : 'Terrain hazard'}>
+                                <path d={`M0 ${-radius * .18} L${radius * .18} ${radius * .14} H${-radius * .18} Z`} fill="#153640" stroke={HEX_STATUS_COLORS.danger} strokeWidth=".035"/>
+                                <text y={radius * .09} fontSize={radius * .22} fill={HEX_STATUS_COLORS.danger} fontWeight="bold" textAnchor="middle">!</text>
+                            </g>}
+                            {status.blocked && <g transform={`translate(0 ${-halfHeight * .72})`} aria-label={status.full ? 'Hex full' : 'No eligible action'}>
+                                <rect x="-.11" y="-.035" width=".22" height=".17" rx=".035" fill={HEX_STATUS_COLORS.blocked}/>
+                                <path d="M-.075 -.035 V-.095 A.075 .075 0 0 1 .075 -.095 V-.035" stroke={HEX_STATUS_COLORS.blocked} strokeWidth=".035" fill="none"/>
+                            </g>}
+                        </g>}
                         {blocked && blocked.playerId == null && <svg x={radius * .25} y={-halfHeight * .88} width={radius * .52} height={radius * .52}
                             viewBox="0 0 1 1" pointerEvents="none" aria-label={blocked.reason || blocked.label}>
                             <circle cx=".5" cy=".5" r=".48" fill="#153640" stroke={blocked.color} strokeWidth=".045"/>

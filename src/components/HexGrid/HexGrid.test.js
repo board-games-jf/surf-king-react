@@ -118,3 +118,19 @@ test('hover and selection are separate from mixed semantic paths and do not inte
     expect(cell.querySelectorAll('[data-target-highlight]')).toHaveLength(2)
     expect(props.onHexClick).not.toHaveBeenCalled()
 })
+
+test('hazard, capacity and selection coexist with legal action highlights', () => {
+    const { container } = render(<HexGrid onHexClick={jest.fn()} renderCell={() => null} selectedCellId={7}
+        cellProps={id => id === 7 ? { highlight: { kind: 'move', color: '#9bf4d4' }, status: { count: 1, capacity: 2, danger: true, activeDanger: true } }
+            : id === 8 ? { status: { count: 2, capacity: 2, full: true, blocked: true } } : {}}/>)
+    const cell = container.querySelector('[data-cell-id="7"]').parentElement
+    expect(cell.querySelector('[data-hex-danger]')).toHaveAttribute('pointer-events', 'none')
+    expect(cell.querySelector('.hex-danger-ripple')).toBeInTheDocument()
+    expect(cell.querySelector('[data-hex-occupancy="1/2"]')).toBeInTheDocument()
+    expect(cell.querySelector('[data-target-highlight="move"]')).toBeInTheDocument()
+    expect(cell.querySelector('[data-hex-selection]')).toBeInTheDocument()
+    expect(cell.querySelector('[data-hex-blocked]')).not.toBeInTheDocument()
+    const full = container.querySelector('[data-cell-id="8"]').parentElement
+    expect(full.querySelector('[data-hex-occupancy="2/2"]')).toBeInTheDocument()
+    expect(full.querySelector('[data-hex-blocked]')).toBeInTheDocument()
+})
