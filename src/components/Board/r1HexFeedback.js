@@ -2,13 +2,7 @@ import { isBeach, r1DropTargets, r1MoveTargets, R1_ATTACK_RANGE, R1_PLACEMENT_RA
 import { getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
 
-const terrain = {
-    Shark: { text: 'Ordinary entry costs 2 energy.', damage: 2 },
-    Stone: { text: 'Ordinary entry costs 1 energy; Stone disappears.', damage: 1 },
-    Storm: { text: 'Ordinary entry costs 1 energy; Storm remains.', damage: 1 },
-    Cyclone: { text: 'Ordinary entry redirects to a random free neighbor, excluding the origin.' },
-    Island: { text: 'Ordinary entry restores 2 energy (max 5); Island remains.' },
-}
+import { HEX_TERRAIN as terrain } from '../../map/contract/hexStatus'
 
 // Read-only presentation. All executable target decisions come from the engine.
 export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
@@ -67,7 +61,7 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
     } else if (full) action = 'Hex full.'
     else if (G.currentMove === 'use_card' && r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx).includes(id)) {
         status = 'preview'
-        action = 'Select Move first to enter this hex.'
+        action = 'Select this hex to move.'
     } else if (G.currentMove === 'swap_card') action = 'Movement already used; play a card or end turn.'
     else action = 'This hex is not available for movement now.'
     const blocks = highlight?.blocked?.filter(item => item.id === id) || []

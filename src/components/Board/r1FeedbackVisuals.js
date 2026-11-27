@@ -2,11 +2,16 @@ import React from 'react'
 import { CHANGE_RANGE, R1_ATTACK_RANGE, R1_PLACEMENT_RANGE } from '../../game/r1/SurfKingR1'
 export { terrainArt } from './r1CardArt'
 
+export function HexBadge({ id }) {
+    return <span className="r1-hex-badge" aria-hidden="true">{id + 1}</span>
+}
+
 export function FeedbackIcon({ kind }) {
     const paths = {
         energy: <path d="M13 2 4 14h7l-1 8 10-13h-7z" fill="currentColor" stroke="none"/>,
         range: <><path d="m12 2 9 5v10l-9 5-9-5V7z"/><circle cx="12" cy="12" r="3"/></>,
         move: <><path d="M3 12h17m-6-6 6 6-6 6"/></>,
+        dropIn: <><path d="M2 19c4-5 7-5 11-1s6 3 9 0"/><path d="m6 4 9 9m-6 0h6V7"/></>,
         shield: <path d="m12 3 8 3v6c0 5-4 8-8 10-4-2-8-5-8-10V6z"/>,
         swirl: <path d="M21 8c-2-5-12-5-15 0-4 6 5 12 10 7 4-4-3-7-5-3m-8 5c3 5 12 5 16 0"/>,
         check: <path d="m5 12 4 4L19 6"/>,
@@ -82,7 +87,7 @@ export function compactHexAction(info) {
     if (action.startsWith('Click to use')) return 'Attack here'
     if (action === 'Click to move here.') return 'Move here'
     if (action === 'Click to jump here.') return 'Jump here'
-    if (action.startsWith('Select Move first')) return 'Select Move'
+    if (action.startsWith('Select this hex to move')) return 'Move here'
     if (action.startsWith('Select Drop In')) return 'Select Drop In'
     if (action === 'Outside placement range.') return 'Out of range'
     if (action === 'This hex is not available for movement now.') return 'Not reachable'

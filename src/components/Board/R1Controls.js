@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import './R1Hud.css'
 import { PLAYER_BOARD_COLORS } from '../../constants/playerBoardColors'
 import {
-    r1PlayerCard, r1CardPlayable, r1DropPlayerTargets, isBeach, HEX_CAPACITY,
+    r1PlayerCard, r1CardPlayable, r1DropPlayerTargets, r1MoveTargets, isBeach, HEX_CAPACITY,
     DROP_IN_RANGE, r1AttackUnavailableReason, r1MaxAttackDice,
 } from '../../game/r1/SurfKingR1'
-import { HexEffects, FeedbackIcon, terrainArt, compactHexAction } from './r1FeedbackVisuals'
+import { HexBadge, HexEffects, FeedbackIcon, terrainArt, compactHexAction } from './r1FeedbackVisuals'
 import { getR1CardFeedback } from './r1CardFeedback'
 import { getR1RoundOrder } from './r1RoundOrder'
 import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
@@ -56,6 +56,44 @@ function EnergyMeter({ energy, lost = 0 }) {
     </div>
 }
 
+function TurnAvailability({ available }) {
+    return <span className="r1-turn-availability" data-available={available} aria-hidden="true">
+        {available ? <FeedbackIcon kind="check"/> : <svg viewBox="0 0 24 24"><path d="m8 8 8 8m0-8-8 8"/></svg>}
+    </span>
+}
+
+export function HexInspectionBody({ hexFeedback, expanded = false }) {
+    const singleAmuletBlock = hexFeedback?.occupants?.length === 1 &&
+        hexFeedback.occupants[0].blocked === 'Amulet' && hexFeedback.action === 'This opponent is protected.'
+    return (
+        <div className="r1-inspection-body r1-hex-elements">
+                    <div className="r1-inspection-heading"><strong>Hex {hexFeedback.id + 1}</strong>
+                        {(expanded || hexFeedback.occupants?.length > 0) && <span className="r1-hex-number">{hexFeedback.occupants?.length || 0}/{HEX_CAPACITY} surfers{hexFeedback.full ? ' · Full' : ''}</span>}
+                    </div>
+                    <div className="r1-hex-terrain">
+                        {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt=""/> :
+                            <span className="r1-inspection-symbol"><FeedbackIcon kind={hexFeedback.title === 'Beach' ? 'flag' : 'wave'}/></span>}
+                        <div className="r1-hex-element-body">
+                            <strong>{hexFeedback.title}</strong>
+                            <HexEffects info={hexFeedback}/>
+                            {(expanded || hexFeedback.occupants?.length > 0) && <span className="r1-hex-entry">{hexFeedback.entry}</span>}
+                        </div>
+                    </div>
+                    {hexFeedback.occupants?.map(p => <div key={p.position} className="r1-hex-occupant" role="group" aria-label={'Player ' + (p.position + 1) + ' details'}>
+                        <PlayerIcon playerId={p.position} variant="r1-hex-player-avatar"/>
+                        <div className="r1-hex-element-body">
+                            <div className="r1-hex-player-line"><EnergyMeter energy={p.energy}/></div>
+                            {p.states?.filter(state => !(singleAmuletBlock && state === 'Amulet · Protected')).map(state => <span key={state} className="r1-hex-player-status"><FeedbackIcon kind={state.includes('Protected') || state.includes('shield') ? 'shield' : state === 'Winner' || state === 'Finished' ? 'flag' : 'wave'}/>{state}</span>)}
+                            {p.eligible && !(hexFeedback.occupants.length === 1 && ['Attack here', 'Drop In'].includes(compactHexAction(hexFeedback))) && <span className="r1-hex-player-status" data-eligible="true"><FeedbackIcon kind="check"/>Eligible target</span>}
+                            {p.blocked && !singleAmuletBlock && !(hexFeedback.occupants.length === 1 && p.blocked.includes(compactHexAction(hexFeedback))) && <span className="r1-hex-player-status" title={p.blocked}><FeedbackIcon kind="blocked"/>{p.blocked}</span>}
+                        </div>
+                    </div>)}
+                    {!expanded && <span className="r1-hex-action"><FeedbackIcon kind={hexFeedback.status === 'ready' ? 'check' : hexFeedback.status === 'preview' ? 'move' : 'blocked'}/>{singleAmuletBlock ? 'Amulet · Protected' : compactHexAction(hexFeedback)}</span>}
+                    <span className="r1-sr-only">{hexFeedback.entry} {hexFeedback.occupantText} {hexFeedback.action} {hexFeedback.risk}</span>
+                </div>
+    )
+}
+
 export default function R1Controls({ G, ctx, moves, selection, setSelection, onTarget, targetHighlight, onPreviewCard = () => {}, hexFeedback = null, pinnedHex = false, onClearHex = () => {}, worldPiles = false, discardOpen: externalDiscardOpen, onDiscardOpenChange, onFocusPlayer = () => {} }) {
     const player = G.players[ctx.currentPlayer]
     const roundOrder = getR1RoundOrder(G, ctx)
@@ -71,6 +109,11 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
     const attacking = selection?.kind === 'drop' || r1PlayerCard(selectedCard?.Name)
     const swapChoice = G.currentMove === 'swap_choice' && G.pendingSwap
     const swapCard = G.currentMove === 'swap_card'
+    const showTurnSteps = ['use_card', 'maneuver', 'current_first', 'current_second'].includes(G.currentMove)
+    const cardAvailable = G.currentMove === 'use_card' && hand.cards.some((_, index) => r1CardPlayable(G, ctx, index))
+    const noMoveAvailable = G.currentMove === 'use_card' && !r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx).length
+    const keyboardMoves = !selection && ['use_card', 'maneuver', 'current_first'].includes(G.currentMove) ?
+        r1MoveTargets(G.currentMove === 'use_card' ? { ...G, currentMove: 'maneuver' } : G, ctx) : []
     const canPass = swapCard || G.currentMove === 'use_card' || G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
@@ -140,19 +183,26 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
         setSelection(null)
         moves.resolveSwap(accept)
     }
-    const moveLabel = G.currentMove === 'use_card' ? 'Move' :
+    const moveLabel = G.currentMove === 'use_card' ? 'Continue' :
         G.currentMove === 'current_second' ? 'Finish movement' :
         canPass ? 'End turn' : 'Choose a hex'
+    const showFinishControl = !swapChoice && (swapCard || G.currentMove === 'current_second' || (G.currentMove === 'maneuver' && !targets.length) || noMoveAvailable)
+    const handToggle = <button type="button" className="r1-hand-toggle" onClick={() => { inspectCard(null); setHandHidden(value => !value) }} aria-expanded={!handHidden} aria-label={handHidden ? 'Show cards' : 'Hide cards'} aria-describedby="r1-hand-count-description" title={handHidden ? 'Show cards' : 'Hide cards'}>
+        {showTurnSteps && <TurnAvailability available={cardAvailable}/>}
+        <span className="r1-hand-toggle-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="4" width="12" height="16" rx="2"/><path d="M5 7H4v12a2 2 0 0 0 2 2h10"/></svg></span>
+        <span className="r1-hand-count" aria-hidden="true">{hand.cards.length}/5</span>
+        <span id="r1-hand-count-description" className="r1-sr-only">{hand.cards.length} of 5 cards in hand{showTurnSteps ? (cardAvailable ? '; card available' : '; card unavailable') : ''}</span>
+        <svg className="r1-hand-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d={handHidden ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'}/></svg>
+    </button>
+    const handCard = <span className="r1-turn-card" data-available={cardAvailable} title={cardAvailable ? 'Card available' : 'Card unavailable'}>{handToggle}</span>
 
-    const singleAmuletBlock = hexFeedback?.occupants?.length === 1 &&
-        hexFeedback.occupants[0].blocked === 'Amulet' && hexFeedback.action === 'This opponent is protected.'
     const targetButtons = targets.length > 0 && <div className="r1-targets" aria-label={attacking ? "Legal target players" : "Legal target hexes"}>
                         {attacking ? playerTargets.map(id => <button type="button" key={id}
                             aria-label={(selectedCard?.Name === 'Change' ? 'Swap with Player ' : 'Attack Player ') + (id + 1)}
                             className="r1-target-player" title={'Player ' + (id + 1)}
                             onClick={() => onTarget(G.players[id].cellPosition, id)}><PlayerIcon playerId={id} variant="r1-target-player-avatar"/></button>) :
-                            targets.map(id => <button type="button" key={id} aria-label={'Select hex ' + (id + 1)}
-                                onClick={() => onTarget(id)}>{id + 1}</button>)}
+                            targets.map(id => <button type="button" key={id} className="r1-target-hex" aria-label={'Select hex ' + (id + 1)}
+                                onClick={() => onTarget(id)}><HexBadge id={id}/></button>)}
                     </div>
 
     return (
@@ -200,10 +250,10 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                                 <span className="r1-player-energy-bolts">{Array.from({ length: 5 }, (_, i) => <span key={i} data-filled={i < p.energy} />)}</span>
                                 {p.energy}/5
                             </span>
+                            {state && <span className="r1-player-compact-state" aria-hidden="true" title={state}><FeedbackIcon kind={state === 'Protected' || state === 'Drop In shield' ? 'shield' : state === 'Winner' || state === 'Finished' ? 'flag' : 'warning'}/></span>}
                             {status === 'next' && <span className="r1-player-waiting" aria-hidden="true" title="Up next"/>}
                             {status === 'played' && <span className="r1-player-played" aria-hidden="true" title="Played"><FeedbackIcon kind="check"/></span>}
-                            {status === 'now' && <span className="r1-player-turn-tab" aria-hidden="true">Your turn</span>}
-                            {state && <span className="r1-player-compact-state" aria-hidden="true" title={state}><FeedbackIcon kind={state === 'Protected' || state === 'Drop In shield' ? 'shield' : state === 'Winner' || state === 'Finished' ? 'flag' : 'warning'}/></span>}
+                            {status === 'now' && <span className="r1-player-turn-board" aria-hidden="true"><svg viewBox="0 0 28 16"><path d="M2 8C4 3 13 2 21 3c3 .3 5 2 5 5s-2 4.7-5 5C13 14 4 13 2 8Z"/><path d="M5 8h17"/></svg></span>}
                         </button>
                     )
                 })}
@@ -211,31 +261,7 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
             <div className="r1-top-feedback" data-pinned={pinnedHex}>
             {terrainNotice && <div className="r1-match-feedback r1-glass r1-terrain-loss" data-gain={terrainNotice.direction === 'gain'} role="status" aria-label={terrainNotice.direction === 'gain' ? 'Terrain energy gain' : 'Terrain energy loss'}>Player {terrainNotice.playerId + 1} · {terrainNotice.source} · {terrainNotice.direction === 'gain' ? (terrainNotice.amount ? '+' + terrainNotice.amount + ' energy' : 'Energy full (5/5)') : '−' + terrainNotice.amount + ' energy'}</div>}
             {hexFeedback && <div className="r1-match-feedback r1-glass r1-hex-feedback" aria-label="Hex information" data-status={hexFeedback.status}>
-                <div className="r1-inspection-body r1-hex-elements">
-                    <div className="r1-inspection-heading"><strong>Hex {hexFeedback.id + 1}</strong>
-                        {hexFeedback.occupants?.length > 0 && <span className="r1-hex-number">{hexFeedback.occupants.length}/{HEX_CAPACITY} surfers{hexFeedback.full ? ' · Full' : ''}</span>}
-                    </div>
-                    <div className="r1-hex-terrain">
-                        {terrainArt[hexFeedback.title] ? <img className="r1-inspection-art" src={terrainArt[hexFeedback.title]} alt=""/> :
-                            <span className="r1-inspection-symbol"><FeedbackIcon kind={hexFeedback.title === 'Beach' ? 'flag' : 'wave'}/></span>}
-                        <div className="r1-hex-element-body">
-                            <strong>{hexFeedback.title}</strong>
-                            <HexEffects info={hexFeedback}/>
-                            {hexFeedback.occupants?.length > 0 && <span className="r1-hex-entry">{hexFeedback.entry}</span>}
-                        </div>
-                    </div>
-                    {hexFeedback.occupants?.map(p => <div key={p.position} className="r1-hex-occupant" role="group" aria-label={'Player ' + (p.position + 1) + ' details'}>
-                        <PlayerIcon playerId={p.position} variant="r1-hex-player-avatar"/>
-                        <div className="r1-hex-element-body">
-                            <div className="r1-hex-player-line"><EnergyMeter energy={p.energy}/></div>
-                            {p.states?.filter(state => !(singleAmuletBlock && state === 'Amulet · Protected')).map(state => <span key={state} className="r1-hex-player-status"><FeedbackIcon kind={state.includes('Protected') || state.includes('shield') ? 'shield' : state === 'Winner' || state === 'Finished' ? 'flag' : 'wave'}/>{state}</span>)}
-                            {p.eligible && !(hexFeedback.occupants.length === 1 && ['Attack here', 'Drop In'].includes(compactHexAction(hexFeedback))) && <span className="r1-hex-player-status" data-eligible="true"><FeedbackIcon kind="check"/>Eligible target</span>}
-                            {p.blocked && !singleAmuletBlock && !(hexFeedback.occupants.length === 1 && p.blocked.includes(compactHexAction(hexFeedback))) && <span className="r1-hex-player-status" title={p.blocked}><FeedbackIcon kind="blocked"/>{p.blocked}</span>}
-                        </div>
-                    </div>)}
-                    <span className="r1-hex-action"><FeedbackIcon kind={hexFeedback.status === 'ready' ? 'check' : hexFeedback.status === 'preview' ? 'move' : 'blocked'}/>{singleAmuletBlock ? 'Amulet · Protected' : compactHexAction(hexFeedback)}</span>
-                    <span className="r1-sr-only">{hexFeedback.entry} {hexFeedback.occupantText} {hexFeedback.action} {hexFeedback.risk}</span>
-                </div>
+                <HexInspectionBody hexFeedback={hexFeedback}/>
                 {pinnedHex && <button type="button" className="r1-inspection-close" aria-label="Close hex information" onClick={onClearHex}>×</button>}
             </div>}
             </div>
@@ -266,6 +292,10 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                 </div>}
             {!winner && <div className="r1-hud-dock">
                 <div className="r1-dock-scroll">
+                {(keyboardMoves.length > 0 || (!selection && dropTargets.length > 0)) && <div className="r1-movement-access" aria-label="Keyboard board actions">
+                    {keyboardMoves.map(id => <button type="button" key={id} aria-label={'Move to hex ' + (id + 1)} onClick={() => moves.quickManeuver(id)}><HexBadge id={id}/></button>)}
+                    {!selection && dropTargets.map(id => <button type="button" key={'attack-' + id} aria-label={'Attack Player ' + (id + 1)} onClick={() => setSelection({ kind: 'drop', diceCount: maxAttackDice, targetCell: G.players[id].cellPosition, targetPlayerId: id })}><PlayerIcon playerId={id}/></button>)}
+                </div>}
                 {swapChoice && <div className="r1-swap-choice r1-glass" role="group" aria-label="Position conquest">
                     <strong>Player {G.pendingSwap.targetPlayerId + 1} fell!</strong>
                     <span>Take their hex instead of moving, or keep your position and continue.</span>
@@ -295,26 +325,32 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     </div>
                     {(selectedCard || inspection?.pinned) && <button type="button" className="r1-inspection-close" aria-label={selectedCard ? "Deselect card" : "Close card information"} onClick={() => { inspectCard(null); if (selectedCard) setSelection(null) }}>×</button>}
                 </div>}
-                <div className="r1-hud-context r1-glass">
+                <div className="r1-hud-context r1-glass" data-attack-open={selection?.kind === 'drop' || undefined}>
+                    {selection?.kind === 'drop' && <button type="button" className="r1-attack-close" aria-label="Close attack selection" onClick={() => { inspectCard(null); setSelection(null) }}>×</button>}
                     {swapCard && <span>Position conquered. Use one remaining non-movement card or end turn.</span>}
                     {G.currentMove === 'recover' && <div className="r1-action-row">
                         <button type="button" className="r1-recover-button" onClick={() => { setSelection(null); moves.recover() }}>Recover free (1 energy)</button>
                         <span>Or use Lifeguard Float.</span>
                     </div>}
-                    {selection?.kind === 'drop' && !dropReason && <div className="r1-action-row" role="group" aria-label="Attack dice">
-                        <strong>Choose attack dice</strong>
+                    {selection?.kind === 'drop' && !dropReason && <div className="r1-attack-dice" role="group" aria-label="Attack dice">
+                        <strong>How many dice?</strong>
+                        <div className="r1-dice-options">
                         {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map(count =>
-                            <button type="button" className="r1-dice-button" key={count} aria-pressed={selection.diceCount === count}
-                                onClick={() => setSelection({ kind: 'drop', diceCount: count })}>
-                                <span aria-hidden="true">{count === 1 ? '⚀' : '⚁'}</span> {count} {count === 1 ? 'die' : 'dice'}
+                            <button type="button" className="r1-dice-button" key={count} aria-label={count === 1 ? '1 die' : count + ' dice'} aria-describedby={'r1-dice-risk-' + count} aria-pressed={selection.diceCount === count}
+                                onClick={() => setSelection({ ...selection, diceCount: count })}>
+                                <span className="r1-dice-option-faces" aria-hidden="true">{Array.from({ length: count }, (_, i) => <span className="r1-dice-option-face" key={i}><i/><i/><i/></span>)}</span>
+                                <span className="r1-dice-option-risk" aria-hidden="true">up to ⚡−{count}</span>
+                                <span className="r1-sr-only" id={'r1-dice-risk-' + count}>Risk up to {count} energy</span>
                             </button>)}
+                        </div>
+                        {selection.targetPlayerId !== undefined && <button type="button" className="r1-drop-button" onClick={() => onTarget(selection.targetCell, selection.targetPlayerId)}>Drop In · {selection.targetPlayerId + 1}</button>}
                         <span className="r1-sr-only">Compare highest dice first. Each lost pair costs 1 energy; ties cost nothing.</span>
                     </div>}
-                    {!detailCard && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
+                    {!detailCard && (selection || !['use_card', 'maneuver'].includes(G.currentMove)) && highlight.cellIds.length > 0 && highlightStyle && <div className="r1-target-legend">
                         <span className="r1-target-swatch" style={{ backgroundColor: highlightStyle.color }} aria-hidden="true" />
-                        {highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
+                        {selection?.kind === 'drop' && selection.targetPlayerId !== undefined ? 'Player ' + (selection.targetPlayerId + 1) + ' selected · choose dice.' : highlight.preview ? 'Choose a card, attack or move.' : highlightStyle.label + ' — select a highlighted ' + (attacking ? 'opponent.' : 'hex.')}
                     </div>}
-                    {(!selectedCard || (!attacking && !inspectingOther)) && targetButtons}
+                    {selection?.targetPlayerId === undefined && (!selectedCard || (!attacking && !inspectingOther)) && (selection || !['use_card', 'maneuver'].includes(G.currentMove)) && targetButtons}
                 </div>
                 {!handHidden && <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
                     {hand.cards.map((card, index) => {
@@ -335,20 +371,27 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                     {!hand.cards.length && <span className="r1-empty-hand r1-glass">No cards in hand</span>}
                 </div>}
                 </div>
-                <div className="r1-action-bar r1-glass">
-                    <span className="r1-hand-count">Hand <strong>{hand.cards.length}/5</strong></span>
-                    <button type="button" className="r1-hand-toggle" onClick={() => { inspectCard(null); setHandHidden(value => !value) }} aria-expanded={!handHidden}>{handHidden ? 'Show cards' : 'Hide cards'}</button>
-                    <button type="button" className="r1-drop-button" disabled={!!dropReason || !!selectedCard}
-                        aria-pressed={selection?.kind === 'drop'} aria-describedby="r1-drop-status"
-                        aria-label={G.atkDices.length > 0 && !dropReason ? "Attack again · Drop In (2 hexes)" : "Attack · Drop In (2 hexes)"}
-                        onClick={() => { inspectCard(null); setSelection({ kind: 'drop', diceCount: maxAttackDice }) }}>
-                        <span aria-hidden="true">⚔</span> {G.atkDices.length > 0 && !dropReason ? 'Attack again' : 'Drop In'}
-                    </button>
-                    {selection?.kind === 'drop' && <button type="button" className="r1-cancel-button" onClick={() => { inspectCard(null); setSelection(null) }}>Cancel</button>}
-                    {!swapChoice && G.currentMove !== 'recover' && <button type="button" className="r1-move-button" disabled={!canPass || !!selection}
-                        onClick={() => { inspectCard(null); moves.pass() }}>{moveLabel} <span aria-hidden="true">→</span></button>}
-                    <span id="r1-drop-status" role="status" className={dropReason ? "r1-drop-reason" : "r1-sr-only"}>{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
-                </div>
+                {(!showTurnSteps || showFinishControl) && <div className="r1-action-bar r1-glass">
+                    {!showTurnSteps && handToggle}
+                    {showFinishControl && <button type="button" className="r1-move-button" disabled={!canPass || !!selection}
+                        aria-label={moveLabel} onClick={() => { inspectCard(null); moves.pass() }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span><span className="r1-move-label">{moveLabel}</span></button>}
+                </div>}
+                {showTurnSteps && <div className="r1-turn-progress r1-glass">
+                    <div className="r1-turn-steps" aria-label="Turn progress">
+                        {G.currentMove === 'current_second' ? <>{handCard}<strong>Surf Current · choose a second hex or finish</strong></> : <>
+                            <span className="r1-turn-caption"><strong>Before moving</strong><small>Optional</small></span>
+                            {handCard}
+                            <span className="r1-turn-drop" data-available={!dropReason} title={!dropReason ? 'Drop In available' : 'Drop In unavailable'}>
+                                <TurnAvailability available={!dropReason}/>
+                                <span>Drop In</span><span className="r1-sr-only">{!dropReason ? ' available' : ' unavailable'}</span>
+                            </span>
+                            <span aria-hidden="true">→</span>
+                            {G.currentMove === 'current_first' ? <strong>Surf Current · first step</strong> : <span className="r1-turn-caption"><strong>Move</strong><small>Ends turn</small></span>}
+                        </>}
+                    </div>
+                    {dropReason && <span className="r1-turn-reason" aria-hidden="true">{dropReason}</span>}
+                </div>}
+                <span id="r1-drop-status" role="status" className="r1-sr-only">{dropReason || (dropTargets.length + ' opponent(s) in range · Free attack, risk up to ' + maxAttackDice + ' energy')}</span>
             </div>}
         </section>
     )

@@ -2,7 +2,7 @@ import { INVALID_MOVE } from 'boardgame.io/core'
 import { Client } from 'boardgame.io/client'
 import {
     SurfKingR1, setupR1, beginR1Turn, createR1Deck, r1Neighbors,
-    r1MoveTargets, r1CardTargets, r1DropTargets, useR1Card, r1Maneuver,
+    r1MoveTargets, r1CardTargets, r1DropTargets, useR1Card, r1Maneuver, r1QuickManeuver,
     r1DropIn, r1ResolveSwap, r1CardPlayable, passR1, recoverR1, r1AttackUnavailableReason, DROP_IN_RANGE, r1MaxAttackDice, r1Occupants, r1CardPlayerTargets, r1DropPlayerTargets,
 } from './SurfKingR1'
 
@@ -43,6 +43,15 @@ function assertConserved(G) {
     for (const p of players) expect(r1Occupants(G, p.cellPosition).length).toBeLessThanOrEqual(2)
 }
 describe('R1 rules', () => {
+    test('contextual movement validates before skipping the optional card phase', () => {
+        const { G, ctx } = fixture()
+        expect(r1QuickManeuver(G, ctx, 53)).toBe(INVALID_MOVE)
+        expect(G.currentMove).toBe('use_card')
+        const target = r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx)[0]
+        expect(r1QuickManeuver(G, ctx, target)).toBeUndefined()
+        expect(G.players[0].cellPosition).toBe(target)
+        expect(ctx.events.endTurn).toHaveBeenCalledTimes(1)
+    })
     test('exact deck inventory, starts, sharks and real graph for every player count', () => {
         const counts = createR1Deck().reduce((a,c) => ({ ...a, [c.Name]: (a[c.Name] || 0) + 1 }), {})
         expect(counts).toEqual({
