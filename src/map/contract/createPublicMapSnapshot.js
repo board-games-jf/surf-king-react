@@ -37,7 +37,7 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
         ...(G.ruleset === 'R1' && G.cardVisualEvent ? { cardVisualEvent: G.cardVisualEvent } : {}),
         turn: G.turn,
         activePlayerId: ctx?.currentPlayer == null ? null : String(ctx.currentPlayer),
-        selectedCellId: Number.isInteger(selectedCellId) && selectedCellId >= 0 && selectedCellId < 53
+        selectedCellId: Number.isInteger(selectedCellId) && selectedCellId >= 0 && selectedCellId < 53 && (!G.activeCellIds || G.activeCellIds.includes(selectedCellId))
             ? selectedCellId : null,
     }
 }
