@@ -302,7 +302,7 @@ export function recoverR1(G, ctx) {
 }
 function setCardVisualEvent(G, p, name, details = {}) {
     G.cardVisualEvent = { id: (G.cardVisualEvent?.id || 0) + 1, playerId: p.position,
-        origin: p.cellPosition, name, ...details }
+        origin: p.cellPosition, name, round: G.turn, turnSlot: G.completedInRound, ...details }
 }
 export function useR1Card(G, ctx, index, to, playerId) {
     if (!Number.isInteger(index) || !r1CardPlayable(G, ctx, index)) return INVALID_MOVE

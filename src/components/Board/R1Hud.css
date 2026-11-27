@@ -978,3 +978,76 @@
 .r1-hex-inspector-reason { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #c8dfe0; }
 .r1-hex-inspector .r1-hex-confirm { position: sticky; bottom: 0; justify-content: center; width: 100%; min-height: 40px; background: #ffd27c; border-color: #ffda8c; color: #10313a; font-size: 14px; }
 @media (max-width: 480px) { .r1-board-action.r1-hex-inspector { padding: 9px; gap: 7px; } }
+
+/* R1 HUD: round progress and explicit turn/eligibility semantics. */
+.r1-hud-brand { display: grid; gap: 5px; width: 176px; box-sizing: border-box; padding: 9px 11px; }
+.r1-round-heading, .r1-round-progress-label { display: flex; align-items: center; gap: 6px; }
+.r1-round-heading .r1-brand-wave { margin-right: auto; display: flex; }
+.r1-round-heading .r1-brand-wave svg { width: 23px; height: 23px; }
+.r1-hud-brand .r1-round-heading > strong { font-style: normal; font-size: 23px; line-height: 1; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.r1-hud-brand .r1-round-heading > span:not(.r1-brand-wave) { font-size: 10px; letter-spacing: .12em; }
+.r1-round-progress-label { border-top: 1px solid #ffffff24; padding-top: 4px; justify-content: space-between; }
+.r1-hud-brand .r1-round-progress-label > span { letter-spacing: 0; font-weight: 500; }
+.r1-hud-brand .r1-round-progress-label > strong { font-size: 11px; font-style: normal; font-variant-numeric: tabular-nums; }
+.r1-round-segments { display: flex; gap: 3px; }
+.r1-round-segments > span { flex: 1; height: 4px; background: #426772; border-radius: 3px; }
+.r1-round-segments > span[data-status="played"] { background: #79cbaa; }
+.r1-round-segments > span[data-status="now"] { background: #ffd477; }
+.r1-floating-hud button.r1-player-badge, .r1-floating-hud button.r1-player-badge[data-current="true"] { display: grid; align-content: center; gap: 6px; min-width: 128px; min-height: 66px; padding: 7px 9px; }
+.r1-sidebar-player-heading { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.r1-sidebar-player-heading .r1-player-avatar { width: 29px; height: 29px; flex-basis: 29px; }
+.r1-sidebar-player-copy { display: grid; flex: 1; gap: 2px; min-width: 0; line-height: 1.15; }
+.r1-sidebar-player-copy > strong { font-size: 12px; white-space: nowrap; }
+.r1-sidebar-turn-label { font-size: 10px; font-weight: 550; color: #a9c6ca; white-space: nowrap; }
+.r1-sidebar-status-icon { color: #a9c6ca; margin-left: auto; }
+.r1-player-badge[data-order-status="now"] :is(.r1-sidebar-turn-label,.r1-sidebar-status-icon) { color: #ffd477; }
+.r1-player-badge[data-order-status="played"] .r1-sidebar-turn-label { color: #9cdbb9; }
+.r1-player-compact-energy { width: 100%; gap: 5px; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.r1-player-energy-segments { display: flex; gap: 3px; flex: 1; }
+.r1-player-energy-segments > span { height: 7px; flex: 1; border-radius: 2px; background: #3a606a; }
+.r1-player-energy-segments > span[data-filled="true"] { background: #ffd477; }
+.r1-player-compact-state { font-size: 10px; align-items: center; gap: 4px; }
+.r1-turn-progress { width: min(380px, 100%); padding: 7px 9px; flex-shrink: 0; }
+.r1-turn-steps { display: grid; gap: 5px; text-align: left; }
+.r1-rail-heading { display: flex; justify-content: space-between; align-items: center; gap: 7px; }
+.r1-rail-heading small { color: #b8d6d8; font-size: 10px; }
+.r1-rail-options { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 6px; }
+.r1-turn-card { min-width: 0; }
+.r1-floating-hud .r1-turn-steps .r1-hand-toggle, .r1-turn-drop { display: flex; width: 100%; min-width: 0; box-sizing: border-box; gap: 5px; min-height: 43px; padding: 5px 6px; align-items: center; justify-content: flex-start; border: 1px solid #5da69b; border-radius: 10px; background: #194954; }
+.r1-turn-drop[data-state="available"] { background: #3b343d; border-color: #e19b7f; color: #ffb49e; }
+.r1-turn-drop[data-state="unavailable"], .r1-turn-card[data-state="unavailable"] .r1-hand-toggle { background: #193943; border-color: #546c75; color: #b0c4ca; }
+.r1-turn-card[data-state="used"] .r1-hand-toggle { border-color: #76bca0; color: #a0dfbd; }
+.r1-rail-copy { display: grid; gap: 2px; flex: 1; min-width: 0; text-align: left; line-height: 1.1; }
+.r1-rail-copy strong { color: inherit; font-size: 12px; }
+.r1-rail-copy small { color: inherit; font-size: 10px; font-weight: 550; }
+.r1-rail-state-icon { display: grid; place-items: center; flex: 0 0 22px; width: 22px; height: 22px; border-radius: 7px; color: #a7eee0; background: #ffffff12; }
+.r1-rail-state-icon[data-state="used"] { color: #a0dfbd; }
+.r1-rail-state-icon[data-state="unavailable"] { color: #aabfc3; }
+.r1-turn-drop[data-state="available"] .r1-rail-state-icon { color: #ffab91; }
+.r1-rail-move { display: flex; align-items: center; gap: 6px; background: #ffd477; border-radius: 9px; color: #173940; padding: 5px 8px; }
+.r1-rail-move strong { color: inherit; }
+.r1-rail-move small { margin-left: auto; font-size: 10px; font-weight: 650; }
+.r1-turn-steps .r1-hand-count { font-size: 12px; }
+@media (min-width: 801px) and (min-height: 521px) {
+    .r1-floating-hud .r1-round-order { top: max(101px, calc(env(safe-area-inset-top) + 94px)); width: 176px; }
+    .r1-floating-hud button.r1-player-badge, .r1-floating-hud button.r1-player-badge[data-current="true"] { min-height: 68px; width: 100%; }
+}
+@media (min-width: 521px) and (max-width: 800px), (max-height: 520px) and (orientation: landscape) {
+    .r1-floating-hud .r1-round-order { left: max(194px, calc(var(--hud-inset) + 184px)); }
+}
+@media (max-width: 520px) {
+    .r1-hud-brand { width: 156px; padding: 5px 8px; gap: 3px; }
+    .r1-hud-brand .r1-round-heading > strong { font-size: 18px; }
+    .r1-round-heading .r1-brand-wave svg { width: 18px; height: 18px; }
+    .r1-round-progress-label { padding-top: 2px; }
+    .r1-floating-hud .r1-round-order { top: max(68px, calc(env(safe-area-inset-top) + 62px)); }
+    .r1-floating-hud button.r1-player-badge, .r1-floating-hud button.r1-player-badge[data-current="true"] { min-height: 58px; padding: 5px 7px; }
+    .r1-sidebar-player-heading .r1-player-avatar { width: 24px; height: 24px; flex-basis: 24px; }
+    .r1-turn-progress { padding: 5px 7px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+    .r1-turn-steps { display: flex; gap: 4px; flex-wrap: wrap; }
+    .r1-rail-heading { display: none; }
+    .r1-rail-options { flex: 1 1 225px; }
+    .r1-rail-move { flex: 0 1 auto; }
+}

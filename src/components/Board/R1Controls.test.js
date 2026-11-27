@@ -373,8 +373,8 @@ test('player indicators focus their own surfer without selecting a game action',
     const focus = jest.fn(), selection = jest.fn(), target = jest.fn()
     render(<R1Controls G={G} ctx={ctx} moves={{}} selection={null} setSelection={selection} onTarget={target} onFocusPlayer={focus} />)
     const player = screen.getByRole('button', { name: /Focus camera on Player 2/ })
-    expect(player.querySelectorAll('.r1-player-energy-bolts [data-filled="true"]')).toHaveLength(G.players[1].energy)
-    expect(player.querySelectorAll('.r1-player-energy-bolts [data-filled]')).toHaveLength(5)
+    expect(player.querySelectorAll('.r1-player-energy-segments [data-filled="true"]')).toHaveLength(G.players[1].energy)
+    expect(player.querySelectorAll('.r1-player-energy-segments [data-filled]')).toHaveLength(5)
     fireEvent.click(player)
     fireEvent.click(player)
     expect(focus).toHaveBeenCalledTimes(2)
@@ -481,4 +481,42 @@ test('single protected opponent shows Amulet only once in the hex action', () =>
     expect(within(panel).getAllByText('Amulet · Protected')).toHaveLength(1)
     expect(panel.querySelector('.r1-hex-action')).toHaveTextContent('Amulet · Protected')
     expect(within(panel).queryByText('Amulet', { exact: true })).not.toBeInTheDocument()
+})
+
+test('round header uses actual shuffled order and only completed turns have checks', () => {
+    const ctx = { numPlayers: 3, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.order = [2, 0, 1]
+    G.completedInRound = 1
+    render(<R1Controls G={G} ctx={ctx} moves={{}} selection={null} setSelection={() => {}} onTarget={() => {}}/>)
+    const header = screen.getByLabelText('Round status')
+    expect(header).not.toHaveTextContent('SURF KING')
+    expect(header).toHaveTextContent('2/3')
+    expect(within(header).getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
+    const players = within(screen.getByLabelText('Round play order')).getAllByRole('button')
+    expect(players.map(p => p.querySelector('.r1-sidebar-turn-label').textContent)).toEqual(['Turn completed','Playing now','Waiting'])
+    expect(players[0].querySelector('.r1-player-played')).toBeInTheDocument()
+    expect(players[1].querySelector('.r1-player-played')).toBeNull()
+    expect(players[2].querySelector('.r1-player-played')).toBeNull()
+})
+test('card rail distinguishes availability from confirmed use; repeat Drop In is not completion', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[1].cellPosition = 14
+    G.players[0].cards = [createR1Deck().find(card => card.Name === 'Energy x2')]
+    const props = { G, ctx, moves: {}, selection: null, setSelection: () => {}, onTarget: () => {} }
+    const { rerender } = render(<R1Controls {...props}/>)
+    expect(screen.getByTitle('Card available')).toHaveAttribute('data-state', 'available')
+    expect(screen.getByTitle('Drop In available')).toHaveAttribute('data-state', 'available')
+    G.currentMove = 'maneuver'
+    rerender(<R1Controls {...props}/>)
+    expect(screen.getByTitle('Card unavailable')).toHaveAttribute('data-state', 'unavailable')
+    G.cardVisualEvent = { playerId: 0, round: 2, turnSlot: 0, name: 'Energy x2' }
+    rerender(<R1Controls {...props}/>)
+    expect(screen.getByTitle('Card used')).toHaveAttribute('data-state', 'used')
+    expect(screen.getByTitle('Drop In available')).toHaveAttribute('data-state', 'available')
+    G.turn = 3
+    rerender(<R1Controls {...props}/>)
+    expect(screen.getByTitle('Card unavailable')).toHaveAttribute('data-state', 'unavailable')
 })
