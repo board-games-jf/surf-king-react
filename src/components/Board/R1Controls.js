@@ -206,9 +206,9 @@ export default function R1Controls({ G, ctx, moves, selection, setSelection, onT
                             aria-label={'Attack Player ' + (id + 1)} aria-describedby={'r1-drop-target-' + id}
                             onClick={() => onTarget(G.players[id].cellPosition, id)}>
                             <PlayerIcon playerId={id} variant="r1-hex-player-avatar"/>
-                            <span className="r1-drop-target-hex"><small>Hex</small><HexBadge id={G.players[id].cellPosition}/></span>
+                            <span className="r1-drop-target-energy" aria-hidden="true">{Array.from({ length: 5 }, (_, i) => <span key={i} data-filled={i < G.players[id].energy}><FeedbackIcon kind="energy"/></span>)}</span>
                             <DropInAdvantage odds={getDropInAdvantage(player.energy, G.players[id].energy, maxAttackDice)}/>
-                            <span id={'r1-drop-target-' + id} className="r1-sr-only">Hex {G.players[id].cellPosition + 1}; {getDropInAdvantage(player.energy, G.players[id].energy, maxAttackDice)?.tone} with {maxAttackDice} {maxAttackDice === 1 ? 'die' : 'dice'}</span>
+                            <span id={'r1-drop-target-' + id} className="r1-sr-only">Hex {G.players[id].cellPosition + 1}; {G.players[id].energy} of 5 energy; {getDropInAdvantage(player.energy, G.players[id].energy, maxAttackDice)?.tone} with {maxAttackDice} {maxAttackDice === 1 ? 'die' : 'dice'}</span>
                         </button> : <button type="button" key={id}
                             aria-label={(selectedCard?.Name === 'Change' ? 'Swap with Player ' : 'Attack Player ') + (id + 1)}
                             className="r1-target-player" title={'Player ' + (id + 1)}

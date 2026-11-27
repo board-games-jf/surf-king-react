@@ -87,8 +87,8 @@ test('Drop In shortcut starts target selection without rolling and explains unav
     rerender(<R1Controls {...props} selection={{ kind: 'drop', diceCount: 1 }}/>)
     expect(screen.getByText('Choose an opponent')).toBeInTheDocument()
     expect(screen.queryByRole('group', { name: 'Attack dice' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Attack Player 2' })).toHaveAccessibleDescription(/Hex 15.*1 die/i)
-    expect(screen.getByRole('button', { name: 'Attack Player 2' }).querySelector('.r1-hex-badge')).toHaveTextContent('15')
+    expect(screen.getByRole('button', { name: 'Attack Player 2' })).toHaveAccessibleDescription(/Hex 15.*2 of 5 energy.*1 die/i)
+    expect(screen.getByRole('button', { name: 'Attack Player 2' }).querySelectorAll('.r1-drop-target-energy [data-filled="true"]')).toHaveLength(2)
 })
 
 test('dice chooser limits risk to energy minus one and shows each pair result', () => {

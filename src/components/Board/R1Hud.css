@@ -748,9 +748,10 @@
 }
 .r1-player-avatar.r1-legend-player-avatar { width: 20px; height: 20px; flex-basis: 20px; font-size: 12px; }
 .r1-drop-target-list { display: grid; gap: 5px; width: 100%; }
-.r1-floating-hud .r1-drop-target-option { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 7px; width: 100%; padding: 6px; color: #e3f2ed; background: #194954; border: 1px solid #56878a; border-radius: 10px; text-align: left; }
-.r1-drop-target-hex { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-.r1-drop-target-hex small { font-size: 11px; }
+.r1-floating-hud .r1-drop-target-option { display: grid; grid-template-columns: 28px minmax(58px, 1fr) 90px; align-items: center; column-gap: 8px; width: 100%; min-height: 58px; padding: 7px; color: #e3f2ed; background: #194954; border: 1px solid #56878a; border-radius: 10px; text-align: left; }
+.r1-drop-target-energy { display: inline-flex; align-items: center; gap: 1px; color: #557881; }
+.r1-drop-target-energy > span[data-filled="true"] { color: #ffd477; }
+.r1-drop-target-energy .r1-feedback-icon { width: 11px; height: 11px; flex-basis: 11px; }
 .r1-drop-unavailable { color: #b8d6d8; font-size: 10px; line-height: 1.2; max-width: 22ch; }
 
 /* Keep camera tools together at the board edge, clear of the player row. */
