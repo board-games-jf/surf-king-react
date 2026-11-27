@@ -2,7 +2,7 @@
 
 ## Mobile board and HUD (#64)
 
-- Mobile player energy now includes a lightning cue, the turn panel is more compact, and the Drop In glyph uses a surfboard and wave. The horizontal player row remains unchanged. Focused HUD and viewport tests passed (28 tests); production build passed. Mobile visual validation and investigation of reported camera-movement flicker remain open; the resize helper already avoids resizing unchanged viewports, and the flicker has not been reproduced or diagnosed.
+- Mobile player energy now includes a lightning cue, the turn panel is more compact, and the Drop In glyph uses a surfboard and wave. The horizontal player row remains unchanged. The board fill is above the maximum animated ocean height to prevent intersection; the reported flicker still needs device verification. Focused HUD and viewport tests passed (28 tests); production build passed. Mobile visual validation remains open.
 
 ## Round and action HUD clarity (#60)
 

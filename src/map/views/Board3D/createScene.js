@@ -573,7 +573,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
 
     const fill = new THREE.Mesh(shapeGeo, fillMaterial)
     fill.rotation.x = -Math.PI / 2
-    fill.position.set(cell.x, .04, cell.z)
+    // Keep the board fill above the ocean's maximum wave height (.08).
+    fill.position.set(cell.x, .11, cell.z)
     scene.add(fill)
     const edge = new THREE.LineLoop(outlineGeo, lines)
     edge.position.set(cell.x, .187, cell.z)
