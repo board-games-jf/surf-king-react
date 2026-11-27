@@ -17,4 +17,4 @@ These independent layers compose; e.g. a legal attack on a full hazardous cell r
 
 Implementation: shared `targetHighlight` and `hexStatus` contracts; Board derives status descriptors; SVG HexGrid and pooled Three.js meshes/sprites are non-picking overlays. Current R1 capacity is two; no new rules or dependencies.
 
-Pending: compact authoritative per-action cost/choice indicators and complete explicit confirmation, desktop/mobile visual acceptance, real automated tests/build, keyboard/accessibility and performance review. Exact colors and placement require owner visual review.
+Selected ordinary hex panel: shared terrain/occupants, capacity, per-action entry delta or dice risk, blocked reasons, explicit option selection and gold confirmation. A Drop In choice opens the existing dice confirmation. Hover remains read-only in the HUD; keyboard shortcuts and selected-card targeting remain unchanged. Pending: indicators directly on the hex, unified keyboard/committed-card confirmation, desktop/mobile visual acceptance, real automated tests/build, accessibility and performance review. Exact colors and placement require owner visual review.

@@ -3,10 +3,11 @@ import { HexGrid } from '../HexGrid'
 import './Board.css'
 import Board3D from '../../map/views/Board3D/Board3D'
 import R1Controls from './R1Controls'
-import { FeedbackIcon, HexBadge } from './r1FeedbackVisuals'
+import HexInspector from './HexInspector'
+import { getR1HexActions, getR1HexDropBlocks, placeHexInspector } from './r1HexActions'
 import { getR1HexFeedback } from './r1HexFeedback'
 import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
-import { r1Occupants, r1MoveTargets, r1DropPlayerTargets, r1MaxAttackDice, HEX_CAPACITY } from '../../game/r1/SurfKingR1'
+import { r1Occupants, r1MaxAttackDice, HEX_CAPACITY } from '../../game/r1/SurfKingR1'
 import { PLAYER_BOARD_COLORS } from '../../constants/playerBoardColors'
 import { getTargetHighlightStyle, getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import { getHexStatus } from '../../map/contract/hexStatus'
@@ -85,13 +86,25 @@ const Board = ({ G, ctx, moves }) => {
     const [clickedHex, setClickedHex] = useState(null)
     const [boardAction, setBoardAction] = useState(null)
     const boardPointer = useRef(null)
+    const mapRef = useRef(null)
     const inspectionScope = ctx.currentPlayer + ':' + G.turn + ':' + G.currentMove + ':' +
         (r1Selection?.kind || '') + ':' + (r1Selection?.index ?? '')
     const contextualHexId = boardAction?.scope === inspectionScope && !r1Selection ? boardAction.id : null
     const pinnedHexId = contextualHexId ?? (clickedHex?.scope === inspectionScope ? clickedHex.id : null)
     const inspectedHexId = hoveredHex ?? pinnedHexId
     const clearHexInspection = () => { setBoardAction(null); setClickedHex(null); setHoveredHex(null) }
-    const hexFeedback = isR1 ? getR1HexFeedback(G, ctx, inspectedHexId, r1Selection, targetHighlight) : null
+    const hexFeedback = isR1 && contextualHexId == null ? getR1HexFeedback(G, ctx, inspectedHexId, r1Selection, targetHighlight) : null
+    const inspectorInfo = contextualHexId != null ? getR1HexFeedback(G, ctx, contextualHexId, null, targetHighlight) : null
+    const inspectorOptions = contextualHexId != null ? getR1HexActions(G, ctx, contextualHexId) : []
+    const inspectorBlocks = contextualHexId != null ? getR1HexDropBlocks(G, ctx, contextualHexId) : []
+    const confirmHexAction = key => {
+        if (contextualHexId == null) return
+        const option = getR1HexActions(G, ctx, contextualHexId).find(item => item.key === key)
+        if (!option) return
+        if (option.kind === 'move') moves.quickManeuver(contextualHexId)
+        else setR1Selection({ kind: 'drop', diceCount: r1MaxAttackDice(G.players[ctx.currentPlayer].energy), targetCell: contextualHexId, targetPlayerId: option.playerId })
+        clearHexInspection()
+    }
     const onR1Target = (id, playerId) => {
         const candidates = r1PlayerTargets.filter(pid => G.players[pid].cellPosition === id)
         // Multiple legal occupants require an explicit named player choice.
@@ -217,13 +230,14 @@ const Board = ({ G, ctx, moves }) => {
 
     const onHexClickedHandle = (cell) => {
         if (isR1) {
-            if (!r1Selection && ['use_card', 'maneuver', 'current_first'].includes(G.currentMove)) {
-                const state = G.currentMove === 'use_card' ? { ...G, currentMove: 'maneuver' } : G
-                const canMove = r1MoveTargets(state, ctx).includes(cell.position)
-                const targets = r1DropPlayerTargets(G, ctx).filter(id => G.players[id].cellPosition === cell.position)
-                if ((canMove || targets.length) && boardPointer.current) {
-                    setBoardAction({ id: cell.position, canMove, targets, ...boardPointer.current, scope: inspectionScope })
+            if (!r1Selection) {
+                const rect = mapRef.current?.getBoundingClientRect()
+                if (rect) {
+                    const point = boardPointer.current || { x: rect.width / 2, y: rect.height / 2 }
+                    setBoardAction({ id: cell.position, placement: placeHexInspector(rect.width, rect.height, point.x, point.y), scope: inspectionScope })
                     setClickedHex(null)
+                    setHoveredHex(null)
+                    boardPointer.current = null
                     return
                 }
             }
@@ -356,6 +370,12 @@ const Board = ({ G, ctx, moves }) => {
     }, [skipPress, onSkipHandle, isR1])
 
     useEffect(() => { setR1Selection(null) }, [ctx.currentPlayer, G.turn, G.currentMove])
+    useEffect(() => { setBoardAction(null); boardPointer.current = null }, [viewMode])
+    useEffect(() => {
+        const resize = () => { setBoardAction(null); boardPointer.current = null }
+        window.addEventListener('resize', resize)
+        return () => window.removeEventListener('resize', resize)
+    }, [])
 
     const choosingTarget = placingObstacle || removingObstacle || selectPlayerTarget || selectTsunami
     return (
@@ -369,13 +389,13 @@ const Board = ({ G, ctx, moves }) => {
                 <button type="button" aria-label="Switch to 3D view" onClick={() => { setHoveredHex(null); setViewError(null); setViewMode('3d') }}>3D</button>
                 {viewError && <span role="alert">{viewError}</span>}
             </div>}
-            <div className={'surf-map surf-map-' + viewMode} onPointerDownCapture={event => {
+            <div ref={mapRef} className={'surf-map surf-map-' + viewMode} onPointerDownCapture={event => {
                 if (event.target.closest('.r1-board-action')) return
                 const rect = event.currentTarget.getBoundingClientRect()
-                const margin = Math.min(165, rect.width / 2)
-                const y = Math.max(0, Math.min(rect.height, event.clientY - rect.top))
-                boardPointer.current = { x: Math.max(margin, Math.min(rect.width - margin, event.clientX - rect.left)), y, below: y < 96 }
+                boardPointer.current = { x: event.clientX - rect.left, y: event.clientY - rect.top }
                 setBoardAction(null)
+            }} onPointerCancel={() => { boardPointer.current = null }} onWheelCapture={event => {
+                if (!event.target.closest('.r1-board-action')) setBoardAction(null)
             }}>
                 {viewMode === '3d' ? (
                     <Board3D
@@ -394,15 +414,12 @@ const Board = ({ G, ctx, moves }) => {
                         onHexClick={(cell) => { setSelectedCellId(cell.position); onHexClickedHandle(cell) }}
                     />
                 )}
-                {isR1 && boardAction?.scope === inspectionScope && !r1Selection && <div className="r1-board-action" data-below={boardAction.below} style={{ left: boardAction.x, top: boardAction.y }}>
-                    <span aria-label={'Hex ' + (boardAction.id + 1)}><HexBadge id={boardAction.id}/></span>
-                    {boardAction.canMove && <button type="button" onClick={() => { moves.quickManeuver(boardAction.id); setBoardAction(null) }}><span className="r1-board-action-icon"><FeedbackIcon kind="move"/></span> {G.currentMove === 'current_first' ? 'Move' : 'Move · end turn'}</button>}
-                    {boardAction.targets.map(id => <button type="button" className="r1-board-action-attack" key={id} onClick={() => { setR1Selection({ kind: 'drop', diceCount: r1MaxAttackDice(G.players[ctx.currentPlayer].energy), targetCell: boardAction.id, targetPlayerId: id }); setBoardAction(null) }}><span className="r1-board-action-icon"><FeedbackIcon kind="dropIn"/></span> {boardAction.targets.length > 1 ? 'Drop In ' + (id + 1) : 'Drop In'}</button>)}
-                    <button type="button" className="r1-board-action-close" aria-label="Close board actions" onClick={clearHexInspection}>×</button>
-                </div>}
+                {inspectorInfo && <HexInspector key={inspectionScope + ':' + contextualHexId} info={inspectorInfo}
+                    options={inspectorOptions} blocks={inspectorBlocks} placement={boardAction.placement}
+                    onConfirm={confirmHexAction} onClose={clearHexInspection}/>}
             </div>
             {isR1 ? <R1Controls G={G} ctx={ctx} moves={moves} selection={r1Selection}
-                setSelection={setR1Selection} onTarget={onR1Target} onFocusPlayer={id => { setFocusPlayerRequest({ playerId: id }); setViewMode('3d') }} worldPiles={viewMode === '3d'} discardOpen={discardOpen} onDiscardOpenChange={setDiscardOpen} targetHighlight={targetHighlight} onPreviewCard={previewCard} hexFeedback={hexFeedback} pinnedHex={pinnedHexId != null} onClearHex={clearHexInspection} /> : <section className="surf-hud" aria-label="Match controls">
+                setSelection={setR1Selection} onTarget={onR1Target} onFocusPlayer={id => { clearHexInspection(); setFocusPlayerRequest({ playerId: id }); setViewMode('3d') }} worldPiles={viewMode === '3d'} discardOpen={discardOpen} onDiscardOpenChange={setDiscardOpen} targetHighlight={targetHighlight} onPreviewCard={previewCard} hexFeedback={hexFeedback} pinnedHex={pinnedHexId != null} onClearHex={clearHexInspection} /> : <section className="surf-hud" aria-label="Match controls">
                 <div className="surf-turn">
                     <strong aria-live="polite">{'Turn ' + G.turn + ' · Player ' + (Number(ctx.currentPlayer) + 1) + ' · ' + G.currentMove.replace(/_/g, ' ')}</strong>
                     {choosingTarget ? <span>Choose a hex</span> : (
