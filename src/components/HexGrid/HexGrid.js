@@ -1,3 +1,4 @@
+import { hexNumber } from '../../map/layout/hexNumber'
 import React, { useId } from 'react'
 import { BOARD_LAYOUT } from '../../map/layout/boardLayout'
 import manifest from '../../map/layout/board-layout.json'
@@ -101,6 +102,10 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                             viewBox="0 0 400 340" style={{ pointerEvents: 'none' }}>
                             {renderCell(id)}
                         </svg>
+                        {activeCellIds && <g pointerEvents="none" aria-hidden="true">
+                            <rect x="-.29" y=".69" width=".58" height=".29" rx=".13" fill="#11544e" fillOpacity=".9"/>
+                            <text x="0" y=".905" textAnchor="middle" fontSize=".22" fontWeight="bold" fill={id >= 49 ? '#ffe2a0' : '#fff'} data-hex-number={hexNumber(id, activeCellIds)}>{hexNumber(id, activeCellIds)}</text>
+                        </g>}
                         {status && <g pointerEvents="none" className="hex-status-badges">
                             {status.danger && <g transform={`translate(${-radius * .55} ${-halfHeight * .45})`} aria-label={status.lethal ? 'Entry will cause a fall' : 'Terrain hazard'}>
                                 <svg x={-radius * .23} y={-radius * .23} width={radius * .46} height={radius * .46} viewBox="0 0 1 1" data-hazard-medallion={status.terrain || 'generic'}>
