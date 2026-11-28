@@ -30,7 +30,7 @@ export default function Board3D({ snapshot, onCellSelect, onCellHover, onUnavail
             if (cancelled || !container.current) return
             instance = createScene(
                 container.current,
-                (id) => latestClick.current(id),
+                (id, corners) => latestClick.current(id, corners),
                 (message) => {
                     setError(message)
                     if (latestError.current) latestError.current(message)

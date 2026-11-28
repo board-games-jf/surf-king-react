@@ -9,3 +9,28 @@ body {
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+
+
+/* Shared native scrollbars for every screen, including horizontal card rails. */
+:root {
+    --surf-scroll-thumb: #60919a;
+    --surf-scroll-track: #103740;
+    --surf-scroll-hover: #a3d3ce;
+}
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--surf-scroll-thumb) transparent;
+}
+@supports not (scrollbar-color: auto) {
+    *::-webkit-scrollbar { width: 6px; height: 6px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb {
+        background: var(--surf-scroll-thumb);
+        border-radius: 999px;
+    }
+    *::-webkit-scrollbar-thumb:hover { background: var(--surf-scroll-hover); }
+    *::-webkit-scrollbar-corner { background: transparent; }
+}
+@media (forced-colors: active) {
+    * { scrollbar-color: auto; }
+}

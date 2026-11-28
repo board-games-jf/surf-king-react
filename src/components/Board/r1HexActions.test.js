@@ -31,10 +31,33 @@ test('inspector placement is bounded on desktop, compact and short viewports', (
     }
 })
 
+test('connector starts on the hex edge closest to the inspector', () => {
+    const hex = [{ x: 180, y: 180 }, { x: 220, y: 180 }, { x: 240, y: 200 }, { x: 220, y: 220 }, { x: 180, y: 220 }, { x: 160, y: 200 }]
+    const right = placeHexInspector(1200, 800, 180, 200, hex)
+    expect(right.side).toBe('right')
+    expect(right.anchorX).toBeGreaterThan(220)
+    const left = placeHexInspector(1200, 800, 1000, 200, hex.map(p => ({ x: p.x + 800, y: p.y })))
+    expect(left.side).toBe('left')
+    expect(left.anchorX).toBeLessThan(980)
+})
+
 test('free water movement has no zero energy cost label', () => {
     const G = setupR1(ctx)
     G.players[0].cellPosition = 7
     const target = r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx)[0]
     delete G.cells[target].obstacle
     expect(getR1HexActions(G, ctx, target).find(o => o.kind === 'move').cost).toBe('Free')
+})
+
+
+test('Surf Current target feedback distinguishes mandatory first and final steps', () => {
+    const G = setupR1(ctx)
+    G.players[0].cellPosition = 7
+    G.currentMove = 'current_first'
+    expect(getR1HexActions(G, ctx, 14).find(o => o.kind === 'move').detail).toBe('Step 1/2 · Second step required')
+    G.currentMove = 'current_second'
+    expect(getR1HexActions(G, ctx, 14).find(o => o.kind === 'move').detail).toBe('Step 2/2 · End turn')
+    G.currentMove = 'current_first'
+    G.players[0].cellPosition = 42
+    expect(getR1HexActions(G, ctx, 49).find(o => o.kind === 'move').detail).toBe('Finish the race')
 })
