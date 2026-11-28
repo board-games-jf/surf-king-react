@@ -113,6 +113,11 @@
 .r1-history-preview-board {
     pointer-events: none;
 }
+/* View switching is presentation-only; game moves remain disabled in preview. */
+.r1-history-preview-board .surf-view-toggle,
+.r1-history-preview-board .surf-view-toggle-standalone button {
+    pointer-events: auto;
+}
 @media (max-width: 520px) {
     .r1-history {
         right: 74px;

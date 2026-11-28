@@ -3,8 +3,8 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import Board from './Board'
 import { setupR1 } from '../../game/r1/SurfKingR1'
 
-jest.mock('../../map/views/Board3D/Board3D', () => () => null)
-jest.mock('../HexGrid', () => ({ HexGrid: () => null }))
+jest.mock('../../map/views/Board3D/Board3D', () => ({ viewToggle }) => <div data-testid="board-3d">{viewToggle}</div>)
+jest.mock('../HexGrid', () => ({ HexGrid: () => <div data-testid="board-2d" /> }))
 jest.mock('./R1Controls', () => ({ rollingDrop, onRepeatDrop }) => (
     <div>
         <button onClick={() => onRepeatDrop(4, 1, 1)}>Repeat test attack</button>
@@ -42,4 +42,22 @@ test('a pending roll is cancelled if the match changes before it resolves', () =
     expect(screen.queryByText('Rolling test dice')).not.toBeInTheDocument()
     unmount()
     jest.useRealTimers()
+})
+
+
+test('Board supports a controlled view and reuses the existing view buttons', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    const moves = { dropIn: jest.fn() }
+    const onViewModeChange = jest.fn()
+    const props = { G, ctx, moves, onViewModeChange }
+    const { rerender } = render(<Board {...props} viewMode="2d" />)
+    expect(screen.getByTestId('board-2d')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to 3D view' }))
+    expect(onViewModeChange).toHaveBeenLastCalledWith('3d')
+    rerender(<Board {...props} viewMode="3d" />)
+    expect(screen.getByTestId('board-3d')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to 2D view' }))
+    expect(onViewModeChange).toHaveBeenLastCalledWith('2d')
+    expect(moves.dropIn).not.toHaveBeenCalled()
 })

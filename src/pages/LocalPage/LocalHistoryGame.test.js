@@ -7,8 +7,12 @@ import { SurfKingR1, setupR1 } from '../../game/r1/SurfKingR1'
 jest.mock('../../components/Board/Board', () => {
     const React = require('react')
     const { r1MoveTargets } = require('../../game/r1/SurfKingR1')
-    return ({ G, ctx, moves }) => (
+    return ({ G, ctx, moves, viewMode, onViewModeChange }) => (
         <div>
+            <span data-testid="view-mode">{viewMode}</span>
+            <button onClick={() => onViewModeChange(viewMode === '3d' ? '2d' : '3d')}>
+                {viewMode === '3d' ? 'Switch to 2D view' : 'Switch to 3D view'}
+            </button>
             <span data-testid="state">
                 {ctx.currentPlayer}:
                 {Object.values(G.players)
@@ -147,4 +151,42 @@ test('Drop In loss uses compact energy chips and no card thumbnail', () => {
     expect(container.querySelector('.r1-history-card-art')).not.toBeInTheDocument()
     expect(container).toHaveTextContent('−1 own')
     expect(container).toHaveTextContent('−2 target')
+})
+
+
+test('preserves 2D and 3D across history preview, view switching, return and fork', () => {
+    render(<LocalHistoryGame numPlayers={2} />)
+    const mode = () => screen.getByTestId('view-mode')
+    const state = () => screen.getByTestId('state').textContent
+    const switchTo = (view) => fireEvent.click(screen.getByRole('button', { name: 'Switch to ' + view + ' view' }))
+    const initial = state()
+    expect(mode()).toHaveTextContent('3d')
+    switchTo('2D')
+    fireEvent.click(screen.getAllByRole('button', { name: /^Move \d/ })[0])
+    const live = state()
+    expect(live).not.toBe(initial)
+    fireEvent.click(screen.getByRole('button', { name: /History/ }))
+    const history = screen.getByRole('complementary', { name: 'Match history' })
+    const previewInitial = () => fireEvent.click(within(history).getByRole('button', { name: /Match started/ }))
+    previewInitial()
+    expect(mode()).toHaveTextContent('2d')
+    expect(state()).toBe(initial)
+    switchTo('3D')
+    expect(mode()).toHaveTextContent('3d')
+    expect(state()).toBe(initial)
+    fireEvent.click(screen.getAllByRole('button', { name: /^Move \d/ })[0])
+    expect(state()).toBe(initial)
+    switchTo('2D')
+    expect(state()).toBe(initial)
+    fireEvent.click(screen.getByRole('button', { name: 'Back to game' }))
+    expect(mode()).toHaveTextContent('2d')
+    expect(state()).toBe(live)
+    switchTo('3D')
+    previewInitial()
+    expect(mode()).toHaveTextContent('3d')
+    switchTo('2D')
+    fireEvent.click(screen.getByRole('button', { name: 'Play from here' }))
+    expect(mode()).toHaveTextContent('2d')
+    expect(state()).toBe(initial)
+    expect(screen.getByLabelText('Timeline')).toHaveValue('1')
 })
