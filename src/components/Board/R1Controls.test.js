@@ -1017,3 +1017,52 @@ test('ties omit the consequence row and repeat choices retain the original blank
     expect(option).toHaveTextContent('Up to −1')
     expect(option.querySelector('.r1-combat-caption')).toBeNull()
 })
+
+
+test('closing a pending knockdown keeps one compact decision with cards and result access', () => {
+    jest.useFakeTimers()
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].energy = 3
+    G.players[1].energy = 0
+    G.currentMove = 'swap_choice'
+    G.pendingSwap = { targetPlayerId: 1, resumeMove: 'use_card' }
+    G.atkDices = [6]
+    G.defDices = [3]
+    G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 1 }
+    const moves = { resolveSwap: jest.fn() }, setSelection = jest.fn(), onRepeatDrop = jest.fn()
+    const props = { G, ctx, moves, selection: null, setSelection, onRepeatDrop, onTarget: jest.fn() }
+    const { rerender, unmount } = render(<R1Controls {...props} />)
+    expect(screen.queryByRole('button', { name: 'Back from dice result' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close dice result' }))
+    expect(screen.queryByLabelText('Drop In dice results')).not.toBeInTheDocument()
+    const compact = screen.getByRole('group', { name: 'Position conquest' })
+    expect(compact).toHaveAttribute('data-compact', 'true')
+    expect(compact.parentElement.querySelector('.r1-action-bar')).toBeNull()
+    expect(within(compact).getByText('Knockdown!')).toBeInTheDocument()
+    expect(screen.getAllByRole('group', { name: 'Position conquest' })).toHaveLength(1)
+    fireEvent.click(within(compact).getByRole('button', { name: 'Show cards' }))
+    expect(screen.getByLabelText('Player 1 hand')).toBeInTheDocument()
+    fireEvent.click(within(compact).getByRole('button', { name: 'Hide cards' }))
+    fireEvent.click(within(compact).getByRole('button', { name: 'Reopen dice result' }))
+    expect(screen.getByLabelText('Drop In dice results')).toBeInTheDocument()
+    const expanded = screen.getByRole('group', { name: 'Position conquest' })
+    expect(expanded).toHaveAttribute('data-compact', 'false')
+    expect(expanded.closest('.r1-dice-event')).toContainElement(screen.getByLabelText('Drop In dice results'))
+    expect(moves.resolveSwap).not.toHaveBeenCalled()
+    expect(onRepeatDrop).not.toHaveBeenCalled()
+    expect(setSelection).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Close dice result' }))
+    fireEvent.click(within(screen.getByRole('group', { name: 'Position conquest' })).getByRole('button', { name: 'Stay' }))
+    expect(moves.resolveSwap).toHaveBeenCalledTimes(1)
+    expect(moves.resolveSwap).toHaveBeenCalledWith(false)
+    G.currentMove = 'use_card'
+    G.pendingSwap = null
+    rerender(<R1Controls {...props} />)
+    expect(screen.queryByRole('group', { name: 'Position conquest' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Reopen dice result' }))
+    expect(screen.queryByRole('group', { name: 'Position conquest' })).not.toBeInTheDocument()
+    unmount()
+    jest.useRealTimers()
+})

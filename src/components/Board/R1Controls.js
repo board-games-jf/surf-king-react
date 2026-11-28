@@ -714,12 +714,28 @@ export default function R1Controls({
         </div>
     )
 
+    const reopenDiceButton = reopenAvailable && (
+        <button type="button" className="r1-reopen-dice" aria-label="Reopen dice result" title="Reopen dice result"
+            onClick={() => {
+                setReopenedDice(diceKey)
+                setDismissedDice(null)
+            }}>
+            <FeedbackIcon kind="dice" />
+        </button>
+    )
+    const compactSwap = !!swapChoice && !showDice
     const swapPanel = (
-        <div className="r1-swap-choice r1-glass" role="group" aria-label="Position conquest">
-            {!showDice && (
-                <strong className="r1-fell-indicator">
-                    <PlayerIcon playerId={G.pendingSwap?.targetPlayerId ?? 0} /> Fell!
-                </strong>
+        <div className="r1-swap-choice r1-glass" data-compact={compactSwap} role="group" aria-label="Position conquest">
+            {compactSwap && (
+                <div className="r1-compact-swap-header">
+                    <strong className="r1-fell-indicator">
+                        <PlayerIcon playerId={G.pendingSwap.targetPlayerId} /> Knockdown!
+                    </strong>
+                    <div className="r1-compact-swap-tools">
+                        {handToggle}
+                        {reopenDiceButton}
+                    </div>
+                </div>
             )}
             <span className="r1-sr-only">
                 Player {(G.pendingSwap?.targetPlayerId ?? 0) + 1} fell. Take their hex instead of moving, or stay and
@@ -734,15 +750,6 @@ export default function R1Controls({
                 </button>
             </div>
         </div>
-    )
-    const reopenDiceButton = reopenAvailable && (
-        <button type="button" className="r1-reopen-dice" aria-label="Reopen dice result" title="Reopen dice result"
-            onClick={() => {
-                setReopenedDice(diceKey)
-                setDismissedDice(null)
-            }}>
-            <FeedbackIcon kind="dice" />
-        </button>
     )
     const dropPresentation = getDropResultPresentation(G.dropResult, resultPlayers, ctx.currentPlayer)
     const resultPanel = !rollingDrop &&
@@ -774,13 +781,16 @@ export default function R1Controls({
                         title={dropPresentation.title}
                         backLabel="Back from dice result"
                         closeLabel="Close dice result"
-                        onBack={() => {
+                        onBack={swapChoice ? undefined : () => {
                             setDismissedDice(diceKey)
                             if (lastDropOrigin?.kind === 'hex') onBackAttack(lastDropOrigin)
                             else if (lastDropOrigin?.kind !== 'board')
                                 setSelection({ kind: 'drop', diceCount: maxAttackDice })
                         }}
-                        onClose={() => setDismissedDice(diceKey)}
+                        onClose={() => {
+                            if (swapChoice) setSwapReadyKey(diceKey)
+                            setDismissedDice(diceKey)
+                        }}
                     />
                 )}
                 {showDice && (
@@ -1100,7 +1110,6 @@ export default function R1Controls({
                                     ))}
                             </div>
                         )}
-                        {swapChoice && !showDice && swapPanel}
                         {detailCard && feedback && (
                             <div
                                 className="r1-card-detail r1-glass"
@@ -1362,7 +1371,8 @@ export default function R1Controls({
                             </div>
                         )}
                     </div>
-                    {(!showTurnSteps || showFinishControl) && (
+                    {compactSwap && swapPanel}
+                    {!compactSwap && (!showTurnSteps || showFinishControl) && (
                         <div className="r1-action-bar r1-glass">
                             {!showTurnSteps && handToggle}
                             {!showTurnSteps && reopenDiceButton}

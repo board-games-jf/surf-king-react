@@ -4100,3 +4100,58 @@
     width: 22px;
     height: 22px;
 }
+
+/* A dismissed knockdown is still a pending decision, not a second action bar. */
+.r1-hud-dock > .r1-swap-choice[data-compact='true'] {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    flex: 0 0 auto;
+    width: min(320px, 100%);
+    gap: 8px;
+    padding: 9px 10px;
+    border-color: #8bc9c1;
+}
+.r1-compact-swap-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 5px 8px;
+}
+.r1-compact-swap-header .r1-fell-indicator {
+    color: #b1f8d6;
+    font-size: 14px;
+    gap: 5px;
+    white-space: nowrap;
+}
+.r1-compact-swap-tools {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto;
+}
+.r1-floating-hud .r1-compact-swap-tools .r1-hand-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 40px;
+    padding: 4px 6px;
+    border: 1px solid #608d94;
+    border-radius: 10px;
+    background: #194954;
+}
+.r1-hud-dock > .r1-swap-choice[data-compact='true'] .r1-action-row {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 6px;
+}
+.r1-hud-dock > .r1-swap-choice[data-compact='true'] .r1-action-row > button {
+    min-width: 0;
+    min-height: 38px;
+    flex: 2;
+}
+.r1-hud-dock > .r1-swap-choice[data-compact='true'] .r1-action-row > .r1-move-button {
+    flex: 3;
+}
