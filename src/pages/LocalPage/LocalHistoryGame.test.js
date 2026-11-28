@@ -148,3 +148,15 @@ test('Drop In loss uses compact energy chips and no card thumbnail', () => {
     expect(container).toHaveTextContent('−1 own')
     expect(container).toHaveTextContent('−2 target')
 })
+
+
+test('adaptive history shows contiguous numbers while retaining exact destination IDs', () => {
+    const activeCellIds = [1, 2, 5, 8, 9, 12, 15, 16, 19, 22, 23, 26, 29, 30, 33, 36, 37, 40, 43, 44, 47, 50, 51]
+    const previous = { G: { activeCellIds }, ctx: { currentPlayer: '0' } }
+    const state = { G: { activeCellIds, players: { 0: { cellPosition: 12 } } }, deltalog: [{ action: { type: 'MAKE_MOVE', payload: { type: 'quickManeuver', playerID: '0', args: [8] } } }] }
+    const action = describeAction(state, previous)
+    expect(action.details).toEqual([{ kind: 'hex', id: 8, landed: false }, { kind: 'hex', id: 12, landed: true }])
+    expect(describe(state, previous)).toBe('P1 · Move · Hex 4 · Landed Hex 6')
+    const { container } = render(<HistoryAction action={action} round={1} activeCellIds={activeCellIds} />)
+    expect(Array.from(container.querySelectorAll('.r1-hex-badge'), node => node.textContent)).toEqual(['4', '6'])
+})
