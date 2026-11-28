@@ -45,6 +45,7 @@ const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellI
                             strokeWidth=".045"
                             style={style}
                             data-cell-id={id}
+                            aria-label={activeCellIds ? 'Hex ' + hexNumber(id, activeCellIds) + (id >= 49 ? ' · Finish' : '') : undefined}
                             data-inspected={inspectedCellId === id ? 'true' : undefined}
                             onMouseEnter={() => onHexHover?.(id)}
                             onMouseLeave={() => onHexHover?.(null)}
