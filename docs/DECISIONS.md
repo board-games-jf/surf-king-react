@@ -96,6 +96,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-057 | Accepted | Reuse one R1Card presentation for hand, discard and catalog cards, with a compact thumbnail variant for contextual detail and received cards. Preserve original art, functional colors and 5:7 full faces. In the 3D victory state, celebrate on the beach with subtle continuous randomized fireworks with varied heights and overlapping bursts; use bounded reusable visual particles, respect reduced motion and stop when victory ends. | Owner approved shared cards and subtle infinite victory fireworks. Presentation only; no game RNG or rules change. | [#62](https://github.com/board-games-jf/surf-king-react/issues/62), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
 
+| SK-DEC-058 | Accepted | Surf Current requires two legal movement steps once movement begins; voluntary pass/finish between steps is forbidden. First-step beach arrival or falling ends movement immediately. Preserve single turn-end draw, normal terrain effects and pre-first-step Drop In/conquest rules (SK-DEC-033/039). | Owner rejected optional mid-movement stopping. A valid move vacates a neighboring position, so a second legal destination is available unless movement has already terminated; retain a defensive no-neighbor guard. | [#42](https://github.com/board-games-jf/surf-king-react/issues/42), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.

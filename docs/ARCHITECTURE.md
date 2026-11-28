@@ -227,3 +227,6 @@ R1 card context (SK-DEC-056): `CardContextPanel` composes the existing card feed
 
 
 R1 card presentation and victory (SK-DEC-057): `R1Card` provides the common DOM face and thumbnail variants, while the Three.js raft retains its canvas textures. `createVictoryFireworks` owns a fixed pool of six outlined camera-facing trail meshes, driven by the scene frame loop and public winner ID. It samples varied heights near the winner's finish lane, preferring candidates inside the current camera frame and away from overlapping burst centers without changing camera controls. Visual randomness is independent of the game RNG; reduced motion, rewind and scene disposal clear the effect.
+
+
+Surf Current (SK-DEC-058): `current_first` and `current_second` require legal movement; `passR1` rejects both phases. First-step beach arrival or fall terminates movement through existing turn resolution. The HUD does not offer voluntary finish and exposes keyboard destinations for both steps. Pre-movement conquest rules are unchanged.
