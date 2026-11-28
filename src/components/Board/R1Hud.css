@@ -142,7 +142,6 @@
     padding: 2px 2px 5px;
     pointer-events: auto;
     scrollbar-width: thin;
-    scrollbar-color: #60919a transparent;
 }
 .r1-floating-hud .r1-player-badge:first-child {
     margin-left: auto;
@@ -374,7 +373,6 @@
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
-    scrollbar-color: #60919a transparent;
 }
 .r1-hud-context {
     max-width: 100%;
@@ -637,16 +635,29 @@
     box-sizing: border-box;
     pointer-events: auto;
     scrollbar-width: thin;
-    scrollbar-color: #60919a transparent;
+}
+.r1-card-view {
+    --r1-card-accent: #387a8c;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    aspect-ratio: 5 / 7;
+    padding: 4px;
+    background: #f9f2e5;
+    border: 2px solid var(--r1-card-accent);
+    color: #193b43;
+    border-radius: 8px;
+    text-align: center;
+    overflow: hidden;
+    gap: 0;
 }
 .r1-floating-hud .r1-hand button {
-    position: relative;
     flex: 0 0 clamp(84px, 10vw, 132px);
     width: clamp(84px, 10vw, 132px);
     min-width: 0;
     max-width: none;
     padding: 4px;
-    --r1-card-accent: #387a8c;
     background: #f9f2e5;
     border: 2px solid var(--r1-card-accent);
     color: #193b43;
@@ -656,22 +667,12 @@
     transform: rotate(var(--r1-fan-angle));
     transition: transform 150ms ease, box-shadow 150ms ease;
 }
-.r1-floating-hud .r1-hand button[data-card-tone='attack'] {
-    --r1-card-accent: #b83c37;
-}
-.r1-floating-hud .r1-hand button[data-card-tone='obstacle'] {
-    --r1-card-accent: #a94e08;
-}
-.r1-floating-hud .r1-hand button[data-card-tone='recovery'],
-.r1-floating-hud .r1-hand button[data-card-tone='move'] {
-    --r1-card-accent: #087c71;
-}
-.r1-floating-hud .r1-hand button[data-card-tone='protection'] {
-    --r1-card-accent: #2467a7;
-}
-.r1-floating-hud .r1-hand button[data-card-tone='jump'] {
-    --r1-card-accent: #7446ae;
-}
+.r1-card-view[data-card-tone='attack'] { --r1-card-accent: #b83c37; }
+.r1-card-view[data-card-tone='obstacle'] { --r1-card-accent: #a94e08; }
+.r1-card-view[data-card-tone='recovery'],
+.r1-card-view[data-card-tone='move'] { --r1-card-accent: #087c71; }
+.r1-card-view[data-card-tone='protection'] { --r1-card-accent: #2467a7; }
+.r1-card-view[data-card-tone='jump'] { --r1-card-accent: #7446ae; }
 .r1-floating-hud .r1-hand button strong {
     display: block;
     font-size: 0.83em;
@@ -706,7 +707,7 @@
     color: var(--r1-card-accent);
 }
 .r1-floating-hud .r1-hand button[aria-disabled='true'] {
-    opacity: 0.58;
+    opacity: 1;
     cursor: help;
 }
 .r1-floating-hud .r1-hand button[aria-pressed='true'],
@@ -1028,7 +1029,7 @@
     background: #246d54;
 }
 .r1-floating-hud .r1-hand button[aria-disabled='true']:hover {
-    opacity: 0.83;
+    opacity: 1;
 }
 
 /* Inspection must not shift the hovered hit area. Lift only committed cards. */
@@ -1320,7 +1321,6 @@
     overflow-y: auto;
     pointer-events: auto;
     scrollbar-width: thin;
-    scrollbar-color: #60919a transparent;
     box-sizing: border-box;
 }
 .r1-dock-scroll > * {
@@ -1332,7 +1332,6 @@
     overflow-x: hidden;
     align-content: start;
     scrollbar-width: thin;
-    scrollbar-color: #60919a transparent;
 }
 .r1-top-feedback > * {
     min-width: 0;
@@ -1535,61 +1534,6 @@
 .r1-pile-top {
     object-fit: cover;
 }
-.r1-pile-face,
-.r1-discard-card {
-    --pile-accent: #387a8c;
-    background: #f9f2e5;
-    padding: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    border: 2px solid var(--pile-accent);
-}
-.r1-pile-face[data-card-tone='attack'],
-.r1-discard-card[data-card-tone='attack'] {
-    --pile-accent: #b83c37;
-}
-.r1-pile-face[data-card-tone='obstacle'],
-.r1-discard-card[data-card-tone='obstacle'] {
-    --pile-accent: #a94e08;
-}
-.r1-pile-face[data-card-tone='recovery'],
-.r1-pile-face[data-card-tone='move'],
-.r1-discard-card[data-card-tone='recovery'],
-.r1-discard-card[data-card-tone='move'] {
-    --pile-accent: #087c71;
-}
-.r1-pile-face[data-card-tone='protection'],
-.r1-discard-card[data-card-tone='protection'] {
-    --pile-accent: #2467a7;
-}
-.r1-pile-face[data-card-tone='jump'],
-.r1-discard-card[data-card-tone='jump'] {
-    --pile-accent: #7446ae;
-}
-.r1-pile-face img,
-.r1-discard-card img {
-    display: block;
-    width: 100%;
-    flex: 1;
-    min-height: 0;
-    object-fit: cover;
-    border-radius: 4px;
-}
-.r1-pile-face strong,
-.r1-discard-card strong {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 2.4em;
-    padding: 2px;
-    border-radius: 4px;
-    background: var(--pile-accent);
-    color: white;
-    text-align: center;
-    line-height: 1.1;
-    font-size: 10px;
-}
 .r1-pile-label {
     position: relative;
     padding: 3px 8px;
@@ -1625,9 +1569,7 @@
 }
 .r1-discard-card {
     width: 76px;
-    height: 105px;
-    box-sizing: border-box;
-    border-radius: 7px;
+    flex: 0 0 76px;
 }
 .r1-discard-list small {
     display: block;
@@ -1885,7 +1827,8 @@
 
 /* Share one toolbar and keep player targets with the card they affect. */
 .r1-card-detail[data-selected='true'] .r1-inspection-art {
-    display: none;
+    display: block;
+    align-self: flex-start;
 }
 .r1-card-detail .r1-targets {
     display: flex;
@@ -1937,15 +1880,15 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    width: 88px;
-    min-width: 88px;
+    width: max-content;
+    min-width: 0;
     min-height: 40px;
-    padding: 4px;
-    border-radius: 13px;
-    background: linear-gradient(135deg, #285e67, #174650);
-    border-color: #80b7b5;
+    padding: 5px 7px;
+    border-radius: 10px;
+    background: #194954;
+    border-color: #5da69b;
     color: #f0fbf5;
-    font-size: 0.85em;
+    font-size: inherit;
 }
 .r1-floating-hud .r1-turn-steps .r1-hand-toggle {
     display: inline-flex;
@@ -2815,7 +2758,6 @@
     pointer-events: auto;
     z-index: 12;
     scrollbar-width: thin;
-    scrollbar-color: #60919a transparent;
 }
 .r1-hex-inspector-body {
     padding-right: 23px;
@@ -3479,23 +3421,17 @@
 .r1-select-hex > span {
     color: #9dcac6;
 }
-.r1-turn-history {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 8px;
-    color: #a2d8bc;
-    font-size: 10px;
-}
-.r1-turn-history > span {
+.r1-floating-hud .r1-card-used-check {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    white-space: nowrap;
+    justify-content: center;
+    flex: 0 0 13px;
+    color: #a0dfbd;
 }
-.r1-turn-history .r1-feedback-icon {
-    width: 11px;
-    height: 11px;
-    flex-basis: 11px;
+.r1-floating-hud .r1-card-used-check .r1-feedback-icon {
+    width: 13px;
+    height: 13px;
+    flex-basis: 13px;
 }
 .r1-turn-steps {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -3523,7 +3459,7 @@
     font-size: 10px;
 }
 .r1-floating-hud .r1-hand button {
-    --card-width: clamp(84px, 10vw, 132px);
+    --card-width: clamp(78px, 8.5vw, 112px);
     flex: 0 0 var(--card-width);
     width: var(--card-width);
     height: auto;
@@ -3537,16 +3473,18 @@
     min-height: 0;
     flex: 1 1 0;
     width: 100%;
-    object-fit: contain;
-    margin: 0 0 3px;
+    object-fit: cover;
+    margin: 0;
+    border-radius: 4px 4px 0 0;
 }
 .r1-floating-hud .r1-hand button strong {
+    border-radius: 0 0 3px 3px;
     flex: 0 0 2.8em;
     height: 2.8em;
 }
 @media (max-width: 520px) {
     .r1-floating-hud .r1-hand button {
-        --card-width: clamp(76px, 23vw, 110px);
+        --card-width: clamp(72px, 21vw, 100px);
     }
 }
 @media (max-height: 520px) {
@@ -3611,4 +3549,697 @@
 
 .r1-dice-target {
     flex-basis: 100%;
+}
+
+.r1-floating-hud .r1-repeat-controls {
+    display: grid;
+    gap: 7px;
+    width: 100%;
+    margin-top: 9px;
+}
+.r1-floating-hud .r1-repeat-dice {
+    display: flex;
+    gap: 6px;
+}
+.r1-floating-hud .r1-repeat-dice button {
+    flex: 1;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    padding: 7px;
+    border: 1px solid #6c999c;
+    border-radius: 8px;
+    background: #16454e;
+    color: #eaf8f2;
+    font-weight: 700;
+}
+.r1-floating-hud .r1-repeat-dice button[aria-pressed='true'] {
+    border: 2px solid #ffd477;
+    padding: 6px;
+}
+.r1-floating-hud .r1-repeat-action {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid #ffb49e;
+    border-radius: 9px;
+    background: #a7433e;
+    color: #fff4eb;
+    font-weight: 750;
+}
+.r1-floating-hud .r1-roll-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: grid;
+    place-items: center;
+    pointer-events: auto;
+    background: #062b3740;
+}
+.r1-roll-animation {
+    display: flex;
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid #a3d9d2;
+    border-radius: 16px;
+    background: #103b47ed;
+}
+.r1-roll-animation span {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    background: #fff5e3;
+    color: #123b43;
+    font-size: 42px;
+    animation: r1-roll-tumble 0.3s ease-in-out infinite alternate;
+}
+.r1-roll-animation span + span {
+    animation-delay: -0.15s;
+}
+@keyframes r1-roll-tumble {
+    from {
+        transform: translateY(-6px) rotate(-15deg);
+    }
+    to {
+        transform: translateY(6px) rotate(15deg);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .r1-roll-animation span {
+        animation: none;
+    }
+}
+
+.r1-roll-animation span::before {
+    content: '⚀';
+    animation: r1-roll-faces 0.5s steps(1, end) infinite;
+}
+.r1-roll-animation span + span::before {
+    animation-delay: -0.2s;
+}
+@keyframes r1-roll-faces {
+    0% {
+        content: '⚀';
+    }
+    20% {
+        content: '⚄';
+    }
+    40% {
+        content: '⚁';
+    }
+    60% {
+        content: '⚅';
+    }
+    80% {
+        content: '⚂';
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .r1-roll-animation span::before {
+        content: '';
+        animation: none;
+    }
+}
+
+/* Keep the outcome and next decision together in the lower dock. */
+.r1-dock-scroll > .r1-dice-event {
+    width: min(270px, 100%);
+    box-sizing: border-box;
+    padding: 10px 12px 12px;
+    pointer-events: auto;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-results {
+    width: 100%;
+    margin: 6px auto 0;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-sides {
+    padding: 0 8px;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-side {
+    padding: 3px;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-role {
+    font-size: 11px;
+    color: #b8d6d8;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-pair[data-result='unpaired'] {
+    opacity: 0.55;
+}
+.r1-dock-scroll > .r1-dice-event .r1-swap-choice {
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    margin: 8px auto 0;
+    padding: 0;
+    border: 0;
+}
+.r1-fell-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+.r1-fell-indicator .r1-player-avatar {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    font-size: 15px;
+}
+
+/* The initial roll already animated; reveal the actual dice and loss together. */
+.r1-floating-hud .r1-dice-results .r1-die:not([data-empty='true']) .r1-die-pip {
+    animation: none;
+}
+.r1-floating-hud .r1-dice-results .r1-die:not([data-empty='true'])::after {
+    display: none;
+}
+
+.r1-dice-side strong.r1-dice-energy[data-fell='true'] {
+    color: #ffdc8c;
+    background: #674638;
+    border-color: #ffc479;
+}
+
+.r1-received-card {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: max-content;
+    max-width: 100%;
+    margin: 8px auto;
+    padding: 6px 8px;
+    border: 1px solid #85cbb6;
+    border-radius: 9px;
+    background: #1c514d;
+    color: #ddf7ea;
+    text-align: left;
+}
+.r1-received-card img {
+    width: 28px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+.r1-received-card span {
+    display: grid;
+    font-size: 11px;
+}
+.r1-received-card strong {
+    color: #ffdb8d;
+    font-size: 13px;
+}
+.r1-floating-hud .r1-hand button[data-new-card='true'] {
+    box-shadow: 0 0 0 3px #ffda86, 0 5px 12px #082a3b70;
+}
+.r1-new-card-badge {
+    position: absolute;
+    z-index: 1;
+    top: 6px;
+    right: 6px;
+    padding: 2px 5px;
+    border-radius: 5px;
+    border: 1px solid #ffe0a1;
+    background: #0b3540;
+    color: #fff4d6;
+    box-shadow: 0 2px 5px #001c2a99;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+/* Unavailable cards remain readable and can still be inspected. */
+.r1-floating-hud .r1-hand button[aria-disabled='true'] .r1-card-art {
+    filter: saturate(0.7) brightness(0.92);
+}
+.r1-card-unavailable-icon {
+    position: absolute;
+    z-index: 1;
+    top: 7px;
+    left: 7px;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border: 1px solid #c5dfd7;
+    border-radius: 50%;
+    background: #123b46ee;
+    color: #e1eeeb;
+}
+.r1-card-unavailable-icon .r1-feedback-icon {
+    width: 12px;
+    height: 12px;
+}
+.r1-floating-hud .r1-hand button[aria-disabled='true']::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: 6px;
+    background: rgb(0 0 0 / 24%);
+    pointer-events: none;
+}
+/* Stretch the shared player/dice columns across the result panel. */
+.r1-floating-hud .r1-dock-scroll > .r1-dice-event .r1-dice-results {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+}
+.r1-dock-scroll > .r1-dice-event .r1-received-card {
+    width: 100%;
+}
+.r1-dock-scroll > .r1-dice-event .r1-swap-choice {
+    width: 100%;
+}
+
+
+/* Outcome-first result: aligned player columns, tactile dice and a quiet next action. */
+.r1-dock-scroll > .r1-dice-event .r1-panel-header strong {
+    font-size: 18px;
+    letter-spacing: -0.02em;
+}
+.r1-dice-event[data-outcome='win'] .r1-panel-header strong { color: #b1f8d6; }
+.r1-dice-event[data-outcome='loss'] .r1-panel-header strong { color: #ffb49e; }
+.r1-dice-event[data-outcome='neutral'] .r1-panel-header strong { color: #ffe0a1; }
+.r1-dock-scroll > .r1-dice-event .r1-dice-sides {
+    gap: 0;
+    padding: 0 4px;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-side {
+    box-sizing: border-box;
+    padding: 7px 3px 4px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: #19454e;
+    gap: 3px;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-side[data-edge='true'] {
+    border-color: #8fd5b866;
+    background: #1a4848;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-results .r1-dice-role {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: #d8eeea;
+    font-weight: 700;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-pair {
+    padding: 3px 4px 6px;
+    min-height: 43px;
+    background: transparent;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-results .r1-dice-versus {
+    font-size: 13px;
+    color: #9bbdbd;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-pair[data-result='win'] .r1-die:first-child,
+.r1-floating-hud .r1-dice-event .r1-dice-pair[data-result='loss'] .r1-die:last-child {
+    box-shadow: 0 3px 0 #a89678, 0 0 8px #ffe0a14d;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-pair[data-result='unpaired'] .r1-die[data-empty='true'] {
+    visibility: hidden;
+}
+.r1-floating-hud .r1-dice-event .r1-repeat-controls {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #608d944d;
+}
+.r1-floating-hud .r1-dice-event .r1-repeat-dice button {
+    min-width: 0;
+    gap: 7px;
+    padding-block: 9px;
+}
+.r1-floating-hud .r1-dice-event .r1-repeat-dice button[aria-pressed='true'] {
+    padding-block: 8px;
+}
+.r1-dice-event .r1-repeat-dice .r1-combat-advantage { margin: 2px 0 3px; }
+.r1-repeat-actions { display: flex; gap: 6px; }
+.r1-floating-hud .r1-repeat-actions .r1-repeat-action {
+    flex: 3;
+    width: auto;
+    min-width: 0;
+}
+.r1-floating-hud .r1-repeat-actions .r1-repeat-stop {
+    flex: 2;
+    min-width: 0;
+    min-height: 38px;
+    border: 1px solid #608d94;
+    border-radius: 9px;
+    background: #214b55;
+    color: #eaf8f2;
+    font-weight: 700;
+}
+
+/* One composition for the whole duel: player identity, consequences and aligned dice. */
+.r1-dock-scroll > .r1-dice-event {
+    width: min(320px, 100%);
+}
+.r1-result-duel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr);
+    align-items: stretch;
+    width: 100%;
+    gap: 0;
+}
+.r1-floating-hud .r1-dice-results .r1-result-duel > .r1-dice-side,
+.r1-result-comparisons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 3px;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 7px 3px 5px;
+    border: 1px solid transparent;
+}
+.r1-result-duel > .r1-dice-side[data-role='attacker'] { grid-column: 1; grid-row: 1; }
+.r1-result-duel > .r1-dice-side[data-role='defender'] { grid-column: 3; grid-row: 1; }
+.r1-result-comparisons { grid-column: 2; grid-row: 1; padding-inline: 0; }
+.r1-result-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 65px;
+    flex: 0 0 65px;
+    width: 100%;
+}
+.r1-result-consequence {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 25px;
+    flex: 0 0 25px;
+    width: 100%;
+}
+.r1-floating-hud .r1-dice-results .r1-no-energy-lost {
+    color: #b8d6d8;
+    font-size: 10px;
+    font-weight: 600;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    white-space: nowrap;
+}
+.r1-result-die-row {
+    display: grid;
+    place-items: center;
+    height: 40px;
+    flex: 0 0 40px;
+    width: 100%;
+    min-width: 0;
+}
+.r1-floating-hud .r1-dice-results .r1-result-die-row[data-result='unpaired'] .r1-die {
+    opacity: .48;
+}
+.r1-floating-hud .r1-dice-results .r1-result-die-row[data-won='true'] .r1-die {
+    box-shadow: 0 3px 0 #a89678, 0 0 8px #ffe0a14d;
+}
+.r1-floating-hud .r1-dice-results .r1-result-comparisons .r1-dice-versus {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+.r1-floating-hud .r1-dice-event[data-reopened='true'] .r1-energy-meter > span[data-lost='true'] {
+    animation: none;
+}
+.r1-floating-hud .r1-dice-options.r1-shared-dice-choices {
+    width: 100%;
+    gap: 6px;
+}
+.r1-floating-hud .r1-dice-options.r1-shared-dice-choices .r1-dice-button {
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 9px 6px;
+    border: 1px solid #6c999c;
+    border-radius: 9px;
+    background: #194954;
+    color: #e3f2ed;
+    font-weight: 700;
+}
+.r1-floating-hud .r1-dice-options.r1-shared-dice-choices .r1-dice-button[aria-pressed='true'] {
+    border-color: #ffd27c;
+    box-shadow: inset 0 0 0 1px #ffd27c;
+    padding: 9px 6px;
+}
+.r1-floating-hud .r1-dice-options.r1-shared-dice-choices .r1-dice-button[aria-pressed='true']::after {
+    content: none;
+}
+.r1-shared-dice-choices .r1-dice-option-faces {
+    gap: 4px;
+}
+.r1-shared-dice-choices .r1-dice-option-loss {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: #ffcfb7;
+    font-size: 11px;
+    font-weight: 650;
+}
+.r1-shared-dice-choices .r1-dice-option-loss .r1-feedback-icon {
+    width: 11px;
+    height: 13px;
+    flex-basis: 11px;
+}
+.r1-floating-hud .r1-repeat-dice {
+    display: grid;
+    gap: 5px;
+}
+.r1-repeat-dice .r1-odds-assumption {
+    text-align: center;
+}
+.r1-floating-hud .r1-reopen-dice,
+.r1-floating-hud .r1-action-bar > .r1-reopen-dice {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 40px;
+    min-width: 40px;
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid #8bc9c1;
+    background: #234c55;
+    color: #ffe0a1;
+}
+.r1-reopen-dice .r1-feedback-icon {
+    width: 22px;
+    height: 22px;
+}
+
+/* A dismissed knockdown is still a pending decision, not a second action bar. */
+.r1-hud-dock > .r1-swap-choice[data-compact='true'] {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    flex: 0 0 auto;
+    width: min(320px, 100%);
+    gap: 8px;
+    padding: 10px 12px 12px;
+    border-color: #8bc9c1;
+}
+.r1-compact-swap-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.r1-compact-swap-header .r1-fell-indicator {
+    color: #b1f8d6;
+    font-size: 14px;
+    gap: 5px;
+    white-space: nowrap;
+}
+.r1-compact-swap-tools {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    max-width: 100%;
+    flex-wrap: wrap;
+}
+.r1-floating-hud .r1-compact-swap-tools .r1-hand-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 40px;
+    padding: 5px;
+    border: 1px solid #5da69b;
+    border-radius: 10px;
+    background: #194954;
+}
+.r1-compact-swap-tools .r1-hand-toggle-icon {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+}
+.r1-compact-swap-tools .r1-hand-count {
+    font-size: 13px;
+}
+.r1-compact-swap-tools .r1-hand-toggle-chevron {
+    width: 12px;
+    height: 12px;
+    flex-basis: 12px;
+}
+.r1-floating-hud .r1-hand-toggle {
+    white-space: nowrap;
+}
+.r1-floating-hud .r1-hand-toggle .r1-rail-copy {
+    flex: 0 0 auto;
+}
+/* Identical decision geometry in the expanded and compact result. */
+.r1-floating-hud .r1-swap-choice .r1-action-row,
+.r1-dock-scroll > .r1-dice-event .r1-swap-choice .r1-action-row {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    width: 100%;
+    gap: 6px;
+    align-items: stretch;
+}
+.r1-floating-hud .r1-swap-choice .r1-action-row > button {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 38px;
+    padding: 6px 8px;
+    font-size: 13px;
+    line-height: 1.2;
+    font-weight: 650;
+}
+
+/* A confirmed card use is a status of the hand control, not of movement. */
+.r1-floating-hud .r1-hand-toggle[data-card-state='used'] {
+    border-color: #76bca0;
+    color: #a0dfbd;
+}
+
+/* Recovery alternatives are explicit actions with equal visual weight. */
+.r1-floating-hud .r1-recovery-actions {
+    justify-content: center;
+    align-items: stretch;
+}
+.r1-floating-hud .r1-recovery-actions > button {
+    min-height: 36px;
+    padding: 6px 9px;
+    font-weight: 700;
+}
+.r1-floating-hud .r1-recovery-actions .r1-lifeguard-button {
+    background: #194954;
+    border-color: #80c7ad;
+    color: #eaf8f2;
+}
+
+/* The board is the primary card target picker; numbered shortcuts remain available. */
+.r1-floating-hud .r1-card-detail[data-selected='true'] {
+    align-items: flex-start;
+    width: min(340px, 100%);
+    padding: 9px 38px 9px 10px;
+}
+.r1-card-detail[data-selected='true'] .r1-inspection-body {
+    flex: 1;
+    gap: 5px;
+}
+.r1-card-hex-picker {
+    min-width: 0;
+    border-top: 1px solid var(--hud-edge);
+    padding-top: 4px;
+}
+.r1-card-hex-picker > summary {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 28px;
+    color: var(--hud-mute);
+    cursor: pointer;
+    list-style: none;
+    font-weight: 650;
+}
+.r1-card-hex-picker > summary::-webkit-details-marker { display: none; }
+.r1-card-hex-picker > summary::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    margin-left: auto;
+    margin-right: 3px;
+}
+.r1-card-hex-picker[open] > summary::after { transform: rotate(225deg); }
+.r1-card-hex-picker > summary:focus-visible {
+    outline: 2px solid var(--hud-gold);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+.r1-card-hex-picker .r1-card-hex-count {
+    font-size: 0.85em;
+    color: var(--hud-gold);
+}
+.r1-floating-hud .r1-card-hex-picker .r1-targets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    max-width: 100%;
+    max-height: 132px;
+    overflow: auto;
+    gap: 3px;
+    padding: 3px;
+}
+.r1-card-hex-picker .r1-targets > button { justify-self: center; }
+
+/* Shared full face; zones only set size, placement and interaction. */
+.r1-floating-hud .r1-card-view > .r1-card-art,
+.r1-card-view > .r1-card-art {
+    display: block;
+    width: 100%;
+    height: 0;
+    min-height: 0;
+    flex: 1 1 0;
+    object-fit: cover;
+    margin: 0;
+    border-radius: 4px 4px 0 0;
+}
+.r1-card-view > strong {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    height: 2.8em;
+    flex: 0 0 2.8em;
+    font-size: .83em;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    color: #fff;
+    background: var(--r1-card-accent);
+    border-radius: 0 0 3px 3px;
+    padding: 2px 1px;
+}
+.r1-card-view.r1-pile-face {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-color: var(--r1-card-accent);
+    font-size: 10px;
+}
+.r1-card-view.r1-discard-card { font-size: 12px; }
+
+/* A terminal card action is consequential, not an unavailable or damaging action. */
+.r1-card-detail .r1-card-turn-ending,
+.r1-card-detail .r1-card-next-action[data-turn-ending='true'] {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 4px;
+    color: #ffe0a1;
+    font-size: .88em;
+    font-weight: 650;
+}
+.r1-card-detail .r1-card-turn-ending > .r1-feedback-icon,
+.r1-card-detail .r1-card-next-action[data-turn-ending='true'] > .r1-feedback-icon {
+    flex-shrink: 0;
 }

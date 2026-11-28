@@ -48,3 +48,16 @@ test('free water movement has no zero energy cost label', () => {
     delete G.cells[target].obstacle
     expect(getR1HexActions(G, ctx, target).find(o => o.kind === 'move').cost).toBe('Free')
 })
+
+
+test('Surf Current target feedback distinguishes mandatory first and final steps', () => {
+    const G = setupR1(ctx)
+    G.players[0].cellPosition = 7
+    G.currentMove = 'current_first'
+    expect(getR1HexActions(G, ctx, 14).find(o => o.kind === 'move').detail).toBe('Step 1/2 · Second step required')
+    G.currentMove = 'current_second'
+    expect(getR1HexActions(G, ctx, 14).find(o => o.kind === 'move').detail).toBe('Step 2/2 · End turn')
+    G.currentMove = 'current_first'
+    G.players[0].cellPosition = 42
+    expect(getR1HexActions(G, ctx, 49).find(o => o.kind === 'move').detail).toBe('Finish the race')
+})

@@ -67,10 +67,34 @@ const useKeyPress = function (targetKey) {
     return keyPressed
 }
 
-const Board = ({ G, ctx, moves }) => {
+const Board = ({ G, ctx, moves, viewMode: controlledViewMode, onViewModeChange }) => {
     const gameMode = 1
     const isR1 = G.ruleset === 'R1'
     const [r1Selection, setR1Selection] = useState(null)
+    const [rollingDrop, setRollingDrop] = useState(false)
+    const [lastDropOrigin, setLastDropOrigin] = useState(null)
+    const dropTimer = useRef(null)
+    const dropStartingState = useRef(null)
+    useEffect(() => () => clearTimeout(dropTimer.current), [])
+    useEffect(() => {
+        if (dropTimer.current !== null && dropStartingState.current !== G) {
+            clearTimeout(dropTimer.current)
+            dropTimer.current = null
+            setRollingDrop(false)
+        }
+    }, [G])
+    const startDrop = (cell, dice, target) => {
+        if (dropTimer.current !== null) return
+        dropStartingState.current = G
+        setRollingDrop(true)
+        if (r1Selection?.kind === 'drop') setLastDropOrigin(r1Selection.returnTo || { kind: 'opponents' })
+        setR1Selection(null)
+        dropTimer.current = setTimeout(() => {
+            dropTimer.current = null
+            moves.dropIn(cell, dice, target)
+            setRollingDrop(false)
+        }, 1100)
+    }
     const [r1CardPreview, setR1CardPreview] = useState(null)
     const previewId =
         r1CardPreview?.playerId === ctx.currentPlayer && r1CardPreview?.turn === G.turn ? r1CardPreview.cardId : null
@@ -165,12 +189,14 @@ const Board = ({ G, ctx, moves }) => {
         if (r1Selection?.kind === 'card') {
             if (chosen === undefined) moves.useCard(r1Selection.index, id)
             else moves.useCard(r1Selection.index, id, chosen)
-        } else if (r1Selection?.kind === 'drop') moves.dropIn(id, r1Selection.diceCount, chosen)
+        } else if (r1Selection?.kind === 'drop') startDrop(id, r1Selection.diceCount, chosen)
         else moves.maneuver(id)
         setR1CardPreview(null)
         setR1Selection(null)
     }
-    const [viewMode, setViewMode] = useState('2d')
+    const [internalViewMode, setInternalViewMode] = useState('3d')
+    const viewMode = controlledViewMode ?? internalViewMode
+    const setViewMode = onViewModeChange ?? setInternalViewMode
     const [focusPlayerRequest, setFocusPlayerRequest] = useState(null)
     const [discardOpen, setDiscardOpen] = useState(false)
     const [selectedCellId, setSelectedCellId] = useState(null)
@@ -698,6 +724,9 @@ const Board = ({ G, ctx, moves }) => {
                     selection={r1Selection}
                     setSelection={setR1Selection}
                     onTarget={onR1Target}
+                    rollingDrop={rollingDrop}
+                    lastDropOrigin={lastDropOrigin}
+                    onRepeatDrop={startDrop}
                     onBackAttack={backToHexInspection}
                     onFocusPlayer={(id) => {
                         clearHexInspection()

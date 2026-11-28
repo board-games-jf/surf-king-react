@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './R1Hud.css'
+import PlayerIcon from './PlayerIcon'
 import { PLAYER_BOARD_COLORS } from '../../constants/playerBoardColors'
 import {
     r1PlayerCard,
@@ -12,7 +13,7 @@ import {
     r1AttackUnavailableReason,
     r1MaxAttackDice,
 } from '../../game/r1/SurfKingR1'
-import { HexBadge, HexEffects, FeedbackIcon, terrainArt, compactHexAction } from './r1FeedbackVisuals'
+import { HexBadge, HexEffects, CardEffects, FeedbackIcon, terrainArt, compactHexAction } from './r1FeedbackVisuals'
 import { getR1CardFeedback } from './r1CardFeedback'
 import DropInAdvantage from './DropInAdvantage'
 import PanelHeader from './PanelHeader'
@@ -22,7 +23,7 @@ import { getR1RoundOrder } from './r1RoundOrder'
 import { getCardRailState, getRoundHudProgress, TURN_STATUS_LABELS, CARD_RAIL_LABELS } from './r1HudState'
 import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
 import { getTargetHighlightStyle } from '../../map/contract/targetHighlight'
-import { cardArt, cardTone } from './r1CardArt'
+import R1Card from './R1Card'
 import cardBack from '../../assets/cards/r1/cardback.webp'
 
 const descriptions = {
@@ -39,22 +40,12 @@ const descriptions = {
     Amulet: 'Protect against opponent attacks and Change until your next turn.',
     Change: 'Swap positions with an unprotected standing opponent within 2 hexes instead of moving.',
     'Hang loose': 'Block Drop In until your next turn; attack cards and Change still apply.',
-    'Surf Current': 'Move up to two legal steps; draw only once.',
+    'Surf Current': 'Move two legal steps. Stop early only on reaching the beach or falling; draw only once if upright.',
 }
 
 export { r1SelectionTargets } from './r1TargetHighlight'
 
-export function PlayerIcon({ playerId, variant = '' }) {
-    return (
-        <span
-            className={'r1-player-avatar' + (variant ? ' ' + variant : '')}
-            aria-hidden="true"
-            style={{ '--r1-player-color': PLAYER_BOARD_COLORS[playerId % PLAYER_BOARD_COLORS.length] }}
-        >
-            {playerId + 1}
-        </span>
-    )
-}
+export { default as PlayerIcon } from './PlayerIcon'
 
 const DIE_PIPS = {
     1: [4],
@@ -96,6 +87,225 @@ function EnergyMeter({ energy, lost = 0 }) {
                 />
             ))}
             <span className="r1-sr-only">{energy}/5 energy</span>
+        </div>
+    )
+}
+
+function getDropResultPresentation(result, players, currentPlayer) {
+    if (!result || !Number.isInteger(result.attackerLoss) || !Number.isInteger(result.defenderLoss))
+        return { title: 'Roll result', tone: 'neutral' }
+    const { attackerId, defenderId, attackerLoss, defenderLoss } = result
+    const isAttacker = Number(currentPlayer) === attackerId
+    if (defenderLoss > 0 && players[defenderId]?.energy === 0)
+        return { title: 'Knockdown!', tone: 'win' }
+    if (attackerLoss && defenderLoss) return { title: 'Trading blows!', tone: 'neutral' }
+    if (attackerLoss) return { title: isAttacker ? 'You took a hit!' : 'Attacker hit!', tone: 'loss' }
+    if (defenderLoss) return { title: isAttacker ? 'Opponent hit!' : 'Defender hit!', tone: 'win' }
+    return { title: 'Stand-off!', tone: 'neutral' }
+}
+
+function getDicePairs(attackDice, defenseDice) {
+    return Array.from({ length: Math.max(attackDice.length, defenseDice.length) }, (_, i) => {
+        const attack = attackDice[i], defense = defenseDice[i]
+        const result = attack == null || defense == null ? 'unpaired' : attack === defense ? 'tie' : attack > defense ? 'win' : 'loss'
+        const label = { unpaired: 'Unpaired', tie: 'Tie', win: 'Defender −1', loss: 'Attacker −1' }[result]
+        return {
+            attack, defense, result,
+            label: (attack == null ? 'No attacker die' : 'Attacker ' + attack) + ', ' +
+                (defense == null ? 'no defender die' : 'defender ' + defense) + ', ' + label,
+        }
+    })
+}
+
+function canReopenDice(hasResult, showDice, rolling, selection, attackerId, currentPlayer) {
+    return Boolean(hasResult && !showDice && !rolling && !selection && attackerId === Number(currentPlayer))
+}
+
+function DiceChoices({ attackerEnergy, defenderEnergy, maxDice, selected, onSelect, scope }) {
+    return (
+        <>
+            <div className="r1-dice-options r1-shared-dice-choices">
+                {Array.from({ length: maxDice }, (_, i) => i + 1).map((count) => {
+                    const odds = getDropInAdvantage(attackerEnergy, defenderEnergy, count)
+                    if (!odds) return null
+                    const label = count === 1 ? '1 die' : count + ' dice'
+                    const descriptionId = 'r1-dice-loss-' + scope + '-' + count
+                    return (
+                        <button
+                            type="button"
+                            className="r1-dice-button"
+                            key={count}
+                            aria-label={label}
+                            aria-describedby={descriptionId}
+                            aria-pressed={selected === count}
+                            data-advantage={odds.tone}
+                            onClick={() => onSelect(count)}
+                        >
+                            <span className="r1-dice-option-faces" aria-hidden="true">
+                                {Array.from({ length: count }, (_, i) => (
+                                    <span className="r1-dice-option-face" key={i} />
+                                ))}
+                            </span>
+                            <span>{label}</span>
+                            <DropInAdvantage odds={odds} compact />
+                            <span className="r1-dice-option-loss" aria-hidden="true">
+                                Up to −{odds.maxLoss} <FeedbackIcon kind="energy" />
+                            </span>
+                            <span className="r1-sr-only" id={descriptionId}>
+                                {odds.tone} · Maximum own energy loss: {odds.maxLoss}
+                            </span>
+                        </button>
+                    )
+                })}
+            </div>
+            <small className="r1-odds-assumption">Chance if you keep attacking.</small>
+        </>
+    )
+}
+
+function DropResultDice({ result, players, currentPlayer, attackDice, defenseDice, revealFall }) {
+    const pairs = getDicePairs(attackDice, defenseDice)
+    const hasLoss = Boolean(result && (result.attackerLoss || result.defenderLoss))
+    return (
+        <div className="r1-dice-results" aria-label="Drop In dice results">
+            <div className="r1-result-duel" data-has-loss={hasLoss} data-has-players={Boolean(result)}>
+                {['Attacker', 'Defender'].map((role) => {
+                    const isAttack = role === 'Attacker'
+                    const id = isAttack ? result?.attackerId : result?.defenderId
+                    const loss = isAttack ? result?.attackerLoss : result?.defenderLoss
+                    const otherLoss = isAttack ? result?.defenderLoss : result?.attackerLoss
+                    const energy = players[id]?.energy ?? 0
+                    return (
+                        <div
+                            className="r1-dice-side"
+                            key={role}
+                            data-role={role.toLowerCase()}
+                            data-edge={Boolean(result && otherLoss > loss)}
+                            aria-label={result ? role + ', Player ' + (id + 1) + ', ' + loss + ' energy lost' : role}
+                        >
+                            {result && (
+                                <div className="r1-result-identity">
+                                    <PlayerIcon playerId={id} />
+                                    <span className="r1-dice-role" aria-hidden="true">
+                                        {Number(currentPlayer) === result.attackerId
+                                            ? isAttack ? 'You' : 'Opponent'
+                                            : role}
+                                    </span>
+                                    <EnergyMeter energy={energy} lost={loss} />
+                                </div>
+                            )}
+                            {hasLoss && (
+                                <div className="r1-result-consequence">
+                                    {!isAttack && loss > 0 && energy === 0 && revealFall ? (
+                                        <strong className="r1-dice-energy" data-fell="true">Fell!</strong>
+                                    ) : loss > 0 ? (
+                                        <strong className="r1-dice-energy" data-loss="true" aria-hidden="true">
+                                            <FeedbackIcon kind="energy" />−{loss}
+                                        </strong>
+                                    ) : (
+                                        <span className="r1-no-energy-lost">No energy lost</span>
+                                    )}
+                                </div>
+                            )}
+                            {pairs.map((pair, i) => (
+                                <div className="r1-result-die-row" key={i} data-result={pair.result}
+                                    data-won={isAttack ? pair.result === 'win' : pair.result === 'loss'}>
+                                    <DiceFace value={isAttack ? pair.attack : pair.defense}
+                                        lost={isAttack ? pair.result === 'loss' : pair.result === 'win'} />
+                                </div>
+                            ))}
+                        </div>
+                    )
+                })}
+                <div className="r1-result-comparisons">
+                    {result && <div className="r1-result-identity" aria-hidden="true" />}
+                    {hasLoss && <div className="r1-result-consequence" aria-hidden="true" />}
+                    {pairs.map((pair, i) => (
+                        <div className="r1-result-die-row" key={i} data-result={pair.result}
+                            role="img" aria-label={pair.label}>
+                            <span className="r1-dice-versus" aria-hidden="true">
+                                {pair.result === 'unpaired' ? '' : pair.result === 'tie' ? '=' : '·'}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// One card panel owns the effect, next action, and optional target shortcuts.
+function CardContextPanel({ card, feedback, selected, closable, nextAction, canConfirm, onConfirm, targetButtons, playerTargets, onClose }) {
+    const compactPlacement = selected && feedback.kind === 'placement'
+    const jumpEndsTurn = feedback.kind === 'jump'
+    const placementNotes = {
+        Stone: 'Normally damages on first entry, then disappears.',
+        Storm: 'Damage on each ordinary entry.',
+        Cyclone: 'Redirects on entry.',
+        Island: 'Stays in place; restores energy on ordinary entry.',
+    }
+    return (
+        <div className="r1-card-detail r1-glass" data-selected={selected} data-closable={closable} aria-label="Card information" aria-live="polite"
+            onKeyDown={(event) => {
+                if (closable && event.key === 'Escape') {
+                    event.stopPropagation()
+                    onClose()
+                }
+            }}>
+            <R1Card name={card.Name} variant="thumbnail" className="r1-inspection-art" />
+            <div className="r1-inspection-body">
+                <div className="r1-inspection-heading">
+                    <strong>{card.Name}</strong>
+                    <span className="r1-card-availability" data-playable={feedback.playable}
+                        role="img" aria-label={feedback.playable ? 'Available' : 'Unavailable'}>
+                        <FeedbackIcon kind={feedback.playable ? 'active' : 'lock'} />
+                    </span>
+                </div>
+                {compactPlacement && <CardEffects name={card.Name} />}
+                <p className="r1-card-description">
+                    {compactPlacement ? placementNotes[card.Name] || descriptions[card.Name] : descriptions[card.Name]}
+                </p>
+                {jumpEndsTurn && (!selected || !feedback.playable) && (
+                    <span className="r1-card-turn-ending">
+                        <FeedbackIcon kind="clock" /> Playing this card ends your turn.
+                    </span>
+                )}
+                {feedback.reason && (
+                    <span className="r1-blocked-reason">
+                        <FeedbackIcon kind="blocked" />
+                        {feedback.reason}
+                    </span>
+                )}
+                {feedback.playable && (
+                    <div className="r1-card-guidance">
+                        {['Energy x2', 'Lifeguard float'].includes(card.Name) && (
+                            <span className="r1-card-target-count">Your energy: {feedback.action}</span>
+                        )}
+                        {canConfirm ? (
+                            <button type="button" className="r1-confirm-card" onClick={onConfirm}>Use card</button>
+                        ) : (
+                            <span className="r1-card-next-action" data-turn-ending={selected && jumpEndsTurn}>
+                                <FeedbackIcon kind={selected && jumpEndsTurn ? 'clock' : 'move'} />
+                                {nextAction}
+                            </span>
+                        )}
+                    </div>
+                )}
+                {targetButtons && (playerTargets ? targetButtons : (
+                    <details className="r1-card-hex-picker">
+                        <summary aria-label="Choose target hex by number">
+                            <FeedbackIcon kind="range" />
+                            <span>Hex list</span>
+                            <span className="r1-card-hex-count">{feedback.targets.length}</span>
+                        </summary>
+                        {targetButtons}
+                    </details>
+                ))}
+            </div>
+            {closable && (
+                <CloseButton className="r1-inspection-close"
+                    label={selected ? 'Deselect card' : 'Close card information'} onClick={onClose} />
+            )}
         </div>
     )
 }
@@ -214,6 +424,9 @@ export default function R1Controls({
     selection,
     setSelection,
     onTarget,
+    rollingDrop = false,
+    lastDropOrigin = null,
+    onRepeatDrop = () => {},
     onBackAttack = () => {},
     targetHighlight,
     onPreviewCard = () => {},
@@ -248,18 +461,21 @@ export default function R1Controls({
     const cardAvailable =
         ['use_card', 'swap_card', 'recover'].includes(G.currentMove) &&
         hand.cards.some((_, index) => r1CardPlayable(G, ctx, index))
+    const recoveryCardIndex = G.currentMove === 'recover'
+        ? selectedCard?.Name === 'Lifeguard float' && r1CardPlayable(G, ctx, selection.index)
+            ? selection.index
+            : hand.cards.findIndex((card, index) => card.Name === 'Lifeguard float' && r1CardPlayable(G, ctx, index))
+        : -1
     const cardRailState = getCardRailState(G, ctx, cardAvailable)
-    const dropUsed = G.dropResult && String(G.dropResult.attackerId) === String(ctx.currentPlayer)
     const noMoveAvailable =
         G.currentMove === 'use_card' && !r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx).length
     const keyboardMoves =
-        !selection && ['use_card', 'maneuver', 'current_first'].includes(G.currentMove)
+        !selection && ['use_card', 'maneuver', 'current_first', 'current_second'].includes(G.currentMove)
             ? r1MoveTargets(G.currentMove === 'use_card' ? { ...G, currentMove: 'maneuver' } : G, ctx)
             : []
     const canPass =
         swapCard ||
         G.currentMove === 'use_card' ||
-        G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
     const [dismissedMessage, setDismissedMessage] = useState(null)
@@ -270,11 +486,40 @@ export default function R1Controls({
         return () => clearTimeout(timer)
     }, [G.message, G.turn])
     const [dismissedDice, setDismissedDice] = useState(null)
+    const [repeatDice, setRepeatDice] = useState(null)
+    const repeatCount = Math.min(repeatDice ?? maxAttackDice, maxAttackDice)
     const diceKey =
         G.dropResult?.id != null
-            ? 'roll:' + G.dropResult.id
+            ? ['roll', G.turn, ctx.currentPlayer, G.dropResult.id, G.dropResult.attackerId, G.dropResult.defenderId,
+                G.atkDices.join(','), G.defDices.join(','), G.dropResult.attackerLoss, G.dropResult.defenderLoss].join(':')
             : ['legacy', G.turn, ctx.currentPlayer, G.atkDices.join(','), G.defDices.join(',')].join(':')
-    const showDice = G.atkDices.length > 0 && dismissedDice !== diceKey
+    const hasDice = G.atkDices.length > 0
+    const showDice = hasDice && dismissedDice !== diceKey
+    const reopenAvailable = canReopenDice(
+        hasDice && !!G.dropResult, showDice, rollingDrop, selection, G.dropResult?.attackerId, ctx.currentPlayer
+    )
+    const [reopenedDice, setReopenedDice] = useState(null)
+    const resultAttackerEnergy = G.players[G.dropResult?.attackerId]?.energy
+    const resultDefenderEnergy = G.players[G.dropResult?.defenderId]?.energy
+    const [rollSnapshot, setRollSnapshot] = useState(null)
+    useEffect(() => {
+        setRollSnapshot((previous) => {
+            if (!hasDice) return null
+            if (previous?.key === diceKey) return previous
+            return { key: diceKey, attackerEnergy: resultAttackerEnergy, defenderEnergy: resultDefenderEnergy }
+        })
+    }, [hasDice, diceKey, resultAttackerEnergy, resultDefenderEnergy])
+    const resultPlayers = G.dropResult && rollSnapshot?.key === diceKey ? {
+        ...G.players,
+        [G.dropResult.attackerId]: { energy: rollSnapshot.attackerEnergy },
+        [G.dropResult.defenderId]: { energy: rollSnapshot.defenderEnergy },
+    } : G.players
+    const [swapReadyKey, setSwapReadyKey] = useState(null)
+    useEffect(() => {
+        if (!swapChoice || !showDice) return
+        const timer = setTimeout(() => setSwapReadyKey(diceKey), 900)
+        return () => clearTimeout(timer)
+    }, [swapChoice, showDice, diceKey])
     const repeatTarget =
         G.dropResult &&
         Number(ctx.currentPlayer) === G.dropResult.attackerId &&
@@ -282,7 +527,54 @@ export default function R1Controls({
         dropTargets.includes(G.dropResult.defenderId)
             ? G.dropResult.defenderId
             : null
+    const [receivedCard, setReceivedCard] = useState(null)
+    const previousHands = useRef(null)
+    useEffect(() => {
+        const hands = Object.fromEntries(
+            Object.entries(G.players).map(([id, p]) => [id, p.cards.map((card) => card.id)])
+        )
+        const previous = previousHands.current
+        const result = G.dropResult
+        if (
+            previous &&
+            result?.id != null &&
+            previous.rollId !== result.id &&
+            Number(ctx.currentPlayer) === result.attackerId &&
+            G.players[result.defenderId]?.energy === 0
+        ) {
+            const gained = hand.cards.find(
+                (card) =>
+                    previous.hands[result.defenderId]?.includes(card.id) &&
+                    !previous.hands[result.attackerId]?.includes(card.id)
+            )
+            setReceivedCard(
+                gained ? { id: gained.id, name: gained.Name, playerId: result.attackerId, rollId: result.id } : null
+            )
+        }
+        previousHands.current = { hands, rollId: result?.id ?? null }
+    }, [G.players, G.dropResult, ctx.currentPlayer, hand.cards])
+    const receivedThisRoll =
+        receivedCard &&
+        receivedCard.playerId === Number(ctx.currentPlayer) &&
+        receivedCard.rollId === G.dropResult?.id &&
+        hand.cards.some((card) => card.id === receivedCard.id)
     const [handHidden, setHandHidden] = useState(false)
+    const [handOverrideKey, setHandOverrideKey] = useState(null)
+    const handSuppressed = (rollingDrop || showDice || !!swapChoice) && handOverrideKey !== diceKey
+    // Target selection temporarily hides the hand without changing the user's manual preference.
+    const targetedCardKey = selectedCard && targets.length > 0
+        ? [ctx.currentPlayer, G.turn, G.currentMove, selectedCard.id].join(':')
+        : null
+    const [cardHandOverrideKey, setCardHandOverrideKey] = useState(null)
+    const cardHandSuppressed = targetedCardKey !== null && cardHandOverrideKey !== targetedCardKey
+    const handVisible = !handHidden && !handSuppressed && !cardHandSuppressed
+    useEffect(() => {
+        if (targetedCardKey === null) setCardHandOverrideKey(null)
+    }, [targetedCardKey])
+    const handRef = useRef(null)
+    useEffect(() => {
+        if (handVisible && handOverrideKey === diceKey) handRef.current?.scrollIntoView?.({ block: 'nearest' })
+    }, [handVisible, handOverrideKey, diceKey])
     const [localDiscardOpen, setLocalDiscardOpen] = useState(false)
     const discardOpen = externalDiscardOpen ?? localDiscardOpen
     const setDiscardOpen = onDiscardOpenChange || setLocalDiscardOpen
@@ -322,7 +614,7 @@ export default function R1Controls({
     }, [terrainEventId, terrainPlayer, terrainAmount, terrainSource, terrainDirection])
     const [inspection, setInspection] = useState(null)
     const inspected =
-        !handHidden && inspection?.playerId === ctx.currentPlayer && inspection?.turn === G.turn
+        handVisible && inspection?.playerId === ctx.currentPlayer && inspection?.turn === G.turn
             ? hand.cards.find((card) => card.id === inspection.cardId)
             : null
     const detailCard = inspected || selectedCard
@@ -336,6 +628,8 @@ export default function R1Controls({
         : feedback?.targets.length
         ? feedback.kind === 'attack'
             ? 'Choose a highlighted player.'
+            : feedback.kind === 'jump'
+            ? 'Choose a highlighted hex to use this card and end your turn.'
             : 'Choose a highlighted hex.'
         : 'Press Use card to confirm.'
     function inspectCard(cardId, pinned = false) {
@@ -350,6 +644,7 @@ export default function R1Controls({
             return
         }
         inspectCard(null)
+        setCardHandOverrideKey(null)
         setSelection({ kind: 'card', index })
     }
     function confirmCard() {
@@ -359,6 +654,7 @@ export default function R1Controls({
         setSelection(null)
     }
     function resolveSwap(accept) {
+        setDismissedDice(diceKey)
         inspectCard(null)
         setSelection(null)
         moves.resolveSwap(accept)
@@ -379,47 +675,55 @@ export default function R1Controls({
     const moveLabel =
         G.currentMove === 'use_card'
             ? 'Continue'
-            : G.currentMove === 'current_second'
-            ? 'Finish movement'
             : canPass
             ? 'End turn'
             : 'Choose a hex'
     const showFinishControl =
         !swapChoice &&
         (swapCard ||
-            G.currentMove === 'current_second' ||
             (G.currentMove === 'maneuver' && !targets.length) ||
             noMoveAvailable)
     const handToggle = (
         <button
             type="button"
             className="r1-hand-toggle"
+            data-card-state={cardRailState}
             onClick={() => {
                 inspectCard(null)
-                setHandHidden((value) => !value)
+                if (handSuppressed) {
+                    setHandOverrideKey(diceKey)
+                    setHandHidden(false)
+                    if (targetedCardKey !== null) setCardHandOverrideKey(targetedCardKey)
+                } else if (targetedCardKey !== null) {
+                    setCardHandOverrideKey(handVisible ? null : targetedCardKey)
+                    if (!handVisible) setHandHidden(false)
+                } else setHandHidden((value) => !value)
             }}
-            aria-expanded={!handHidden}
-            aria-label={handHidden ? 'Show cards' : 'Hide cards'}
+            aria-expanded={handVisible}
+            aria-label={handVisible ? 'Hide cards' : 'Show cards'}
             aria-describedby="r1-hand-count-description"
-            title={handHidden ? 'Show cards' : 'Hide cards'}
+            title={handVisible ? 'Hide cards' : 'Show cards'}
         >
             <span className="r1-hand-toggle-icon" aria-hidden="true">
                 <FeedbackIcon kind="cards" />
             </span>
-            {showTurnSteps && (
-                <span className="r1-rail-copy">
-                    <strong>Cards</strong>
-                </span>
-            )}
+            <span className="r1-rail-copy">
+                <strong>Cards</strong>
+            </span>
             <span className="r1-hand-count" aria-hidden="true">
                 {hand.cards.length}/5
             </span>
+            {cardRailState === 'used' && (
+                <span className="r1-card-used-check" aria-hidden="true">
+                    <FeedbackIcon kind="check" />
+                </span>
+            )}
             <span id="r1-hand-count-description" className="r1-sr-only">
                 {hand.cards.length} of 5 cards in hand
-                {showTurnSteps ? '; card ' + CARD_RAIL_LABELS[cardRailState].toLowerCase() : ''}
+                {showTurnSteps || cardRailState === 'used' ? '; card ' + CARD_RAIL_LABELS[cardRailState].toLowerCase() : ''}
             </span>
             <svg className="r1-hand-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24">
-                <path d={handHidden ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'} />
+                <path d={handVisible ? 'm6 9 6 6 6-6' : 'm6 15 6-6 6 6'} />
             </svg>
         </button>
     )
@@ -497,6 +801,137 @@ export default function R1Controls({
         </div>
     )
 
+    const reopenDiceButton = reopenAvailable && (
+        <button type="button" className="r1-reopen-dice" aria-label="Reopen dice result" title="Reopen dice result"
+            onClick={() => {
+                setReopenedDice(diceKey)
+                setDismissedDice(null)
+            }}>
+            <FeedbackIcon kind="dice" />
+        </button>
+    )
+    const compactSwap = !!swapChoice && !showDice
+    const swapPanel = (
+        <div className="r1-swap-choice r1-glass" data-compact={compactSwap} role="group" aria-label="Position conquest">
+            {compactSwap && (
+                <div className="r1-compact-swap-header">
+                    <strong className="r1-fell-indicator">
+                        <PlayerIcon playerId={G.pendingSwap.targetPlayerId} /> Knockdown!
+                    </strong>
+                    <div className="r1-compact-swap-tools">
+                        {handToggle}
+                        {reopenDiceButton}
+                    </div>
+                </div>
+            )}
+            <span className="r1-sr-only">
+                Player {(G.pendingSwap?.targetPlayerId ?? 0) + 1} fell. Take their hex instead of moving, or stay and
+                continue.
+            </span>
+            <div className="r1-action-row">
+                <button type="button" className="r1-move-button" onClick={() => resolveSwap(true)}>
+                    Swap positions
+                </button>
+                <button type="button" onClick={() => resolveSwap(false)}>
+                    Stay
+                </button>
+            </div>
+        </div>
+    )
+    const dropPresentation = getDropResultPresentation(G.dropResult, resultPlayers, ctx.currentPlayer)
+    const resultPanel = !rollingDrop &&
+        (winner ||
+            showDice ||
+            (G.message &&
+                G.message !== dismissedMessage &&
+                !G.message.startsWith('Drop In:') &&
+                !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) &&
+                /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) && (
+            <div
+                className={'r1-match-event r1-glass' + (showDice ? ' r1-dice-event' : '')}
+                data-outcome={showDice ? dropPresentation.tone : undefined}
+                data-reopened={showDice && reopenedDice === diceKey}
+                aria-live="polite"
+            >
+                {winner ? (
+                    <>
+                        <FeedbackIcon kind="flag" />
+                        <strong>Player {winner.position + 1} wins!</strong>
+                        <span>First to the beach.</span>
+                    </>
+                ) : (
+                    G.message !== dismissedMessage &&
+                    !(G.dropResult && G.message?.startsWith('Drop In:')) && <span>{G.message}</span>
+                )}
+                {showDice && (
+                    <PanelHeader
+                        title={dropPresentation.title}
+                        backLabel="Back from dice result"
+                        closeLabel="Close dice result"
+                        onBack={swapChoice ? undefined : () => {
+                            setDismissedDice(diceKey)
+                            if (lastDropOrigin?.kind === 'hex') onBackAttack(lastDropOrigin)
+                            else if (lastDropOrigin?.kind !== 'board')
+                                setSelection({ kind: 'drop', diceCount: maxAttackDice })
+                        }}
+                        onClose={() => {
+                            if (swapChoice) setSwapReadyKey(diceKey)
+                            setDismissedDice(diceKey)
+                        }}
+                    />
+                )}
+                {showDice && (
+                    <DropResultDice
+                        key={diceKey}
+                        result={G.dropResult}
+                        players={resultPlayers}
+                        currentPlayer={ctx.currentPlayer}
+                        attackDice={G.atkDices}
+                        defenseDice={G.defDices}
+                        revealFall={!swapChoice || swapReadyKey === diceKey}
+                    />
+                )}
+                {showDice && receivedThisRoll && (!swapChoice || swapReadyKey === diceKey) && (
+                    <div className="r1-received-card" aria-label={'Received card: ' + receivedCard.name}>
+                        <R1Card name={receivedCard.name} variant="thumbnail" />
+                        <span>
+                            Received <strong>{receivedCard.name}</strong>
+                        </span>
+                    </div>
+                )}
+                {showDice && swapChoice && swapReadyKey === diceKey && swapPanel}
+                {showDice && repeatTarget != null && (
+                    <div className="r1-repeat-controls" aria-label="Repeat Drop In">
+                        <div className="r1-repeat-dice" role="group" aria-label="Attack dice">
+                            <DiceChoices
+                                attackerEnergy={player.energy}
+                                defenderEnergy={G.players[repeatTarget].energy}
+                                maxDice={maxAttackDice}
+                                selected={repeatCount}
+                                onSelect={setRepeatDice}
+                                scope="repeat"
+                            />
+                        </div>
+                        <div className="r1-repeat-actions">
+                            <button
+                                type="button"
+                                className="r1-repeat-action"
+                                onClick={() => {
+                                    setDismissedDice(diceKey)
+                                    onRepeatDrop(G.players[repeatTarget].cellPosition, repeatCount, repeatTarget)
+                                }}
+                            >
+                                Attack again
+                            </button>
+                            <button type="button" className="r1-repeat-stop" onClick={() => setDismissedDice(diceKey)}>
+                                Stop
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        )
+
     return (
         <section className="r1-floating-hud" aria-label="R1 match controls">
             <header className="r1-hud-brand r1-glass" aria-label="Round status">
@@ -557,13 +992,7 @@ export default function R1Controls({
                         style={{ '--pile-depth': Math.min(14, Math.ceil(G.discardedCards.length / 5)) + 'px' }}
                     >
                         {G.discardedCards.length > 0 && (
-                            <div
-                                className="r1-pile-face"
-                                data-card-tone={cardTone[G.discardedCards[G.discardedCards.length - 1].Name]}
-                            >
-                                <img src={cardArt[G.discardedCards[G.discardedCards.length - 1].Name]} alt="" />
-                                <strong>{G.discardedCards[G.discardedCards.length - 1].Name}</strong>
-                            </div>
+                            <R1Card className="r1-pile-face" name={G.discardedCards[G.discardedCards.length - 1].Name} />
                         )}
                     </div>
                     <span className="r1-pile-label">
@@ -583,14 +1012,7 @@ export default function R1Controls({
                                     .slice()
                                     .reverse()
                                     .map((card) => (
-                                        <div
-                                            className="r1-discard-card"
-                                            data-card-tone={cardTone[card.Name]}
-                                            key={card.id}
-                                        >
-                                            <img src={cardArt[card.Name]} alt="" />
-                                            <strong>{card.Name}</strong>
-                                        </div>
+                                        <R1Card className="r1-discard-card" name={card.Name} key={card.id} />
                                     ))
                             ) : (
                                 <span>No discarded cards</span>
@@ -716,131 +1138,19 @@ export default function R1Controls({
                     </div>
                 )}
             </div>
-            {(winner ||
-                showDice ||
-                (G.message &&
-                    G.message !== dismissedMessage &&
-                    !G.message.startsWith('Drop In:') &&
-                    !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) &&
-                    /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) && (
-                <div className={'r1-match-event r1-glass' + (showDice ? ' r1-dice-event' : '')} aria-live="polite">
-                    {winner ? (
-                        <>
-                            <FeedbackIcon kind="flag" />
-                            <strong>Player {winner.position + 1} wins!</strong>
-                            <span>First to the beach.</span>
-                        </>
-                    ) : (
-                        G.message !== dismissedMessage &&
-                        !(G.dropResult && G.message?.startsWith('Drop In:')) && <span>{G.message}</span>
-                    )}
-                    {showDice && (
-                        <CloseButton
-                            className="r1-dice-close"
-                            label="Close dice result"
-                            onClick={() => setDismissedDice(diceKey)}
-                        />
-                    )}
-                    {showDice && (
-                        <div className="r1-dice-results" aria-label="Drop In dice results">
-                            {G.dropResult && (
-                                <div className="r1-dice-sides">
-                                    {[
-                                        ['Attacker', G.dropResult.attackerId, G.dropResult.attackerLoss],
-                                        ['Defender', G.dropResult.defenderId, G.dropResult.defenderLoss],
-                                    ].map(([role, id, loss]) => (
-                                        <div
-                                            className="r1-dice-side"
-                                            key={role}
-                                            aria-label={role + ', Player ' + (id + 1) + ', ' + loss + ' energy lost'}
-                                        >
-                                            <PlayerIcon playerId={id} />
-                                            <EnergyMeter energy={G.players[id]?.energy ?? 0} lost={loss} />
-                                            {loss > 0 ? (
-                                                <strong className="r1-dice-energy" data-loss="true" aria-hidden="true">
-                                                    <FeedbackIcon kind="energy" />−{loss}
-                                                </strong>
-                                            ) : (
-                                                <span className="r1-dice-energy-placeholder" aria-hidden="true" />
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            <div className="r1-dice-pairs" key={diceKey}>
-                                {Array.from({ length: Math.max(G.atkDices.length, G.defDices.length) }, (_, i) => {
-                                    const attack = G.atkDices[i],
-                                        defense = G.defDices[i]
-                                    const result =
-                                        attack == null || defense == null
-                                            ? 'unpaired'
-                                            : attack === defense
-                                            ? 'tie'
-                                            : attack > defense
-                                            ? 'win'
-                                            : 'loss'
-                                    const label =
-                                        result === 'unpaired'
-                                            ? 'Unpaired'
-                                            : result === 'tie'
-                                            ? 'Tie'
-                                            : result === 'win'
-                                            ? 'Defender −1'
-                                            : 'Attacker −1'
-                                    return (
-                                        <div
-                                            key={i}
-                                            className="r1-dice-pair"
-                                            data-result={result}
-                                            aria-label={
-                                                (attack == null ? 'No attacker die' : 'Attacker ' + attack) +
-                                                ', ' +
-                                                (defense == null ? 'no defender die' : 'defender ' + defense) +
-                                                ', ' +
-                                                label
-                                            }
-                                        >
-                                            <DiceFace value={attack} lost={result === 'loss'} />
-                                            <span className="r1-dice-versus" aria-hidden="true">
-                                                {result === 'tie'
-                                                    ? '='
-                                                    : result === 'win'
-                                                    ? '→'
-                                                    : result === 'loss'
-                                                    ? '←'
-                                                    : '·'}
-                                            </span>
-                                            <DiceFace value={defense} lost={result === 'win'} />
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                            {repeatTarget != null && (
-                                <button
-                                    type="button"
-                                    className="r1-repeat-drop"
-                                    onClick={() => {
-                                        setDismissedDice(diceKey)
-                                        setSelection({
-                                            kind: 'drop',
-                                            diceCount: maxAttackDice,
-                                            targetCell: G.players[repeatTarget].cellPosition,
-                                            targetPlayerId: repeatTarget,
-                                            returnTo: { kind: 'dice' },
-                                        })
-                                    }}
-                                >
-                                    <FeedbackIcon kind="dropIn" />
-                                    Attack again
-                                </button>
-                            )}
-                        </div>
-                    )}
+            {!showDice && resultPanel}
+            {rollingDrop && (
+                <div className="r1-roll-overlay" role="status" aria-live="polite" aria-label="Rolling dice">
+                    <div className="r1-roll-animation" aria-hidden="true">
+                        <span />
+                        <span />
+                    </div>
                 </div>
             )}
             {!winner && (
                 <div className="r1-hud-dock">
                     <div className="r1-dock-scroll">
+                        {showDice && resultPanel}
                         {(keyboardMoves.length > 0 || (!selection && dropTargets.length > 0)) && (
                             <div className="r1-movement-access" aria-label="Keyboard board actions">
                                 {keyboardMoves.map((id) => (
@@ -874,79 +1184,23 @@ export default function R1Controls({
                                     ))}
                             </div>
                         )}
-                        {swapChoice && (
-                            <div className="r1-swap-choice r1-glass" role="group" aria-label="Position conquest">
-                                <strong>Player {G.pendingSwap.targetPlayerId + 1} fell!</strong>
-                                <span>Take their hex instead of moving, or keep your position and continue.</span>
-                                <div className="r1-action-row">
-                                    <button type="button" className="r1-move-button" onClick={() => resolveSwap(true)}>
-                                        Swap positions
-                                    </button>
-                                    <button type="button" onClick={() => resolveSwap(false)}>
-                                        Keep position
-                                    </button>
-                                </div>
-                            </div>
-                        )}
                         {detailCard && feedback && (
-                            <div
-                                className="r1-card-detail r1-glass"
-                                data-selected={!!selectedCard && !inspectingOther}
-                                data-closable={!!selectedCard || !!inspection?.pinned}
-                                aria-live="polite"
-                            >
-                                <img className="r1-inspection-art" src={cardArt[detailCard.Name]} alt="" />
-                                <div className="r1-inspection-body">
-                                    <div className="r1-inspection-heading">
-                                        <strong>{detailCard.Name}</strong>
-                                        <span
-                                            className="r1-card-availability"
-                                            data-playable={feedback.playable}
-                                            role="img"
-                                            aria-label={feedback.playable ? 'Available' : 'Unavailable'}
-                                        >
-                                            <FeedbackIcon kind={feedback.playable ? 'active' : 'lock'} />
-                                        </span>
-                                    </div>
-                                    <p className="r1-card-description">{descriptions[detailCard.Name]}</p>
-                                    {feedback.reason && (
-                                        <span className="r1-blocked-reason">
-                                            <FeedbackIcon kind="blocked" />
-                                            {feedback.reason}
-                                        </span>
-                                    )}
-                                    {feedback.playable && (
-                                        <div className="r1-card-guidance">
-                                            {['Energy x2', 'Lifeguard float'].includes(detailCard.Name) && (
-                                                <span className="r1-card-target-count">
-                                                    Your energy: {feedback.action}
-                                                </span>
-                                            )}
-                                            {canConfirmCard && !inspectingOther ? (
-                                                <button type="button" className="r1-confirm-card" onClick={confirmCard}>
-                                                    Use card
-                                                </button>
-                                            ) : (
-                                                <span className="r1-card-next-action">
-                                                    <FeedbackIcon kind="move" />
-                                                    {nextCardAction}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
-                                    {selectedCard && attacking && !inspectingOther && targetButtons}
-                                </div>
-                                {(selectedCard || inspection?.pinned) && (
-                                    <CloseButton
-                                        className="r1-inspection-close"
-                                        label={selectedCard ? 'Deselect card' : 'Close card information'}
-                                        onClick={() => {
-                                            inspectCard(null)
-                                            if (selectedCard) setSelection(null)
-                                        }}
-                                    />
-                                )}
-                            </div>
+                            <CardContextPanel
+                                key={detailCard.id}
+                                card={detailCard}
+                                feedback={feedback}
+                                selected={!!selectedCard && !inspectingOther}
+                                closable={!!selectedCard || !!inspection?.pinned}
+                                nextAction={nextCardAction}
+                                canConfirm={canConfirmCard && !inspectingOther}
+                                onConfirm={confirmCard}
+                                targetButtons={selectedCard && !inspectingOther ? targetButtons : null}
+                                playerTargets={attacking}
+                                onClose={() => {
+                                    inspectCard(null)
+                                    if (selectedCard) setSelection(null)
+                                }}
+                            />
                         )}
                         <div
                             className="r1-hud-context r1-glass"
@@ -967,18 +1221,32 @@ export default function R1Controls({
                                 <span>Position conquered. Use one remaining non-movement card or end turn.</span>
                             )}
                             {G.currentMove === 'recover' && (
-                                <div className="r1-action-row">
+                                <div className="r1-action-row r1-recovery-actions" role="group" aria-label="Recovery options">
                                     <button
                                         type="button"
                                         className="r1-recover-button"
                                         onClick={() => {
+                                            inspectCard(null)
                                             setSelection(null)
                                             moves.recover()
                                         }}
                                     >
                                         Recover free (1 energy)
                                     </button>
-                                    <span>Or use Lifeguard Float.</span>
+                                    {recoveryCardIndex >= 0 && (
+                                        <button
+                                            type="button"
+                                            className="r1-lifeguard-button"
+                                            onClick={() => {
+                                                if (!r1CardPlayable(G, ctx, recoveryCardIndex)) return
+                                                inspectCard(null)
+                                                setSelection(null)
+                                                moves.useCard(recoveryCardIndex)
+                                            }}
+                                        >
+                                            Use Lifeguard float (3 energy)
+                                        </button>
+                                    )}
                                 </div>
                             )}
                             {selection?.kind === 'drop' && !dropReason && selectedDefender && (
@@ -1028,41 +1296,14 @@ export default function R1Controls({
                                             ))}
                                         </span>
                                     </div>
-                                    <div className="r1-dice-options">
-                                        {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map((count) => {
-                                            const odds = selectedDefender
-                                                ? getDropInAdvantage(player.energy, selectedDefender.energy, count)
-                                                : null
-                                            return (
-                                                <button
-                                                    type="button"
-                                                    className="r1-dice-button"
-                                                    key={count}
-                                                    aria-label={count === 1 ? '1 die' : count + ' dice'}
-                                                    aria-describedby={'r1-dice-loss-' + count}
-                                                    aria-pressed={selection.diceCount === count}
-                                                    data-advantage={odds?.tone}
-                                                    onClick={() => setSelection({ ...selection, diceCount: count })}
-                                                >
-                                                    <span className="r1-dice-option-faces" aria-hidden="true">
-                                                        {Array.from({ length: count }, (_, i) => (
-                                                            <span className="r1-dice-option-face" key={i} />
-                                                        ))}
-                                                    </span>
-                                                    <span>{count === 1 ? '1 die' : count + ' dice'}</span>
-                                                    <DropInAdvantage odds={odds} />
-                                                    <span className="r1-dice-option-loss" aria-hidden="true">
-                                                        You: up to −{odds?.maxLoss ?? count} ⚡
-                                                    </span>
-                                                    <span className="r1-sr-only" id={'r1-dice-loss-' + count}>
-                                                        {odds ? odds.tone + ' · ' : ''}Maximum own energy loss:{' '}
-                                                        {odds?.maxLoss ?? count}
-                                                    </span>
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                    <small className="r1-odds-assumption">Chance if you keep attacking.</small>
+                                    <DiceChoices
+                                        attackerEnergy={player.energy}
+                                        defenderEnergy={selectedDefender.energy}
+                                        maxDice={maxAttackDice}
+                                        selected={selection.diceCount}
+                                        onSelect={(count) => setSelection({ ...selection, diceCount: count })}
+                                        scope="initial"
+                                    />
                                     {selection.targetPlayerId !== undefined && (
                                         <button
                                             type="button"
@@ -1116,19 +1357,27 @@ export default function R1Controls({
                                     </div>
                                 )}
                             {selection?.targetPlayerId === undefined &&
-                                (!selectedCard || (!attacking && !inspectingOther)) &&
+                                !selectedCard &&
                                 (selection || !['use_card', 'maneuver'].includes(G.currentMove)) &&
                                 targetButtons}
                         </div>
-                        {!handHidden && (
-                            <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
+                        {handVisible && (
+                            <div
+                                ref={handRef}
+                                className="r1-hand"
+                                aria-label={'Player ' + (hand.position + 1) + ' hand'}
+                            >
                                 {hand.cards.map((card, index) => {
                                     const { reason, playable } = getR1CardFeedback(G, ctx, index)
                                     return (
-                                        <button
-                                            type="button"
+                                        <R1Card
+                                            interactive
+                                            name={card.Name}
+                                            description={descriptions[card.Name] + (card.Name === 'Jumping' ? ' Playing this card ends your turn.' : '') + ' ' + (reason || '')}
                                             key={card.id}
-                                            data-card-tone={cardTone[card.Name]}
+                                            data-new-card={
+                                                (!!receivedThisRoll && card.id === receivedCard.id) || undefined
+                                            }
                                             aria-disabled={!playable}
                                             aria-pressed={selection?.kind === 'card' && selection.index === index}
                                             style={{
@@ -1144,26 +1393,26 @@ export default function R1Controls({
                                             }}
                                             onClick={() => playCard(index)}
                                         >
-                                            <img
-                                                src={cardArt[card.Name]}
-                                                alt=""
-                                                className="r1-card-art"
-                                                draggable="false"
-                                            />
-                                            <strong>{card.Name}</strong>
-                                            <span className="r1-sr-only">
-                                                {descriptions[card.Name]} {reason}
-                                            </span>
-                                        </button>
+                                            {!!receivedThisRoll && card.id === receivedCard.id && (
+                                                <span className="r1-new-card-badge">New</span>
+                                            )}
+                                            {!playable && (
+                                                <span className="r1-card-unavailable-icon" aria-hidden="true">
+                                                    <FeedbackIcon kind="blocked" />
+                                                </span>
+                                            )}
+                                        </R1Card>
                                     )
                                 })}
                                 {!hand.cards.length && <span className="r1-empty-hand r1-glass">No cards in hand</span>}
                             </div>
                         )}
                     </div>
-                    {(!showTurnSteps || showFinishControl) && (
+                    {compactSwap && swapPanel}
+                    {!compactSwap && (!showTurnSteps || showFinishControl) && (
                         <div className="r1-action-bar r1-glass">
                             {!showTurnSteps && handToggle}
+                            {!showTurnSteps && reopenDiceButton}
                             {showFinishControl && (
                                 <button
                                     type="button"
@@ -1211,6 +1460,7 @@ export default function R1Controls({
                                     <FeedbackIcon kind="dropIn" />
                                     Drop In
                                 </button>
+                                {reopenDiceButton}
                                 <div className="r1-turn-guidance">
                                     {(!selection ||
                                         (selection.kind === 'drop' && selection.targetPlayerId === undefined)) && (
@@ -1218,25 +1468,11 @@ export default function R1Controls({
                                             {selection?.kind === 'drop'
                                                 ? 'Choose an opponent'
                                                 : G.currentMove === 'current_second'
-                                                ? 'Select a second hex'
+                                                ? 'Step 2/2 · Required'
+                                                : G.currentMove === 'current_first'
+                                                ? 'Step 1/2 · Select a hex'
                                                 : 'Select a hex'}{' '}
                                             <span aria-hidden="true">↗</span>
-                                        </span>
-                                    )}
-                                    {(cardRailState === 'used' || dropUsed) && (
-                                        <span className="r1-turn-history">
-                                            {cardRailState === 'used' && (
-                                                <span>
-                                                    <FeedbackIcon kind="check" />
-                                                    Card used
-                                                </span>
-                                            )}
-                                            {dropUsed && (
-                                                <span>
-                                                    <FeedbackIcon kind="check" />
-                                                    Drop In used
-                                                </span>
-                                            )}
                                         </span>
                                     )}
                                     {dropReason && !selection && (
