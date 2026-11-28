@@ -1,9 +1,10 @@
+import { hexNumber } from '../../map/layout/hexNumber'
 import React from 'react'
 import { CHANGE_RANGE, r1AttackRange, r1PlacementRange } from '../../game/r1/SurfKingR1'
 export { terrainArt } from './r1CardArt'
 
-export function HexBadge({ id }) {
-    return <span className="r1-hex-badge" aria-hidden="true">{id + 1}</span>
+export function HexBadge({ id, activeCellIds }) {
+    return <span className="r1-hex-badge" aria-hidden="true">{hexNumber(id, activeCellIds)}</span>
 }
 
 export function FeedbackIcon({ kind }) {
