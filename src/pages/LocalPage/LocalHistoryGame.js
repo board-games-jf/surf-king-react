@@ -150,8 +150,8 @@ export function HistoryAction({ action, round }) {
     )
 }
 
-export default function LocalHistoryGame({ numPlayers }) {
-    const client = useMemo(() => Client({ game: SurfKingR1, numPlayers, debug: false }), [numPlayers])
+export default function LocalHistoryGame({ numPlayers, gameDefinition = SurfKingR1 }) {
+    const client = useMemo(() => Client({ game: gameDefinition, numPlayers, debug: false }), [gameDefinition, numPlayers])
     const initial = useMemo(() => client.store.getState(), [client])
     const [game, setGame] = useState(() => client.getState())
     const [nodes, setNodes] = useState(() => [{ id: 0, parent: null, state: initial, action: { playerId: null, move: null, cardName: null, label: 'Match started', details: [] } }])
