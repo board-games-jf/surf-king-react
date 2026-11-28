@@ -1,3 +1,4 @@
+import { hexNumber } from '../../layout/hexNumber'
 import { createCardPiles } from './createCardPiles'
 import { createVictoryFireworks } from './createVictoryFireworks'
 import amuletIcon from '../../../assets/cards/r1/amulet-effect.png'
@@ -606,6 +607,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     canvas.width = 128
     canvas.height = 80
     const context = canvas.getContext('2d')
+    const drawLabel = (number, adaptive) => {
+    context.clearRect(0, 0, canvas.width, canvas.height)
     context.beginPath()
     context.arc(42, 40, 36, Math.PI / 2, Math.PI * 1.5)
     context.arc(86, 40, 36, -Math.PI / 2, Math.PI / 2)
@@ -627,13 +630,22 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     context.fillStyle = '#fff'
     context.textAlign = 'center'
     context.textBaseline = 'middle'
-    context.fillText(cell.id >= 49 ? 'FINISH' : String(cell.id + 1), cell.id >= 49 ? 78 : 64, 41, cell.id >= 49 ? 78 : 114)
+    if (cell.id >= 49 && adaptive) {
+      context.font = 'bold 20px sans-serif'
+      context.fillText('FINISH', 78, 26, 78)
+      context.font = 'bold 29px sans-serif'
+      context.fillText(String(number), 78, 54, 78)
+    } else context.fillText(cell.id >= 49 ? 'FINISH' : String(number), cell.id >= 49 ? 78 : 64, 41, cell.id >= 49 ? 78 : 114)
+    }
+    drawLabel(hexNumber(cell.id), false)
     const texture = new THREE.CanvasTexture(canvas)
     texture.colorSpace = THREE.SRGBColorSpace
     const label = new THREE.Mesh(cellLabelGeometry, new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, side: THREE.DoubleSide }))
     label.rotation.x = -Math.PI / 2
     label.position.set(cell.x, .21, cell.z + .84)
     label.userData.cellId = cell.id
+    label.userData.labelKey = String(hexNumber(cell.id)) + ':false'
+    label.userData.drawLabel = drawLabel
     cellLabels.add(label)
   }
   function ring(color){const o=new THREE.LineLoop(outlineGeo,new THREE.LineBasicMaterial({color}));o.position.y=.22;o.visible=false;scene.add(o);return o}
@@ -835,7 +847,19 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   function update(snapshot){
     activeCellIds = snapshot.activeCellIds ? new Set(snapshot.activeCellIds) : null
     cellGroups.forEach((group, id) => { group.visible = active(id) })
-    cellLabels.children.forEach(label => { label.visible = active(label.userData.cellId) })
+    cellLabels.children.forEach(label => {
+      const id = label.userData.cellId
+      label.visible = active(id)
+      if (!label.visible) return
+      const number = hexNumber(id, snapshot.activeCellIds)
+      const adaptive = !!snapshot.activeCellIds
+      const key = String(number) + ':' + adaptive
+      if (label.userData.labelKey !== key) {
+        label.userData.drawLabel(number, adaptive)
+        label.material.map.needsUpdate = true
+        label.userData.labelKey = key
+      }
+    })
     hexDepth.setActiveCellIds(snapshot.activeCellIds)
     if (hoverId !== null && !active(hoverId)) hoverId = null
     cardPiles.update(snapshot.cardPiles);layeredInteraction = !!snapshot.targetHighlight;
