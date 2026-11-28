@@ -439,7 +439,7 @@ export function r1Maneuver(G, ctx, to) {
     arrive(G, ctx, p, from, to)
     if (first && alive(p) && freeNeighbors(G, p.cellPosition).length) {
         G.currentMove = 'current_second'
-        G.message = 'Surf Current: choose a second step or finish.'
+        G.message = 'Surf Current: choose your mandatory second step.'
     } else endR1Turn(G, ctx)
 }
 export function r1QuickManeuver(G, ctx, to) {
@@ -452,8 +452,8 @@ export function r1QuickManeuver(G, ctx, to) {
 export function passR1(G, ctx) {
     if (G.currentMove === 'swap_card') { G.currentMove = 'turn_end'; endR1Turn(G, ctx); return }
     if (G.currentMove === 'use_card') { G.currentMove = 'maneuver'; return }
-    if (G.currentMove === 'current_second' ||
-        (G.currentMove === 'maneuver' && r1MoveTargets(G, ctx).length === 0)) endR1Turn(G, ctx)
+    // Surf Current cannot be voluntarily interrupted between its two steps.
+    if (G.currentMove === 'maneuver' && r1MoveTargets(G, ctx).length === 0) endR1Turn(G, ctx)
     else return INVALID_MOVE
 }
 

@@ -50,7 +50,7 @@ const cardEffects = {
     Amulet: ['shield', 'Until next turn', 'good'],
     Change: ['move', 'Swap · replaces move', 'good'],
     'Hang loose': ['shield', 'Drop In only', 'good'],
-    'Surf Current': ['move', 'Up to 2 steps', 'good'],
+    'Surf Current': ['move', '2 required steps', 'good'],
 }
 export const cardEffectKind = name => cardEffects[name]?.[0] || 'wave'
 

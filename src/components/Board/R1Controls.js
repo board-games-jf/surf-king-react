@@ -40,7 +40,7 @@ const descriptions = {
     Amulet: 'Protect against opponent attacks and Change until your next turn.',
     Change: 'Swap positions with an unprotected standing opponent within 2 hexes instead of moving.',
     'Hang loose': 'Block Drop In until your next turn; attack cards and Change still apply.',
-    'Surf Current': 'Move up to two legal steps; draw only once.',
+    'Surf Current': 'Move two legal steps. Stop early only on reaching the beach or falling; draw only once if upright.',
 }
 
 export { r1SelectionTargets } from './r1TargetHighlight'
@@ -470,13 +470,12 @@ export default function R1Controls({
     const noMoveAvailable =
         G.currentMove === 'use_card' && !r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx).length
     const keyboardMoves =
-        !selection && ['use_card', 'maneuver', 'current_first'].includes(G.currentMove)
+        !selection && ['use_card', 'maneuver', 'current_first', 'current_second'].includes(G.currentMove)
             ? r1MoveTargets(G.currentMove === 'use_card' ? { ...G, currentMove: 'maneuver' } : G, ctx)
             : []
     const canPass =
         swapCard ||
         G.currentMove === 'use_card' ||
-        G.currentMove === 'current_second' ||
         (G.currentMove === 'maneuver' && targets.length === 0)
     const winner = G.winner !== null ? G.players[G.winner] : null
     const [dismissedMessage, setDismissedMessage] = useState(null)
@@ -676,15 +675,12 @@ export default function R1Controls({
     const moveLabel =
         G.currentMove === 'use_card'
             ? 'Continue'
-            : G.currentMove === 'current_second'
-            ? 'Finish movement'
             : canPass
             ? 'End turn'
             : 'Choose a hex'
     const showFinishControl =
         !swapChoice &&
         (swapCard ||
-            G.currentMove === 'current_second' ||
             (G.currentMove === 'maneuver' && !targets.length) ||
             noMoveAvailable)
     const handToggle = (
@@ -1472,7 +1468,9 @@ export default function R1Controls({
                                             {selection?.kind === 'drop'
                                                 ? 'Choose an opponent'
                                                 : G.currentMove === 'current_second'
-                                                ? 'Select a second hex'
+                                                ? 'Step 2/2 · Required'
+                                                : G.currentMove === 'current_first'
+                                                ? 'Step 1/2 · Select a hex'
                                                 : 'Select a hex'}{' '}
                                             <span aria-hidden="true">↗</span>
                                         </span>

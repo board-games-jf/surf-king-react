@@ -1,4 +1,4 @@
-import { r1MoveTargets, r1DropPlayerTargets, r1AttackTargetBlocks, r1MaxAttackDice, DROP_IN_RANGE } from '../../game/r1/SurfKingR1'
+import { isBeach, r1MoveTargets, r1DropPlayerTargets, r1AttackTargetBlocks, r1MaxAttackDice, DROP_IN_RANGE } from '../../game/r1/SurfKingR1'
 import { getDropInAdvantage } from './r1DropInOdds'
 import { HEX_TERRAIN } from '../../map/contract/hexStatus'
 import { getTargetBlockStyle } from '../../map/contract/targetHighlight'
@@ -17,7 +17,7 @@ export function getR1HexActions(G, ctx, id) {
         const risk = damage >= actor.energy && damage > 0 ? 'Entering will cause a fall.' : effect?.hazard ? effect.text : null
         options.push({ key: 'move', kind: 'move', label: 'Move',
             cost: damage ? '−' + damage + ' energy' : terrain === 'Island' ? (actor.energy === 5 ? 'Energy full' : '+' + Math.min(2, 5 - actor.energy) + ' energy') : 'Free',
-            detail: risk || (G.currentMove === 'current_first' ? 'First Surf Current step · second step if available' : 'End turn after movement'),
+            detail: risk || (G.currentMove === 'current_first' ? (isBeach(id) ? 'Finish the race' : 'Step 1/2 · Second step required') : G.currentMove === 'current_second' ? 'Step 2/2 · End turn' : 'End turn after movement'),
             risky: !!effect?.hazard, lethal: damage >= actor.energy && damage > 0 })
     }
     const targets = r1DropPlayerTargets(G, ctx)

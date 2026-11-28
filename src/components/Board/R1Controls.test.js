@@ -24,7 +24,7 @@ test('shows distinct illustrations and current R1 effects, including Surf Curren
     expect(stone).toHaveTextContent('the surfer who first enters normally loses 1 energy and Stone is removed')
     expect(within(hand).getByRole('button', { name: /Hang loose/i })).toHaveAttribute('data-card-tone', 'protection')
     expect(within(hand).getByRole('button', { name: /^Change\b/ })).toHaveAttribute('data-card-tone', 'jump')
-    expect(within(hand).getByRole('button', { name: /Surf Current/ })).toHaveTextContent('Move up to two legal steps')
+    expect(within(hand).getByRole('button', { name: /Surf Current/ })).toHaveTextContent('Move two legal steps')
     expect(within(hand).getByRole('button', { name: /Island/ })).toHaveTextContent(
         'every ordinary entry restores 2 energy; Island stays in place'
     )
@@ -1220,4 +1220,26 @@ test('Jumping announces card consumption and turn end before selecting a legal l
     fireEvent.click(within(panel).getByRole('button', { name: 'Deselect card' }))
     expect(setSelection).toHaveBeenLastCalledWith(null)
     expect(moves.useCard).not.toHaveBeenCalled()
+})
+
+
+test('Surf Current shows mandatory step progress and no voluntary finish control', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: xs => xs.slice() } }
+    const G = setupR1(ctx)
+    G.currentMove = 'current_first'
+    const moves = { pass: jest.fn(), quickManeuver: jest.fn() }
+    const props = { G, ctx, moves, selection: null, setSelection: jest.fn(), onTarget: jest.fn() }
+    const { rerender } = render(<R1Controls {...props} />)
+    expect(screen.getByText('Step 1/2 · Select a hex', { exact: false })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Finish movement' })).not.toBeInTheDocument()
+    G.players[0].cellPosition = 7
+    G.currentMove = 'current_second'
+    G.moved = true
+    rerender(<R1Controls {...props} />)
+    expect(screen.getByText('Step 2/2 · Required', { exact: false })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Finish movement' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'End turn' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Move to hex 15' }))
+    expect(moves.quickManeuver).toHaveBeenCalledWith(14)
+    expect(moves.pass).not.toHaveBeenCalled()
 })
