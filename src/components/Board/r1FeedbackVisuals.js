@@ -1,5 +1,5 @@
 import React from 'react'
-import { CHANGE_RANGE, R1_ATTACK_RANGE, R1_PLACEMENT_RANGE } from '../../game/r1/SurfKingR1'
+import { CHANGE_RANGE, r1AttackRange, r1PlacementRange } from '../../game/r1/SurfKingR1'
 export { terrainArt } from './r1CardArt'
 
 export function HexBadge({ id }) {
@@ -54,13 +54,14 @@ const cardEffects = {
 }
 export const cardEffectKind = name => cardEffects[name]?.[0] || 'wave'
 
-export function CardEffects({ name }) {
+export function CardEffects({ name, G = {} }) {
     const effect = cardEffects[name]
-    const range = (name === 'Change' ? CHANGE_RANGE : R1_ATTACK_RANGE[name]) || R1_PLACEMENT_RANGE[name] || (name === 'Jumping' ? 1 : 0)
+    const range = (name === 'Change' ? CHANGE_RANGE : r1AttackRange(G, name)) || r1PlacementRange(G, name) || (name === 'Jumping' ? 1 : 0)
     return <div className="r1-effect-row">
-        {range > 0 && <EffectChip kind="range">{R1_PLACEMENT_RANGE[name] ? 'Place: ' : ''}{range} {range === 1 ? 'hex' : 'hexes'}</EffectChip>}
+        {range > 0 && <EffectChip kind="range">{r1PlacementRange(G, name) ? 'Place: ' : ''}{range} {range === 1 ? 'hex' : 'hexes'}</EffectChip>}
         {effect && <EffectChip kind={effect[0]} tone={effect[2]}>{effect[1]}</EffectChip>}
-        {R1_ATTACK_RANGE[name] && <span className="r1-effect-note">Min. 1 energy</span>}
+        {G.boardSize && name === 'Hang loose' && <EffectChip kind="energy" tone="good">+1 energy</EffectChip>}
+        {r1AttackRange(G, name) && <span className="r1-effect-note">Min. 1 energy</span>}
     </div>
 }
 export function HexEffects({ info }) {
