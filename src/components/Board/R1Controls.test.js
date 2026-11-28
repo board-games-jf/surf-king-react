@@ -1191,3 +1191,33 @@ test.each(['close', 'escape', 'external'])('temporary hand collapse ends when a 
     fireEvent.click(screen.getByRole('button', { name: 'Hide cards' }))
     expect(screen.queryByLabelText('Player 1 hand')).not.toBeInTheDocument()
 })
+
+
+test('Jumping announces card consumption and turn end before selecting a legal landing', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].cellPosition = 21
+    G.players[0].cards = [createR1Deck().find(card => card.Name === 'Jumping')]
+    const moves = { useCard: jest.fn() }
+    const setSelection = jest.fn(), onTarget = jest.fn()
+    const props = { G, ctx, moves, selection: null, setSelection, onTarget }
+    const { rerender } = render(<R1Controls {...props} />)
+    const card = within(screen.getByLabelText('Player 1 hand')).getByRole('button', { name: /Jumping/ })
+    fireEvent.mouseEnter(card)
+    expect(screen.getByText('Playing this card ends your turn.')).toBeInTheDocument()
+    fireEvent.click(card)
+    expect(setSelection).toHaveBeenLastCalledWith({ kind: 'card', index: 0 })
+    expect(moves.useCard).not.toHaveBeenCalled()
+    rerender(<R1Controls {...props} selection={{ kind: 'card', index: 0 }} />)
+    const panel = screen.getByLabelText('Card information')
+    expect(within(panel).getByText('Choose a highlighted hex to use this card and end your turn.')).toBeInTheDocument()
+    expect(within(panel).queryByRole('button', { name: 'Use card' })).not.toBeInTheDocument()
+    const picker = within(panel).getByLabelText('Choose target hex by number').closest('details')
+    picker.open = true
+    fireEvent.click(within(picker).getByRole('button', { name: 'Select hex 29' }))
+    expect(onTarget).toHaveBeenCalledWith(28)
+    fireEvent.click(within(panel).getByRole('button', { name: 'Deselect card' }))
+    expect(setSelection).toHaveBeenLastCalledWith(null)
+    expect(moves.useCard).not.toHaveBeenCalled()
+})

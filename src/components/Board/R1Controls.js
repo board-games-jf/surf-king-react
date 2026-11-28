@@ -246,6 +246,7 @@ function DropResultDice({ result, players, currentPlayer, attackDice, defenseDic
 // One card panel owns the effect, next action, and optional target shortcuts.
 function CardContextPanel({ card, feedback, selected, closable, nextAction, canConfirm, onConfirm, targetButtons, playerTargets, onClose }) {
     const compactPlacement = selected && feedback.kind === 'placement'
+    const jumpEndsTurn = feedback.kind === 'jump'
     const placementNotes = {
         Stone: 'Normally damages on first entry, then disappears.',
         Storm: 'Damage on each ordinary entry.',
@@ -273,6 +274,11 @@ function CardContextPanel({ card, feedback, selected, closable, nextAction, canC
                 <p className="r1-card-description">
                     {compactPlacement ? placementNotes[card.Name] || descriptions[card.Name] : descriptions[card.Name]}
                 </p>
+                {jumpEndsTurn && (!selected || !feedback.playable) && (
+                    <span className="r1-card-turn-ending">
+                        <FeedbackIcon kind="clock" /> Playing this card ends your turn.
+                    </span>
+                )}
                 {feedback.reason && (
                     <span className="r1-blocked-reason">
                         <FeedbackIcon kind="blocked" />
@@ -287,8 +293,8 @@ function CardContextPanel({ card, feedback, selected, closable, nextAction, canC
                         {canConfirm ? (
                             <button type="button" className="r1-confirm-card" onClick={onConfirm}>Use card</button>
                         ) : (
-                            <span className="r1-card-next-action">
-                                <FeedbackIcon kind="move" />
+                            <span className="r1-card-next-action" data-turn-ending={selected && jumpEndsTurn}>
+                                <FeedbackIcon kind={selected && jumpEndsTurn ? 'clock' : 'move'} />
                                 {nextAction}
                             </span>
                         )}
@@ -632,6 +638,8 @@ export default function R1Controls({
         : feedback?.targets.length
         ? feedback.kind === 'attack'
             ? 'Choose a highlighted player.'
+            : feedback.kind === 'jump'
+            ? 'Choose a highlighted hex to use this card and end your turn.'
             : 'Choose a highlighted hex.'
         : 'Press Use card to confirm.'
     function inspectCard(cardId, pinned = false) {
@@ -1378,7 +1386,7 @@ export default function R1Controls({
                                         <R1Card
                                             interactive
                                             name={card.Name}
-                                            description={descriptions[card.Name] + ' ' + (reason || '')}
+                                            description={descriptions[card.Name] + (card.Name === 'Jumping' ? ' Playing this card ends your turn.' : '') + ' ' + (reason || '')}
                                             key={card.id}
                                             data-new-card={
                                                 (!!receivedThisRoll && card.id === receivedCard.id) || undefined
