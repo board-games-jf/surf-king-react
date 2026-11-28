@@ -1,3 +1,4 @@
+import { hexNumber } from '../../layout/hexNumber'
 import { createCardPiles } from './createCardPiles'
 import { createVictoryFireworks } from './createVictoryFireworks'
 import amuletIcon from '../../../assets/cards/r1/amulet-effect.png'
@@ -552,6 +553,9 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   const outlineGeo=new THREE.BufferGeometry().setFromPoints(outline)
   const lines=new THREE.LineBasicMaterial({color:'#b9ffec',transparent:true,opacity:.77})
   const targets = []
+  const cellGroups = new Map()
+  let activeCellIds = null
+  const active = id => !activeCellIds || activeCellIds.has(id)
   const hexDepth = createHexDepth(BOARD_LAYOUT, R)
   hexDepth.group.visible = true
   scene.add(hexDepth.group)
@@ -566,33 +570,36 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   const cellLabelGeometry = new THREE.PlaneGeometry(.84, .525)
   scene.add(cellLabels)
   for (const cell of BOARD_LAYOUT) {
+    const cellGroup = new THREE.Group()
+    scene.add(cellGroup)
+    cellGroups.set(cell.id, cellGroup)
     const hit = new THREE.Mesh(shapeGeo, hitMat)
     hit.position.set(cell.x, .12, cell.z)
     hit.rotation.x = -Math.PI / 2
     hit.userData.cellId = cell.id
-    scene.add(hit)
+    cellGroup.add(hit)
     targets.push(hit)
 
     const fill = new THREE.Mesh(shapeGeo, fillMaterial)
     fill.rotation.x = -Math.PI / 2
     // Keep the board fill above the ocean's maximum wave height (.08).
     fill.position.set(cell.x, .11, cell.z)
-    scene.add(fill)
+    cellGroup.add(fill)
     const edge = new THREE.LineLoop(outlineGeo, lines)
     edge.position.set(cell.x, .187, cell.z)
-    scene.add(edge)
+    cellGroup.add(edge)
     if (cell.id >= 49) {
       const finishFill = new THREE.Mesh(shapeGeo, finishFillMaterial)
       finishFill.rotation.x = -Math.PI / 2
       finishFill.position.set(cell.x, .19, cell.z)
       finishFill.scale.setScalar(.96)
-      scene.add(finishFill)
+      cellGroup.add(finishFill)
       for (const scale of [.96, .88]) {
         const finishEdge = new THREE.LineLoop(outlineGeo, finishEdgeMaterial)
         finishEdge.position.set(cell.x, .205, cell.z)
         finishEdge.scale.setScalar(scale)
         finishEdge.renderOrder = 2
-        scene.add(finishEdge)
+        cellGroup.add(finishEdge)
       }
     }
 
@@ -600,33 +607,45 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     canvas.width = 128
     canvas.height = 80
     const context = canvas.getContext('2d')
-    context.beginPath()
-    context.arc(42, 40, 36, Math.PI / 2, Math.PI * 1.5)
-    context.arc(86, 40, 36, -Math.PI / 2, Math.PI / 2)
-    context.closePath()
-    context.fillStyle = cell.id >= 49 ? 'rgba(17, 61, 57, .94)' : 'rgba(17, 84, 78, .78)'
-    context.fill()
-    if (cell.id >= 49) {
-      context.strokeStyle = '#ffda7b'
-      context.lineWidth = 4
-      context.stroke()
-      context.fillStyle = '#ffda7b'
-      context.fillRect(17, 24, 3, 34)
-      for (let row = 0; row < 2; row++) for (let column = 0; column < 3; column++) {
-        context.fillStyle = (row + column) % 2 ? '#16433d' : '#ffedb6'
-        context.fillRect(20 + column * 5, 25 + row * 6, 5, 6)
+    const drawLabel = (number, adaptive) => {
+      context.clearRect(0, 0, canvas.width, canvas.height)
+      context.beginPath()
+      context.arc(42, 40, 36, Math.PI / 2, Math.PI * 1.5)
+      context.arc(86, 40, 36, -Math.PI / 2, Math.PI / 2)
+      context.closePath()
+      context.fillStyle = cell.id >= 49 ? 'rgba(17, 61, 57, .94)' : 'rgba(17, 84, 78, .78)'
+      context.fill()
+      if (cell.id >= 49) {
+        context.strokeStyle = '#ffda7b'
+        context.lineWidth = 4
+        context.stroke()
+        context.fillStyle = '#ffda7b'
+        context.fillRect(17, 24, 3, 34)
+        for (let row = 0; row < 2; row++) for (let column = 0; column < 3; column++) {
+          context.fillStyle = (row + column) % 2 ? '#16433d' : '#ffedb6'
+          context.fillRect(20 + column * 5, 25 + row * 6, 5, 6)
+        }
       }
+      context.font = cell.id >= 49 ? 'bold 25px sans-serif' : 'bold 46px sans-serif'
+      context.fillStyle = '#fff'
+      context.textAlign = 'center'
+      context.textBaseline = 'middle'
+      if (cell.id >= 49 && adaptive) {
+        context.font = 'bold 20px sans-serif'
+        context.fillText('FINISH', 78, 26, 78)
+        context.font = 'bold 29px sans-serif'
+        context.fillText(String(number), 78, 54, 78)
+      } else context.fillText(cell.id >= 49 ? 'FINISH' : String(number), cell.id >= 49 ? 78 : 64, 41, cell.id >= 49 ? 78 : 114)
     }
-    context.font = cell.id >= 49 ? 'bold 25px sans-serif' : 'bold 46px sans-serif'
-    context.fillStyle = '#fff'
-    context.textAlign = 'center'
-    context.textBaseline = 'middle'
-    context.fillText(cell.id >= 49 ? 'FINISH' : String(cell.id + 1), cell.id >= 49 ? 78 : 64, 41, cell.id >= 49 ? 78 : 114)
+    drawLabel(hexNumber(cell.id), false)
     const texture = new THREE.CanvasTexture(canvas)
     texture.colorSpace = THREE.SRGBColorSpace
     const label = new THREE.Mesh(cellLabelGeometry, new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, side: THREE.DoubleSide }))
     label.rotation.x = -Math.PI / 2
     label.position.set(cell.x, .21, cell.z + .84)
+    label.userData.cellId = cell.id
+    label.userData.labelKey = String(hexNumber(cell.id)) + ':false'
+    label.userData.drawLabel = drawLabel
     cellLabels.add(label)
   }
   function ring(color){const o=new THREE.LineLoop(outlineGeo,new THREE.LineBasicMaterial({color}));o.position.y=.22;o.visible=false;scene.add(o);return o}
@@ -635,7 +654,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   const targetHighlights = createTargetHighlights(BOARD_LAYOUT, shapeGeo, outlineGeo)
   scene.add(targetHighlights.group, targetHighlights.interactionGroup, targetHighlights.statusGroup)
   let layeredInteraction = false
-  function positionRing(ring,id){const cell=Number.isInteger(id)?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
+  function positionRing(ring,id){const cell=Number.isInteger(id)&&active(id)?BOARD_LAYOUT[id]:null;ring.visible=!!cell;if(cell)ring.position.set(cell.x,.23,cell.z)}
   const cardPiles = createCardPiles()
   scene.add(cardPiles.group)
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2()
@@ -647,7 +666,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     raycaster.setFromCamera(pointer, camera)
     return raycaster.intersectObjects(cardPiles.hitTargets, false).length > 0
   }
-  function pick(event){const box=renderer.domElement.getBoundingClientRect();if(!box.width||!box.height)return null;pointer.set((event.clientX-box.left)/box.width*2-1,-(event.clientY-box.top)/box.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets,false)[0]?.object.userData.cellId??null}
+  function pick(event){const box=renderer.domElement.getBoundingClientRect();if(!box.width||!box.height)return null;pointer.set((event.clientX-box.left)/box.width*2-1,-(event.clientY-box.top)/box.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.intersectObjects(targets.filter(t => active(t.userData.cellId)),false)[0]?.object.userData.cellId??null}
   let start = null
   const pressedPointers = new Set()
   let hoverId = null
@@ -825,7 +844,25 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     delete renderer.domElement.dataset['surferMotion'+actor.id]
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
-  function update(snapshot){cardPiles.update(snapshot.cardPiles);layeredInteraction = !!snapshot.targetHighlight;
+  function update(snapshot){
+    activeCellIds = snapshot.activeCellIds ? new Set(snapshot.activeCellIds) : null
+    cellGroups.forEach((group, id) => { group.visible = active(id) })
+    cellLabels.children.forEach(label => {
+      const id = label.userData.cellId
+      label.visible = active(id)
+      if (!label.visible) return
+      const number = hexNumber(id, snapshot.activeCellIds)
+      const adaptive = !!snapshot.activeCellIds
+      const key = String(number) + ':' + adaptive
+      if (label.userData.labelKey !== key) {
+        label.userData.drawLabel(number, adaptive)
+        label.material.map.needsUpdate = true
+        label.userData.labelKey = key
+      }
+    })
+    hexDepth.setActiveCellIds(snapshot.activeCellIds)
+    if (hoverId !== null && !active(hoverId)) hoverId = null
+    cardPiles.update(snapshot.cardPiles);layeredInteraction = !!snapshot.targetHighlight;
     const winnerCell = snapshot.players.find(player => player.id === snapshot.winnerPlayerId)?.cellId
     victoryFireworks.setActive(snapshot.winnerPlayerId != null, BOARD_LAYOUT[winnerCell]?.x ?? 0)
     positionRing(selected, layeredInteraction ? null : snapshot.selectedCellId);hexDepth.select(layeredInteraction ? null : snapshot.selectedCellId)
@@ -840,7 +877,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       positionRing(marker, snapshot.targetHighlight ? null : snapshot.maneuverDestinations?.[index])
     })
     targetHighlights.update(snapshot.targetHighlight, true, new Set(snapshot.players.map(player => player.cellId).filter(id => id !== null)))
-    targetHighlights.setStatuses(snapshot.hexStatuses)
+    targetHighlights.setStatuses(snapshot.hexStatuses?.filter(status => active(status.id)))
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
       const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell
@@ -951,7 +988,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     hasSnapshot = true
     for(const [id,a] of actors)if(!live.has(id)){removeSurfer(a);actors.delete(id)}
     const keys=new Set()
-    for(const c of snapshot.cells)if(c.obstacleType){const key=c.id+':'+c.obstacleType+':'+(c.remainingTurns??'');keys.add(key);if(!obstacles.has(key))obstacles.set(key,createObstacle(c))}
+    for(const c of snapshot.cells)if(active(c.id) && c.obstacleType){const key=c.id+':'+c.obstacleType+':'+(c.remainingTurns??'');keys.add(key);if(!obstacles.has(key))obstacles.set(key,createObstacle(c))}
     for(const [key,g] of obstacles)if(!keys.has(key)){removeGroup(g);obstacles.delete(key)}
     const cardEvent = snapshot.cardVisualEvent
     if (hasCardSnapshot && cardEvent && cardEvent.id !== cardEventSeen) {
@@ -1434,7 +1471,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     moveCamera(offset, cameraTransition?.target)
   }
   function focusCell(id) {
-    if (!Number.isInteger(id) || !BOARD_LAYOUT[id]) return
+    if (!Number.isInteger(id) || !BOARD_LAYOUT[id] || !active(id)) return
     const cell = BOARD_LAYOUT[id]
     const offset = cameraTransition?.offset.clone() ?? cameraOffset()
     offset.radius = THREE.MathUtils.clamp(12, controls.minDistance, controls.maxDistance)

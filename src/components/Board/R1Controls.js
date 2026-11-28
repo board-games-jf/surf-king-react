@@ -1,3 +1,4 @@
+import { hexNumber } from '../../map/layout/hexNumber'
 import React, { useEffect, useRef, useState } from 'react'
 import './R1Hud.css'
 import PlayerIcon from './PlayerIcon'
@@ -42,6 +43,15 @@ const descriptions = {
     'Hang loose': 'Block Drop In until your next turn; attack cards and Change still apply.',
     'Surf Current': 'Move two legal steps. Stop early only on reaching the beach or falling; draw only once if upright.',
 }
+
+const adaptiveDescriptions = {
+    'Big wave': 'Opponent within 3 hexes loses up to 2 energy (minimum 1 remaining).',
+    Sunburn: 'Opponent within 4 hexes loses 1 energy (minimum 1 remaining).',
+    Tsunami: 'Opponent within 2 hexes loses up to 3 energy (minimum 1 remaining).',
+    Cyclone: 'Place within 3 hexes; entry redirects to a random free neighboring hex.',
+    'Hang loose': 'Gain 1 energy (max 5) and block Drop In until your next turn; attack cards and Change still apply.',
+}
+const describeCard = (G, name) => (G?.boardSize && adaptiveDescriptions[name]) || descriptions[name]
 
 export { r1SelectionTargets } from './r1TargetHighlight'
 
@@ -235,7 +245,7 @@ function DropResultDice({ result, players, currentPlayer, attackDice, defenseDic
 }
 
 // One card panel owns the effect, next action, and optional target shortcuts.
-function CardContextPanel({ card, feedback, selected, closable, nextAction, canConfirm, onConfirm, targetButtons, playerTargets, onClose }) {
+function CardContextPanel({ G, card, feedback, selected, closable, nextAction, canConfirm, onConfirm, targetButtons, playerTargets, onClose }) {
     const compactPlacement = selected && feedback.kind === 'placement'
     const jumpEndsTurn = feedback.kind === 'jump'
     const placementNotes = {
@@ -261,9 +271,9 @@ function CardContextPanel({ card, feedback, selected, closable, nextAction, canC
                         <FeedbackIcon kind={feedback.playable ? 'active' : 'lock'} />
                     </span>
                 </div>
-                {compactPlacement && <CardEffects name={card.Name} />}
+                {compactPlacement && <CardEffects name={card.Name} G={G} />}
                 <p className="r1-card-description">
-                    {compactPlacement ? placementNotes[card.Name] || descriptions[card.Name] : descriptions[card.Name]}
+                    {compactPlacement ? placementNotes[card.Name] || describeCard(G, card.Name) : describeCard(G, card.Name)}
                 </p>
                 {jumpEndsTurn && (!selected || !feedback.playable) && (
                     <span className="r1-card-turn-ending">
@@ -318,7 +328,7 @@ export function HexInspectionBody({ hexFeedback, expanded = false }) {
     return (
         <div className="r1-inspection-body r1-hex-elements">
             <div className="r1-inspection-heading">
-                <strong>Hex {hexFeedback.id + 1}</strong>
+                <strong>Hex {hexFeedback.number ?? hexNumber(hexFeedback.id)}</strong>
                 <span
                     className="r1-hex-number"
                     aria-label={(hexFeedback.occupants?.length || 0) + ' of ' + HEX_CAPACITY + ' spaces occupied'}
@@ -767,7 +777,7 @@ export default function R1Controls({
                                   odds={getDropInAdvantage(player.energy, G.players[id].energy, maxAttackDice)}
                               />
                               <span id={'r1-drop-target-' + id} className="r1-sr-only">
-                                  Hex {G.players[id].cellPosition + 1}; {G.players[id].energy} of 5 energy;{' '}
+                                  Hex {hexNumber(G.players[id].cellPosition, G.activeCellIds)}; {G.players[id].energy} of 5 energy;{' '}
                                   {getDropInAdvantage(player.energy, G.players[id].energy, maxAttackDice)?.tone} with{' '}
                                   {maxAttackDice} {maxAttackDice === 1 ? 'die' : 'dice'}
                               </span>
@@ -792,10 +802,10 @@ export default function R1Controls({
                           type="button"
                           key={id}
                           className="r1-target-hex"
-                          aria-label={'Select hex ' + (id + 1)}
+                          aria-label={'Select hex ' + hexNumber(id, G.activeCellIds)}
                           onClick={() => onTarget(id)}
                       >
-                          <HexBadge id={id} />
+                          <HexBadge id={id} activeCellIds={G.activeCellIds} />
                       </button>
                   ))}
         </div>
@@ -857,7 +867,7 @@ export default function R1Controls({
                     <>
                         <FeedbackIcon kind="flag" />
                         <strong>Player {winner.position + 1} wins!</strong>
-                        <span>First to the beach.</span>
+                        <span>{G.winnerReason === 'dominion' ? 'Last surfer standing.' : 'First to the beach.'}</span>
                     </>
                 ) : (
                     G.message !== dismissedMessage &&
@@ -939,7 +949,7 @@ export default function R1Controls({
                     <span className="r1-brand-wave" aria-hidden="true">
                         <FeedbackIcon kind="wave" />
                     </span>
-                    <span>ROUND</span>
+                    <span>{G.format ? G.format + ' · ROUND' : 'ROUND'}</span>
                     <strong>{String(G.turn).padStart(2, '0')}</strong>
                 </div>
                 <div className="r1-round-progress-label">
@@ -1157,10 +1167,10 @@ export default function R1Controls({
                                     <button
                                         type="button"
                                         key={id}
-                                        aria-label={'Move to hex ' + (id + 1)}
+                                        aria-label={'Move to hex ' + hexNumber(id, G.activeCellIds)}
                                         onClick={() => moves.quickManeuver(id)}
                                     >
-                                        <HexBadge id={id} />
+                                        <HexBadge id={id} activeCellIds={G.activeCellIds} />
                                     </button>
                                 ))}
                                 {!selection &&
@@ -1186,6 +1196,7 @@ export default function R1Controls({
                         )}
                         {detailCard && feedback && (
                             <CardContextPanel
+                                G={G}
                                 key={detailCard.id}
                                 card={detailCard}
                                 feedback={feedback}
@@ -1373,7 +1384,7 @@ export default function R1Controls({
                                         <R1Card
                                             interactive
                                             name={card.Name}
-                                            description={descriptions[card.Name] + (card.Name === 'Jumping' ? ' Playing this card ends your turn.' : '') + ' ' + (reason || '')}
+                                            description={describeCard(G, card.Name) + (card.Name === 'Jumping' ? ' Playing this card ends your turn.' : '') + ' ' + (reason || '')}
                                             key={card.id}
                                             data-new-card={
                                                 (!!receivedThisRoll && card.id === receivedCard.id) || undefined

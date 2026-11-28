@@ -33,3 +33,7 @@
 MVP acceptance criteria are **pending owner approval**. They should eventually specify supported player flows, platforms, rule references, game lifecycle, 53-cell interactions, and online recovery/persistence.
 
 Engineering completion for individual Issues follows [AGENTS.md](../AGENTS.md). The MVP itself has no approved Definition of Done yet.
+
+## Approved local adaptive playtest subset
+
+The owner approved Duel (2 players, 23 hexes), Competition (3 players on 23; 4–5 on 37), and Dominion (6–7 players, 53). First active beach arrival wins in every format; Dominion also ends after a fall leaves exactly one standing player. Unlimited Drop In remains. [Issue #66](https://github.com/board-games-jf/surf-king-react/issues/66) implements the separate selectable local trial; exact starts, shark locations, compensation and card ranges remain experimental. Acceptance for this subset requires both views to show only active hexes, authoritative legal targeting, correct immediate victory, reference R1/legacy regression protection and manual testing at each player count. This does not ratify the entire MVP or authorize release.

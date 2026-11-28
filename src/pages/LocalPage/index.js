@@ -1,16 +1,16 @@
 import React, { useState } from 'react'
 import { Client } from 'boardgame.io/react'
 import { SurfKingGame } from '../../game/SurfKingGame'
-import { SurfKingR1 } from '../../game/r1/SurfKingR1'
+import { SurfKingR1, SurfKingR1Adaptive } from '../../game/r1/SurfKingR1'
 import Board from '../../components/Board/Board'
 import LocalHistoryGame from './LocalHistoryGame'
 
 const LocalPage = () => {
     const [numPlayers, setNumPlayers] = useState(0)
-    const [ruleset, setRuleset] = useState('R1')
+    const [ruleset, setRuleset] = useState('adaptive')
 
     const SufKingClient = () => {
-        if (ruleset === 'R1') return <LocalHistoryGame numPlayers={numPlayers} />
+        if (ruleset === 'adaptive' || ruleset === 'R1') return <LocalHistoryGame numPlayers={numPlayers} gameDefinition={ruleset === 'adaptive' ? SurfKingR1Adaptive : SurfKingR1} />
         const SKClient = Client({
             game: ruleset === 'R1' ? SurfKingR1 : SurfKingGame,
             numPlayers: numPlayers,
@@ -26,13 +26,17 @@ const LocalPage = () => {
                 <div style={{ margin: 'auto', width: '50%' }}>
                     <p>Select rules:</p>
                     <label>
+                        <input type="radio" name="ruleset" checked={ruleset === 'adaptive'} onChange={() => setRuleset('adaptive')} />{' '}
+                        R1.12.1 adaptive playtest
+                    </label>
+                    <label>
                         <input
                             type="radio"
                             name="ruleset"
                             checked={ruleset === 'R1'}
                             onChange={() => setRuleset('R1')}
                         />{' '}
-                        R1 experimental pilot
+                        R1 reference pilot
                     </label>
                     <label>
                         <input

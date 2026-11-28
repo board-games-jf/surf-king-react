@@ -1,3 +1,4 @@
+import { hexNumber } from '../../map/layout/hexNumber'
 import { isBeach, r1DropTargets, r1MoveTargets, R1_ATTACK_RANGE, R1_PLACEMENT_RANGE, r1Occupants, HEX_CAPACITY, r1PlayerCard, r1DropPlayerTargets, r1CardPlayerTargets } from '../../game/r1/SurfKingR1'
 import { getTargetBlockStyle } from '../../map/contract/targetHighlight'
 import { getR1TargetHighlight, r1SelectionTargets } from './r1TargetHighlight'
@@ -6,7 +7,8 @@ import { HEX_TERRAIN as terrain } from '../../map/contract/hexStatus'
 
 // Read-only presentation. All executable target decisions come from the engine.
 export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
-    if (!Number.isInteger(id) || !G.cells[id]) return null
+    const number = hexNumber(id, G.activeCellIds)
+    if (number == null || !G.cells[id]) return null
     highlight = highlight || getR1TargetHighlight(G, ctx, selection)
     const cell = G.cells[id]
     const player = G.players[ctx.currentPlayer]
@@ -79,7 +81,7 @@ export function getR1HexFeedback(G, ctx, id, selection, highlight = null) {
     }
     const ordinaryMove = !selection && (legal || status === 'preview') && !full && !own && (!highlight || highlight.kind === 'move')
     const risk = ordinaryMove && effect?.damage >= player.energy ? 'Entering will cause a fall.' : null
-    return { id, title, entry, occupantText, action, status, risk, full, occupants: occupants.map(p => {
+    return { id, number, title, entry, occupantText, action, status, risk, full, occupants: occupants.map(p => {
         const rejected = highlight?.blocked?.find(b => b.playerId === p.position)
         const states = [
             G.winner === p.position ? 'Winner' : isBeach(id) ? 'Finished' : p.energy === 0 ? 'Fallen' : null,

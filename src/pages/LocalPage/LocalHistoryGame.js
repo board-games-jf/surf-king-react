@@ -1,3 +1,4 @@
+import { hexNumber } from '../../map/layout/hexNumber'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Client } from 'boardgame.io/client'
 import { SurfKingR1 } from '../../game/r1/SurfKingR1'
@@ -29,7 +30,8 @@ export function describeAction(state, previous) {
     const playerId = id => id != null && id !== '' && Number.isInteger(Number(id)) && Number(id) >= 0 && Number(id) < 7 ? Number(id) : null
     const targetDetail = id => ({ kind: 'player', playerId: playerId(id) })
     const hexDetail = (id, landed = false) => ({ kind: 'hex', id, landed })
-    const hexLabel = id => Number.isInteger(id) && id >= 0 && id < 53 ? 'Hex ' + (id + 1) : ''
+    const activeCellIds = state.G?.activeCellIds ?? previous?.G?.activeCellIds
+    const hexLabel = id => hexNumber(id, activeCellIds) != null
     let label = names[move] || (move ? move.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()) : 'Game update')
     const details = []
     let cardName = null
@@ -78,11 +80,11 @@ function energyText(detail) {
     return (detail.delta < 0 ? '−' : '+') + Math.abs(detail.delta) + (detail.subject ? ' ' + detail.subject : '') + ' energy'
 }
 
-function formatAction(action) {
+function formatAction(action, activeCellIds) {
     const playerLabel = id => id == null ? '' : 'P' + (id + 1)
     const details = action.details.map(detail => {
         if (detail.kind === 'player') return playerLabel(detail.playerId)
-        if (detail.kind === 'hex') return (detail.landed ? 'Landed ' : '') + 'Hex ' + (detail.id + 1)
+        if (detail.kind === 'hex') return (detail.landed ? 'Landed ' : '') + 'Hex ' + hexNumber(detail.id, activeCellIds)
         if (detail.kind === 'energy') return energyText(detail)
         return detail.text
     })
@@ -90,7 +92,7 @@ function formatAction(action) {
 }
 
 export function describe(state, previous) {
-    return formatAction(describeAction(state, previous))
+    return formatAction(describeAction(state, previous), state.G?.activeCellIds ?? previous?.G?.activeCellIds)
 }
 
 const moveVisual = {
@@ -103,7 +105,7 @@ const moveVisual = {
     pass: { icon: 'clock', tone: 'neutral' },
 }
 
-function HistoryDetail({ detail }) {
+function HistoryDetail({ detail, activeCellIds }) {
     if (detail.kind === 'player') return (
         <span className="r1-history-detail"><FeedbackIcon kind="target" />
             <PlayerIcon playerId={detail.playerId} variant="r1-history-target" />
@@ -112,7 +114,7 @@ function HistoryDetail({ detail }) {
     if (detail.kind === 'hex') return (
         <span className="r1-history-detail">
             {detail.landed && <FeedbackIcon kind="move" />}
-            <HexBadge id={detail.id} />
+            <HexBadge id={detail.id} activeCellIds={activeCellIds} />
         </span>
     )
     if (detail.kind === 'energy') return (
@@ -124,7 +126,7 @@ function HistoryDetail({ detail }) {
 }
 
 // The shared visual primitives keep history consistent with the game HUD.
-export function HistoryAction({ action, round }) {
+export function HistoryAction({ action, round, activeCellIds }) {
     const visual = moveVisual[action.move] || { icon: 'flag', tone: 'neutral' }
     const tone = cardTone[action.cardName] || visual.tone
     const hasArtwork = Boolean(cardArt[action.cardName])
@@ -142,7 +144,7 @@ export function HistoryAction({ action, round }) {
                     {action.cardName || action.label}
                 </strong>
                 {action.details.length > 0 && <span className="r1-history-details">
-                    {action.details.map((detail, i) => <HistoryDetail key={i} detail={detail} />)}
+                    {action.details.map((detail, i) => <HistoryDetail key={i} detail={detail} activeCellIds={activeCellIds} />)}
                 </span>}
             </span>
             {hasArtwork && <R1Card name={action.cardName} variant="thumbnail" className="r1-history-card-art" />}
@@ -150,8 +152,8 @@ export function HistoryAction({ action, round }) {
     )
 }
 
-export default function LocalHistoryGame({ numPlayers }) {
-    const client = useMemo(() => Client({ game: SurfKingR1, numPlayers, debug: false }), [numPlayers])
+export default function LocalHistoryGame({ numPlayers, gameDefinition = SurfKingR1 }) {
+    const client = useMemo(() => Client({ game: gameDefinition, numPlayers, debug: false }), [gameDefinition, numPlayers])
     const initial = useMemo(() => client.store.getState(), [client])
     const [game, setGame] = useState(() => client.getState())
     const [nodes, setNodes] = useState(() => [{ id: 0, parent: null, state: initial, action: { playerId: null, move: null, cardName: null, label: 'Match started', details: [] } }])
@@ -274,10 +276,10 @@ export default function LocalHistoryGame({ numPlayers }) {
                                         <button
                                             type="button"
                                             aria-pressed={preview === item.id}
-                                            aria-label={'Round ' + (item.round ?? item.state.G.turn ?? 1) + ' · ' + formatAction(item.action)}
+                                            aria-label={'Round ' + (item.round ?? item.state.G.turn ?? 1) + ' · ' + formatAction(item.action, item.state.G.activeCellIds)}
                                             onClick={() => setPreview(item.id)}
                                         >
-                                            <HistoryAction action={item.action} round={item.round ?? item.state.G.turn ?? 1} />
+                                            <HistoryAction action={item.action} activeCellIds={item.state.G.activeCellIds} round={item.round ?? item.state.G.turn ?? 1} />
                                         </button>
                                     </li>
                                 ))}

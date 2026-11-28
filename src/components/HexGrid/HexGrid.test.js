@@ -135,3 +135,23 @@ test('hazard, capacity and selection coexist with legal action highlights', () =
     expect(full.querySelector('[data-hex-occupancy]')).not.toBeInTheDocument()
     expect(full.querySelector('[data-hex-blocked]')).toBeInTheDocument()
 })
+
+
+test.each([2, 4, 6])('active course filters hidden cells at cut %i without renumbering', cut => {
+    const ids = BOARD_LAYOUT.filter(c => Math.abs(c.x) <= cut).map(c => c.id)
+    const click = jest.fn()
+    const { container } = render(<HexGrid activeCellIds={ids} onHexClick={click} renderCell={() => null} cellProps={() => ({})} />)
+    expect(Array.from(container.querySelectorAll('[data-cell-id]'), cell => Number(cell.dataset.cellId))).toEqual(ids)
+    fireEvent.click(container.querySelector('[data-cell-id="50"]'))
+    expect(click).toHaveBeenCalledWith({ position: 50 })
+})
+
+
+test.each([2, 4, 6])('continuous visual numbering keeps original click IDs for cut %i', cut => {
+    const ids = BOARD_LAYOUT.filter(c => Math.abs(c.x) <= cut).map(c => c.id)
+    const click = jest.fn()
+    const { container } = render(<HexGrid activeCellIds={ids} cellProps={() => ({})} renderCell={() => null} onHexClick={click} />)
+    expect(Array.from(container.querySelectorAll('[data-hex-number]'), node => Number(node.textContent))).toEqual(ids.map((_, i) => i + 1))
+    fireEvent.click(container.querySelector('[data-cell-id="' + ids.at(-1) + '"]'))
+    expect(click).toHaveBeenCalledWith({ position: ids.at(-1) })
+})

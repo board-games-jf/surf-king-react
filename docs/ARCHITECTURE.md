@@ -1,5 +1,9 @@
 # Architecture
 
+## R1.12.1 adaptive pilot (#66; experimental branch)
+
+The adaptive local game uses the same R1 engine and history client, selected by game definition. Stable IDs and the 53-cell state array are preserved; adaptive adjacency/distance queries derive from 23/37/53-cell masks. Reference R1 keeps its original deck/ranges/setup. A public snapshot exposes active IDs without private card data. The SVG grid filters cells; the 3D scene groups cell meshes, hides inactive labels, filters raycast targets and status overlays, and rebuilds depth geometry for the active mask. Scenery is independent of playable geometry. `src/map/layout/hexNumber.js` derives a presentation-only 1-based ordinal from canonical active IDs, shared by SVG labels, Three.js label textures, contextual feedback, target shortcuts and match-history formatting. History derives the label from each node's snapshot and retains the actual engine destination IDs; inactive cells have no display number. Reference/legacy numbering is unchanged. The current branch retains the existing camera and ocean; fit/refinement and actual 2D/3D browser validation remain pending. See #66 and the R1.12.1 consolidated candidate. These are branch changes, not main behavior.
+
 **Reference main baseline before PR #14:** `6daa1705` (2026-11-15). Deployment status is not established by merge state.
 
 ## Existing browser architecture (C4-style L2)

@@ -19,6 +19,7 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
         maneuverDestinations: G.ruleset === 'R1' ? r1MoveTargets(G, ctx) : G.cells.flatMap((_, id) =>
             G.cells[activeCellId] && canManeuver(G, ctx, activeCellId, id) ? [id] : []
         ),
+        ...(G.activeCellIds ? { activeCellIds: G.activeCellIds.slice() } : {}),
         cells: G.cells.map((cell, id) => ({
             id,
             obstacleType: cell?.obstacle?.Name || null,
@@ -36,7 +37,7 @@ export function createPublicMapSnapshot(G, ctx, selectedCellId = null) {
         ...(G.ruleset === 'R1' && G.cardVisualEvent ? { cardVisualEvent: G.cardVisualEvent } : {}),
         turn: G.turn,
         activePlayerId: ctx?.currentPlayer == null ? null : String(ctx.currentPlayer),
-        selectedCellId: Number.isInteger(selectedCellId) && selectedCellId >= 0 && selectedCellId < 53
+        selectedCellId: Number.isInteger(selectedCellId) && selectedCellId >= 0 && selectedCellId < 53 && (!G.activeCellIds || G.activeCellIds.includes(selectedCellId))
             ? selectedCellId : null,
     }
 }

@@ -1,3 +1,4 @@
+import { hexNumber } from '../../map/layout/hexNumber'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { HexGrid } from '../HexGrid'
 import './Board.css'
@@ -398,6 +399,7 @@ const Board = ({ G, ctx, moves, viewMode: controlledViewMode, onViewModeChange }
             return
         }
 
+        if (G.activeCellIds && cellPosition < 49) return null
         return (
             <text
                 x="50%"
@@ -407,12 +409,13 @@ const Board = ({ G, ctx, moves, viewMode: controlledViewMode, onViewModeChange }
                 style={{ fill: isR1 && cellPosition >= 49 ? '#fff4c5' : 'white' }}
                 textAnchor="middle"
             >
-                {isR1 && cellPosition >= 49 ? 'FINISH' : cellPosition + 1}
+                {isR1 && cellPosition >= 49 ? 'FINISH' : hexNumber(cellPosition, G.activeCellIds)}
             </text>
         )
     }
 
     const onHexClickedHandle = (cell, corners) => {
+        if (G.activeCellIds && !G.activeCellIds.includes(cell.position)) return
         if (isR1) {
             if (!r1Selection) {
                 const rect = mapRef.current?.getBoundingClientRect()
@@ -692,6 +695,7 @@ const Board = ({ G, ctx, moves, viewMode: controlledViewMode, onViewModeChange }
                     />
                 ) : (
                     <HexGrid
+                        activeCellIds={G.activeCellIds}
                         cellProps={cellProps}
                         renderCell={renderCell}
                         onHexHover={isR1 ? setHoveredHex : undefined}

@@ -1,5 +1,5 @@
 import {
-    MAX_ENERGY, R1_ATTACK_RANGE, R1_PLACEMENT_RANGE, isBeach,
+    MAX_ENERGY, r1AttackRange, r1PlacementRange, isBeach,
     r1CardPlayable, r1CardTargets, r1MoveTargets, r1AttackUnavailableReason, r1AttackTargetBlocks, r1CardPlayerTargets, CHANGE_RANGE,
 } from '../../game/r1/SurfKingR1'
 
@@ -10,9 +10,9 @@ export function getR1CardFeedback(G, ctx, index) {
     if (!card) return null
     const name = card.Name
     const change = name === 'Change'
-    const attack = change ? CHANGE_RANGE : R1_ATTACK_RANGE[name]
+    const attack = change ? CHANGE_RANGE : r1AttackRange(G, name)
     const targetKind = change ? 'change' : 'card'
-    const placement = R1_PLACEMENT_RANGE[name]
+    const placement = r1PlacementRange(G, name)
     const kind = attack ? 'attack' : placement ? 'placement' : name === 'Jumping' ? 'jump' : 'move'
     const playable = G.winner == null && r1CardPlayable(G, ctx, index)
     const targets = playable ? r1CardTargets(G, ctx, index) : []
@@ -45,7 +45,7 @@ export function getR1CardFeedback(G, ctx, index) {
         else if (name === 'Energy x2') action = player.energy + ' → ' + Math.min(MAX_ENERGY, player.energy + 2) + ' energy'
         else if (name === 'Lifeguard float') action = '0 → 3 energy'
         else if (name === 'Amulet') action = 'Protected until your next turn'
-        else if (name === 'Hang loose') action = 'No Drop In until your next turn'
+        else if (name === 'Hang loose') action = G.boardSize ? 'Gain up to 1 energy; no Drop In until your next turn' : 'No Drop In until your next turn'
     }
     const blocked = attack ? r1AttackTargetBlocks(G, ctx, attack, targets, targetKind, playerIds) : []
     return { playable, reason, kind, targets, playerIds, previewIds, action, blocked }
