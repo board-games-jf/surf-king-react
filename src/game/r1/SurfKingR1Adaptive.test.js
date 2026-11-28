@@ -133,7 +133,8 @@ test('adaptive Hang Loose gains one energy and reference only protects', () => {
 })
 test('adaptive Surf Current rejects voluntary stop after first step', () => {
     const { G, ctx } = fixture(2)
-    const i = grant(G, 'Surf Current')
+    const existing = G.players[0].cards.findIndex(card => card.Name === 'Surf Current')
+    const i = existing >= 0 ? existing : grant(G, 'Surf Current')
     useR1Card(G, ctx, i)
     r1Maneuver(G, ctx, 8)
     expect(G.currentMove).toBe('current_second')
