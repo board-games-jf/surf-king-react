@@ -1035,6 +1035,7 @@ test('closing a pending knockdown keeps one compact decision with cards and resu
     const props = { G, ctx, moves, selection: null, setSelection, onRepeatDrop, onTarget: jest.fn() }
     const { rerender, unmount } = render(<R1Controls {...props} />)
     expect(screen.queryByRole('button', { name: 'Back from dice result' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Show cards' })).toHaveTextContent('Cards')
     fireEvent.click(screen.getByRole('button', { name: 'Close dice result' }))
     expect(screen.queryByLabelText('Drop In dice results')).not.toBeInTheDocument()
     const compact = screen.getByRole('group', { name: 'Position conquest' })
@@ -1042,7 +1043,9 @@ test('closing a pending knockdown keeps one compact decision with cards and resu
     expect(compact.parentElement.querySelector('.r1-action-bar')).toBeNull()
     expect(within(compact).getByText('Knockdown!')).toBeInTheDocument()
     expect(screen.getAllByRole('group', { name: 'Position conquest' })).toHaveLength(1)
+    expect(within(compact).getByRole('button', { name: 'Show cards' })).toHaveTextContent('Cards')
     fireEvent.click(within(compact).getByRole('button', { name: 'Show cards' }))
+    expect(within(compact).getByRole('button', { name: 'Hide cards' })).toHaveTextContent('Cards')
     expect(screen.getByLabelText('Player 1 hand')).toBeInTheDocument()
     fireEvent.click(within(compact).getByRole('button', { name: 'Hide cards' }))
     fireEvent.click(within(compact).getByRole('button', { name: 'Reopen dice result' }))

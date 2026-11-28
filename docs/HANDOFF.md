@@ -1,5 +1,7 @@
 # Project Handoff
 
+- PR #71: keep the Cards label visible in the shared hand toggle regardless of turn phase. Match its normal visual treatment in expanded and collapsed knockdown states and allow compact header tools to wrap rather than squeeze the label. Updated existing regression assertions; Jest/build/browser validation pending.
+
 - PR #71: fixed the compact knockdown avatar's inherited flex basis to match its 28px square dimensions; no other UI or game changes. CSS diff verified; browser confirmation pending.
 
 -   PR #71 pending knockdown correction: closing the expanded result collapses the unresolved position decision into one compact sticky dock panel with card access, reopen dice and Swap positions/Stay. The separate action bar is suppressed in that state; reopening restores the full result and already available decision without replaying a move or waiting again. Back-to-attack navigation is unavailable while a position decision is mandatory. Added React regression coverage for close, hand access, reopen, Stay and post-resolution review; Jest/build/browser validation still pending. No engine changes.

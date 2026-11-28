@@ -623,11 +623,9 @@ export default function R1Controls({
             <span className="r1-hand-toggle-icon" aria-hidden="true">
                 <FeedbackIcon kind="cards" />
             </span>
-            {showTurnSteps && (
-                <span className="r1-rail-copy">
-                    <strong>Cards</strong>
-                </span>
-            )}
+            <span className="r1-rail-copy">
+                <strong>Cards</strong>
+            </span>
             <span className="r1-hand-count" aria-hidden="true">
                 {hand.cards.length}/5
             </span>
