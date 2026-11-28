@@ -183,21 +183,18 @@ test('dice result offers a repeat only while the same opponent remains eligible'
     G.defDices = [3]
     G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 0 }
     const setSelection = jest.fn()
-    const props = { G, ctx, moves: {}, selection: null, setSelection, onTarget: jest.fn() }
+    const onRepeatDrop = jest.fn()
+    const props = { G, ctx, moves: {}, selection: null, setSelection, onRepeatDrop, onTarget: jest.fn() }
     const { rerender } = render(<R1Controls {...props} />)
     G.players[0].energy = 1
     rerender(<R1Controls {...props} />)
     expect(screen.queryByRole('button', { name: 'Attack again' })).not.toBeInTheDocument()
     G.players[0].energy = 3
     rerender(<R1Controls {...props} />)
+    expect(screen.getByText('Drop In result')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /1 die/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Attack again' }))
-    expect(setSelection).toHaveBeenCalledWith({
-        kind: 'drop',
-        diceCount: 2,
-        targetCell: 14,
-        targetPlayerId: 1,
-        returnTo: { kind: 'dice' },
-    })
+    expect(onRepeatDrop).toHaveBeenCalledWith(14, 1, 1)
     expect(screen.queryByLabelText('Drop In dice results')).not.toBeInTheDocument()
 })
 

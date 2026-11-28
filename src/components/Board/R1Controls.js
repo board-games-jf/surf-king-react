@@ -214,6 +214,9 @@ export default function R1Controls({
     selection,
     setSelection,
     onTarget,
+    rollingDrop = false,
+    lastDropOrigin = null,
+    onRepeatDrop = () => {},
     onBackAttack = () => {},
     targetHighlight,
     onPreviewCard = () => {},
@@ -270,6 +273,8 @@ export default function R1Controls({
         return () => clearTimeout(timer)
     }, [G.message, G.turn])
     const [dismissedDice, setDismissedDice] = useState(null)
+    const [repeatDice, setRepeatDice] = useState(null)
+    const repeatCount = Math.min(repeatDice ?? maxAttackDice, maxAttackDice)
     const diceKey =
         G.dropResult?.id != null
             ? 'roll:' + G.dropResult.id
@@ -716,126 +721,162 @@ export default function R1Controls({
                     </div>
                 )}
             </div>
-            {(winner ||
-                showDice ||
-                (G.message &&
-                    G.message !== dismissedMessage &&
-                    !G.message.startsWith('Drop In:') &&
-                    !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) &&
-                    /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) && (
-                <div className={'r1-match-event r1-glass' + (showDice ? ' r1-dice-event' : '')} aria-live="polite">
-                    {winner ? (
-                        <>
-                            <FeedbackIcon kind="flag" />
-                            <strong>Player {winner.position + 1} wins!</strong>
-                            <span>First to the beach.</span>
-                        </>
-                    ) : (
+            {!rollingDrop &&
+                (winner ||
+                    showDice ||
+                    (G.message &&
                         G.message !== dismissedMessage &&
-                        !(G.dropResult && G.message?.startsWith('Drop In:')) && <span>{G.message}</span>
-                    )}
-                    {showDice && (
-                        <CloseButton
-                            className="r1-dice-close"
-                            label="Close dice result"
-                            onClick={() => setDismissedDice(diceKey)}
-                        />
-                    )}
-                    {showDice && (
-                        <div className="r1-dice-results" aria-label="Drop In dice results">
-                            {G.dropResult && (
-                                <div className="r1-dice-sides">
-                                    {[
-                                        ['Attacker', G.dropResult.attackerId, G.dropResult.attackerLoss],
-                                        ['Defender', G.dropResult.defenderId, G.dropResult.defenderLoss],
-                                    ].map(([role, id, loss]) => (
-                                        <div
-                                            className="r1-dice-side"
-                                            key={role}
-                                            aria-label={role + ', Player ' + (id + 1) + ', ' + loss + ' energy lost'}
+                        !G.message.startsWith('Drop In:') &&
+                        !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) &&
+                        /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) && (
+                    <div className={'r1-match-event r1-glass' + (showDice ? ' r1-dice-event' : '')} aria-live="polite">
+                        {winner ? (
+                            <>
+                                <FeedbackIcon kind="flag" />
+                                <strong>Player {winner.position + 1} wins!</strong>
+                                <span>First to the beach.</span>
+                            </>
+                        ) : (
+                            G.message !== dismissedMessage &&
+                            !(G.dropResult && G.message?.startsWith('Drop In:')) && <span>{G.message}</span>
+                        )}
+                        {showDice && (
+                            <PanelHeader
+                                title="Drop In result"
+                                backLabel="Back from dice result"
+                                closeLabel="Close dice result"
+                                onBack={() => {
+                                    setDismissedDice(diceKey)
+                                    if (lastDropOrigin?.kind === 'hex') onBackAttack(lastDropOrigin)
+                                    else if (lastDropOrigin?.kind !== 'board')
+                                        setSelection({ kind: 'drop', diceCount: maxAttackDice })
+                                }}
+                                onClose={() => setDismissedDice(diceKey)}
+                            />
+                        )}
+                        {showDice && (
+                            <div className="r1-dice-results" aria-label="Drop In dice results">
+                                {G.dropResult && (
+                                    <div className="r1-dice-sides">
+                                        {[
+                                            ['Attacker', G.dropResult.attackerId, G.dropResult.attackerLoss],
+                                            ['Defender', G.dropResult.defenderId, G.dropResult.defenderLoss],
+                                        ].map(([role, id, loss]) => (
+                                            <div
+                                                className="r1-dice-side"
+                                                key={role}
+                                                aria-label={
+                                                    role + ', Player ' + (id + 1) + ', ' + loss + ' energy lost'
+                                                }
+                                            >
+                                                <PlayerIcon playerId={id} />
+                                                <EnergyMeter energy={G.players[id]?.energy ?? 0} lost={loss} />
+                                                {loss > 0 ? (
+                                                    <strong
+                                                        className="r1-dice-energy"
+                                                        data-loss="true"
+                                                        aria-hidden="true"
+                                                    >
+                                                        <FeedbackIcon kind="energy" />−{loss}
+                                                    </strong>
+                                                ) : (
+                                                    <span className="r1-dice-energy-placeholder" aria-hidden="true" />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                <div className="r1-dice-pairs" key={diceKey}>
+                                    {Array.from({ length: Math.max(G.atkDices.length, G.defDices.length) }, (_, i) => {
+                                        const attack = G.atkDices[i],
+                                            defense = G.defDices[i]
+                                        const result =
+                                            attack == null || defense == null
+                                                ? 'unpaired'
+                                                : attack === defense
+                                                ? 'tie'
+                                                : attack > defense
+                                                ? 'win'
+                                                : 'loss'
+                                        const label =
+                                            result === 'unpaired'
+                                                ? 'Unpaired'
+                                                : result === 'tie'
+                                                ? 'Tie'
+                                                : result === 'win'
+                                                ? 'Defender −1'
+                                                : 'Attacker −1'
+                                        return (
+                                            <div
+                                                key={i}
+                                                className="r1-dice-pair"
+                                                data-result={result}
+                                                aria-label={
+                                                    (attack == null ? 'No attacker die' : 'Attacker ' + attack) +
+                                                    ', ' +
+                                                    (defense == null ? 'no defender die' : 'defender ' + defense) +
+                                                    ', ' +
+                                                    label
+                                                }
+                                            >
+                                                <DiceFace value={attack} lost={result === 'loss'} />
+                                                <span className="r1-dice-versus" aria-hidden="true">
+                                                    {result === 'tie'
+                                                        ? '='
+                                                        : result === 'win'
+                                                        ? '→'
+                                                        : result === 'loss'
+                                                        ? '←'
+                                                        : '·'}
+                                                </span>
+                                                <DiceFace value={defense} lost={result === 'win'} />
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                        {showDice && repeatTarget != null && (
+                            <div className="r1-repeat-controls" aria-label="Repeat Drop In">
+                                <div className="r1-repeat-dice" role="group" aria-label="Attack dice">
+                                    {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map((count) => (
+                                        <button
+                                            type="button"
+                                            key={count}
+                                            aria-pressed={repeatCount === count}
+                                            onClick={() => setRepeatDice(count)}
                                         >
-                                            <PlayerIcon playerId={id} />
-                                            <EnergyMeter energy={G.players[id]?.energy ?? 0} lost={loss} />
-                                            {loss > 0 ? (
-                                                <strong className="r1-dice-energy" data-loss="true" aria-hidden="true">
-                                                    <FeedbackIcon kind="energy" />−{loss}
-                                                </strong>
-                                            ) : (
-                                                <span className="r1-dice-energy-placeholder" aria-hidden="true" />
-                                            )}
-                                        </div>
+                                            {count === 1 ? '1 die' : count + ' dice'}
+                                            <DropInAdvantage
+                                                odds={getDropInAdvantage(
+                                                    player.energy,
+                                                    G.players[repeatTarget].energy,
+                                                    count
+                                                )}
+                                            />
+                                        </button>
                                     ))}
                                 </div>
-                            )}
-                            <div className="r1-dice-pairs" key={diceKey}>
-                                {Array.from({ length: Math.max(G.atkDices.length, G.defDices.length) }, (_, i) => {
-                                    const attack = G.atkDices[i],
-                                        defense = G.defDices[i]
-                                    const result =
-                                        attack == null || defense == null
-                                            ? 'unpaired'
-                                            : attack === defense
-                                            ? 'tie'
-                                            : attack > defense
-                                            ? 'win'
-                                            : 'loss'
-                                    const label =
-                                        result === 'unpaired'
-                                            ? 'Unpaired'
-                                            : result === 'tie'
-                                            ? 'Tie'
-                                            : result === 'win'
-                                            ? 'Defender −1'
-                                            : 'Attacker −1'
-                                    return (
-                                        <div
-                                            key={i}
-                                            className="r1-dice-pair"
-                                            data-result={result}
-                                            aria-label={
-                                                (attack == null ? 'No attacker die' : 'Attacker ' + attack) +
-                                                ', ' +
-                                                (defense == null ? 'no defender die' : 'defender ' + defense) +
-                                                ', ' +
-                                                label
-                                            }
-                                        >
-                                            <DiceFace value={attack} lost={result === 'loss'} />
-                                            <span className="r1-dice-versus" aria-hidden="true">
-                                                {result === 'tie'
-                                                    ? '='
-                                                    : result === 'win'
-                                                    ? '→'
-                                                    : result === 'loss'
-                                                    ? '←'
-                                                    : '·'}
-                                            </span>
-                                            <DiceFace value={defense} lost={result === 'win'} />
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                            {repeatTarget != null && (
                                 <button
                                     type="button"
-                                    className="r1-repeat-drop"
+                                    className="r1-repeat-action"
                                     onClick={() => {
                                         setDismissedDice(diceKey)
-                                        setSelection({
-                                            kind: 'drop',
-                                            diceCount: maxAttackDice,
-                                            targetCell: G.players[repeatTarget].cellPosition,
-                                            targetPlayerId: repeatTarget,
-                                            returnTo: { kind: 'dice' },
-                                        })
+                                        onRepeatDrop(G.players[repeatTarget].cellPosition, repeatCount, repeatTarget)
                                     }}
                                 >
-                                    <FeedbackIcon kind="dropIn" />
                                     Attack again
                                 </button>
-                            )}
-                        </div>
-                    )}
+                            </div>
+                        )}
+                    </div>
+                )}
+            {rollingDrop && (
+                <div className="r1-roll-overlay" role="status" aria-live="polite" aria-label="Rolling dice">
+                    <div className="r1-roll-animation" aria-hidden="true">
+                        <span />
+                        <span />
+                    </div>
                 </div>
             )}
             {!winner && (

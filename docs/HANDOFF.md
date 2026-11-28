@@ -1,5 +1,6 @@
 # Project Handoff
 
+-   Drop In result keeps the dice choice and repeat action in the same panel, with a reusable back/title/close header. The local board delays the game move until the rolling animation ends and cancels it if the state changes. HUD and timing regressions passed (32); a local browser attack and repeat were exercised. Mobile visual review remains pending.
 -   Local R1 match history (#69) records complete boardgame.io states in memory and supports previewing and forking a timeline. Automated integration and desktop interaction checks cover a move, preview, fork, and preserved original; a seeded dice replay verifies restoration of random-plugin state. History does not persist across reloads; mobile visual validation is pending.
 -   Transient match messages dismiss after 3.5 seconds; dice results and victory feedback remain visible. HUD regression tests passed (30).
 -   Drop In dice selection returns to its actual entry point (hex inspector, opponent list, result, or board). Game panels now share the same close icon control. Focused HUD and inspector tests passed (31); shortcut return was checked in the live desktop match. Mobile visual review remains pending.

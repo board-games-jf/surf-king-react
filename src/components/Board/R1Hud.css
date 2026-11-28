@@ -3612,3 +3612,114 @@
 .r1-dice-target {
     flex-basis: 100%;
 }
+
+.r1-floating-hud .r1-repeat-controls {
+    display: grid;
+    gap: 7px;
+    width: 100%;
+    margin-top: 9px;
+}
+.r1-floating-hud .r1-repeat-dice {
+    display: flex;
+    gap: 6px;
+}
+.r1-floating-hud .r1-repeat-dice button {
+    flex: 1;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    padding: 7px;
+    border: 1px solid #6c999c;
+    border-radius: 8px;
+    background: #16454e;
+    color: #eaf8f2;
+    font-weight: 700;
+}
+.r1-floating-hud .r1-repeat-dice button[aria-pressed='true'] {
+    border: 2px solid #ffd477;
+    padding: 6px;
+}
+.r1-floating-hud .r1-repeat-action {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid #ffb49e;
+    border-radius: 9px;
+    background: #a7433e;
+    color: #fff4eb;
+    font-weight: 750;
+}
+.r1-floating-hud .r1-roll-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: grid;
+    place-items: center;
+    pointer-events: auto;
+    background: #062b3740;
+}
+.r1-roll-animation {
+    display: flex;
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid #a3d9d2;
+    border-radius: 16px;
+    background: #103b47ed;
+}
+.r1-roll-animation span {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    background: #fff5e3;
+    color: #123b43;
+    font-size: 42px;
+    animation: r1-roll-tumble 0.3s ease-in-out infinite alternate;
+}
+.r1-roll-animation span + span {
+    animation-delay: -0.15s;
+}
+@keyframes r1-roll-tumble {
+    from {
+        transform: translateY(-6px) rotate(-15deg);
+    }
+    to {
+        transform: translateY(6px) rotate(15deg);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .r1-roll-animation span {
+        animation: none;
+    }
+}
+
+.r1-roll-animation span::before {
+    content: '⚀';
+    animation: r1-roll-faces 0.5s steps(1, end) infinite;
+}
+.r1-roll-animation span + span::before {
+    animation-delay: -0.2s;
+}
+@keyframes r1-roll-faces {
+    0% {
+        content: '⚀';
+    }
+    20% {
+        content: '⚄';
+    }
+    40% {
+        content: '⚁';
+    }
+    60% {
+        content: '⚅';
+    }
+    80% {
+        content: '⚂';
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .r1-roll-animation span::before {
+        content: '';
+        animation: none;
+    }
+}
