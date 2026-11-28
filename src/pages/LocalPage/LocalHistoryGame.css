@@ -84,7 +84,7 @@
     background: #225661;
     border-color: #96d5be;
 }
-.r1-history-panel li span,
+.r1-history-panel .r1-history-round,
 .r1-history-panel small {
     color: #add2ce;
     font-size: 11px;
@@ -124,4 +124,72 @@
     .r1-history-toggle {
         padding: 8px 10px;
     }
+}
+
+/* The action rows are a compact timeline, using existing HUD identity and effect components. */
+.r1-history-panel ol { display: grid; gap: 4px; }
+.r1-history-panel li button {
+    background: #ffffff05;
+    padding: 7px;
+    border-color: #ffffff0b;
+}
+.r1-history-panel li button:focus-visible {
+    outline: 2px solid #ffda86;
+    outline-offset: -2px;
+}
+.r1-history-entry {
+    --history-accent: #a8d0cd;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+}
+.r1-history-entry[data-tone='attack'] { --history-accent: #ffac95; }
+.r1-history-entry[data-tone='move'], .r1-history-entry[data-tone='recovery'] { --history-accent: #a6f3cb; }
+.r1-history-entry[data-tone='obstacle'] { --history-accent: #ffd08b; }
+.r1-history-entry[data-tone='jump'] { --history-accent: #d8c1ff; }
+.r1-history-entry[data-tone='protection'] { --history-accent: #a8d7ff; }
+.r1-history-entry[data-tone='card'] { --history-accent: #ffe0a1; }
+.r1-history-identity { display: grid; align-self: start; padding-top: 2px; }
+.r1-history-entry-copy { display: grid; gap: 3px; min-width: 0; }
+.r1-history-round { line-height: 1.1; font-weight: 500; }
+.r1-history-action-text {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #eaf8f2;
+    font-size: 13px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+.r1-history-action-text > .r1-feedback-icon { color: var(--history-accent); }
+.r1-history-entry .r1-player-avatar.r1-history-actor {
+    width: 29px; height: 29px; flex: 0 0 29px; font-size: 16px;
+}
+.r1-history-entry .r1-player-avatar.r1-history-target {
+    width: 20px; height: 20px; flex: 0 0 20px; font-size: 12px;
+}
+.r1-history-system-icon {
+    width: 29px; height: 29px; display: grid; place-items: center;
+    border-radius: 50%; background: #ffffff0c; color: #b7d7d2;
+}
+.r1-history-details { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.r1-history-detail {
+    display: inline-flex; align-items: center; gap: 3px; color: #add2ce;
+}
+.r1-history-detail > .r1-feedback-icon { width: 12px; height: 12px; flex-basis: 12px; }
+.r1-history-entry .r1-hex-badge { width: 24px; height: 23px; flex: 0 0 24px; font-size: 10px; }
+.r1-history-entry .r1-effect-chip { font-size: 10px; }
+.r1-history-entry .r1-effect-chip > .r1-feedback-icon { width: 12px; height: 12px; flex-basis: 12px; }
+.r1-history-entry .r1-history-card-art {
+    display: block;
+    width: 34px;
+    height: 43px;
+    object-fit: cover;
+    border: 1px solid var(--history-accent);
+    border-radius: 5px;
+    box-sizing: border-box;
+    align-self: center;
 }

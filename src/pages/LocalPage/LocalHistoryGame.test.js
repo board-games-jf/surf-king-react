@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent, within } from '@testing-library/react'
-import LocalHistoryGame, { restoreState, describe } from './LocalHistoryGame'
+import LocalHistoryGame, { restoreState, describe, describeAction, HistoryAction } from './LocalHistoryGame'
 import { Client } from 'boardgame.io/client'
 import { SurfKingR1, setupR1 } from '../../game/r1/SurfKingR1'
 
@@ -117,4 +117,34 @@ test('history distinguishes attack targets, position decisions and ordinary move
     expect(describe(state('quickManeuver', [7], { players: { 0: { cellPosition: 14 } } }), previous))
         .toBe('P1 · Move · Hex 8 · Landed Hex 15')
     expect(describe(state('recover', []), previous)).toBe('P1 · Recover · +1 energy')
+})
+
+
+test('history renders actual player circles, shared card artwork and a hex badge instead of P labels', () => {
+    const previous = { ctx: { currentPlayer: '2' }, G: { players: { 2: { cards: [{ Name: 'Sunburn' }] } } } }
+    const state = { G: {}, deltalog: [{ action: { type: 'MAKE_MOVE', payload: { type: 'useCard', playerID: '2', args: [0, 7, 0] } } }] }
+    const action = describeAction(state, previous)
+    expect(action).toEqual({ playerId: 2, move: 'useCard', cardName: 'Sunburn', label: 'Play card: Sunburn',
+        details: [{ kind: 'player', playerId: 0 }, { kind: 'hex', id: 7, landed: false }] })
+    const { container } = render(<HistoryAction action={action} round={4} />)
+    const actor = container.querySelector('.r1-history-actor')
+    const target = container.querySelector('.r1-history-target')
+    expect(actor).toHaveTextContent('3')
+    expect(target).toHaveTextContent('1')
+    expect(actor.style.getPropertyValue('--r1-player-color')).toBe('#38b4ae')
+    expect(target.style.getPropertyValue('--r1-player-color')).toBe('#ffbb41')
+    expect(container.querySelector('.r1-history-card-art')).toBeInTheDocument()
+    expect(container.querySelector('.r1-hex-badge')).toHaveTextContent('8')
+    expect(container).not.toHaveTextContent(/P[13]/)
+    expect(describe(state, previous)).toBe('P3 · Play card: Sunburn · P1 · Hex 8')
+})
+
+test('Drop In loss uses compact energy chips and no card thumbnail', () => {
+    const state = { G: { dropResult: { attackerId: 2, defenderId: 0, attackerLoss: 1, defenderLoss: 2 } },
+        deltalog: [{ action: { type: 'MAKE_MOVE', payload: { type: 'dropIn', playerID: '2', args: [7, 2, 0] } } }] }
+    const { container } = render(<HistoryAction action={describeAction(state)} round={4} />)
+    expect(container.querySelectorAll('.r1-effect-chip[data-tone="bad"]')).toHaveLength(2)
+    expect(container.querySelector('.r1-history-card-art')).not.toBeInTheDocument()
+    expect(container).toHaveTextContent('−1 own')
+    expect(container).toHaveTextContent('−2 target')
 })

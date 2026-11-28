@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './R1Hud.css'
+import PlayerIcon from './PlayerIcon'
 import { PLAYER_BOARD_COLORS } from '../../constants/playerBoardColors'
 import {
     r1PlayerCard,
@@ -44,17 +45,7 @@ const descriptions = {
 
 export { r1SelectionTargets } from './r1TargetHighlight'
 
-export function PlayerIcon({ playerId, variant = '' }) {
-    return (
-        <span
-            className={'r1-player-avatar' + (variant ? ' ' + variant : '')}
-            aria-hidden="true"
-            style={{ '--r1-player-color': PLAYER_BOARD_COLORS[playerId % PLAYER_BOARD_COLORS.length] }}
-        >
-            {playerId + 1}
-        </span>
-    )
-}
+export { default as PlayerIcon } from './PlayerIcon'
 
 const DIE_PIPS = {
     1: [4],
