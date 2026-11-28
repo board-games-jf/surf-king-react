@@ -18,7 +18,8 @@ import {
   catalogChangePlan,
   applyCatalogChange,
 } from './catalogState'
-import { cardArt, cardTone } from '../../components/Board/r1CardArt'
+import { cardArt } from '../../components/Board/r1CardArt'
+import R1Card from '../../components/Board/R1Card'
 import '../../components/Board/R1Hud.css'
 import './BoardCatalogPage.css'
 
@@ -185,12 +186,10 @@ export default function BoardCatalogPage({ animationStudio = false }) {
             <h2>Card interaction preview</h2>
             <p>Hover, focus or select each card to replay the existing hand transition. Select a card and a surfer below, then press Play. Other card effects are not implemented yet.</p>
             <div className="r1-floating-hud animation-studio-cards"><div className="r1-hand">
-              {Object.keys(cardArt).map(name => <button key={name} type="button"
-                data-card-tone={cardTone[name]} aria-pressed={selectedCard === name}
+              {Object.keys(cardArt).map(name => <R1Card key={name} name={name} interactive
+                aria-pressed={selectedCard === name}
                 style={{ '--r1-fan-angle': '0deg' }}
-                onClick={() => setSelectedCard(name)}>
-                <img className="r1-card-art" src={cardArt[name]} alt="" /><strong>{name}</strong>
-              </button>)}
+                onClick={() => setSelectedCard(name)} />)}
             </div></div>
             <button type="button" disabled={!['Sunburn', 'Big wave', 'Tsunami', 'Amulet', 'Stone', 'Storm', 'Cyclone', 'Island', 'Energy x2', 'Lifeguard float', 'Jumping', 'Surf Current', 'Change', 'Hang loose'].includes(selectedCard) || (selectedCard === 'Stone' ? stoneCell === undefined : selectedCard === 'Storm' ? stormCell === undefined : selectedCard === 'Cyclone' ? cycloneCell === undefined : selectedCard === 'Island' ? islandCell === undefined : selectedCard === 'Jumping' ? jumpTarget === null : selectedCard === 'Surf Current' ? currentRoute.length === 0 || !!currentPreview : selectedCard === 'Change' ? !changePlan : !Number.isInteger(catalog.surfers[surferId]) || (selectedCard === 'Lifeguard float' && !catalog.fallen?.[surferId]))}
               onClick={() => { if (selectedCard === 'Stone') { focusCell(Number(stoneCell)); setStonePreview({ cellId: Number(stoneCell) }) } else if (selectedCard === 'Storm') { focusCell(Number(stormCell)); setStormPreview({ cellId: Number(stormCell) }) } else if (selectedCard === 'Cyclone') { focusCell(Number(cycloneCell)); setCyclonePreview({ cellId: Number(cycloneCell) }) } else if (selectedCard === 'Island') { focusCell(Number(islandCell)); setIslandPreview({ cellId: Number(islandCell) }) } else if (selectedCard === 'Jumping') { focusCell(jumpTarget); setCatalog(current => jumpCatalogSurfer(current, surferId)); setJumpPreview({ playerId: surferId }) } else if (selectedCard === 'Surf Current') { focusCell(currentRoute[currentRoute.length - 1]); setCatalog(current => placeCatalogAsset(current, currentRoute[0], 'Surfer', surferId)); setCurrentPreview({ playerId: surferId, route: currentRoute }) } else if (selectedCard === 'Change') { focusCell(changePlan.origin); setCatalog(current => applyCatalogChange(current, changePlan)); setChangePreview(changePlan) } else { focusCell(catalog.surfers[surferId]); if (selectedCard === 'Hang loose' || selectedCard === 'Amulet') setActiveProtections(current => ({ ...current, [surferId]: selectedCard })); (selectedCard === 'Hang loose' ? setHangLoosePreview : selectedCard === 'Sunburn' ? setSunburnPreview : selectedCard === 'Amulet' ? setAmuletPreview : selectedCard === 'Energy x2' ? setEnergyPreview : selectedCard === 'Lifeguard float' ? setLifeguardPreview : setBigWavePreview)({ playerId: surferId, tsunami: selectedCard === 'Tsunami' }) } }}>
