@@ -1,12 +1,16 @@
 # Surf King — Gameplay Design Epic / Rules Review Hub
 
-**Status:** Active game-design exploration; **not** a finalized rulebook or implementation authorization.
+**Status:** R1.12 consolidated playtest candidate awaiting owner approval; **not** a finalized rulebook or implementation authorization.
 **Single epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) — canonical status, chronological owner feedback and next action.
 **Living documentation:** [Draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12), branch `docs/11-progressive-rules-review` — Markdown only, **do not merge without explicit approval**.
-**Current single complete-match design reference (NOT approved):** [GAMEPLAY_BLUEPRINT.md](GAMEPLAY_BLUEPRINT.md) — recommended v0.1 loop, decisions, illustrative 3-player race, interdependencies and playtest gates.
-**Latest checked main:** `c6fd08e2da82ca223740e3aa944c47f87aa84f16` (reverified 2026-11-23). These experimental gameplay rules are **not** implemented in the running application.
+**Current single complete-match design reference (NOT approved):** [R1.12 consolidated rulebook](R1_12_CONSOLIDATED_RULES.md). Older blueprints, card sheets and experiments are historical references, not rules to combine.
+**Latest checked main:** `839633b2a1b471c6f4a1b451d0925dae04894f75` (reverified 2026-11-28). Some R1 foundations are implemented; the consolidated R1.12 candidate is not integrated.
 
-## Iteration AB — 2026-11-24: keep Cyclone and owner-defined safe-landing Jumping (latest)
+## R1.12 — 2026-11-28: consolidated playtest candidate (latest)
+
+[Consolidated rules and 64-card deck](R1_12_CONSOLIDATED_RULES.md) · [Global evaluation](https://github.com/board-games-jf/surf-king-react/issues/11#issuecomment-7237930941) · [Board refinement](https://github.com/board-games-jf/surf-king-react/issues/11#issuecomment-7233564081). This supersedes older candidate sheets for review. 22,960 global simulated matches, 2,602,404 checkpoints, all finished in 2–10 rounds; no invariant violations. The 4P energy-only compensation is a recommendation from the comparator arm, not ratified. Residual fairness, card agency, human fun, actual client tests and build remain open. Next: owner approves or revises the single candidate, then separately authorizes implementation in #66/#67. No merge or deploy. Historical draft decision-ID collisions still require reconciliation before merging #12.
+
+## Iteration AB — 2026-11-24: keep Cyclone and owner-defined safe-landing Jumping (historical)
 
 [Results and exact caveats](R1_CYCLONE_JUMP_STUDY.md) · [reproduction runner](R1_CYCLONE_JUMP_AB.js) · [current R1 rules](PLAYTEST_MINIMAL_R1_RULES.md) · [single 60-card / 10-effect sheet](PLAYTEST_MINIMAL_R1_CARDS.md). Owner-defined **Jumping** lands and stays in an adjacent vacant Shark/obstacle hex without triggering its entry effect; the card does **not** remove the hazard or grant a second move. **Cyclone** remains available as a placed one-redirect-on-entry hazard. The latest **trial** removes Stone, **not** Sharks, to keep ten simple card types. An 11-type Stone+Cyclone comparator remains reversible.
 
