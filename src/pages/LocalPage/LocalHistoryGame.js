@@ -161,6 +161,8 @@ export default function LocalHistoryGame({ numPlayers, gameDefinition = SurfKing
     const [activeBranch, setActiveBranch] = useState(0)
     const [viewBranch, setViewBranch] = useState(0)
     const [preview, setPreview] = useState(null)
+    // Preserve the chosen renderer when switching between live and historical snapshots.
+    const [viewMode, setViewMode] = useState('3d')
     const [open, setOpen] = useState(false)
     const cursor = useRef({
         node: 0,
@@ -229,7 +231,8 @@ export default function LocalHistoryGame({ numPlayers, gameDefinition = SurfKing
     return (
         <div className="bgio-client r1-local-history-game">
             <div className={selected ? 'r1-history-preview-board' : undefined}>
-                <Board key={selected ? 'preview' : 'live'} {...boardState} moves={selected ? noMoves : client.moves} />
+                <Board key={selected ? 'preview' : 'live'} {...boardState} moves={selected ? noMoves : client.moves}
+                    viewMode={viewMode} onViewModeChange={setViewMode} />
             </div>
             <aside className="r1-history" aria-label="Match history">
                 {open && (

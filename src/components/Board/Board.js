@@ -68,7 +68,7 @@ const useKeyPress = function (targetKey) {
     return keyPressed
 }
 
-const Board = ({ G, ctx, moves }) => {
+const Board = ({ G, ctx, moves, viewMode: controlledViewMode, onViewModeChange }) => {
     const gameMode = 1
     const isR1 = G.ruleset === 'R1'
     const [r1Selection, setR1Selection] = useState(null)
@@ -195,7 +195,9 @@ const Board = ({ G, ctx, moves }) => {
         setR1CardPreview(null)
         setR1Selection(null)
     }
-    const [viewMode, setViewMode] = useState('3d')
+    const [internalViewMode, setInternalViewMode] = useState('3d')
+    const viewMode = controlledViewMode ?? internalViewMode
+    const setViewMode = onViewModeChange ?? setInternalViewMode
     const [focusPlayerRequest, setFocusPlayerRequest] = useState(null)
     const [discardOpen, setDiscardOpen] = useState(false)
     const [selectedCellId, setSelectedCellId] = useState(null)
