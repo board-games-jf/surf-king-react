@@ -22,7 +22,7 @@ import { getR1RoundOrder } from './r1RoundOrder'
 import { getCardRailState, getRoundHudProgress, TURN_STATUS_LABELS, CARD_RAIL_LABELS } from './r1HudState'
 import { getR1TargetHighlight, r1SelectionTargets, r1SelectionPlayerTargets } from './r1TargetHighlight'
 import { getTargetHighlightStyle } from '../../map/contract/targetHighlight'
-import { cardArt, cardTone } from './r1CardArt'
+import R1Card from './R1Card'
 import cardBack from '../../assets/cards/r1/cardback.webp'
 
 const descriptions = {
@@ -260,7 +260,7 @@ function CardContextPanel({ card, feedback, selected, closable, nextAction, canC
                     onClose()
                 }
             }}>
-            <img className="r1-inspection-art" src={cardArt[card.Name]} alt="" />
+            <R1Card name={card.Name} variant="thumbnail" className="r1-inspection-art" />
             <div className="r1-inspection-body">
                 <div className="r1-inspection-heading">
                     <strong>{card.Name}</strong>
@@ -898,7 +898,7 @@ export default function R1Controls({
                 )}
                 {showDice && receivedThisRoll && (!swapChoice || swapReadyKey === diceKey) && (
                     <div className="r1-received-card" aria-label={'Received card: ' + receivedCard.name}>
-                        <img src={cardArt[receivedCard.name]} alt="" />
+                        <R1Card name={receivedCard.name} variant="thumbnail" />
                         <span>
                             Received <strong>{receivedCard.name}</strong>
                         </span>
@@ -997,13 +997,7 @@ export default function R1Controls({
                         style={{ '--pile-depth': Math.min(14, Math.ceil(G.discardedCards.length / 5)) + 'px' }}
                     >
                         {G.discardedCards.length > 0 && (
-                            <div
-                                className="r1-pile-face"
-                                data-card-tone={cardTone[G.discardedCards[G.discardedCards.length - 1].Name]}
-                            >
-                                <img src={cardArt[G.discardedCards[G.discardedCards.length - 1].Name]} alt="" />
-                                <strong>{G.discardedCards[G.discardedCards.length - 1].Name}</strong>
-                            </div>
+                            <R1Card className="r1-pile-face" name={G.discardedCards[G.discardedCards.length - 1].Name} />
                         )}
                     </div>
                     <span className="r1-pile-label">
@@ -1023,14 +1017,7 @@ export default function R1Controls({
                                     .slice()
                                     .reverse()
                                     .map((card) => (
-                                        <div
-                                            className="r1-discard-card"
-                                            data-card-tone={cardTone[card.Name]}
-                                            key={card.id}
-                                        >
-                                            <img src={cardArt[card.Name]} alt="" />
-                                            <strong>{card.Name}</strong>
-                                        </div>
+                                        <R1Card className="r1-discard-card" name={card.Name} key={card.id} />
                                     ))
                             ) : (
                                 <span>No discarded cards</span>
@@ -1388,10 +1375,11 @@ export default function R1Controls({
                                 {hand.cards.map((card, index) => {
                                     const { reason, playable } = getR1CardFeedback(G, ctx, index)
                                     return (
-                                        <button
-                                            type="button"
+                                        <R1Card
+                                            interactive
+                                            name={card.Name}
+                                            description={descriptions[card.Name] + ' ' + (reason || '')}
                                             key={card.id}
-                                            data-card-tone={cardTone[card.Name]}
                                             data-new-card={
                                                 (!!receivedThisRoll && card.id === receivedCard.id) || undefined
                                             }
@@ -1418,17 +1406,7 @@ export default function R1Controls({
                                                     <FeedbackIcon kind="blocked" />
                                                 </span>
                                             )}
-                                            <img
-                                                src={cardArt[card.Name]}
-                                                alt=""
-                                                className="r1-card-art"
-                                                draggable="false"
-                                            />
-                                            <strong>{card.Name}</strong>
-                                            <span className="r1-sr-only">
-                                                {descriptions[card.Name]} {reason}
-                                            </span>
-                                        </button>
+                                        </R1Card>
                                     )
                                 })}
                                 {!hand.cards.length && <span className="r1-empty-hand r1-glass">No cards in hand</span>}

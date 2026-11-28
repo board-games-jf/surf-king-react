@@ -636,14 +636,28 @@
     pointer-events: auto;
     scrollbar-width: thin;
 }
-.r1-floating-hud .r1-hand button {
+.r1-card-view {
+    --r1-card-accent: #387a8c;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    aspect-ratio: 5 / 7;
+    padding: 4px;
+    background: #f9f2e5;
+    border: 2px solid var(--r1-card-accent);
+    color: #193b43;
+    border-radius: 8px;
+    text-align: center;
+    overflow: hidden;
+    gap: 0;
+}
+.r1-floating-hud .r1-hand button {
     flex: 0 0 clamp(84px, 10vw, 132px);
     width: clamp(84px, 10vw, 132px);
     min-width: 0;
     max-width: none;
     padding: 4px;
-    --r1-card-accent: #387a8c;
     background: #f9f2e5;
     border: 2px solid var(--r1-card-accent);
     color: #193b43;
@@ -653,22 +667,12 @@
     transform: rotate(var(--r1-fan-angle));
     transition: transform 150ms ease, box-shadow 150ms ease;
 }
-.r1-floating-hud .r1-hand button[data-card-tone='attack'] {
-    --r1-card-accent: #b83c37;
-}
-.r1-floating-hud .r1-hand button[data-card-tone='obstacle'] {
-    --r1-card-accent: #a94e08;
-}
-.r1-floating-hud .r1-hand button[data-card-tone='recovery'],
-.r1-floating-hud .r1-hand button[data-card-tone='move'] {
-    --r1-card-accent: #087c71;
-}
-.r1-floating-hud .r1-hand button[data-card-tone='protection'] {
-    --r1-card-accent: #2467a7;
-}
-.r1-floating-hud .r1-hand button[data-card-tone='jump'] {
-    --r1-card-accent: #7446ae;
-}
+.r1-card-view[data-card-tone='attack'] { --r1-card-accent: #b83c37; }
+.r1-card-view[data-card-tone='obstacle'] { --r1-card-accent: #a94e08; }
+.r1-card-view[data-card-tone='recovery'],
+.r1-card-view[data-card-tone='move'] { --r1-card-accent: #087c71; }
+.r1-card-view[data-card-tone='protection'] { --r1-card-accent: #2467a7; }
+.r1-card-view[data-card-tone='jump'] { --r1-card-accent: #7446ae; }
 .r1-floating-hud .r1-hand button strong {
     display: block;
     font-size: 0.83em;
@@ -1530,61 +1534,6 @@
 .r1-pile-top {
     object-fit: cover;
 }
-.r1-pile-face,
-.r1-discard-card {
-    --pile-accent: #387a8c;
-    background: #f9f2e5;
-    padding: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    border: 2px solid var(--pile-accent);
-}
-.r1-pile-face[data-card-tone='attack'],
-.r1-discard-card[data-card-tone='attack'] {
-    --pile-accent: #b83c37;
-}
-.r1-pile-face[data-card-tone='obstacle'],
-.r1-discard-card[data-card-tone='obstacle'] {
-    --pile-accent: #a94e08;
-}
-.r1-pile-face[data-card-tone='recovery'],
-.r1-pile-face[data-card-tone='move'],
-.r1-discard-card[data-card-tone='recovery'],
-.r1-discard-card[data-card-tone='move'] {
-    --pile-accent: #087c71;
-}
-.r1-pile-face[data-card-tone='protection'],
-.r1-discard-card[data-card-tone='protection'] {
-    --pile-accent: #2467a7;
-}
-.r1-pile-face[data-card-tone='jump'],
-.r1-discard-card[data-card-tone='jump'] {
-    --pile-accent: #7446ae;
-}
-.r1-pile-face img,
-.r1-discard-card img {
-    display: block;
-    width: 100%;
-    flex: 1;
-    min-height: 0;
-    object-fit: cover;
-    border-radius: 4px;
-}
-.r1-pile-face strong,
-.r1-discard-card strong {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 2.4em;
-    padding: 2px;
-    border-radius: 4px;
-    background: var(--pile-accent);
-    color: white;
-    text-align: center;
-    line-height: 1.1;
-    font-size: 10px;
-}
 .r1-pile-label {
     position: relative;
     padding: 3px 8px;
@@ -1620,9 +1569,7 @@
 }
 .r1-discard-card {
     width: 76px;
-    height: 105px;
-    box-sizing: border-box;
-    border-radius: 7px;
+    flex: 0 0 76px;
 }
 .r1-discard-list small {
     display: block;
@@ -4243,3 +4190,41 @@
     padding: 3px;
 }
 .r1-card-hex-picker .r1-targets > button { justify-self: center; }
+
+/* Shared full face; zones only set size, placement and interaction. */
+.r1-floating-hud .r1-card-view > .r1-card-art,
+.r1-card-view > .r1-card-art {
+    display: block;
+    width: 100%;
+    height: 0;
+    min-height: 0;
+    flex: 1 1 0;
+    object-fit: cover;
+    margin: 0;
+    border-radius: 4px 4px 0 0;
+}
+.r1-card-view > strong {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    height: 2.8em;
+    flex: 0 0 2.8em;
+    font-size: .83em;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    color: #fff;
+    background: var(--r1-card-accent);
+    border-radius: 0 0 3px 3px;
+    padding: 2px 1px;
+}
+.r1-card-view.r1-pile-face {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-color: var(--r1-card-accent);
+    font-size: 10px;
+}
+.r1-card-view.r1-discard-card { font-size: 12px; }
