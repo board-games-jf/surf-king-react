@@ -94,6 +94,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-056 | Accepted | Use one contextual card panel for effects, guidance and target shortcuts. The board is the primary hex picker; numbered hex shortcuts remain in a collapsed accessible list, while individual player targets stay visible. Temporarily collapse the hand on targeted card selection, restore its prior visibility when selection ends, and retain the existing Cards toggle. The card panel close action cancels the selection, including Escape within the panel. Apply a shared thin maritime scrollbar theme across the application without changing scroll behavior. | Owner approved the consolidated preview and requested consistent scroll styling. Existing target dispatch and game rules are unchanged; ghost model placement previews remain a separate follow-up. | [#62](https://github.com/board-games-jf/surf-king-react/issues/62), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
 
+| SK-DEC-057 | Accepted | Reuse one R1Card presentation for hand, discard and catalog cards, with a compact thumbnail variant for contextual detail and received cards. Preserve original art, functional colors and 5:7 full faces. In the 3D victory state, celebrate on the beach with subtle continuous randomized fireworks; use bounded reusable visual particles, respect reduced motion and stop when victory ends. | Owner approved shared cards and subtle infinite victory fireworks. Presentation only; no game RNG or rules change. | [#62](https://github.com/board-games-jf/surf-king-react/issues/62), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.
