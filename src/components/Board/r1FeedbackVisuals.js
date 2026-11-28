@@ -11,7 +11,7 @@ export function FeedbackIcon({ kind }) {
         energy: <path d="M13 2 4 14h7l-1 8 10-13h-7z" fill="currentColor" stroke="none"/>,
         range: <><path d="m12 2 9 5v10l-9 5-9-5V7z"/><circle cx="12" cy="12" r="3"/></>,
         move: <><path d="M3 12h17m-6-6 6 6-6 6"/></>,
-        dropIn: <><path d="M2 19c4-5 7-5 11-1s6 3 9 0"/><path d="m6 4 9 9m-6 0h6V7"/></>,
+        dropIn: <><path d="M2 19c3-2 6-2 9 0s6 2 11-1"/><path d="M6 16c2 2 8 2 12-1"/><circle cx="13" cy="5" r="1.5"/><path d="m13 7-2 4-3 1m3-1 3 1 3-2m-3 2-2 3m-1-4-2 4"/></>,
         shield: <path d="m12 3 8 3v6c0 5-4 8-8 10-4-2-8-5-8-10V6z"/>,
         swirl: <path d="M21 8c-2-5-12-5-15 0-4 6 5 12 10 7 4-4-3-7-5-3m-8 5c3 5 12 5 16 0"/>,
         check: <path d="m5 12 4 4L19 6"/>,
@@ -21,6 +21,7 @@ export function FeedbackIcon({ kind }) {
         unfavorable: <path d="m3 8 6 6 4-4 8 8m-6 0h6v-6"/>,
         clock: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></>,
         lock: <><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></>,
+        dice: <><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="7.5" cy="7.5" r=".9" fill="currentColor"/><circle cx="16.5" cy="7.5" r=".9" fill="currentColor"/><circle cx="12" cy="12" r=".9" fill="currentColor"/><circle cx="7.5" cy="16.5" r=".9" fill="currentColor"/><circle cx="16.5" cy="16.5" r=".9" fill="currentColor"/></>,
         cards: <><rect x="7" y="4" width="12" height="16" rx="2"/><path d="M5 7H4v12a2 2 0 0 0 2 2h10"/></>,
         target: <><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v3m0 16v3M1 12h3m16 0h3"/></>,
         blocked: <><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></>,
@@ -49,7 +50,7 @@ const cardEffects = {
     Amulet: ['shield', 'Until next turn', 'good'],
     Change: ['move', 'Swap · replaces move', 'good'],
     'Hang loose': ['shield', 'Drop In only', 'good'],
-    'Surf Current': ['move', 'Up to 2 steps', 'good'],
+    'Surf Current': ['move', '2 required steps', 'good'],
 }
 export const cardEffectKind = name => cardEffects[name]?.[0] || 'wave'
 

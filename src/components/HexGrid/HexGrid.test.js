@@ -127,11 +127,11 @@ test('hazard, capacity and selection coexist with legal action highlights', () =
     expect(cell.querySelector('[data-hex-danger]')).toHaveAttribute('pointer-events', 'none')
     expect(cell.querySelector('.hex-danger-ripple')).toBeInTheDocument()
     expect(cell.querySelector('[data-hazard-medallion="Shark"]')).toBeInTheDocument()
-    expect(cell.querySelector('[data-hex-occupancy="1/2"]')).toBeInTheDocument()
+    expect(cell.querySelector('[data-hex-occupancy]')).not.toBeInTheDocument()
     expect(cell.querySelector('[data-target-highlight="move"]')).toBeInTheDocument()
     expect(cell.querySelector('[data-hex-selection]')).toBeInTheDocument()
     expect(cell.querySelector('[data-hex-blocked]')).not.toBeInTheDocument()
     const full = container.querySelector('[data-cell-id="8"]').parentElement
-    expect(full.querySelector('[data-hex-occupancy="2/2"]')).toBeInTheDocument()
+    expect(full.querySelector('[data-hex-occupancy]')).not.toBeInTheDocument()
     expect(full.querySelector('[data-hex-blocked]')).toBeInTheDocument()
 })

@@ -26,7 +26,7 @@
     container-type: size;
 }
 
-.surf-map-2d > svg {
+.surf-map-2d > .surf-hex-grid {
     width: 96%;
     height: 96%;
 }
