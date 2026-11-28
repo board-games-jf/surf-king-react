@@ -1,4 +1,5 @@
 import { createCardPiles } from './createCardPiles'
+import { createVictoryFireworks } from './createVictoryFireworks'
 import amuletIcon from '../../../assets/cards/r1/amulet-effect.png'
 import hangLooseIcon from '../../../assets/cards/r1/hangloose-effect-clean.png'
 import layoutManifest from '../../layout/board-layout.json'
@@ -542,6 +543,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   controls.addEventListener('start', () => { cameraTransition = null })
   const resetCamera = () => moveCamera(defaultOffset(), defaultTarget)
   const animateScenery = createCoastalScenery(scene)
+  const victoryFireworks = createVictoryFireworks(scene)
   const modelHelpers = createScenePrimitives(scene)
   const hex=new THREE.Shape(),outline=[]
   for(let i=0;i<=6;i++){const a=i*Math.PI/3,x=Math.cos(a)*R,z=Math.sin(a)*R;if(!i)hex.moveTo(x,z);else hex.lineTo(x,z);outline.push(new THREE.Vector3(x,0,z))}
@@ -824,6 +826,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
   function update(snapshot){cardPiles.update(snapshot.cardPiles);layeredInteraction = !!snapshot.targetHighlight;
+    victoryFireworks.setActive(snapshot.winnerPlayerId != null)
     positionRing(selected, layeredInteraction ? null : snapshot.selectedCellId);hexDepth.select(layeredInteraction ? null : snapshot.selectedCellId)
     positionRing(hovered, layeredInteraction ? null : hoverId)
     targetHighlights.setHover(layeredInteraction ? hoverId : null)
@@ -974,6 +977,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     animateScenery(elapsed)
     cardPiles.animate(now, reducedMotion.matches, elapsed)
     const reduce = reducedMotion.matches
+    victoryFireworks.update(elapsed, reduce)
     targetHighlights.animate(elapsed, reduce)
     for(const a of actors.values()){
       if(a.cellId===null) continue
@@ -1451,5 +1455,5 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     )
     moveCamera(offset, cameraTransition?.target)
   }
-  return {update,resetCamera,zoom,orbit,focusCell,focusPlayer,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,playEnergy,playLifeguard,playJump,playSurfCurrent,playChange,playHangLoose,toggleIds(visible){cellLabels.visible=visible;cardPiles.toggleLabels(visible)},dispose(){disposed=true;cardPiles.dispose();cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
+  return {update,resetCamera,zoom,orbit,focusCell,focusPlayer,playSunburn,playBigWave,playAmulet,playStone,playStorm,playCyclone,playIsland,playEnergy,playLifeguard,playJump,playSurfCurrent,playChange,playHangLoose,toggleIds(visible){cellLabels.visible=visible;cardPiles.toggleLabels(visible)},dispose(){disposed=true;victoryFireworks.dispose();cardPiles.dispose();cancelAnimationFrame(raf);if(observer)observer.disconnect();else window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointerup',up);renderer.domElement.removeEventListener('pointercancel',cancel);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);controls.dispose();actors.forEach(actor => {if(actor.avatar){actor.avatar.dispose();actor.g.remove(actor.avatar.display)}});const geometries=new Set(),mats=new Set();const collect=o=>{if(o.isLight&&o.shadow)o.shadow.dispose();if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mats.add(m))};scene.traverse(collect);Object.values(riggedTemplates).forEach(template => template.traverse(collect));geometries.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map)m.map.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove()}}
 }

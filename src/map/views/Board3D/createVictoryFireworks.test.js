@@ -1,0 +1,37 @@
+import * as THREE from 'three'
+import { createVictoryFireworks, sampleFirework } from './createVictoryFireworks'
+
+test.each([0, .5, .999])('firework samples remain above the beach (%s)', value => {
+    const spec = sampleFirework(() => value)
+    expect(Math.abs(spec.x)).toBeLessThanOrEqual(7)
+    expect(spec.z).toBeGreaterThanOrEqual(-13.8)
+    expect(spec.z).toBeLessThanOrEqual(-12.8)
+    expect(spec.radius).toBeLessThanOrEqual(1.1)
+    expect(spec.interval).toBeGreaterThanOrEqual(1.1)
+})
+
+test('victory effects repeat with a fixed pool and stop on rewind, reduced motion and disposal', () => {
+    const scene = new THREE.Scene()
+    const effects = createVictoryFireworks(scene, () => .5)
+    effects.update(0)
+    expect(effects.group.visible).toBe(false)
+    effects.setActive(true)
+    effects.update(0)
+    effects.update(.4)
+    expect(effects.group.children.some(child => child.visible)).toBe(true)
+    const pool = effects.group.children.slice()
+    for (let time = 1; time < 100; time += .1) effects.update(time)
+    expect(effects.group.children).toEqual(pool)
+    effects.update(101, true)
+    expect(effects.group.visible).toBe(false)
+    effects.update(102)
+    effects.update(102.4)
+    expect(effects.group.children.some(child => child.visible)).toBe(true)
+    effects.setActive(false)
+    expect(effects.group.visible).toBe(false)
+    effects.update(103)
+    expect(effects.group.visible).toBe(false)
+    effects.dispose()
+    expect(scene.children).not.toContain(effects.group)
+    effects.update(104)
+})
