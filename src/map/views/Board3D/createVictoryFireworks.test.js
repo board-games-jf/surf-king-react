@@ -8,7 +8,10 @@ test.each([0, .5, .999])('firework samples remain above the beach (%s)', value =
     expect(spec.z).toBeLessThan(shore)
     expect(shore - spec.z).toBeLessThanOrEqual(1.31)
     expect(spec.radius).toBeLessThanOrEqual(1.25)
-    expect(spec.interval).toBeGreaterThanOrEqual(1)
+    expect(spec.interval).toBeGreaterThanOrEqual(.38)
+    expect(spec.interval).toBeLessThanOrEqual(.83)
+    expect(spec.y).toBeGreaterThanOrEqual(1.15)
+    expect(spec.y).toBeLessThanOrEqual(3.8)
 })
 
 test('victory effects repeat with a fixed pool and stop on rewind, reduced motion and disposal', () => {
@@ -72,5 +75,28 @@ test('trails have real thickness and face the camera without extra scene objects
     expect(mesh.quaternion.equals(camera.quaternion)).toBe(true)
     expect(mesh.geometry.getAttribute('position').count).toBe(24 * 12)
     expect(mesh.geometry.getAttribute('color').count).toBe(24 * 12)
+    effect.dispose()
+})
+
+
+test('fireworks span low and high positions and overlap without growing the pool', () => {
+    const low = sampleFirework(() => 0)
+    const high = sampleFirework(() => .999)
+    expect(high.y - low.y).toBeGreaterThan(2.5)
+    expect(high.radius - low.radius).toBeGreaterThan(.5)
+    const scene = new THREE.Scene()
+    const effect = createVictoryFireworks(scene, () => .5)
+    effect.setActive(true, 2)
+    const pool = effect.group.children.slice()
+    expect(pool).toHaveLength(6)
+    let peak = 0
+    for (let t = 0; t < 30; t += .02) {
+        effect.update(t)
+        peak = Math.max(peak, pool.filter(mesh => mesh.visible).length)
+    }
+    expect(peak).toBeGreaterThanOrEqual(3)
+    expect(effect.group.children).toEqual(pool)
+    effect.setActive(false)
+    expect(pool.every(mesh => !mesh.visible)).toBe(true)
     effect.dispose()
 })

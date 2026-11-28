@@ -7,10 +7,10 @@ export function sampleFirework(random = Math.random, anchorX = 0) {
     return {
         x,
         z: shore - .65 - random() * .65,
-        y: 1.8 + random() * .65,
-        radius: .85 + random() * .4,
+        y: 1.15 + random() * 2.65,
+        radius: .68 + random() * .57,
         duration: 1.55 + random() * .4,
-        interval: 1.0 + random() * .85,
+        interval: .38 + random() * .45,
         color: ['#ffce65', '#ff987d', '#ffe3a2', '#9ce6ce'][Math.min(3, Math.floor(random() * 4))],
     }
 }
@@ -49,7 +49,7 @@ export function createVictoryFireworks(scene, random = Math.random) {
     scene.add(group)
     const outline = new THREE.Color('#83472b')
     const projected = new THREE.Vector3()
-    const slots = Array.from({ length: 2 }, () => {
+    const slots = Array.from({ length: 6 }, () => {
         const geometry = new THREE.BufferGeometry()
         const positions = new Float32Array(count * 36)
         const colors = new Float32Array(count * 36)
@@ -83,10 +83,18 @@ export function createVictoryFireworks(scene, random = Math.random) {
             const slot = slots.find(s => !s.spec || elapsed - s.start >= s.spec.duration)
             if (slot) {
                 const spec = chooseFirework(random, anchorX, candidate => {
-                    if (!camera) return 0
-                    projected.set(candidate.x, candidate.y, candidate.z).project(camera)
-                    if (projected.z < -1 || projected.z > 1) return Infinity
-                    return Math.max(Math.abs(projected.x) / .80, Math.abs(projected.y) / .76)
+                    let frameScore = 0
+                    if (camera) {
+                        projected.set(candidate.x, candidate.y, candidate.z).project(camera)
+                        if (projected.z < -1 || projected.z > 1) return Infinity
+                        frameScore = Math.max(Math.abs(projected.x) / .80, Math.abs(projected.y) / .76)
+                    }
+                    // Prefer different heights and positions while other bursts are visible.
+                    const crowded = slots.some(other => other !== slot && other.spec &&
+                        elapsed - other.start < other.spec.duration &&
+                        Math.hypot(candidate.x - other.spec.x, candidate.y - other.spec.y) <
+                            (candidate.radius + other.spec.radius) * .75)
+                    return frameScore + (crowded ? 1.5 : 0)
                 })
                 slot.spec = spec
                 slot.start = elapsed
