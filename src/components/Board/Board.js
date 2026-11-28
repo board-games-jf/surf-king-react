@@ -411,6 +411,7 @@ const Board = ({ G, ctx, moves }) => {
     }
 
     const onHexClickedHandle = (cell, corners) => {
+        if (G.activeCellIds && !G.activeCellIds.includes(cell.position)) return
         if (isR1) {
             if (!r1Selection) {
                 const rect = mapRef.current?.getBoundingClientRect()
@@ -690,6 +691,7 @@ const Board = ({ G, ctx, moves }) => {
                     />
                 ) : (
                     <HexGrid
+                        activeCellIds={G.activeCellIds}
                         cellProps={cellProps}
                         renderCell={renderCell}
                         onHexHover={isR1 ? setHoveredHex : undefined}
