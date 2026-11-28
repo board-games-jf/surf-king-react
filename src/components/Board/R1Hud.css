@@ -3958,3 +3958,145 @@
     color: #eaf8f2;
     font-weight: 700;
 }
+
+/* One composition for the whole duel: player identity, consequences and aligned dice. */
+.r1-dock-scroll > .r1-dice-event {
+    width: min(320px, 100%);
+}
+.r1-result-duel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr);
+    align-items: stretch;
+    width: 100%;
+    gap: 0;
+}
+.r1-floating-hud .r1-dice-results .r1-result-duel > .r1-dice-side,
+.r1-result-comparisons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 3px;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 7px 3px 5px;
+    border: 1px solid transparent;
+}
+.r1-result-duel > .r1-dice-side[data-role='attacker'] { grid-column: 1; grid-row: 1; }
+.r1-result-duel > .r1-dice-side[data-role='defender'] { grid-column: 3; grid-row: 1; }
+.r1-result-comparisons { grid-column: 2; grid-row: 1; padding-inline: 0; }
+.r1-result-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 65px;
+    flex: 0 0 65px;
+    width: 100%;
+}
+.r1-result-consequence {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 25px;
+    flex: 0 0 25px;
+    width: 100%;
+}
+.r1-floating-hud .r1-dice-results .r1-no-energy-lost {
+    color: #b8d6d8;
+    font-size: 10px;
+    font-weight: 600;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    white-space: nowrap;
+}
+.r1-result-die-row {
+    display: grid;
+    place-items: center;
+    height: 40px;
+    flex: 0 0 40px;
+    width: 100%;
+    min-width: 0;
+}
+.r1-floating-hud .r1-dice-results .r1-result-die-row[data-result='unpaired'] .r1-die {
+    opacity: .48;
+}
+.r1-floating-hud .r1-dice-results .r1-result-die-row[data-won='true'] .r1-die {
+    box-shadow: 0 3px 0 #a89678, 0 0 8px #ffe0a14d;
+}
+.r1-floating-hud .r1-dice-results .r1-result-comparisons .r1-dice-versus {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+.r1-floating-hud .r1-dice-event[data-reopened='true'] .r1-energy-meter > span[data-lost='true'] {
+    animation: none;
+}
+.r1-floating-hud .r1-dice-options.r1-shared-dice-choices {
+    width: 100%;
+    gap: 6px;
+}
+.r1-floating-hud .r1-dice-options.r1-shared-dice-choices .r1-dice-button {
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 9px 6px;
+    border: 1px solid #6c999c;
+    border-radius: 9px;
+    background: #194954;
+    color: #e3f2ed;
+    font-weight: 700;
+}
+.r1-floating-hud .r1-dice-options.r1-shared-dice-choices .r1-dice-button[aria-pressed='true'] {
+    border-color: #ffd27c;
+    box-shadow: inset 0 0 0 1px #ffd27c;
+    padding: 9px 6px;
+}
+.r1-floating-hud .r1-dice-options.r1-shared-dice-choices .r1-dice-button[aria-pressed='true']::after {
+    content: none;
+}
+.r1-shared-dice-choices .r1-dice-option-faces {
+    gap: 4px;
+}
+.r1-shared-dice-choices .r1-dice-option-loss {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: #ffcfb7;
+    font-size: 11px;
+    font-weight: 650;
+}
+.r1-shared-dice-choices .r1-dice-option-loss .r1-feedback-icon {
+    width: 11px;
+    height: 13px;
+    flex-basis: 11px;
+}
+.r1-floating-hud .r1-repeat-dice {
+    display: grid;
+    gap: 5px;
+}
+.r1-repeat-dice .r1-odds-assumption {
+    text-align: center;
+}
+.r1-floating-hud .r1-reopen-dice,
+.r1-floating-hud .r1-action-bar > .r1-reopen-dice {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 40px;
+    min-width: 40px;
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid #8bc9c1;
+    background: #234c55;
+    color: #ffe0a1;
+}
+.r1-reopen-dice .r1-feedback-icon {
+    width: 22px;
+    height: 22px;
+}

@@ -86,6 +86,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-052 | Accepted | Use a single outcome-led title for the Drop In result, with compact aligned player and dice columns, distinct damage/tie/knockdown feedback, and the existing cumulative advantage scale without visible captions on repeat choices. Keep accessible explanations, explicit repeat confirmation and a Stop dismissal. Preserve fall/card/position decisions, roll timing and engine eligibility. | Owner approved the simplified preview and requested implementation in the existing PR. Presentation only; manual review pending. | [#62](https://github.com/board-games-jf/surf-king-react/issues/62), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
 
+| SK-DEC-053 | Accepted | Refine SK-DEC-052: integrate rolled dice into the respective player cards and omit the consequence row when both losses are zero. A dice shortcut reopens the last dismissed result during its current turn without dispatching a move; use the roll energy snapshot, not later energy changes. Share initial/repeat DiceChoices with blank dice, gold selected border, visual cumulative advantage, accessible qualitative explanation and compact maximum own loss. Remove the redundant check and visible qualitative caption in dice choices only. | Owner approved the existing selector's visual cleanup and the additional result-panel improvements. Preserve target/roll eligibility, card receipt, position choice, hand access and engine rules. | [#62](https://github.com/board-games-jf/surf-king-react/issues/62), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.

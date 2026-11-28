@@ -148,13 +148,15 @@ test('dice chooser limits risk to energy minus one and shows each pair result', 
     expect(screen.getByLabelText('Attacker 6, defender 5, Defender −1')).toBeInTheDocument()
     expect(
         screen
-            .getByLabelText('Attacker 6, defender 5, Defender −1')
-            .querySelectorAll('.r1-die:first-child .r1-die-pip[data-visible="true"]')
+            .getByLabelText('Attacker, Player 1, 1 energy lost')
+            .querySelector('.r1-result-die-row')
+            .querySelectorAll('.r1-die-pip[data-visible="true"]')
     ).toHaveLength(6)
     expect(
         screen
-            .getByLabelText('Attacker 6, defender 5, Defender −1')
-            .querySelectorAll('.r1-die:last-child .r1-die-pip[data-visible="true"]')
+            .getByLabelText('Defender, Player 2, 1 energy lost')
+            .querySelector('.r1-result-die-row')
+            .querySelectorAll('.r1-die-pip[data-visible="true"]')
     ).toHaveLength(5)
     expect(screen.getByLabelText('Attacker 2, defender 4, Attacker −1')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Close dice result' }))
@@ -767,15 +769,18 @@ test('dice chooser shows target-specific qualitative advantage for each legal ch
         onTarget: jest.fn(),
     }
     const { rerender } = render(<R1Controls {...props} />)
-    expect(screen.getByRole('button', { name: '1 die' })).toHaveTextContent('Unfavorable')
-    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('Balanced')
+    expect(screen.getByRole('button', { name: '1 die' })).toHaveAttribute('data-advantage', 'unfavorable')
+    expect(screen.getByRole('button', { name: '2 dice' })).toHaveAttribute('data-advantage', 'balanced')
     G.players[1].energy = 1
     rerender(<R1Controls {...props} />)
-    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('Favorable')
-    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('You: up to −1 ⚡')
+    expect(screen.getByRole('button', { name: '2 dice' })).toHaveAttribute('data-advantage', 'favorable')
+    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('Up to −1')
+    expect(screen.getByRole('button', { name: '2 dice' })).toHaveAccessibleDescription(/Maximum own energy loss: 1/)
+    expect(screen.getByRole('button', { name: '2 dice' }).querySelectorAll('.r1-dice-option-face')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: '2 dice' }).querySelector('.r1-combat-caption')).toBeNull()
     G.players[1].energy = 5
     rerender(<R1Controls {...props} />)
-    expect(screen.getByRole('button', { name: '2 dice' })).toHaveTextContent('Unfavorable')
+    expect(screen.getByRole('button', { name: '2 dice' })).toHaveAttribute('data-advantage', 'unfavorable')
     expect(screen.getByRole('button', { name: '2 dice' })).not.toHaveTextContent('%')
     G.players[0].energy = 2
     rerender(<R1Controls {...props} />)
@@ -954,4 +959,61 @@ test('repeat dice use the accessible compact advantage scale and Stop only dismi
     expect(screen.queryByLabelText('Drop In dice results')).not.toBeInTheDocument()
     expect(onRepeatDrop).not.toHaveBeenCalled()
     expect(setSelection).not.toHaveBeenCalled()
+})
+
+
+test('last result can be reopened without rolling or replaying a resolved decision', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].energy = 3
+    G.players[1].energy = 1
+    G.players[1].cellPosition = 14
+    G.atkDices = [6, 4]
+    G.defDices = [3]
+    G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 1 }
+    const onRepeatDrop = jest.fn(), setSelection = jest.fn()
+    const props = { G, ctx, moves: {}, selection: null, setSelection, onRepeatDrop, onTarget: jest.fn() }
+    const { rerender } = render(<R1Controls {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Close dice result' }))
+    const reopen = screen.getByRole('button', { name: 'Reopen dice result' })
+    G.players[0].energy = 4
+    rerender(<R1Controls {...props} />)
+    fireEvent.click(reopen)
+    expect(screen.getByLabelText('Attacker, Player 1, 0 energy lost')).toHaveTextContent('3/5 energy')
+    expect(screen.getByRole('img', { name: 'Attacker 6, defender 3, Defender −1' })).toBeInTheDocument()
+    expect(screen.getByText('No energy lost')).toBeInTheDocument()
+    expect(screen.getByLabelText('Attacker, Player 1, 0 energy lost').querySelectorAll('.r1-die')).toHaveLength(2)
+    expect(onRepeatDrop).not.toHaveBeenCalled()
+    expect(setSelection).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Stop' }))
+    rerender(<R1Controls {...props} rollingDrop />)
+    expect(screen.queryByRole('button', { name: 'Reopen dice result' })).not.toBeInTheDocument()
+    G.atkDices = []
+    G.defDices = []
+    G.dropResult = null
+    rerender(<R1Controls {...props} />)
+    expect(screen.queryByRole('button', { name: 'Reopen dice result' })).not.toBeInTheDocument()
+})
+
+test('ties omit the consequence row and repeat choices retain the original blank dice and maximum loss', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].energy = 3
+    G.players[1].energy = 1
+    G.players[1].cellPosition = 14
+    G.atkDices = [6, 4]
+    G.defDices = [6]
+    G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 0 }
+    render(<R1Controls G={G} ctx={ctx} moves={{}} selection={null} setSelection={() => {}} onTarget={() => {}} />)
+    const result = screen.getByLabelText('Drop In dice results')
+    expect(result.querySelector('.r1-result-consequence')).toBeNull()
+    expect(result.querySelector('[data-role="attacker"] .r1-result-die-row[data-result="unpaired"] .r1-die')).toBeInTheDocument()
+    const group = screen.getByRole('group', { name: 'Attack dice' })
+    const option = within(group).getByRole('button', { name: '2 dice' })
+    expect(option.querySelectorAll('.r1-dice-option-face')).toHaveLength(2)
+    expect(option).toHaveAccessibleDescription(/Maximum own energy loss: 1/)
+    expect(option).toHaveTextContent('Up to −1')
+    expect(option.querySelector('.r1-combat-caption')).toBeNull()
 })
