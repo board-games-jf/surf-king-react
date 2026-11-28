@@ -826,7 +826,8 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
   }
   function removeGroup(g){scene.remove(g);g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}})}
   function update(snapshot){cardPiles.update(snapshot.cardPiles);layeredInteraction = !!snapshot.targetHighlight;
-    victoryFireworks.setActive(snapshot.winnerPlayerId != null)
+    const winnerCell = snapshot.players.find(player => player.id === snapshot.winnerPlayerId)?.cellId
+    victoryFireworks.setActive(snapshot.winnerPlayerId != null, BOARD_LAYOUT[winnerCell]?.x ?? 0)
     positionRing(selected, layeredInteraction ? null : snapshot.selectedCellId);hexDepth.select(layeredInteraction ? null : snapshot.selectedCellId)
     positionRing(hovered, layeredInteraction ? null : hoverId)
     targetHighlights.setHover(layeredInteraction ? hoverId : null)
@@ -977,7 +978,6 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     animateScenery(elapsed)
     cardPiles.animate(now, reducedMotion.matches, elapsed)
     const reduce = reducedMotion.matches
-    victoryFireworks.update(elapsed, reduce)
     targetHighlights.animate(elapsed, reduce)
     for(const a of actors.values()){
       if(a.cellId===null) continue
@@ -1392,7 +1392,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       if (coconut) coconut.visible = false
     }
     animateCamera(now)
-    controls.update();renderer.render(scene,camera);raf=requestAnimationFrame(frame)
+    controls.update();camera.updateMatrixWorld();victoryFireworks.update(elapsed, reduce, camera);renderer.render(scene,camera);raf=requestAnimationFrame(frame)
   }
   const resize = createBoardViewportResize(container, camera, renderer)
   let observer
