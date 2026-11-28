@@ -16,12 +16,12 @@ const mixedBorderPaths = getMixedTargetBorderPaths(radius).map(path => path.map(
 const halfWidth = Math.max(...BOARD_LAYOUT.map(({ x }) => Math.abs(x))) + radius + .06
 const halfDepth = Math.max(...BOARD_LAYOUT.map(({ z }) => Math.abs(z))) + halfHeight + .06
 
-const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellId, hoveredCellId, selectedCellId, getRef }) => {
+const HexGrid = ({ cellProps, renderCell, onHexClick, onHexHover, inspectedCellId, hoveredCellId, selectedCellId, getRef, activeCellIds }) => {
     const gridId = useId()
 
     return (
         <svg className="surf-hex-grid" ref={getRef} viewBox={[-halfWidth, -halfDepth, 2 * halfWidth, 2 * halfDepth].join(' ')}>
-            {BOARD_LAYOUT.map(({ id, x, z }) => {
+            {BOARD_LAYOUT.filter(({ id }) => !activeCellIds || activeCellIds.includes(id)).map(({ id, x, z }) => {
                 const { backgroundImage, style, highlight, attackHighlight, blocked, status } = cellProps(id)
                 const patternId = `${gridId}-cell-${id}`
                 const mixed = !!(highlight && attackHighlight)
