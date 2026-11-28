@@ -608,34 +608,34 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
     canvas.height = 80
     const context = canvas.getContext('2d')
     const drawLabel = (number, adaptive) => {
-    context.clearRect(0, 0, canvas.width, canvas.height)
-    context.beginPath()
-    context.arc(42, 40, 36, Math.PI / 2, Math.PI * 1.5)
-    context.arc(86, 40, 36, -Math.PI / 2, Math.PI / 2)
-    context.closePath()
-    context.fillStyle = cell.id >= 49 ? 'rgba(17, 61, 57, .94)' : 'rgba(17, 84, 78, .78)'
-    context.fill()
-    if (cell.id >= 49) {
-      context.strokeStyle = '#ffda7b'
-      context.lineWidth = 4
-      context.stroke()
-      context.fillStyle = '#ffda7b'
-      context.fillRect(17, 24, 3, 34)
-      for (let row = 0; row < 2; row++) for (let column = 0; column < 3; column++) {
-        context.fillStyle = (row + column) % 2 ? '#16433d' : '#ffedb6'
-        context.fillRect(20 + column * 5, 25 + row * 6, 5, 6)
+      context.clearRect(0, 0, canvas.width, canvas.height)
+      context.beginPath()
+      context.arc(42, 40, 36, Math.PI / 2, Math.PI * 1.5)
+      context.arc(86, 40, 36, -Math.PI / 2, Math.PI / 2)
+      context.closePath()
+      context.fillStyle = cell.id >= 49 ? 'rgba(17, 61, 57, .94)' : 'rgba(17, 84, 78, .78)'
+      context.fill()
+      if (cell.id >= 49) {
+        context.strokeStyle = '#ffda7b'
+        context.lineWidth = 4
+        context.stroke()
+        context.fillStyle = '#ffda7b'
+        context.fillRect(17, 24, 3, 34)
+        for (let row = 0; row < 2; row++) for (let column = 0; column < 3; column++) {
+          context.fillStyle = (row + column) % 2 ? '#16433d' : '#ffedb6'
+          context.fillRect(20 + column * 5, 25 + row * 6, 5, 6)
+        }
       }
-    }
-    context.font = cell.id >= 49 ? 'bold 25px sans-serif' : 'bold 46px sans-serif'
-    context.fillStyle = '#fff'
-    context.textAlign = 'center'
-    context.textBaseline = 'middle'
-    if (cell.id >= 49 && adaptive) {
-      context.font = 'bold 20px sans-serif'
-      context.fillText('FINISH', 78, 26, 78)
-      context.font = 'bold 29px sans-serif'
-      context.fillText(String(number), 78, 54, 78)
-    } else context.fillText(cell.id >= 49 ? 'FINISH' : String(number), cell.id >= 49 ? 78 : 64, 41, cell.id >= 49 ? 78 : 114)
+      context.font = cell.id >= 49 ? 'bold 25px sans-serif' : 'bold 46px sans-serif'
+      context.fillStyle = '#fff'
+      context.textAlign = 'center'
+      context.textBaseline = 'middle'
+      if (cell.id >= 49 && adaptive) {
+        context.font = 'bold 20px sans-serif'
+        context.fillText('FINISH', 78, 26, 78)
+        context.font = 'bold 29px sans-serif'
+        context.fillText(String(number), 78, 54, 78)
+      } else context.fillText(cell.id >= 49 ? 'FINISH' : String(number), cell.id >= 49 ? 78 : 64, 41, cell.id >= 49 ? 78 : 114)
     }
     drawLabel(hexNumber(cell.id), false)
     const texture = new THREE.CanvasTexture(canvas)
