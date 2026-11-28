@@ -853,7 +853,7 @@ export function createScene(container,onCellSelect,onError, { previewFemaleAthle
       positionRing(marker, snapshot.targetHighlight ? null : snapshot.maneuverDestinations?.[index])
     })
     targetHighlights.update(snapshot.targetHighlight, true, new Set(snapshot.players.map(player => player.cellId).filter(id => id !== null)))
-    targetHighlights.setStatuses(snapshot.hexStatuses)
+    targetHighlights.setStatuses(snapshot.hexStatuses?.filter(status => active(status.id)))
     const live=new Set()
     for(const p of snapshot.players){live.add(p.id);let a=actors.get(p.id);if(!a){a=createSurfer(p.id);actors.set(p.id,a)}
       const cell=p.cellId===null?null:BOARD_LAYOUT[p.cellId];a.g.visible=!!cell
