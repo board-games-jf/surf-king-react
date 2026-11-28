@@ -1,12 +1,16 @@
 # Surf King — Gameplay Design Epic / Rules Review Hub
 
-**Status:** R1.12 consolidated playtest candidate awaiting owner approval; **not** a finalized rulebook or implementation authorization.
+**Status:** R1.12.1 consolidated playtest candidate awaiting owner approval; **not** a finalized rulebook or implementation authorization.
 **Single epic:** [Issue #11](https://github.com/board-games-jf/surf-king-react/issues/11) — canonical status, chronological owner feedback and next action.
 **Living documentation:** [Draft PR #12](https://github.com/board-games-jf/surf-king-react/pull/12), branch `docs/11-progressive-rules-review` — Markdown only, **do not merge without explicit approval**.
-**Current single complete-match design reference (NOT approved):** [R1.12 consolidated rulebook](R1_12_CONSOLIDATED_RULES.md). Older blueprints, card sheets and experiments are historical references, not rules to combine.
+**Current single complete-match design reference (NOT approved):** [R1.12.1 consolidated rulebook](R1_12_CONSOLIDATED_RULES.md). Older blueprints, card sheets and experiments are historical references, not rules to combine.
 **Latest checked main:** `839633b2a1b471c6f4a1b451d0925dae04894f75` (reverified 2026-11-28). Some R1 foundations are implemented; the consolidated R1.12 candidate is not integrated.
 
-## R1.12 — 2026-11-28: consolidated playtest candidate (latest)
+## R1.12.1 — 2026-11-28: reconcile current playtest branch (latest)
+
+Main remains `839633b2`; `feat/69-branching-match-history` at `5e6871a` includes merged PR #71 and accepted SK-DEC-058 (mandatory second Surf Current step). The exact engine diff changes only voluntary mid-card passing and guidance. Updated the [current rulebook](R1_12_CONSOLIDATED_RULES.md); 8,640 focused A/B matches, 925,389 checkpoints, two isolated pass fixtures; no blocked steps or failed draws, near-identical aggregate metrics. Keep four copies for playtest; previous global evidence is explicitly pre-correction. No code implementation or merge/deploy authorized. Await candidate approval.
+
+## R1.12 — 2026-11-28: consolidated playtest candidate (historical baseline)
 
 [Consolidated rules and 64-card deck](R1_12_CONSOLIDATED_RULES.md) · [Global evaluation](https://github.com/board-games-jf/surf-king-react/issues/11#issuecomment-7237930941) · [Board refinement](https://github.com/board-games-jf/surf-king-react/issues/11#issuecomment-7233564081). This supersedes older candidate sheets for review. 22,960 global simulated matches, 2,602,404 checkpoints, all finished in 2–10 rounds; no invariant violations. The 4P energy-only compensation is a recommendation from the comparator arm, not ratified. Residual fairness, card agency, human fun, actual client tests and build remain open. Next: owner approves or revises the single candidate, then separately authorizes implementation in #66/#67. No merge or deploy. Historical draft decision-ID collisions still require reconciliation before merging #12.
 
