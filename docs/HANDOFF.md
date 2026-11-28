@@ -1,5 +1,6 @@
 # Project Handoff
 
+-   Local R1 match history (#69) records complete boardgame.io states in memory and supports previewing and forking a timeline. Automated integration and desktop interaction checks cover a move, preview, fork, and preserved original; a seeded dice replay verifies restoration of random-plugin state. History does not persist across reloads; mobile visual validation is pending.
 -   Transient match messages dismiss after 3.5 seconds; dice results and victory feedback remain visible. HUD regression tests passed (30).
 -   Drop In dice selection returns to its actual entry point (hex inspector, opponent list, result, or board). Game panels now share the same close icon control. Focused HUD and inspector tests passed (31); shortcut return was checked in the live desktop match. Mobile visual review remains pending.
 
