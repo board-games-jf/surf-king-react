@@ -3874,13 +3874,7 @@
 .r1-dock-scroll > .r1-dice-event .r1-swap-choice {
     width: 100%;
 }
-.r1-dock-scroll > .r1-dice-event .r1-swap-choice .r1-action-row {
-    display: flex;
-    width: 100%;
-}
-.r1-dock-scroll > .r1-dice-event .r1-swap-choice .r1-action-row button {
-    flex: 1 1 auto;
-}
+
 
 /* Outcome-first result: aligned player columns, tactile dice and a quiet next action. */
 .r1-dock-scroll > .r1-dice-event .r1-panel-header strong {
@@ -4110,15 +4104,15 @@
     flex: 0 0 auto;
     width: min(320px, 100%);
     gap: 8px;
-    padding: 9px 10px;
+    padding: 10px 12px 12px;
     border-color: #8bc9c1;
 }
 .r1-compact-swap-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     flex-wrap: wrap;
-    gap: 5px 8px;
+    gap: 6px;
 }
 .r1-compact-swap-header .r1-fell-indicator {
     color: #b1f8d6;
@@ -4129,18 +4123,33 @@
 .r1-compact-swap-tools {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 5px;
-    margin-left: auto;
+    max-width: 100%;
+    flex-wrap: wrap;
 }
 .r1-floating-hud .r1-compact-swap-tools .r1-hand-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     min-height: 40px;
-    padding: 5px 7px;
+    padding: 5px;
     border: 1px solid #5da69b;
     border-radius: 10px;
     background: #194954;
+}
+.r1-compact-swap-tools .r1-hand-toggle-icon {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+}
+.r1-compact-swap-tools .r1-hand-count {
+    font-size: 13px;
+}
+.r1-compact-swap-tools .r1-hand-toggle-chevron {
+    width: 12px;
+    height: 12px;
+    flex-basis: 12px;
 }
 .r1-floating-hud .r1-hand-toggle {
     white-space: nowrap;
@@ -4148,21 +4157,21 @@
 .r1-floating-hud .r1-hand-toggle .r1-rail-copy {
     flex: 0 0 auto;
 }
-.r1-compact-swap-tools {
-    max-width: 100%;
-    flex-wrap: wrap;
-}
-.r1-hud-dock > .r1-swap-choice[data-compact='true'] .r1-action-row {
-    display: flex;
-    flex-wrap: nowrap;
+/* Identical decision geometry in the expanded and compact result. */
+.r1-floating-hud .r1-swap-choice .r1-action-row,
+.r1-dock-scroll > .r1-dice-event .r1-swap-choice .r1-action-row {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     width: 100%;
     gap: 6px;
+    align-items: stretch;
 }
-.r1-hud-dock > .r1-swap-choice[data-compact='true'] .r1-action-row > button {
+.r1-floating-hud .r1-swap-choice .r1-action-row > button {
+    box-sizing: border-box;
     min-width: 0;
     min-height: 38px;
-    flex: 2;
-}
-.r1-hud-dock > .r1-swap-choice[data-compact='true'] .r1-action-row > .r1-move-button {
-    flex: 3;
+    padding: 6px 8px;
+    font-size: 13px;
+    line-height: 1.2;
+    font-weight: 650;
 }

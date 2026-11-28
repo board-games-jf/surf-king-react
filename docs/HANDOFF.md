@@ -1,5 +1,7 @@
 # Project Handoff
 
+- PR #71: align expanded and collapsed position decisions with the same panel insets, 60/40 action grid, 38px minimum button height and consistent typography. Compact header fits the 320px panel on one line, with a centered wrap at narrower widths. Isolated Chromium layout checks at 320/300/280/240px passed for the shared geometry and header fit; full app Jest/build/browser validation pending. CSS only; no rule changes.
+
 - PR #71: keep the Cards label visible in the shared hand toggle regardless of turn phase. Match its normal visual treatment in expanded and collapsed knockdown states and allow compact header tools to wrap rather than squeeze the label. Updated existing regression assertions; Jest/build/browser validation pending.
 
 - PR #71: fixed the compact knockdown avatar's inherited flex basis to match its 28px square dimensions; no other UI or game changes. CSS diff verified; browser confirmation pending.
