@@ -3479,23 +3479,17 @@
 .r1-select-hex > span {
     color: #9dcac6;
 }
-.r1-turn-history {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 8px;
-    color: #a2d8bc;
-    font-size: 10px;
-}
-.r1-turn-history > span {
+.r1-floating-hud .r1-card-used-check {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    white-space: nowrap;
+    justify-content: center;
+    flex: 0 0 13px;
+    color: #a0dfbd;
 }
-.r1-turn-history .r1-feedback-icon {
-    width: 11px;
-    height: 11px;
-    flex-basis: 11px;
+.r1-floating-hud .r1-card-used-check .r1-feedback-icon {
+    width: 13px;
+    height: 13px;
+    flex-basis: 13px;
 }
 .r1-turn-steps {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -4174,4 +4168,10 @@
     font-size: 13px;
     line-height: 1.2;
     font-weight: 650;
+}
+
+/* A confirmed card use is a status of the hand control, not of movement. */
+.r1-floating-hud .r1-hand-toggle[data-card-state='used'] {
+    border-color: #76bca0;
+    color: #a0dfbd;
 }

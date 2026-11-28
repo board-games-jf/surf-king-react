@@ -1,5 +1,7 @@
 # Project Handoff
 
+- PR #71: keep movement guidance focused on the next action; remove the duplicate turn-history text and put the confirmed card-use check inside the shared Cards button. Repeat Drop In remains governed by eligibility, never shown as completed. Existing regression updated for available/unavailable/used, repeat eligibility, contextual guidance and turn reset. React/build/browser validation pending. Presentation only.
+
 - PR #71: align expanded and collapsed position decisions with the same panel insets, 60/40 action grid, 38px minimum button height and consistent typography. Compact header fits the 320px panel on one line, with a centered wrap at narrower widths. Isolated Chromium layout checks at 320/300/280/240px passed for the shared geometry and header fit; full app Jest/build/browser validation pending. CSS only; no rule changes.
 
 - PR #71: keep the Cards label visible in the shared hand toggle regardless of turn phase. Match its normal visual treatment in expanded and collapsed knockdown states and allow compact header tools to wrap rather than squeeze the label. Updated existing regression assertions; Jest/build/browser validation pending.

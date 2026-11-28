@@ -736,21 +736,33 @@ test('card rail distinguishes availability from confirmed use; repeat Drop In is
     const props = { G, ctx, moves: {}, selection: null, setSelection: () => {}, onTarget: () => {} }
     const { rerender } = render(<R1Controls {...props} />)
     expect(screen.getByTitle('Card available')).toHaveAttribute('data-state', 'available')
+    expect(screen.getByTitle('Card available').querySelector('.r1-card-used-check')).toBeNull()
     expect(screen.getByText('Select a hex')).toBeInTheDocument()
     expect(within(screen.getByLabelText('Turn progress')).getByRole('button', { name: 'Drop In' })).toBeEnabled()
     G.currentMove = 'maneuver'
     rerender(<R1Controls {...props} />)
     expect(screen.getByTitle('Card unavailable')).toHaveAttribute('data-state', 'unavailable')
+    expect(screen.getByTitle('Card unavailable').querySelector('.r1-card-used-check')).toBeNull()
     G.cardVisualEvent = { playerId: 0, round: 2, turnSlot: 0, name: 'Energy x2' }
     rerender(<R1Controls {...props} />)
     expect(screen.getByTitle('Card used')).toHaveAttribute('data-state', 'used')
-    expect(screen.getByText('Card used')).toBeInTheDocument()
+    const hand = within(screen.getByTitle('Card used')).getByRole('button')
+    expect(hand).toBeEnabled()
+    expect(hand).toHaveAccessibleDescription(/card used/i)
+    expect(hand.querySelector('.r1-card-used-check')).toBeInTheDocument()
     G.dropResult = { attackerId: 0, defenderId: 1 }
     rerender(<R1Controls {...props} />)
-    expect(screen.getByText('Drop In used')).toBeInTheDocument()
+    const progress = screen.getByLabelText('Turn progress')
+    expect(within(progress).queryByText('Drop In used')).not.toBeInTheDocument()
+    expect(within(progress).getByRole('button', { name: 'Drop In' })).toBeEnabled()
+    expect(progress.querySelector('.r1-turn-guidance')).toHaveTextContent('Select a hex')
+    expect(progress.querySelector('.r1-turn-history')).toBeNull()
+    rerender(<R1Controls {...props} selection={{ kind: 'drop', diceCount: 1 }} />)
+    expect(within(progress).getByText('Choose an opponent')).toBeInTheDocument()
     G.turn = 3
     rerender(<R1Controls {...props} />)
     expect(screen.getByTitle('Card unavailable')).toHaveAttribute('data-state', 'unavailable')
+    expect(screen.getByTitle('Card unavailable').querySelector('.r1-card-used-check')).toBeNull()
 })
 
 test('dice chooser shows target-specific qualitative advantage for each legal choice', () => {

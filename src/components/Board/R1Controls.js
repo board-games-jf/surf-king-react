@@ -395,7 +395,6 @@ export default function R1Controls({
         ['use_card', 'swap_card', 'recover'].includes(G.currentMove) &&
         hand.cards.some((_, index) => r1CardPlayable(G, ctx, index))
     const cardRailState = getCardRailState(G, ctx, cardAvailable)
-    const dropUsed = G.dropResult && String(G.dropResult.attackerId) === String(ctx.currentPlayer)
     const noMoveAvailable =
         G.currentMove === 'use_card' && !r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx).length
     const keyboardMoves =
@@ -608,6 +607,7 @@ export default function R1Controls({
         <button
             type="button"
             className="r1-hand-toggle"
+            data-card-state={cardRailState}
             onClick={() => {
                 inspectCard(null)
                 if (handSuppressed) {
@@ -629,9 +629,14 @@ export default function R1Controls({
             <span className="r1-hand-count" aria-hidden="true">
                 {hand.cards.length}/5
             </span>
+            {cardRailState === 'used' && (
+                <span className="r1-card-used-check" aria-hidden="true">
+                    <FeedbackIcon kind="check" />
+                </span>
+            )}
             <span id="r1-hand-count-description" className="r1-sr-only">
                 {hand.cards.length} of 5 cards in hand
-                {showTurnSteps ? '; card ' + CARD_RAIL_LABELS[cardRailState].toLowerCase() : ''}
+                {showTurnSteps || cardRailState === 'used' ? '; card ' + CARD_RAIL_LABELS[cardRailState].toLowerCase() : ''}
             </span>
             <svg className="r1-hand-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24">
                 <path d={handVisible ? 'm6 9 6 6 6-6' : 'm6 15 6-6 6 6'} />
@@ -1432,22 +1437,6 @@ export default function R1Controls({
                                                 ? 'Select a second hex'
                                                 : 'Select a hex'}{' '}
                                             <span aria-hidden="true">↗</span>
-                                        </span>
-                                    )}
-                                    {(cardRailState === 'used' || dropUsed) && (
-                                        <span className="r1-turn-history">
-                                            {cardRailState === 'used' && (
-                                                <span>
-                                                    <FeedbackIcon kind="check" />
-                                                    Card used
-                                                </span>
-                                            )}
-                                            {dropUsed && (
-                                                <span>
-                                                    <FeedbackIcon kind="check" />
-                                                    Drop In used
-                                                </span>
-                                            )}
                                         </span>
                                     )}
                                     {dropReason && !selection && (
