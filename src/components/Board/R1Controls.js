@@ -1,3 +1,4 @@
+import { hexNumber } from '../../map/layout/hexNumber'
 import React, { useEffect, useRef, useState } from 'react'
 import './R1Hud.css'
 import PlayerIcon from './PlayerIcon'
@@ -327,7 +328,7 @@ export function HexInspectionBody({ hexFeedback, expanded = false }) {
     return (
         <div className="r1-inspection-body r1-hex-elements">
             <div className="r1-inspection-heading">
-                <strong>Hex {hexFeedback.id + 1}</strong>
+                <strong>Hex {hexFeedback.number ?? hexNumber(hexFeedback.id)}</strong>
                 <span
                     className="r1-hex-number"
                     aria-label={(hexFeedback.occupants?.length || 0) + ' of ' + HEX_CAPACITY + ' spaces occupied'}
@@ -776,7 +777,7 @@ export default function R1Controls({
                                   odds={getDropInAdvantage(player.energy, G.players[id].energy, maxAttackDice)}
                               />
                               <span id={'r1-drop-target-' + id} className="r1-sr-only">
-                                  Hex {G.players[id].cellPosition + 1}; {G.players[id].energy} of 5 energy;{' '}
+                                  Hex {hexNumber(G.players[id].cellPosition, G.activeCellIds)}; {G.players[id].energy} of 5 energy;{' '}
                                   {getDropInAdvantage(player.energy, G.players[id].energy, maxAttackDice)?.tone} with{' '}
                                   {maxAttackDice} {maxAttackDice === 1 ? 'die' : 'dice'}
                               </span>
@@ -801,10 +802,10 @@ export default function R1Controls({
                           type="button"
                           key={id}
                           className="r1-target-hex"
-                          aria-label={'Select hex ' + (id + 1)}
+                          aria-label={'Select hex ' + hexNumber(id, G.activeCellIds)}
                           onClick={() => onTarget(id)}
                       >
-                          <HexBadge id={id} />
+                          <HexBadge id={id} activeCellIds={G.activeCellIds} />
                       </button>
                   ))}
         </div>
@@ -1166,10 +1167,10 @@ export default function R1Controls({
                                     <button
                                         type="button"
                                         key={id}
-                                        aria-label={'Move to hex ' + (id + 1)}
+                                        aria-label={'Move to hex ' + hexNumber(id, G.activeCellIds)}
                                         onClick={() => moves.quickManeuver(id)}
                                     >
-                                        <HexBadge id={id} />
+                                        <HexBadge id={id} activeCellIds={G.activeCellIds} />
                                     </button>
                                 ))}
                                 {!selection &&
