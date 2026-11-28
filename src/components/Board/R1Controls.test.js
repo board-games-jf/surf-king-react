@@ -185,7 +185,7 @@ test('dice result offers a repeat only while the same opponent remains eligible'
     expect(screen.queryByRole('button', { name: 'Attack again' })).not.toBeInTheDocument()
     G.players[0].energy = 3
     rerender(<R1Controls {...props} />)
-    expect(screen.getByText('Drop In result')).toBeInTheDocument()
+    expect(screen.getByText('Stand-off!')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /1 die/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Attack again' }))
     expect(onRepeatDrop).toHaveBeenCalledWith(14, 1, 1)
@@ -904,4 +904,54 @@ test('does not announce a transferred card that was discarded immediately', () =
     expect(screen.queryByLabelText('Received card: ' + card.Name)).not.toBeInTheDocument()
     unmount()
     jest.useRealTimers()
+})
+
+
+test.each([
+    [0, 1, 0, [6], [3], 'Knockdown!'],
+    [0, 1, 1, [6], [3], 'Opponent hit!'],
+    [1, 0, 2, [2], [4], 'You took a hit!'],
+    [1, 1, 1, [6, 2], [5, 4], 'Trading blows!'],
+    [0, 0, 2, [4], [4], 'Stand-off!'],
+])('dice result reports actual losses (%i, %i) with an outcome-first title', (attackerLoss, defenderLoss, energy, attack, defense, title) => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].energy = 3
+    G.players[1].energy = energy
+    G.players[1].cellPosition = energy === 0 ? G.players[0].cellPosition : 14
+    G.atkDices = attack
+    G.defDices = defense
+    G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss, defenderLoss }
+    render(<R1Controls G={G} ctx={ctx} moves={{}} selection={null} setSelection={() => {}} onTarget={() => {}} />)
+    const panel = screen.getByLabelText('Drop In dice results').closest('.r1-dice-event')
+    expect(within(panel).getByText(title)).toBeInTheDocument()
+    expect(within(panel).queryByText('Drop In result')).not.toBeInTheDocument()
+    if (energy === 0) {
+        expect(within(panel).getByText('Fell!')).toBeInTheDocument()
+        expect(within(panel).queryByRole('group', { name: 'Position conquest' })).not.toBeInTheDocument()
+    }
+})
+
+test('repeat dice use the accessible compact advantage scale and Stop only dismisses the result', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[0].energy = 3
+    G.players[1].energy = 1
+    G.players[1].cellPosition = 14
+    G.atkDices = [2, 1]
+    G.defDices = [4]
+    G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss: 1, defenderLoss: 0 }
+    const onRepeatDrop = jest.fn(), setSelection = jest.fn()
+    render(<R1Controls G={G} ctx={ctx} moves={{}} selection={null} setSelection={setSelection} onRepeatDrop={onRepeatDrop} onTarget={() => {}} />)
+    const group = screen.getByRole('group', { name: 'Attack dice' })
+    const option = within(group).getByRole('button', { name: /2 dice/ })
+    expect(option.querySelector('.r1-combat-marker')).toBeInTheDocument()
+    expect(option.querySelector('.r1-combat-caption')).toBeNull()
+    expect(within(option).getByRole('img', { name: /Favorable: chance to knock down/ })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Stop' }))
+    expect(screen.queryByLabelText('Drop In dice results')).not.toBeInTheDocument()
+    expect(onRepeatDrop).not.toHaveBeenCalled()
+    expect(setSelection).not.toHaveBeenCalled()
 })

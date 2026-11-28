@@ -3880,3 +3880,81 @@
 .r1-dock-scroll > .r1-dice-event .r1-swap-choice .r1-action-row button {
     flex: 1 1 auto;
 }
+
+/* Outcome-first result: aligned player columns, tactile dice and a quiet next action. */
+.r1-dock-scroll > .r1-dice-event .r1-panel-header strong {
+    font-size: 18px;
+    letter-spacing: -0.02em;
+}
+.r1-dice-event[data-outcome='win'] .r1-panel-header strong { color: #b1f8d6; }
+.r1-dice-event[data-outcome='loss'] .r1-panel-header strong { color: #ffb49e; }
+.r1-dice-event[data-outcome='neutral'] .r1-panel-header strong { color: #ffe0a1; }
+.r1-dock-scroll > .r1-dice-event .r1-dice-sides {
+    gap: 0;
+    padding: 0 4px;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-side {
+    box-sizing: border-box;
+    padding: 7px 3px 4px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: #19454e;
+    gap: 3px;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-side[data-edge='true'] {
+    border-color: #8fd5b866;
+    background: #1a4848;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-results .r1-dice-role {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: #d8eeea;
+    font-weight: 700;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-pair {
+    padding: 3px 4px 6px;
+    min-height: 43px;
+    background: transparent;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-results .r1-dice-versus {
+    font-size: 13px;
+    color: #9bbdbd;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-pair[data-result='win'] .r1-die:first-child,
+.r1-floating-hud .r1-dice-event .r1-dice-pair[data-result='loss'] .r1-die:last-child {
+    box-shadow: 0 3px 0 #a89678, 0 0 8px #ffe0a14d;
+}
+.r1-floating-hud .r1-dice-event .r1-dice-pair[data-result='unpaired'] .r1-die[data-empty='true'] {
+    visibility: hidden;
+}
+.r1-floating-hud .r1-dice-event .r1-repeat-controls {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #608d944d;
+}
+.r1-floating-hud .r1-dice-event .r1-repeat-dice button {
+    min-width: 0;
+    gap: 7px;
+    padding-block: 9px;
+}
+.r1-floating-hud .r1-dice-event .r1-repeat-dice button[aria-pressed='true'] {
+    padding-block: 8px;
+}
+.r1-dice-event .r1-repeat-dice .r1-combat-advantage { margin: 2px 0 3px; }
+.r1-repeat-actions { display: flex; gap: 6px; }
+.r1-floating-hud .r1-repeat-actions .r1-repeat-action {
+    flex: 3;
+    width: auto;
+    min-width: 0;
+}
+.r1-floating-hud .r1-repeat-actions .r1-repeat-stop {
+    flex: 2;
+    min-width: 0;
+    min-height: 38px;
+    border: 1px solid #608d94;
+    border-radius: 9px;
+    background: #214b55;
+    color: #eaf8f2;
+    font-weight: 700;
+}

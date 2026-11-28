@@ -84,6 +84,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-051 | Accepted | The Drop In indicator uses cumulative probability of knocking down the target before the attacker reaches one energy, assuming consecutive attacks and maximum legal dice after the first roll. Target previews use maximum dice on the first roll; each dice choice uses its own first-roll count. Keep the qualitative scale without visible percentages. | The owner requested total-outcome probability rather than single-roll advantage, and explicitly preferred the existing visual scale without numeric percentages. This is conditional guidance, not a probability of winning the match or a rule change. | [#62](https://github.com/board-games-jf/surf-king-react/issues/62), [#68](https://github.com/board-games-jf/surf-king-react/pull/68) |
 
+| SK-DEC-052 | Accepted | Use a single outcome-led title for the Drop In result, with compact aligned player and dice columns, distinct damage/tie/knockdown feedback, and the existing cumulative advantage scale without visible captions on repeat choices. Keep accessible explanations, explicit repeat confirmation and a Stop dismissal. Preserve fall/card/position decisions, roll timing and engine eligibility. | Owner approved the simplified preview and requested implementation in the existing PR. Presentation only; manual review pending. | [#62](https://github.com/board-games-jf/surf-king-react/issues/62), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.

@@ -1,5 +1,7 @@
 # Project Handoff
 
+-   PR #71: owner-approved outcome-first dice results reuse the shared header, player badges, energy and dice; distinguish knockdown, single-side damage, mutual damage and ties. Aligned columns and subtle matched-die feedback replace directional arrows; repeat choices use the existing cumulative advantage scale without visible captions, and Stop dismisses the result without dispatching a move. Same-hex knockdowns also show Fell! without offering a swap. Existing roll delay, hand access, card receipt and engine rules stay unchanged. 17 isolated outcome assertions passed; added React regressions. Full Jest, build and browser review remain pending (checkout unavailable in this runtime; existing CI does not target this stacked branch). No merge or deployment authorized.
+
 -   A card retained from a defeated opponent is identified in the dice result and highlighted in the opened hand; no retained-card notice appears if that card was discarded. HUD/timing suite passed (36 tests); desktop and mobile visual review of the receipt remains pending.
 -   The fallen target’s loss changes to Fell! in the same player column after the result, while the position actions remain below. The hand toggle explicitly opens cards during result and pending-swap panels; focused regressions passed (34 tests).
 -   Consecutive Drop In results now use distinct React keys for player energy and dice rows, preventing duplicate energy rows; a repeated-result regression and the HUD/timing suite passed (34 tests).

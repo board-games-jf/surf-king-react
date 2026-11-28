@@ -100,6 +100,19 @@ function EnergyMeter({ energy, lost = 0 }) {
     )
 }
 
+function getDropResultPresentation(result, players, currentPlayer) {
+    if (!result || !Number.isInteger(result.attackerLoss) || !Number.isInteger(result.defenderLoss))
+        return { title: 'Roll result', tone: 'neutral' }
+    const { attackerId, defenderId, attackerLoss, defenderLoss } = result
+    const isAttacker = Number(currentPlayer) === attackerId
+    if (defenderLoss > 0 && players[defenderId]?.energy === 0)
+        return { title: 'Knockdown!', tone: 'win' }
+    if (attackerLoss && defenderLoss) return { title: 'Trading blows!', tone: 'neutral' }
+    if (attackerLoss) return { title: isAttacker ? 'You took a hit!' : 'Attacker hit!', tone: 'loss' }
+    if (defenderLoss) return { title: isAttacker ? 'Opponent hit!' : 'Defender hit!', tone: 'win' }
+    return { title: 'Stand-off!', tone: 'neutral' }
+}
+
 export function HexInspectionBody({ hexFeedback, expanded = false }) {
     const singleAmuletBlock =
         hexFeedback?.occupants?.length === 1 &&
@@ -571,6 +584,7 @@ export default function R1Controls({
             </div>
         </div>
     )
+    const dropPresentation = getDropResultPresentation(G.dropResult, G.players, ctx.currentPlayer)
     const resultPanel = !rollingDrop &&
         (winner ||
             showDice ||
@@ -579,7 +593,11 @@ export default function R1Controls({
                 !G.message.startsWith('Drop In:') &&
                 !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) &&
                 /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) && (
-            <div className={'r1-match-event r1-glass' + (showDice ? ' r1-dice-event' : '')} aria-live="polite">
+            <div
+                className={'r1-match-event r1-glass' + (showDice ? ' r1-dice-event' : '')}
+                data-outcome={showDice ? dropPresentation.tone : undefined}
+                aria-live="polite"
+            >
                 {winner ? (
                     <>
                         <FeedbackIcon kind="flag" />
@@ -592,7 +610,7 @@ export default function R1Controls({
                 )}
                 {showDice && (
                     <PanelHeader
-                        title="Drop In result"
+                        title={dropPresentation.title}
                         backLabel="Back from dice result"
                         closeLabel="Close dice result"
                         onBack={() => {
@@ -615,13 +633,24 @@ export default function R1Controls({
                                     <div
                                         className="r1-dice-side"
                                         key={role}
+                                        data-edge={
+                                            role === 'Attacker'
+                                                ? G.dropResult.defenderLoss > loss
+                                                : G.dropResult.attackerLoss > loss
+                                        }
                                         aria-label={role + ', Player ' + (id + 1) + ', ' + loss + ' energy lost'}
                                     >
                                         <PlayerIcon playerId={id} />
+                                        <span className="r1-dice-role" aria-hidden="true">
+                                            {Number(ctx.currentPlayer) === G.dropResult.attackerId
+                                                ? role === 'Attacker' ? 'You' : 'Opponent'
+                                                : role}
+                                        </span>
                                         <EnergyMeter energy={G.players[id]?.energy ?? 0} lost={loss} />
-                                        {swapChoice &&
-                                        G.pendingSwap.targetPlayerId === id &&
-                                        swapReadyKey === diceKey ? (
+                                        {role === 'Defender' &&
+                                        loss > 0 &&
+                                        G.players[id]?.energy === 0 &&
+                                        (!swapChoice || swapReadyKey === diceKey) ? (
                                             <strong className="r1-dice-energy" data-fell="true">
                                                 Fell!
                                             </strong>
@@ -673,10 +702,6 @@ export default function R1Controls({
                                         <span className="r1-dice-versus" aria-hidden="true">
                                             {result === 'tie'
                                                 ? '='
-                                                : result === 'win'
-                                                ? '→'
-                                                : result === 'loss'
-                                                ? '←'
                                                 : '·'}
                                         </span>
                                         <DiceFace value={defense} lost={result === 'win'} />
@@ -707,21 +732,27 @@ export default function R1Controls({
                                 >
                                     {count === 1 ? '1 die' : count + ' dice'}
                                     <DropInAdvantage
+                                        compact
                                         odds={getDropInAdvantage(player.energy, G.players[repeatTarget].energy, count)}
                                     />
                                 </button>
                             ))}
                         </div>
-                        <button
-                            type="button"
-                            className="r1-repeat-action"
-                            onClick={() => {
-                                setDismissedDice(diceKey)
-                                onRepeatDrop(G.players[repeatTarget].cellPosition, repeatCount, repeatTarget)
-                            }}
-                        >
-                            Attack again
-                        </button>
+                        <div className="r1-repeat-actions">
+                            <button
+                                type="button"
+                                className="r1-repeat-action"
+                                onClick={() => {
+                                    setDismissedDice(diceKey)
+                                    onRepeatDrop(G.players[repeatTarget].cellPosition, repeatCount, repeatTarget)
+                                }}
+                            >
+                                Attack again
+                            </button>
+                            <button type="button" className="r1-repeat-stop" onClick={() => setDismissedDice(diceKey)}>
+                                Stop
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
