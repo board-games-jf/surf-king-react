@@ -1146,3 +1146,43 @@ test('recovery without Lifeguard float offers only the free action and preserves
     expect(G.players[0].cards).toHaveLength(1)
     expect(G.currentMove).toBe('use_card')
 })
+
+
+test.each(['close', 'escape', 'external'])('temporary hand collapse ends when a targeted card is cancelled (%s)', (method) => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.players[0].cards = [createR1Deck().find((card) => card.Name === 'Cyclone')]
+    const moves = { useCard: jest.fn(), pass: jest.fn() }
+    const setSelection = jest.fn(), onTarget = jest.fn()
+    const props = { G, ctx, moves, selection: null, setSelection, onTarget }
+    const { rerender } = render(<R1Controls {...props} />)
+    const card = within(screen.getByLabelText('Player 1 hand')).getByRole('button', { name: /Cyclone/ })
+    fireEvent.click(card)
+    const selection = { kind: 'card', index: 0 }
+    expect(setSelection).toHaveBeenLastCalledWith(selection)
+    rerender(<R1Controls {...props} selection={selection} />)
+    expect(screen.queryByLabelText('Player 1 hand')).not.toBeInTheDocument()
+    const close = screen.getByRole('button', { name: 'Deselect card' })
+    if (method === 'close') fireEvent.click(close)
+    if (method === 'escape') fireEvent.keyDown(close, { key: 'Escape' })
+    if (method !== 'external') expect(setSelection).toHaveBeenLastCalledWith(null)
+    rerender(<R1Controls {...props} />)
+    expect(screen.getByLabelText('Player 1 hand')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Deselect card' })).not.toBeInTheDocument()
+    expect(moves.useCard).not.toHaveBeenCalled()
+    expect(moves.pass).not.toHaveBeenCalled()
+    expect(onTarget).not.toHaveBeenCalled()
+    expect(G.players[0].cards).toHaveLength(1)
+    // A later selection still collapses the hand.
+    fireEvent.click(within(screen.getByLabelText('Player 1 hand')).getByRole('button', { name: /Cyclone/ }))
+    rerender(<R1Controls {...props} selection={selection} />)
+    expect(screen.queryByLabelText('Player 1 hand')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Show cards' }))
+    expect(screen.getByLabelText('Player 1 hand')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Hide cards' }))
+    expect(screen.queryByLabelText('Player 1 hand')).not.toBeInTheDocument()
+    rerender(<R1Controls {...props} />)
+    expect(screen.getByLabelText('Player 1 hand')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Hide cards' }))
+    expect(screen.queryByLabelText('Player 1 hand')).not.toBeInTheDocument()
+})

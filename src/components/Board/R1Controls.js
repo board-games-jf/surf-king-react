@@ -253,7 +253,13 @@ function CardContextPanel({ card, feedback, selected, closable, nextAction, canC
         Island: 'Stays in place; restores energy on ordinary entry.',
     }
     return (
-        <div className="r1-card-detail r1-glass" data-selected={selected} data-closable={closable} aria-label="Card information" aria-live="polite">
+        <div className="r1-card-detail r1-glass" data-selected={selected} data-closable={closable} aria-label="Card information" aria-live="polite"
+            onKeyDown={(event) => {
+                if (closable && event.key === 'Escape') {
+                    event.stopPropagation()
+                    onClose()
+                }
+            }}>
             <img className="r1-inspection-art" src={cardArt[card.Name]} alt="" />
             <div className="r1-inspection-body">
                 <div className="r1-inspection-heading">
@@ -559,7 +565,16 @@ export default function R1Controls({
     const [handHidden, setHandHidden] = useState(false)
     const [handOverrideKey, setHandOverrideKey] = useState(null)
     const handSuppressed = (rollingDrop || showDice || !!swapChoice) && handOverrideKey !== diceKey
-    const handVisible = !handHidden && !handSuppressed
+    // Target selection temporarily hides the hand without changing the user's manual preference.
+    const targetedCardKey = selectedCard && targets.length > 0
+        ? [ctx.currentPlayer, G.turn, G.currentMove, selectedCard.id].join(':')
+        : null
+    const [cardHandOverrideKey, setCardHandOverrideKey] = useState(null)
+    const cardHandSuppressed = targetedCardKey !== null && cardHandOverrideKey !== targetedCardKey
+    const handVisible = !handHidden && !handSuppressed && !cardHandSuppressed
+    useEffect(() => {
+        if (targetedCardKey === null) setCardHandOverrideKey(null)
+    }, [targetedCardKey])
     const handRef = useRef(null)
     useEffect(() => {
         if (handVisible && handOverrideKey === diceKey) handRef.current?.scrollIntoView?.({ block: 'nearest' })
@@ -603,7 +618,7 @@ export default function R1Controls({
     }, [terrainEventId, terrainPlayer, terrainAmount, terrainSource, terrainDirection])
     const [inspection, setInspection] = useState(null)
     const inspected =
-        !handHidden && inspection?.playerId === ctx.currentPlayer && inspection?.turn === G.turn
+        handVisible && inspection?.playerId === ctx.currentPlayer && inspection?.turn === G.turn
             ? hand.cards.find((card) => card.id === inspection.cardId)
             : null
     const detailCard = inspected || selectedCard
@@ -631,7 +646,7 @@ export default function R1Controls({
             return
         }
         inspectCard(null)
-        if (r1SelectionTargets(G, ctx, { kind: 'card', index }).length > 0) setHandHidden(true)
+        setCardHandOverrideKey(null)
         setSelection({ kind: 'card', index })
     }
     function confirmCard() {
@@ -683,6 +698,10 @@ export default function R1Controls({
                 if (handSuppressed) {
                     setHandOverrideKey(diceKey)
                     setHandHidden(false)
+                    if (targetedCardKey !== null) setCardHandOverrideKey(targetedCardKey)
+                } else if (targetedCardKey !== null) {
+                    setCardHandOverrideKey(handVisible ? null : targetedCardKey)
+                    if (!handVisible) setHandHidden(false)
                 } else setHandHidden((value) => !value)
             }}
             aria-expanded={handVisible}
