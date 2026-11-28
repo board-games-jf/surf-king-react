@@ -1,5 +1,7 @@
 # Project Handoff
 
+- PR #71: fixed the compact knockdown avatar's inherited flex basis to match its 28px square dimensions; no other UI or game changes. CSS diff verified; browser confirmation pending.
+
 -   PR #71 pending knockdown correction: closing the expanded result collapses the unresolved position decision into one compact sticky dock panel with card access, reopen dice and Swap positions/Stay. The separate action bar is suppressed in that state; reopening restores the full result and already available decision without replaying a move or waiting again. Back-to-attack navigation is unavailable while a position decision is mandatory. Added React regression coverage for close, hand access, reopen, Stay and post-resolution review; Jest/build/browser validation still pending. No engine changes.
 
 -   PR #71 follow-up: player cards contain their own aligned dice, with no consequence row on ties and a compact no-loss label when only one side loses. A dice icon in the existing turn/action bar reopens the current turn's dismissed result without a game move; presentation retains the roll's energy snapshot, and current engine eligibility governs subsequent actions. Initial and repeat dice options share DiceChoices (blank dice, gold selection, compact cumulative advantage, accessible maximum loss and assumption). 39 isolated pair/reopen assertions passed; React regressions added/updated, not executed. Real checkout is unavailable (GitHub DNS failure); Jest, build and browser review remain pending. No gameplay, odds, merge or deployment changes.
