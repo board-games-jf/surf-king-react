@@ -96,3 +96,14 @@ test('R1 map receives the actual Island energy gain event', () => {
         terrainEnergyEvent: { id: 7, playerId: 1, amount: 1, source: 'Island', direction: 'gain' } }
     expect(createPublicMapSnapshot(G, { currentPlayer: '0' }).terrainEnergyEvent).toEqual(G.terrainEnergyEvent)
 })
+
+
+test('adaptive snapshot preserves stable IDs and rejects an inactive selection', () => {
+    const G = { ...game(), ruleset: 'R1', currentMove: 'use_card', winner: null, activeCellIds: [1, 2, 5, 50, 51] }
+    const snapshot = createPublicMapSnapshot(G, { currentPlayer: '0' }, 0)
+    expect(snapshot.cells).toHaveLength(53)
+    expect(snapshot.activeCellIds).toEqual(G.activeCellIds)
+    expect(snapshot.activeCellIds).not.toBe(G.activeCellIds)
+    expect(snapshot.selectedCellId).toBeNull()
+    expect(createPublicMapSnapshot(G, { currentPlayer: '0' }, 50).selectedCellId).toBe(50)
+})
