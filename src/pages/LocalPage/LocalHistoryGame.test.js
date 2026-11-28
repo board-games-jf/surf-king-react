@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent, within } from '@testing-library/react'
-import LocalHistoryGame, { restoreState } from './LocalHistoryGame'
+import LocalHistoryGame, { restoreState, describe } from './LocalHistoryGame'
 import { Client } from 'boardgame.io/client'
 import { SurfKingR1, setupR1 } from '../../game/r1/SurfKingR1'
 
@@ -80,4 +80,41 @@ test('restoring a snapshot preserves random state for subsequent dice rolls', ()
     } finally {
         client.stop()
     }
+})
+
+
+test('history descriptions use the played card from the original hand, not the new hand', () => {
+    const previous = {
+        ctx: { currentPlayer: '0' },
+        G: { turn: 2, players: { 0: { cards: [{ Name: 'Jumping' }] } },
+            cardVisualEvent: { id: 5, name: 'Stone', playerId: 0 } },
+    }
+    const state = {
+        ctx: { currentPlayer: '1' },
+        G: { turn: 3, players: { 0: { cards: [{ Name: 'Amulet' }] } },
+            cardVisualEvent: { id: 6, name: 'Jumping', playerId: 0, to: 28 } },
+        deltalog: [{ action: { type: 'MAKE_MOVE', payload: { type: 'useCard', playerID: '0', args: [0, 28] } } }],
+    }
+    expect(describe(state, previous)).toBe('P1 · Play card: Jumping · Hex 29')
+    expect(describe({ ...state, G: { ...state.G, cardVisualEvent: previous.G.cardVisualEvent } }, previous))
+        .toBe('P1 · Play card: Jumping · Hex 29')
+    expect(describe({ ...state, G: { ...state.G, cardVisualEvent: previous.G.cardVisualEvent } }))
+        .toBe('P1 · Play card · Hex 29')
+    const alternative = { ...previous, G: { ...previous.G, players: { 0: { cards: [{ Name: 'Stone' }] } } } }
+    expect(describe({ ...state, G: { ...state.G, cardVisualEvent: previous.G.cardVisualEvent } }, alternative))
+        .toBe('P1 · Play card: Stone · Hex 29')
+})
+
+test('history distinguishes attack targets, position decisions and ordinary movement', () => {
+    const previous = { ctx: { currentPlayer: '0' }, G: { pendingSwap: { targetPlayerId: 1 } } }
+    const state = (type, args, G = {}) => ({
+        G, deltalog: [{ action: { type: 'MAKE_MOVE', payload: { type, args, playerID: '0' } } }],
+    })
+    expect(describe(state('dropIn', [7, 2, 1], { dropResult: { attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 1 } }), previous))
+        .toBe('P1 · Drop In · P2 · Hex 8 · −1 target energy')
+    expect(describe(state('resolveSwap', [true]), previous)).toBe('P1 · Swap positions · P2')
+    expect(describe(state('resolveSwap', [false]), previous)).toBe('P1 · Stay')
+    expect(describe(state('quickManeuver', [7], { players: { 0: { cellPosition: 14 } } }), previous))
+        .toBe('P1 · Move · Hex 8 · Landed Hex 15')
+    expect(describe(state('recover', []), previous)).toBe('P1 · Recover · +1 energy')
 })

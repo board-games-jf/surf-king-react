@@ -7,10 +7,12 @@ import './LocalHistoryGame.css'
 // RESET restores the complete local boardgame.io state, including its random plugin.
 export const restoreState = (client, state) => client.store.dispatch({ type: 'RESET', state, clientOnly: true })
 
-function describe(state) {
+export function describe(state, previous) {
     const entry = (state.deltalog || []).find((item) => item.action?.type === 'MAKE_MOVE')
-    const move = entry?.action?.payload?.type
-    const player = entry?.action?.payload?.playerID
+    const payload = entry?.action?.payload
+    const move = payload?.type
+    const player = payload?.playerID ?? (move ? previous?.ctx?.currentPlayer : null)
+    const args = payload?.args || []
     const names = {
         quickManeuver: 'Move',
         maneuver: 'Move',
@@ -18,14 +20,51 @@ function describe(state) {
         useCard: 'Play card',
         recover: 'Recover',
         pass: 'Pass',
+        resolveSwap: 'Position choice',
     }
-    const label =
-        names[move] || (move ? move.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()) : 'Game update')
-    const destination =
-        ['quickManeuver', 'maneuver'].includes(move) && Number.isInteger(entry?.action?.payload?.args?.[0])
-            ? ' · Hex ' + (entry.action.payload.args[0] + 1)
-            : ''
-    return (player == null ? '' : 'P' + (Number(player) + 1) + ' · ') + label + destination
+    const playerLabel = id => id == null ? '' : 'P' + (Number(id) + 1)
+    const hexLabel = id => Number.isInteger(id) && id >= 0 && id < 53 ? 'Hex ' + (id + 1) : ''
+    let label = names[move] || (move ? move.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()) : 'Game update')
+    const details = []
+    if (move === 'useCard') {
+        // Read the original hand index before consumption; the next hand may include a draw.
+        const card = previous?.G?.players?.[player]?.cards?.[args[0]]
+        const event = state.G?.cardVisualEvent
+        const freshEvent = event && event.id != null && previous?.G &&
+            event.id !== previous.G.cardVisualEvent?.id && String(event.playerId) === String(player) &&
+            (!card || card.Name === event.name) ? event : null
+        const name = card?.Name || freshEvent?.name
+        if (name) label += ': ' + name
+        const target = freshEvent?.targetId ?? args[2]
+        const destination = freshEvent?.to ?? args[1]
+        if (target != null) details.push(playerLabel(target))
+        if (hexLabel(destination)) details.push(hexLabel(destination))
+    } else if (['quickManeuver', 'maneuver'].includes(move)) {
+        if (hexLabel(args[0])) details.push(hexLabel(args[0]))
+        const landing = state.G?.players?.[player]?.cellPosition
+        if (hexLabel(landing) && landing !== args[0]) details.push('Landed ' + hexLabel(landing))
+    } else if (move === 'dropIn') {
+        const result = state.G?.dropResult
+        const target = result?.defenderId ?? args[2]
+        if (target != null) details.push(playerLabel(target))
+        if (hexLabel(args[0])) details.push(hexLabel(args[0]))
+        if (result && String(result.attackerId) === String(player)) {
+            if (result.attackerLoss === 0 && result.defenderLoss === 0) details.push('Tie')
+            else {
+                if (result.attackerLoss > 0) details.push('−' + result.attackerLoss + ' own energy')
+                if (result.defenderLoss > 0) details.push('−' + result.defenderLoss + ' target energy')
+            }
+        }
+    } else if (move === 'resolveSwap') {
+        if (args[0] === true) {
+            label = 'Swap positions'
+            const target = previous?.G?.pendingSwap?.targetPlayerId
+            if (target != null) details.push(playerLabel(target))
+        } else if (args[0] === false) label = 'Stay'
+    } else if (move === 'recover') {
+        details.push('+1 energy')
+    }
+    return [playerLabel(player), label, ...details].filter(Boolean).join(' · ')
 }
 
 export default function LocalHistoryGame({ numPlayers }) {
@@ -45,6 +84,7 @@ export default function LocalHistoryGame({ numPlayers }) {
         nextBranch: 1,
         restoring: false,
         stateID: initial._stateID,
+        state: initial,
     })
     const noMoves = useMemo(() => Object.fromEntries(Object.keys(client.moves).map((key) => [key, () => {}])), [client])
 
@@ -54,11 +94,15 @@ export default function LocalHistoryGame({ numPlayers }) {
             setGame(client.getState())
             const current = cursor.current
             if (current.restoring || state._stateID === current.stateID) return
+            const previous = current.state
             current.stateID = state._stateID
+            current.state = state
             const id = current.nextNode++
             const parent = current.node
             current.node = id
-            setNodes((items) => [...items, { id, parent, state, label: describe(state) }])
+            const label = describe(state, previous)
+            const round = previous?.G?.turn ?? state.G.turn
+            setNodes((items) => [...items, { id, parent, state, label, round }])
             setBranches((items) =>
                 items.map((branch) => (branch.id === current.branch ? { ...branch, head: id } : branch))
             )
@@ -77,6 +121,7 @@ export default function LocalHistoryGame({ numPlayers }) {
         current.node = node.id
         current.branch = id
         current.stateID = node.state._stateID
+        current.state = node.state
         restoreState(client, node.state)
         current.restoring = false
         setBranches((items) => [...items, { id, name: 'Branch ' + id, head: node.id }])
@@ -145,7 +190,7 @@ export default function LocalHistoryGame({ numPlayers }) {
                                             aria-pressed={preview === item.id}
                                             onClick={() => setPreview(item.id)}
                                         >
-                                            <span>Round {item.state.G.turn || 1}</span>
+                                            <span>Round {item.round ?? item.state.G.turn ?? 1}</span>
                                             <strong>{item.label}</strong>
                                         </button>
                                     </li>
