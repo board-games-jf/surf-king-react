@@ -706,7 +706,7 @@
     color: var(--r1-card-accent);
 }
 .r1-floating-hud .r1-hand button[aria-disabled='true'] {
-    opacity: 0.58;
+    opacity: 1;
     cursor: help;
 }
 .r1-floating-hud .r1-hand button[aria-pressed='true'],
@@ -1028,7 +1028,7 @@
     background: #246d54;
 }
 .r1-floating-hud .r1-hand button[aria-disabled='true']:hover {
-    opacity: 0.83;
+    opacity: 1;
 }
 
 /* Inspection must not shift the hovered hit area. Lift only committed cards. */
@@ -3523,7 +3523,7 @@
     font-size: 10px;
 }
 .r1-floating-hud .r1-hand button {
-    --card-width: clamp(84px, 10vw, 132px);
+    --card-width: clamp(78px, 8.5vw, 112px);
     flex: 0 0 var(--card-width);
     width: var(--card-width);
     height: auto;
@@ -3537,16 +3537,18 @@
     min-height: 0;
     flex: 1 1 0;
     width: 100%;
-    object-fit: contain;
-    margin: 0 0 3px;
+    object-fit: cover;
+    margin: 0;
+    border-radius: 4px 4px 0 0;
 }
 .r1-floating-hud .r1-hand button strong {
+    border-radius: 0 0 3px 3px;
     flex: 0 0 2.8em;
     height: 2.8em;
 }
 @media (max-width: 520px) {
     .r1-floating-hud .r1-hand button {
-        --card-width: clamp(76px, 23vw, 110px);
+        --card-width: clamp(72px, 21vw, 100px);
     }
 }
 @media (max-height: 520px) {
@@ -3722,4 +3724,159 @@
         content: '';
         animation: none;
     }
+}
+
+/* Keep the outcome and next decision together in the lower dock. */
+.r1-dock-scroll > .r1-dice-event {
+    width: min(270px, 100%);
+    box-sizing: border-box;
+    padding: 10px 12px 12px;
+    pointer-events: auto;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-results {
+    width: 100%;
+    margin: 6px auto 0;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-sides {
+    padding: 0 8px;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-side {
+    padding: 3px;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-role {
+    font-size: 11px;
+    color: #b8d6d8;
+}
+.r1-dock-scroll > .r1-dice-event .r1-dice-pair[data-result='unpaired'] {
+    opacity: 0.55;
+}
+.r1-dock-scroll > .r1-dice-event .r1-swap-choice {
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    margin: 8px auto 0;
+    padding: 0;
+    border: 0;
+}
+.r1-fell-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+.r1-fell-indicator .r1-player-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+}
+
+/* The initial roll already animated; reveal the actual dice and loss together. */
+.r1-floating-hud .r1-dice-results .r1-die:not([data-empty='true']) .r1-die-pip {
+    animation: none;
+}
+.r1-floating-hud .r1-dice-results .r1-die:not([data-empty='true'])::after {
+    display: none;
+}
+
+.r1-dice-side strong.r1-dice-energy[data-fell='true'] {
+    color: #ffdc8c;
+    background: #674638;
+    border-color: #ffc479;
+}
+
+.r1-received-card {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: max-content;
+    max-width: 100%;
+    margin: 8px auto;
+    padding: 6px 8px;
+    border: 1px solid #85cbb6;
+    border-radius: 9px;
+    background: #1c514d;
+    color: #ddf7ea;
+    text-align: left;
+}
+.r1-received-card img {
+    width: 28px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+.r1-received-card span {
+    display: grid;
+    font-size: 11px;
+}
+.r1-received-card strong {
+    color: #ffdb8d;
+    font-size: 13px;
+}
+.r1-floating-hud .r1-hand button[data-new-card='true'] {
+    box-shadow: 0 0 0 3px #ffda86, 0 5px 12px #082a3b70;
+}
+.r1-new-card-badge {
+    position: absolute;
+    z-index: 1;
+    top: 6px;
+    right: 6px;
+    padding: 2px 5px;
+    border-radius: 5px;
+    border: 1px solid #ffe0a1;
+    background: #0b3540;
+    color: #fff4d6;
+    box-shadow: 0 2px 5px #001c2a99;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+/* Unavailable cards remain readable and can still be inspected. */
+.r1-floating-hud .r1-hand button[aria-disabled='true'] .r1-card-art {
+    filter: saturate(0.7) brightness(0.92);
+}
+.r1-card-unavailable-icon {
+    position: absolute;
+    z-index: 1;
+    top: 7px;
+    left: 7px;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border: 1px solid #c5dfd7;
+    border-radius: 50%;
+    background: #123b46ee;
+    color: #e1eeeb;
+}
+.r1-card-unavailable-icon .r1-feedback-icon {
+    width: 12px;
+    height: 12px;
+}
+.r1-floating-hud .r1-hand button[aria-disabled='true']::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: 6px;
+    background: rgb(0 0 0 / 24%);
+    pointer-events: none;
+}
+/* Stretch the shared player/dice columns across the result panel. */
+.r1-floating-hud .r1-dock-scroll > .r1-dice-event .r1-dice-results {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+}
+.r1-dock-scroll > .r1-dice-event .r1-received-card {
+    width: 100%;
+}
+.r1-dock-scroll > .r1-dice-event .r1-swap-choice {
+    width: 100%;
+}
+.r1-dock-scroll > .r1-dice-event .r1-swap-choice .r1-action-row {
+    display: flex;
+    width: 100%;
+}
+.r1-dock-scroll > .r1-dice-event .r1-swap-choice .r1-action-row button {
+    flex: 1 1 auto;
 }

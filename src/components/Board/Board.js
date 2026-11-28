@@ -194,7 +194,7 @@ const Board = ({ G, ctx, moves }) => {
         setR1CardPreview(null)
         setR1Selection(null)
     }
-    const [viewMode, setViewMode] = useState('2d')
+    const [viewMode, setViewMode] = useState('3d')
     const [focusPlayerRequest, setFocusPlayerRequest] = useState(null)
     const [discardOpen, setDiscardOpen] = useState(false)
     const [selectedCellId, setSelectedCellId] = useState(null)

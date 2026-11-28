@@ -140,17 +140,11 @@ test('dice chooser limits risk to energy minus one and shows each pair result', 
     G.dropResult = { attackerId: 0, defenderId: 1, attackerLoss: 1, defenderLoss: 1 }
     rerender(<R1Controls {...props} />)
     expect(screen.getByText('1 opponent(s) in range · Free attack, maximum energy loss 2 energy')).toBeInTheDocument()
-    expect(within(screen.getByLabelText('Attacker, Player 1, 1 energy lost')).getByRole('meter')).toHaveAttribute(
-        'aria-valuenow',
-        '3'
-    )
+    expect(screen.getByLabelText('Attacker, Player 1, 1 energy lost')).toHaveTextContent('3/5 energy')
+    expect(screen.getByLabelText('Defender, Player 2, 1 energy lost')).toHaveTextContent('2/5 energy')
     expect(
-        screen.getByLabelText('Attacker, Player 1, 1 energy lost').querySelectorAll('[data-lost="true"][data-filled]')
-    ).toHaveLength(1)
-    expect(within(screen.getByLabelText('Defender, Player 2, 1 energy lost')).getByRole('meter')).toHaveAttribute(
-        'aria-valuenow',
-        '2'
-    )
+        screen.getByLabelText('Attacker, Player 1, 1 energy lost').querySelector('[data-loss="true"]')
+    ).toBeInTheDocument()
     expect(screen.getByLabelText('Attacker 6, defender 5, Defender −1')).toBeInTheDocument()
     expect(
         screen
@@ -294,11 +288,11 @@ test('a fallen opponent exposes a mandatory swap or keep decision, not movement'
     const props = { G, ctx, moves, selection: null, setSelection: jest.fn(), onTarget: jest.fn() }
     const { rerender } = render(<R1Controls {...props} />)
     const choice = screen.getByRole('group', { name: 'Position conquest' })
-    expect(within(choice).getByText('Player 2 fell!')).toBeInTheDocument()
+    expect(within(choice).getByText(/Player 2 fell\./)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Move', exact: true })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Attack · Drop In/ })).not.toBeInTheDocument()
     fireEvent.click(within(choice).getByRole('button', { name: 'Swap positions' }))
-    fireEvent.click(within(choice).getByRole('button', { name: 'Keep position' }))
+    fireEvent.click(within(choice).getByRole('button', { name: 'Stay' }))
     expect(moves.resolveSwap.mock.calls).toEqual([[true], [false]])
     G.currentMove = 'swap_card'
     G.pendingSwap = null
@@ -806,5 +800,108 @@ test('temporary match messages disappear while dice results remain open', () => 
     act(() => jest.advanceTimersByTime(3500))
     expect(screen.queryByText(G.message)).not.toBeInTheDocument()
     expect(screen.getByLabelText('Drop In dice results')).toBeInTheDocument()
+    jest.useRealTimers()
+})
+
+test('fallen opponent decision follows dice result in the same panel', () => {
+    jest.useFakeTimers()
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.players[1].energy = 0
+    G.currentMove = 'swap_choice'
+    G.pendingSwap = { targetPlayerId: 1, resumeMove: 'use_card' }
+    G.atkDices = [6]
+    G.defDices = [3]
+    G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 1 }
+    const moves = { resolveSwap: jest.fn() }
+    const { unmount } = render(
+        <R1Controls G={G} ctx={ctx} moves={moves} selection={null} setSelection={() => {}} onTarget={() => {}} />
+    )
+    expect(screen.getByLabelText('Drop In dice results')).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Position conquest' })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Player 1 hand')).not.toBeInTheDocument()
+    const defender = screen.getByLabelText('Defender, Player 2, 1 energy lost')
+    expect(defender.querySelector('[data-loss="true"]')).toHaveTextContent('−1')
+    fireEvent.click(screen.getByRole('button', { name: 'Show cards' }))
+    expect(screen.getByLabelText('Player 1 hand')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Hide cards' }))
+    expect(screen.queryByLabelText('Player 1 hand')).not.toBeInTheDocument()
+    act(() => jest.advanceTimersByTime(900))
+    expect(within(defender).getByText('Fell!')).toBeInTheDocument()
+    expect(defender.querySelector('[data-loss="true"]')).toBeNull()
+    const choice = screen.getByRole('group', { name: 'Position conquest' })
+    expect(choice.closest('.r1-dice-event')).toContainElement(screen.getByLabelText('Drop In dice results'))
+    fireEvent.click(within(choice).getByRole('button', { name: 'Stay' }))
+    expect(moves.resolveSwap).toHaveBeenCalledWith(false)
+    unmount()
+    jest.useRealTimers()
+})
+
+test('consecutive dice results replace player energy rows instead of accumulating', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    G.atkDices = [4]
+    G.defDices = [2]
+    G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 1 }
+    const props = { G, ctx, moves: {}, selection: null, setSelection: jest.fn(), onTarget: jest.fn() }
+    const { rerender } = render(<R1Controls {...props} />)
+    for (let id = 2; id <= 4; id++) {
+        G.dropResult = { ...G.dropResult, id }
+        rerender(<R1Controls {...props} />)
+        expect(screen.getAllByLabelText(/Attacker, Player 1,/)).toHaveLength(1)
+        expect(screen.getAllByLabelText(/Defender, Player 2,/)).toHaveLength(1)
+        expect(screen.getAllByLabelText('Drop In dice results')).toHaveLength(1)
+    }
+})
+
+test('identifies the fallen opponent card actually retained after a duel', () => {
+    jest.useFakeTimers()
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    const card = G.players[1].cards[0]
+    const props = { G, ctx, moves: {}, selection: null, setSelection: jest.fn(), onTarget: jest.fn() }
+    const { rerender, unmount } = render(<R1Controls {...props} />)
+    G.players[1].cards = G.players[1].cards.filter((item) => item.id !== card.id)
+    G.players[0].cards = [...G.players[0].cards, card]
+    G.players[1].energy = 0
+    G.currentMove = 'swap_choice'
+    G.pendingSwap = { targetPlayerId: 1, resumeMove: 'use_card' }
+    G.atkDices = [6]
+    G.defDices = [1]
+    G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 1 }
+    rerender(<R1Controls {...props} />)
+    expect(screen.queryByLabelText('Received card: ' + card.Name)).not.toBeInTheDocument()
+    act(() => jest.advanceTimersByTime(900))
+    expect(screen.getByLabelText('Received card: ' + card.Name)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Show cards' }))
+    const hand = screen.getByLabelText('Player 1 hand')
+    expect(hand.querySelector('[data-new-card="true"]')).toHaveTextContent(card.Name)
+    expect(hand.querySelectorAll('[data-new-card="true"]')).toHaveLength(1)
+    unmount()
+    jest.useRealTimers()
+})
+
+test('does not announce a transferred card that was discarded immediately', () => {
+    jest.useFakeTimers()
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.turn = 2
+    const card = G.players[1].cards[0]
+    const props = { G, ctx, moves: {}, selection: null, setSelection: jest.fn(), onTarget: jest.fn() }
+    const { rerender, unmount } = render(<R1Controls {...props} />)
+    G.players[1].cards = G.players[1].cards.filter((item) => item.id !== card.id)
+    G.players[1].energy = 0
+    G.currentMove = 'swap_choice'
+    G.pendingSwap = { targetPlayerId: 1, resumeMove: 'use_card' }
+    G.atkDices = [6]
+    G.defDices = [1]
+    G.dropResult = { id: 1, attackerId: 0, defenderId: 1, attackerLoss: 0, defenderLoss: 1 }
+    rerender(<R1Controls {...props} />)
+    act(() => jest.advanceTimersByTime(900))
+    expect(screen.queryByLabelText('Received card: ' + card.Name)).not.toBeInTheDocument()
+    unmount()
     jest.useRealTimers()
 })

@@ -280,6 +280,12 @@ export default function R1Controls({
             ? 'roll:' + G.dropResult.id
             : ['legacy', G.turn, ctx.currentPlayer, G.atkDices.join(','), G.defDices.join(',')].join(':')
     const showDice = G.atkDices.length > 0 && dismissedDice !== diceKey
+    const [swapReadyKey, setSwapReadyKey] = useState(null)
+    useEffect(() => {
+        if (!swapChoice || !showDice) return
+        const timer = setTimeout(() => setSwapReadyKey(diceKey), 900)
+        return () => clearTimeout(timer)
+    }, [swapChoice, showDice, diceKey])
     const repeatTarget =
         G.dropResult &&
         Number(ctx.currentPlayer) === G.dropResult.attackerId &&
@@ -287,7 +293,45 @@ export default function R1Controls({
         dropTargets.includes(G.dropResult.defenderId)
             ? G.dropResult.defenderId
             : null
+    const [receivedCard, setReceivedCard] = useState(null)
+    const previousHands = useRef(null)
+    useEffect(() => {
+        const hands = Object.fromEntries(
+            Object.entries(G.players).map(([id, p]) => [id, p.cards.map((card) => card.id)])
+        )
+        const previous = previousHands.current
+        const result = G.dropResult
+        if (
+            previous &&
+            result?.id != null &&
+            previous.rollId !== result.id &&
+            Number(ctx.currentPlayer) === result.attackerId &&
+            G.players[result.defenderId]?.energy === 0
+        ) {
+            const gained = hand.cards.find(
+                (card) =>
+                    previous.hands[result.defenderId]?.includes(card.id) &&
+                    !previous.hands[result.attackerId]?.includes(card.id)
+            )
+            setReceivedCard(
+                gained ? { id: gained.id, name: gained.Name, playerId: result.attackerId, rollId: result.id } : null
+            )
+        }
+        previousHands.current = { hands, rollId: result?.id ?? null }
+    }, [G.players, G.dropResult, ctx.currentPlayer, hand.cards])
+    const receivedThisRoll =
+        receivedCard &&
+        receivedCard.playerId === Number(ctx.currentPlayer) &&
+        receivedCard.rollId === G.dropResult?.id &&
+        hand.cards.some((card) => card.id === receivedCard.id)
     const [handHidden, setHandHidden] = useState(false)
+    const [handOverrideKey, setHandOverrideKey] = useState(null)
+    const handSuppressed = (rollingDrop || showDice || !!swapChoice) && handOverrideKey !== diceKey
+    const handVisible = !handHidden && !handSuppressed
+    const handRef = useRef(null)
+    useEffect(() => {
+        if (handVisible && handOverrideKey === diceKey) handRef.current?.scrollIntoView?.({ block: 'nearest' })
+    }, [handVisible, handOverrideKey, diceKey])
     const [localDiscardOpen, setLocalDiscardOpen] = useState(false)
     const discardOpen = externalDiscardOpen ?? localDiscardOpen
     const setDiscardOpen = onDiscardOpenChange || setLocalDiscardOpen
@@ -364,6 +408,7 @@ export default function R1Controls({
         setSelection(null)
     }
     function resolveSwap(accept) {
+        setDismissedDice(diceKey)
         inspectCard(null)
         setSelection(null)
         moves.resolveSwap(accept)
@@ -401,12 +446,15 @@ export default function R1Controls({
             className="r1-hand-toggle"
             onClick={() => {
                 inspectCard(null)
-                setHandHidden((value) => !value)
+                if (handSuppressed) {
+                    setHandOverrideKey(diceKey)
+                    setHandHidden(false)
+                } else setHandHidden((value) => !value)
             }}
-            aria-expanded={!handHidden}
-            aria-label={handHidden ? 'Show cards' : 'Hide cards'}
+            aria-expanded={handVisible}
+            aria-label={handVisible ? 'Hide cards' : 'Show cards'}
             aria-describedby="r1-hand-count-description"
-            title={handHidden ? 'Show cards' : 'Hide cards'}
+            title={handVisible ? 'Hide cards' : 'Show cards'}
         >
             <span className="r1-hand-toggle-icon" aria-hidden="true">
                 <FeedbackIcon kind="cards" />
@@ -424,7 +472,7 @@ export default function R1Controls({
                 {showTurnSteps ? '; card ' + CARD_RAIL_LABELS[cardRailState].toLowerCase() : ''}
             </span>
             <svg className="r1-hand-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24">
-                <path d={handHidden ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'} />
+                <path d={handVisible ? 'm6 9 6 6 6-6' : 'm6 15 6-6 6 6'} />
             </svg>
         </button>
     )
@@ -501,6 +549,183 @@ export default function R1Controls({
                   ))}
         </div>
     )
+
+    const swapPanel = (
+        <div className="r1-swap-choice r1-glass" role="group" aria-label="Position conquest">
+            {!showDice && (
+                <strong className="r1-fell-indicator">
+                    <PlayerIcon playerId={G.pendingSwap?.targetPlayerId ?? 0} /> Fell!
+                </strong>
+            )}
+            <span className="r1-sr-only">
+                Player {(G.pendingSwap?.targetPlayerId ?? 0) + 1} fell. Take their hex instead of moving, or stay and
+                continue.
+            </span>
+            <div className="r1-action-row">
+                <button type="button" className="r1-move-button" onClick={() => resolveSwap(true)}>
+                    Swap positions
+                </button>
+                <button type="button" onClick={() => resolveSwap(false)}>
+                    Stay
+                </button>
+            </div>
+        </div>
+    )
+    const resultPanel = !rollingDrop &&
+        (winner ||
+            showDice ||
+            (G.message &&
+                G.message !== dismissedMessage &&
+                !G.message.startsWith('Drop In:') &&
+                !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) &&
+                /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) && (
+            <div className={'r1-match-event r1-glass' + (showDice ? ' r1-dice-event' : '')} aria-live="polite">
+                {winner ? (
+                    <>
+                        <FeedbackIcon kind="flag" />
+                        <strong>Player {winner.position + 1} wins!</strong>
+                        <span>First to the beach.</span>
+                    </>
+                ) : (
+                    G.message !== dismissedMessage &&
+                    !(G.dropResult && G.message?.startsWith('Drop In:')) && <span>{G.message}</span>
+                )}
+                {showDice && (
+                    <PanelHeader
+                        title="Drop In result"
+                        backLabel="Back from dice result"
+                        closeLabel="Close dice result"
+                        onBack={() => {
+                            setDismissedDice(diceKey)
+                            if (lastDropOrigin?.kind === 'hex') onBackAttack(lastDropOrigin)
+                            else if (lastDropOrigin?.kind !== 'board')
+                                setSelection({ kind: 'drop', diceCount: maxAttackDice })
+                        }}
+                        onClose={() => setDismissedDice(diceKey)}
+                    />
+                )}
+                {showDice && (
+                    <div className="r1-dice-results" aria-label="Drop In dice results">
+                        {G.dropResult && (
+                            <div className="r1-dice-sides" key={'sides:' + diceKey}>
+                                {[
+                                    ['Attacker', G.dropResult.attackerId, G.dropResult.attackerLoss],
+                                    ['Defender', G.dropResult.defenderId, G.dropResult.defenderLoss],
+                                ].map(([role, id, loss]) => (
+                                    <div
+                                        className="r1-dice-side"
+                                        key={role}
+                                        aria-label={role + ', Player ' + (id + 1) + ', ' + loss + ' energy lost'}
+                                    >
+                                        <PlayerIcon playerId={id} />
+                                        <EnergyMeter energy={G.players[id]?.energy ?? 0} lost={loss} />
+                                        {swapChoice &&
+                                        G.pendingSwap.targetPlayerId === id &&
+                                        swapReadyKey === diceKey ? (
+                                            <strong className="r1-dice-energy" data-fell="true">
+                                                Fell!
+                                            </strong>
+                                        ) : loss > 0 ? (
+                                            <strong className="r1-dice-energy" data-loss="true" aria-hidden="true">
+                                                <FeedbackIcon kind="energy" />−{loss}
+                                            </strong>
+                                        ) : (
+                                            <span className="r1-dice-energy-placeholder" aria-hidden="true" />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <div className="r1-dice-pairs" key={'pairs:' + diceKey}>
+                            {Array.from({ length: Math.max(G.atkDices.length, G.defDices.length) }, (_, i) => {
+                                const attack = G.atkDices[i],
+                                    defense = G.defDices[i]
+                                const result =
+                                    attack == null || defense == null
+                                        ? 'unpaired'
+                                        : attack === defense
+                                        ? 'tie'
+                                        : attack > defense
+                                        ? 'win'
+                                        : 'loss'
+                                const label =
+                                    result === 'unpaired'
+                                        ? 'Unpaired'
+                                        : result === 'tie'
+                                        ? 'Tie'
+                                        : result === 'win'
+                                        ? 'Defender −1'
+                                        : 'Attacker −1'
+                                return (
+                                    <div
+                                        key={i}
+                                        className="r1-dice-pair"
+                                        data-result={result}
+                                        aria-label={
+                                            (attack == null ? 'No attacker die' : 'Attacker ' + attack) +
+                                            ', ' +
+                                            (defense == null ? 'no defender die' : 'defender ' + defense) +
+                                            ', ' +
+                                            label
+                                        }
+                                    >
+                                        <DiceFace value={attack} lost={result === 'loss'} />
+                                        <span className="r1-dice-versus" aria-hidden="true">
+                                            {result === 'tie'
+                                                ? '='
+                                                : result === 'win'
+                                                ? '→'
+                                                : result === 'loss'
+                                                ? '←'
+                                                : '·'}
+                                        </span>
+                                        <DiceFace value={defense} lost={result === 'win'} />
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
+                {showDice && receivedThisRoll && (!swapChoice || swapReadyKey === diceKey) && (
+                    <div className="r1-received-card" aria-label={'Received card: ' + receivedCard.name}>
+                        <img src={cardArt[receivedCard.name]} alt="" />
+                        <span>
+                            Received <strong>{receivedCard.name}</strong>
+                        </span>
+                    </div>
+                )}
+                {showDice && swapChoice && swapReadyKey === diceKey && swapPanel}
+                {showDice && repeatTarget != null && (
+                    <div className="r1-repeat-controls" aria-label="Repeat Drop In">
+                        <div className="r1-repeat-dice" role="group" aria-label="Attack dice">
+                            {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map((count) => (
+                                <button
+                                    type="button"
+                                    key={count}
+                                    aria-pressed={repeatCount === count}
+                                    onClick={() => setRepeatDice(count)}
+                                >
+                                    {count === 1 ? '1 die' : count + ' dice'}
+                                    <DropInAdvantage
+                                        odds={getDropInAdvantage(player.energy, G.players[repeatTarget].energy, count)}
+                                    />
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            className="r1-repeat-action"
+                            onClick={() => {
+                                setDismissedDice(diceKey)
+                                onRepeatDrop(G.players[repeatTarget].cellPosition, repeatCount, repeatTarget)
+                            }}
+                        >
+                            Attack again
+                        </button>
+                    </div>
+                )}
+            </div>
+        )
 
     return (
         <section className="r1-floating-hud" aria-label="R1 match controls">
@@ -721,156 +946,7 @@ export default function R1Controls({
                     </div>
                 )}
             </div>
-            {!rollingDrop &&
-                (winner ||
-                    showDice ||
-                    (G.message &&
-                        G.message !== dismissedMessage &&
-                        !G.message.startsWith('Drop In:') &&
-                        !['Round 1: no attacks.', 'Choose a card, attack or move.'].includes(G.message) &&
-                        /fell|lost|loses|recover|swap|redirect|jumped|surf current|kept/i.test(G.message))) && (
-                    <div className={'r1-match-event r1-glass' + (showDice ? ' r1-dice-event' : '')} aria-live="polite">
-                        {winner ? (
-                            <>
-                                <FeedbackIcon kind="flag" />
-                                <strong>Player {winner.position + 1} wins!</strong>
-                                <span>First to the beach.</span>
-                            </>
-                        ) : (
-                            G.message !== dismissedMessage &&
-                            !(G.dropResult && G.message?.startsWith('Drop In:')) && <span>{G.message}</span>
-                        )}
-                        {showDice && (
-                            <PanelHeader
-                                title="Drop In result"
-                                backLabel="Back from dice result"
-                                closeLabel="Close dice result"
-                                onBack={() => {
-                                    setDismissedDice(diceKey)
-                                    if (lastDropOrigin?.kind === 'hex') onBackAttack(lastDropOrigin)
-                                    else if (lastDropOrigin?.kind !== 'board')
-                                        setSelection({ kind: 'drop', diceCount: maxAttackDice })
-                                }}
-                                onClose={() => setDismissedDice(diceKey)}
-                            />
-                        )}
-                        {showDice && (
-                            <div className="r1-dice-results" aria-label="Drop In dice results">
-                                {G.dropResult && (
-                                    <div className="r1-dice-sides">
-                                        {[
-                                            ['Attacker', G.dropResult.attackerId, G.dropResult.attackerLoss],
-                                            ['Defender', G.dropResult.defenderId, G.dropResult.defenderLoss],
-                                        ].map(([role, id, loss]) => (
-                                            <div
-                                                className="r1-dice-side"
-                                                key={role}
-                                                aria-label={
-                                                    role + ', Player ' + (id + 1) + ', ' + loss + ' energy lost'
-                                                }
-                                            >
-                                                <PlayerIcon playerId={id} />
-                                                <EnergyMeter energy={G.players[id]?.energy ?? 0} lost={loss} />
-                                                {loss > 0 ? (
-                                                    <strong
-                                                        className="r1-dice-energy"
-                                                        data-loss="true"
-                                                        aria-hidden="true"
-                                                    >
-                                                        <FeedbackIcon kind="energy" />−{loss}
-                                                    </strong>
-                                                ) : (
-                                                    <span className="r1-dice-energy-placeholder" aria-hidden="true" />
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                <div className="r1-dice-pairs" key={diceKey}>
-                                    {Array.from({ length: Math.max(G.atkDices.length, G.defDices.length) }, (_, i) => {
-                                        const attack = G.atkDices[i],
-                                            defense = G.defDices[i]
-                                        const result =
-                                            attack == null || defense == null
-                                                ? 'unpaired'
-                                                : attack === defense
-                                                ? 'tie'
-                                                : attack > defense
-                                                ? 'win'
-                                                : 'loss'
-                                        const label =
-                                            result === 'unpaired'
-                                                ? 'Unpaired'
-                                                : result === 'tie'
-                                                ? 'Tie'
-                                                : result === 'win'
-                                                ? 'Defender −1'
-                                                : 'Attacker −1'
-                                        return (
-                                            <div
-                                                key={i}
-                                                className="r1-dice-pair"
-                                                data-result={result}
-                                                aria-label={
-                                                    (attack == null ? 'No attacker die' : 'Attacker ' + attack) +
-                                                    ', ' +
-                                                    (defense == null ? 'no defender die' : 'defender ' + defense) +
-                                                    ', ' +
-                                                    label
-                                                }
-                                            >
-                                                <DiceFace value={attack} lost={result === 'loss'} />
-                                                <span className="r1-dice-versus" aria-hidden="true">
-                                                    {result === 'tie'
-                                                        ? '='
-                                                        : result === 'win'
-                                                        ? '→'
-                                                        : result === 'loss'
-                                                        ? '←'
-                                                        : '·'}
-                                                </span>
-                                                <DiceFace value={defense} lost={result === 'win'} />
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-                        )}
-                        {showDice && repeatTarget != null && (
-                            <div className="r1-repeat-controls" aria-label="Repeat Drop In">
-                                <div className="r1-repeat-dice" role="group" aria-label="Attack dice">
-                                    {Array.from({ length: maxAttackDice }, (_, i) => i + 1).map((count) => (
-                                        <button
-                                            type="button"
-                                            key={count}
-                                            aria-pressed={repeatCount === count}
-                                            onClick={() => setRepeatDice(count)}
-                                        >
-                                            {count === 1 ? '1 die' : count + ' dice'}
-                                            <DropInAdvantage
-                                                odds={getDropInAdvantage(
-                                                    player.energy,
-                                                    G.players[repeatTarget].energy,
-                                                    count
-                                                )}
-                                            />
-                                        </button>
-                                    ))}
-                                </div>
-                                <button
-                                    type="button"
-                                    className="r1-repeat-action"
-                                    onClick={() => {
-                                        setDismissedDice(diceKey)
-                                        onRepeatDrop(G.players[repeatTarget].cellPosition, repeatCount, repeatTarget)
-                                    }}
-                                >
-                                    Attack again
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                )}
+            {!showDice && resultPanel}
             {rollingDrop && (
                 <div className="r1-roll-overlay" role="status" aria-live="polite" aria-label="Rolling dice">
                     <div className="r1-roll-animation" aria-hidden="true">
@@ -882,6 +958,7 @@ export default function R1Controls({
             {!winner && (
                 <div className="r1-hud-dock">
                     <div className="r1-dock-scroll">
+                        {showDice && resultPanel}
                         {(keyboardMoves.length > 0 || (!selection && dropTargets.length > 0)) && (
                             <div className="r1-movement-access" aria-label="Keyboard board actions">
                                 {keyboardMoves.map((id) => (
@@ -915,20 +992,7 @@ export default function R1Controls({
                                     ))}
                             </div>
                         )}
-                        {swapChoice && (
-                            <div className="r1-swap-choice r1-glass" role="group" aria-label="Position conquest">
-                                <strong>Player {G.pendingSwap.targetPlayerId + 1} fell!</strong>
-                                <span>Take their hex instead of moving, or keep your position and continue.</span>
-                                <div className="r1-action-row">
-                                    <button type="button" className="r1-move-button" onClick={() => resolveSwap(true)}>
-                                        Swap positions
-                                    </button>
-                                    <button type="button" onClick={() => resolveSwap(false)}>
-                                        Keep position
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                        {swapChoice && !showDice && swapPanel}
                         {detailCard && feedback && (
                             <div
                                 className="r1-card-detail r1-glass"
@@ -1161,8 +1225,12 @@ export default function R1Controls({
                                 (selection || !['use_card', 'maneuver'].includes(G.currentMove)) &&
                                 targetButtons}
                         </div>
-                        {!handHidden && (
-                            <div className="r1-hand" aria-label={'Player ' + (hand.position + 1) + ' hand'}>
+                        {handVisible && (
+                            <div
+                                ref={handRef}
+                                className="r1-hand"
+                                aria-label={'Player ' + (hand.position + 1) + ' hand'}
+                            >
                                 {hand.cards.map((card, index) => {
                                     const { reason, playable } = getR1CardFeedback(G, ctx, index)
                                     return (
@@ -1170,6 +1238,9 @@ export default function R1Controls({
                                             type="button"
                                             key={card.id}
                                             data-card-tone={cardTone[card.Name]}
+                                            data-new-card={
+                                                (!!receivedThisRoll && card.id === receivedCard.id) || undefined
+                                            }
                                             aria-disabled={!playable}
                                             aria-pressed={selection?.kind === 'card' && selection.index === index}
                                             style={{
@@ -1185,6 +1256,14 @@ export default function R1Controls({
                                             }}
                                             onClick={() => playCard(index)}
                                         >
+                                            {!!receivedThisRoll && card.id === receivedCard.id && (
+                                                <span className="r1-new-card-badge">New</span>
+                                            )}
+                                            {!playable && (
+                                                <span className="r1-card-unavailable-icon" aria-hidden="true">
+                                                    <FeedbackIcon kind="blocked" />
+                                                </span>
+                                            )}
                                             <img
                                                 src={cardArt[card.Name]}
                                                 alt=""
