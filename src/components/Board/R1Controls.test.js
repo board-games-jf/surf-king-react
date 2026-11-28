@@ -517,8 +517,25 @@ test('Stone inspection explains the effect, available locations and next step', 
     ).toBeInTheDocument()
     expect(screen.queryByText(/\d+ available hexes/)).not.toBeInTheDocument()
     expect(screen.getByText('Select this card to continue.')).toBeInTheDocument()
+    fireEvent.click(stone)
+    expect(props.setSelection).toHaveBeenLastCalledWith({ kind: 'card', index: 0 })
     rerender(<R1Controls {...props} selection={{ kind: 'card', index: 0 }} />)
     expect(screen.getByText('Choose a highlighted hex.')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Player 1 hand')).not.toBeInTheDocument()
+    const panel = screen.getByLabelText('Card information')
+    expect(within(panel).getByText('Place: 3 hexes')).toBeInTheDocument()
+    const picker = within(panel).getByLabelText('Choose target hex by number').closest('details')
+    expect(picker).not.toHaveAttribute('open')
+    expect(panel).toContainElement(screen.getByLabelText('Legal target hexes'))
+    expect(document.querySelector('.r1-hud-context .r1-targets')).toBeNull()
+    picker.open = true
+    const target = within(picker).getAllByRole('button', { name: /Select hex / })[0]
+    const hex = Number(target.getAttribute('aria-label').replace('Select hex ', '')) - 1
+    fireEvent.click(target)
+    expect(props.onTarget).toHaveBeenCalledWith(hex)
+    fireEvent.click(screen.getByRole('button', { name: 'Show cards' }))
+    expect(screen.getByLabelText('Player 1 hand')).toBeInTheDocument()
+    expect(screen.getByLabelText('Card information')).toBeInTheDocument()
 })
 
 test('player indicators focus their own surfer without selecting a game action', () => {

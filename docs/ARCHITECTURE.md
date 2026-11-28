@@ -221,3 +221,6 @@ Round HUD clarity (#60, SK-DEC-049): `getR1RoundOrder` preserves the engine orde
 
 
 Visual feedback refinement (#62): `r1DropInOdds` enumerates all four legal sorted-d6 matchup tables once, then derives a qualitative net-energy advantage and maximum matched-pair loss from actual energy and selected dice. `DropInAdvantage` is reused by the contextual inspector and existing dice chooser. It is advisory, not part of engine legality. The hex status descriptor carries terrain identity and shared normalized medallion paths are used in SVG and Three.js; the existing status overlays remain presentation-only.
+
+
+R1 card context (SK-DEC-056): `CardContextPanel` composes the existing card feedback, artwork and legal target callbacks. A native disclosure contains numbered hex shortcuts; individual player shortcuts remain inline. The existing Board target descriptor and engine dispatch are unchanged. Shared scrollbar tokens live in `src/index.css` and apply to native scroll containers across screens.

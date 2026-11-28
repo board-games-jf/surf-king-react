@@ -12,7 +12,7 @@ import {
     r1AttackUnavailableReason,
     r1MaxAttackDice,
 } from '../../game/r1/SurfKingR1'
-import { HexBadge, HexEffects, FeedbackIcon, terrainArt, compactHexAction } from './r1FeedbackVisuals'
+import { HexBadge, HexEffects, CardEffects, FeedbackIcon, terrainArt, compactHexAction } from './r1FeedbackVisuals'
 import { getR1CardFeedback } from './r1CardFeedback'
 import DropInAdvantage from './DropInAdvantage'
 import PanelHeader from './PanelHeader'
@@ -239,6 +239,70 @@ function DropResultDice({ result, players, currentPlayer, attackDice, defenseDic
                     ))}
                 </div>
             </div>
+        </div>
+    )
+}
+
+// One card panel owns the effect, next action, and optional target shortcuts.
+function CardContextPanel({ card, feedback, selected, closable, nextAction, canConfirm, onConfirm, targetButtons, playerTargets, onClose }) {
+    const compactPlacement = selected && feedback.kind === 'placement'
+    const placementNotes = {
+        Stone: 'Normally damages on first entry, then disappears.',
+        Storm: 'Damage on each ordinary entry.',
+        Cyclone: 'Redirects on entry.',
+        Island: 'Stays in place; restores energy on ordinary entry.',
+    }
+    return (
+        <div className="r1-card-detail r1-glass" data-selected={selected} data-closable={closable} aria-label="Card information" aria-live="polite">
+            <img className="r1-inspection-art" src={cardArt[card.Name]} alt="" />
+            <div className="r1-inspection-body">
+                <div className="r1-inspection-heading">
+                    <strong>{card.Name}</strong>
+                    <span className="r1-card-availability" data-playable={feedback.playable}
+                        role="img" aria-label={feedback.playable ? 'Available' : 'Unavailable'}>
+                        <FeedbackIcon kind={feedback.playable ? 'active' : 'lock'} />
+                    </span>
+                </div>
+                {compactPlacement && <CardEffects name={card.Name} />}
+                <p className="r1-card-description">
+                    {compactPlacement ? placementNotes[card.Name] || descriptions[card.Name] : descriptions[card.Name]}
+                </p>
+                {feedback.reason && (
+                    <span className="r1-blocked-reason">
+                        <FeedbackIcon kind="blocked" />
+                        {feedback.reason}
+                    </span>
+                )}
+                {feedback.playable && (
+                    <div className="r1-card-guidance">
+                        {['Energy x2', 'Lifeguard float'].includes(card.Name) && (
+                            <span className="r1-card-target-count">Your energy: {feedback.action}</span>
+                        )}
+                        {canConfirm ? (
+                            <button type="button" className="r1-confirm-card" onClick={onConfirm}>Use card</button>
+                        ) : (
+                            <span className="r1-card-next-action">
+                                <FeedbackIcon kind="move" />
+                                {nextAction}
+                            </span>
+                        )}
+                    </div>
+                )}
+                {targetButtons && (playerTargets ? targetButtons : (
+                    <details className="r1-card-hex-picker">
+                        <summary aria-label="Choose target hex by number">
+                            <FeedbackIcon kind="range" />
+                            <span>Hex list</span>
+                            <span className="r1-card-hex-count">{feedback.targets.length}</span>
+                        </summary>
+                        {targetButtons}
+                    </details>
+                ))}
+            </div>
+            {closable && (
+                <CloseButton className="r1-inspection-close"
+                    label={selected ? 'Deselect card' : 'Close card information'} onClick={onClose} />
+            )}
         </div>
     )
 }
@@ -567,6 +631,7 @@ export default function R1Controls({
             return
         }
         inspectCard(null)
+        if (r1SelectionTargets(G, ctx, { kind: 'card', index }).length > 0) setHandHidden(true)
         setSelection({ kind: 'card', index })
     }
     function confirmCard() {
@@ -1119,64 +1184,22 @@ export default function R1Controls({
                             </div>
                         )}
                         {detailCard && feedback && (
-                            <div
-                                className="r1-card-detail r1-glass"
-                                data-selected={!!selectedCard && !inspectingOther}
-                                data-closable={!!selectedCard || !!inspection?.pinned}
-                                aria-live="polite"
-                            >
-                                <img className="r1-inspection-art" src={cardArt[detailCard.Name]} alt="" />
-                                <div className="r1-inspection-body">
-                                    <div className="r1-inspection-heading">
-                                        <strong>{detailCard.Name}</strong>
-                                        <span
-                                            className="r1-card-availability"
-                                            data-playable={feedback.playable}
-                                            role="img"
-                                            aria-label={feedback.playable ? 'Available' : 'Unavailable'}
-                                        >
-                                            <FeedbackIcon kind={feedback.playable ? 'active' : 'lock'} />
-                                        </span>
-                                    </div>
-                                    <p className="r1-card-description">{descriptions[detailCard.Name]}</p>
-                                    {feedback.reason && (
-                                        <span className="r1-blocked-reason">
-                                            <FeedbackIcon kind="blocked" />
-                                            {feedback.reason}
-                                        </span>
-                                    )}
-                                    {feedback.playable && (
-                                        <div className="r1-card-guidance">
-                                            {['Energy x2', 'Lifeguard float'].includes(detailCard.Name) && (
-                                                <span className="r1-card-target-count">
-                                                    Your energy: {feedback.action}
-                                                </span>
-                                            )}
-                                            {canConfirmCard && !inspectingOther ? (
-                                                <button type="button" className="r1-confirm-card" onClick={confirmCard}>
-                                                    Use card
-                                                </button>
-                                            ) : (
-                                                <span className="r1-card-next-action">
-                                                    <FeedbackIcon kind="move" />
-                                                    {nextCardAction}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
-                                    {selectedCard && attacking && !inspectingOther && targetButtons}
-                                </div>
-                                {(selectedCard || inspection?.pinned) && (
-                                    <CloseButton
-                                        className="r1-inspection-close"
-                                        label={selectedCard ? 'Deselect card' : 'Close card information'}
-                                        onClick={() => {
-                                            inspectCard(null)
-                                            if (selectedCard) setSelection(null)
-                                        }}
-                                    />
-                                )}
-                            </div>
+                            <CardContextPanel
+                                key={detailCard.id}
+                                card={detailCard}
+                                feedback={feedback}
+                                selected={!!selectedCard && !inspectingOther}
+                                closable={!!selectedCard || !!inspection?.pinned}
+                                nextAction={nextCardAction}
+                                canConfirm={canConfirmCard && !inspectingOther}
+                                onConfirm={confirmCard}
+                                targetButtons={selectedCard && !inspectingOther ? targetButtons : null}
+                                playerTargets={attacking}
+                                onClose={() => {
+                                    inspectCard(null)
+                                    if (selectedCard) setSelection(null)
+                                }}
+                            />
                         )}
                         <div
                             className="r1-hud-context r1-glass"
@@ -1333,7 +1356,7 @@ export default function R1Controls({
                                     </div>
                                 )}
                             {selection?.targetPlayerId === undefined &&
-                                (!selectedCard || (!attacking && !inspectingOther)) &&
+                                !selectedCard &&
                                 (selection || !['use_card', 'maneuver'].includes(G.currentMove)) &&
                                 targetButtons}
                         </div>

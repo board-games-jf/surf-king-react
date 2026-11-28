@@ -92,6 +92,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-055 | Accepted | When recovering, show an explicit quick action to use Lifeguard float only if a playable copy is in the current hand. Keep free recovery as an alternative and reuse the existing card move; use the selected playable copy if present, otherwise the first eligible copy. | Owner requested immediate access to the recovery card from the recovery panel. Presentation only; recovery energy, card consumption and subsequent phase stay unchanged. | [#62](https://github.com/board-games-jf/surf-king-react/issues/62), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
 
+| SK-DEC-056 | Accepted | Use one contextual card panel for effects, guidance and target shortcuts. The board is the primary hex picker; numbered hex shortcuts remain in a collapsed accessible list, while individual player targets stay visible. Collapse the hand on targeted card selection and retain the existing Cards toggle. Apply a shared thin maritime scrollbar theme across the application without changing scroll behavior. | Owner approved the consolidated preview and requested consistent scroll styling. Existing target dispatch and game rules are unchanged; ghost model placement previews remain a separate follow-up. | [#62](https://github.com/board-games-jf/surf-king-react/issues/62), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.

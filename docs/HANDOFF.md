@@ -1,5 +1,7 @@
 # Project Handoff
 
+- PR #71: consolidate card details, existing effects and target shortcuts into CardContextPanel. Placement cards show compact effect chips and a native collapsed hex-number picker; player target shortcuts remain directly available. Selecting a targeted card collapses the hand, with the existing Cards toggle available to reopen it. Existing target dispatch and hover preview stay unchanged. Shared native scrollbar styling in index.css replaces local R1 colors, preserves scrolling and forced-color support. Updated Stone regression; Jest/build/browser validation pending. Ghost 3D previews remain a separate follow-up.
+
 - PR #71: replace the recovery panel's static Lifeguard float hint with an explicit one-click 3-energy recovery action only when an eligible float is in the hand. Prefer a selected eligible float; otherwise use the first eligible copy. Keep free 1-energy recovery and the normal card flow. Both use the existing engine moves and clear card inspection/selection. Added three React/engine integration regression cases; full suite/build/browser validation pending. No engine changes.
 
 - PR #71: keep movement guidance focused on the next action; remove the duplicate turn-history text and put the confirmed card-use check inside the shared Cards button. Repeat Drop In remains governed by eligibility, never shown as completed. Existing regression updated for available/unavailable/used, repeat eligibility, contextual guidance and turn reset. React/build/browser validation pending. Presentation only.
