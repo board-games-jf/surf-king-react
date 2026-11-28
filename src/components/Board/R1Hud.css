@@ -4175,3 +4175,19 @@
     border-color: #76bca0;
     color: #a0dfbd;
 }
+
+/* Recovery alternatives are explicit actions with equal visual weight. */
+.r1-floating-hud .r1-recovery-actions {
+    justify-content: center;
+    align-items: stretch;
+}
+.r1-floating-hud .r1-recovery-actions > button {
+    min-height: 36px;
+    padding: 6px 9px;
+    font-weight: 700;
+}
+.r1-floating-hud .r1-recovery-actions .r1-lifeguard-button {
+    background: #194954;
+    border-color: #80c7ad;
+    color: #eaf8f2;
+}

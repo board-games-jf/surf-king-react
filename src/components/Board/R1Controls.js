@@ -394,6 +394,11 @@ export default function R1Controls({
     const cardAvailable =
         ['use_card', 'swap_card', 'recover'].includes(G.currentMove) &&
         hand.cards.some((_, index) => r1CardPlayable(G, ctx, index))
+    const recoveryCardIndex = G.currentMove === 'recover'
+        ? selectedCard?.Name === 'Lifeguard float' && r1CardPlayable(G, ctx, selection.index)
+            ? selection.index
+            : hand.cards.findIndex((card, index) => card.Name === 'Lifeguard float' && r1CardPlayable(G, ctx, index))
+        : -1
     const cardRailState = getCardRailState(G, ctx, cardAvailable)
     const noMoveAvailable =
         G.currentMove === 'use_card' && !r1MoveTargets({ ...G, currentMove: 'maneuver' }, ctx).length
@@ -1192,18 +1197,32 @@ export default function R1Controls({
                                 <span>Position conquered. Use one remaining non-movement card or end turn.</span>
                             )}
                             {G.currentMove === 'recover' && (
-                                <div className="r1-action-row">
+                                <div className="r1-action-row r1-recovery-actions" role="group" aria-label="Recovery options">
                                     <button
                                         type="button"
                                         className="r1-recover-button"
                                         onClick={() => {
+                                            inspectCard(null)
                                             setSelection(null)
                                             moves.recover()
                                         }}
                                     >
                                         Recover free (1 energy)
                                     </button>
-                                    <span>Or use Lifeguard Float.</span>
+                                    {recoveryCardIndex >= 0 && (
+                                        <button
+                                            type="button"
+                                            className="r1-lifeguard-button"
+                                            onClick={() => {
+                                                if (!r1CardPlayable(G, ctx, recoveryCardIndex)) return
+                                                inspectCard(null)
+                                                setSelection(null)
+                                                moves.useCard(recoveryCardIndex)
+                                            }}
+                                        >
+                                            Use Lifeguard float (3 energy)
+                                        </button>
+                                    )}
                                 </div>
                             )}
                             {selection?.kind === 'drop' && !dropReason && selectedDefender && (

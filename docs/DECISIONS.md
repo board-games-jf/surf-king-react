@@ -90,6 +90,8 @@ Unique IDs and explicit statuses distinguish accepted owner direction from techn
 
 | SK-DEC-054 | Accepted | Keep turn guidance focused on the next legal contextual instruction and unavailable-action reasons. Show confirmed card use as a small check within the reusable Cards control, not as separate history text. Never show Drop In as completed, because consecutive attacks remain legal when eligible. | Owner approved the simplified turn guidance proposal. Continues SK-DEC-049; no gameplay or dispatch changes. | [#60](https://github.com/board-games-jf/surf-king-react/issues/60), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
 
+| SK-DEC-055 | Accepted | When recovering, show an explicit quick action to use Lifeguard float only if a playable copy is in the current hand. Keep free recovery as an alternative and reuse the existing card move; use the selected playable copy if present, otherwise the first eligible copy. | Owner requested immediate access to the recovery card from the recovery panel. Presentation only; recovery energy, card consumption and subsequent phase stay unchanged. | [#62](https://github.com/board-games-jf/surf-king-react/issues/62), [#71](https://github.com/board-games-jf/surf-king-react/pull/71) |
+
 ## Safeguards
 
 - A proposal is never an approved technical decision.

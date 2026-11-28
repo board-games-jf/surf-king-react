@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, within, fireEvent, act } from '@testing-library/react'
 import R1Controls from './R1Controls'
 import { getR1HexFeedback } from './r1HexFeedback'
-import { createR1Deck, setupR1 } from '../../game/r1/SurfKingR1'
+import { createR1Deck, setupR1, useR1Card, recoverR1 } from '../../game/r1/SurfKingR1'
 
 test('shows distinct illustrations and current R1 effects, including Surf Current', () => {
     const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
@@ -1080,4 +1080,52 @@ test('closing a pending knockdown keeps one compact decision with cards and resu
     expect(screen.queryByRole('group', { name: 'Position conquest' })).not.toBeInTheDocument()
     unmount()
     jest.useRealTimers()
+})
+
+
+test.each([null, 2])('quick Lifeguard recovery consumes exactly one eligible card (selected index %s)', (selectedIndex) => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    const deck = createR1Deck()
+    const floats = deck.filter((card) => card.Name === 'Lifeguard float').slice(0, 2)
+    G.players[0].cards = [deck.find((card) => card.Name === 'Storm'), ...floats]
+    G.players[0].energy = 0
+    G.currentMove = 'recover'
+    const index = selectedIndex ?? 1
+    const retained = G.players[0].cards[index === 1 ? 2 : 1].id
+    const moves = { useCard: jest.fn((i) => useR1Card(G, ctx, i)), recover: jest.fn() }
+    const setSelection = jest.fn()
+    const props = { G, ctx, moves, selection: selectedIndex == null ? null : { kind: 'card', index: selectedIndex }, setSelection, onTarget: jest.fn() }
+    const { rerender } = render(<R1Controls {...props} />)
+    const options = screen.getByRole('group', { name: 'Recovery options' })
+    expect(within(options).getByRole('button', { name: 'Recover free (1 energy)' })).toBeEnabled()
+    fireEvent.click(within(options).getByRole('button', { name: 'Use Lifeguard float (3 energy)' }))
+    expect(moves.useCard.mock.calls).toEqual([[index]])
+    expect(moves.recover).not.toHaveBeenCalled()
+    expect(setSelection).toHaveBeenLastCalledWith(null)
+    expect(G.players[0].energy).toBe(3)
+    expect(G.players[0].cards).toHaveLength(2)
+    expect(G.players[0].cards.some((card) => card.id === retained)).toBe(true)
+    expect(G.currentMove).toBe('maneuver')
+    rerender(<R1Controls {...props} selection={null} />)
+    expect(screen.queryByRole('group', { name: 'Recovery options' })).not.toBeInTheDocument()
+})
+
+test('recovery without Lifeguard float offers only the free action and preserves the hand', () => {
+    const ctx = { numPlayers: 2, currentPlayer: '0', random: { Number: () => 0, Shuffle: (xs) => xs.slice() } }
+    const G = setupR1(ctx)
+    G.players[0].cards = [createR1Deck().find((card) => card.Name === 'Storm')]
+    G.players[0].energy = 0
+    G.currentMove = 'recover'
+    const moves = { useCard: jest.fn(), recover: jest.fn(() => recoverR1(G, ctx)) }
+    const props = { G, ctx, moves, selection: null, setSelection: jest.fn(), onTarget: jest.fn() }
+    render(<R1Controls {...props} />)
+    const options = screen.getByRole('group', { name: 'Recovery options' })
+    expect(within(options).queryByRole('button', { name: /Use Lifeguard float/ })).not.toBeInTheDocument()
+    fireEvent.click(within(options).getByRole('button', { name: 'Recover free (1 energy)' }))
+    expect(moves.recover).toHaveBeenCalledTimes(1)
+    expect(moves.useCard).not.toHaveBeenCalled()
+    expect(G.players[0].energy).toBe(1)
+    expect(G.players[0].cards).toHaveLength(1)
+    expect(G.currentMove).toBe('use_card')
 })
